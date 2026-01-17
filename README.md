@@ -1,26 +1,122 @@
-# Turborepo starter
+# 🎨 SoulCanvas - Life Journaling App
 
-This Turborepo starter is maintained by the Turborepo core team.
+A beautiful, 3D-first journaling application built with a distributed monorepo architecture.
 
-## Using this example
+## 🏗️ Architecture
 
-Run the following command:
+This is a **Distributed Monorepo** using **Bun + Turborepo** with the following structure:
 
-```sh
-npx create-turbo@latest
+### Apps
+
+- `@soulcanvas/frontend`: Next.js 14+ app with React Three Fiber for 3D canvas
+- `@soulcanvas/backend`: NestJS API server with tRPC for type-safe communication
+
+### Packages
+
+- `@soulcanvas/database`: Drizzle ORM schemas and database client
+- `@soulcanvas/api`: Shared tRPC router and client
+- `@soulcanvas/ai-engine`: AI prompts, embeddings, and LLM integration
+- `@soulcanvas/logic`: Pure functions for canvas calculations and emotion scoring
+- `@soulcanvas/ui-kit`: Shared design system components
+- `@soulcanvas/ui`: React component library
+- `@soulcanvas/typescript-config`: Shared TypeScript configurations
+- `@soulcanvas/eslint-config`: ESLint configurations (legacy, migrating to Biome)
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Bun** 1.3.5+ (package manager)
+- **Node.js** 18+ (runtime)
+- **PostgreSQL** (database)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd soulcanvas
 ```
 
-## What's inside?
+2. Install dependencies:
+```bash
+bun install
+```
 
-This Turborepo includes the following packages/apps:
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your database and API keys
+```
 
-### Apps and Packages
+4. Set up the database:
+```bash
+cd packages/database
+bun run db:push
+```
 
-- `@soulcanvas/frontend`: a [Next.js](https://nextjs.org/) app
-- `@soulcanvas/backend`: a [NestJS](https://nestjs.com/) API server
-- `@soulcanvas/ui`: a React component library shared by the frontend application
-- `@soulcanvas/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@soulcanvas/typescript-config`: `tsconfig.json`s used throughout the monorepo
+5. Start development servers:
+```bash
+# From root - starts both frontend and backend
+bun run dev
+
+# Or individually:
+cd apps/frontend && bun run dev  # Runs on port 3001
+cd apps/backend && bun run dev   # Runs on port 3000
+```
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Next.js 14+** (App Router)
+- **React Three Fiber** (3D rendering)
+- **TanStack Query** (data fetching & caching)
+- **tRPC** (end-to-end type safety)
+- **Tailwind CSS** + **Framer Motion** (styling & animations)
+- **Clerk** (authentication)
+
+### Backend
+- **NestJS** (framework)
+- **Bun** (runtime - 3x faster than Node.js)
+- **tRPC v11** (type-safe API)
+- **Drizzle ORM** (database)
+- **PostgreSQL** (primary database)
+
+### Development Tools
+- **Biome** (linting & formatting - 20x faster than ESLint/Prettier)
+- **Turborepo** (monorepo orchestration)
+- **Husky** + **lint-staged** (git hooks)
+- **Knip** (dead code detection)
+
+## 📦 Package Scripts
+
+### Root Level
+- `bun run dev` - Start all apps in development mode
+- `bun run build` - Build all apps and packages
+- `bun run lint` - Lint all code with Biome
+- `bun run lint:fix` - Fix linting issues
+- `bun run check-types` - Type-check all packages
+- `bun run knip` - Find unused code and dependencies
+
+### Database Package
+- `bun run db:generate` - Generate migrations
+- `bun run db:push` - Push schema changes to database
+- `bun run db:studio` - Open Drizzle Studio
+
+## 🎯 Key Features
+
+- **3D Canvas**: Visualize journal entries as connected nodes in 3D space
+- **Type Safety**: End-to-end type safety with tRPC
+- **Offline-First**: PWA support with TanStack Query persistence
+- **AI Integration**: Mood analysis and reflection prompts
+- **Privacy-First**: Encryption at rest for journal entries
+
+## 📝 Development Philosophy
+
+1. **Type-Safe Bridge**: Shared packages ensure type safety across frontend and backend
+2. **Modular Evolution**: Features are isolated in modules for easy extension
+3. **Performance First**: Bun runtime and Biome for maximum speed
+4. **Offline-First**: Works without internet connection
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
