@@ -1,0 +1,17 @@
+/* Design system styles - shared across all platforms */
+:root {
+  /* Mood Colors */
+  --color-happy: #ffd700;
+  --color-sad: #4a90e2;
+  --color-anxious: #ff6b6b;
+  --color-calm: #51cf66;
+  --color-angry: #ff4757;
+
+  /* Theme Colors */
+  --color-primary: #6366f1;
+  --color-secondary: #8b5cf6;
+  --color-background: #0a0a0a;
+  --color-surface: #1a1a1a;
+  --color-text: #ffffff;
+  --color-text-muted: #a0a0a0;
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@soulcanvas/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./router": "./src/router.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@soulcanvas/database": "*",
+    "@soulcanvas/ai-engine": "*",
+    "@soulcanvas/logic": "*",
+    "@trpc/server": "^11.0.0-rc.710",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@soulcanvas/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

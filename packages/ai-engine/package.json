@@ -1,0 +1,23 @@
+{
+  "name": "@soulcanvas/ai-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./prompts": "./src/prompts/index.ts",
+    "./embeddings": "./src/embeddings/index.ts",
+    "./llm": "./src/llm/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^1.0.0",
+    "@ai-sdk/anthropic": "^1.0.0",
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "@soulcanvas/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

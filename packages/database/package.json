@@ -1,0 +1,27 @@
+{
+  "name": "@soulcanvas/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./schema": "./src/schema/index.ts",
+    "./client": "./src/client.ts",
+    "./migrations": "./migrations"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.36.4",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@soulcanvas/typescript-config": "*",
+    "drizzle-kit": "^0.30.0",
+    "typescript": "5.9.2"
+  }
+}

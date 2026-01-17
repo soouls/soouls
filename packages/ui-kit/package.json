@@ -1,0 +1,24 @@
+{
+  "name": "@soulcanvas/ui-kit",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./*": "./src/*.tsx",
+    "./styles": "./src/styles/index.css"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "framer-motion": "^11.11.17"
+  },
+  "devDependencies": {
+    "@soulcanvas/eslint-config": "*",
+    "@soulcanvas/typescript-config": "*",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "typescript": "5.9.2"
+  }
+}
