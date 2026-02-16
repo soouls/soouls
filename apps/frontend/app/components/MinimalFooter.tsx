@@ -19,7 +19,7 @@ export const MinimalFooter = () => {
 
           <div className="flex gap-12 font-clarity text-sm tracking-widest uppercase text-slate-400">
             <a
-              href="#"
+              href="/sign-up"
               className="hover:text-slate-900 dark:hover:text-base-cream transition-colors"
             >
               Waitlist

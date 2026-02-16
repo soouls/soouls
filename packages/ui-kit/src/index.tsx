@@ -20,3 +20,4 @@ export { Footer, type FooterProps, type FooterColumn, type SocialLink } from './
 export { AuraBackground } from './AuraBackground';
 export { LifeCanvas3D } from './LifeCanvas3D';
 export { RiverTimeline } from './RiverTimeline';
+export * from './dashboard';

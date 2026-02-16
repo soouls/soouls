@@ -20,40 +20,24 @@ export const router = t.router;
 export const publicProcedure = t.procedure;
 
 // Protected procedure (requires authentication)
-export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-  if (!ctx.userId) {
-    throw new Error('Unauthorized');
-  }
-  return next({
-    ctx: {
-      ...ctx,
-      userId: ctx.userId, // Now guaranteed to be defined
-    },
+export type UsersApi = {
+  ensureUser: (clerkId: string) => Promise<string>; // Returns internal UUID
+};
+
+export function createAppRouter(services: { entries: EntriesApi; tasks: TasksApi; users: UsersApi }) {
+  const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
+    if (!ctx.userId) {
+      throw new Error('Unauthorized');
+    }
+    const dbUserId = await services.users.ensureUser(ctx.userId);
+    return next({
+      ctx: {
+        ...ctx,
+        userId: dbUserId, // Replace Clerk ID with Internal DB UUID
+      },
+    });
   });
-});
 
-export type EntriesApi = {
-  createEntry: (userId: string, content: string, type?: 'entry' | 'task') => Promise<unknown>;
-  getGalaxyData: (userId: string) => Promise<GalaxyData>;
-};
-
-export type TasksApi = {
-  convertToTask: (entryId: string, deadline: Date) => Promise<unknown>;
-};
-
-export type GalaxyData = Array<{
-  id: string;
-  content: string;
-  type: 'entry' | 'task';
-  sentimentColor: string | null;
-  sentimentLabel: string | null;
-  x: number;
-  y: number;
-  z: number;
-  visualMass: number;
-}>;
-
-export function createAppRouter(services: { entries: EntriesApi; tasks: TasksApi }) {
   return router({
     hello: publicProcedure.input(z.object({ name: z.string() })).query(({ input }) => {
       return {

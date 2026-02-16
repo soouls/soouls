@@ -3,6 +3,7 @@
 import { AuraBackground, Button, LifeCanvas3D } from '@soulcanvas/ui-kit';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
 import React from 'react';
 
 export function HeroSection() {
@@ -37,18 +38,22 @@ export function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-10">
-            <Button
-              size="lg"
-              className="px-10 py-8 text-lg rounded-full shadow-2xl shadow-aura-focus/20 transition-all hover:scale-105 active:scale-95"
-            >
-              Join the Waitlist
-            </Button>
-            <button
-              type="button"
-              className="font-clarity text-sm tracking-widest uppercase hover:opacity-100 transition-opacity opacity-50 text-slate-900 dark:text-base-cream"
-            >
-              The Vision
-            </button>
+            <Link href="/sign-up">
+              <Button
+                size="lg"
+                className="px-10 py-8 text-lg rounded-full shadow-2xl shadow-aura-focus/20 transition-all hover:scale-105 active:scale-95"
+              >
+                Join the Waitlist
+              </Button>
+            </Link>
+            <Link href="/sign-up">
+              <button
+                type="button"
+                className="font-clarity text-sm tracking-widest uppercase hover:opacity-100 transition-opacity opacity-50 text-slate-900 dark:text-base-cream"
+              >
+                The Vision
+              </button>
+            </Link>
           </div>
         </motion.div>
       </div>
