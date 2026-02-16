@@ -1,5 +1,6 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
+import { Playfair_Display } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { TRPCProvider } from '../src/providers/trpc-provider';
@@ -13,9 +14,14 @@ const geistMono = localFont({
   variable: '--font-geist-mono',
 });
 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+});
+
 export const metadata: Metadata = {
   title: 'SoulCanvas - Your Life Journal',
-  description: 'A beautiful 3D journaling experience',
+  description: 'A beautiful 3D digital life archive',
 };
 
 export default function RootLayout({
@@ -26,7 +32,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} font-clarity`}
+        >
           <TRPCProvider>{children}</TRPCProvider>
         </body>
       </html>

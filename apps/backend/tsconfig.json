@@ -8,7 +8,9 @@
     "baseUrl": "./",
     "incremental": true,
     "paths": {
-      "@soulcanvas/api/*": ["../../packages/api/src/*"]
+      "@soulcanvas/api/*": ["../../packages/api/src/*"],
+      "@soulcanvas/database/*": ["../../packages/database/src/*"],
+      "@soulcanvas/ai-engine/*": ["../../packages/ai-engine/src/*"]
     }
   },
   "include": ["src"],

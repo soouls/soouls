@@ -6,14 +6,16 @@
   "exports": {
     "./prompts": "./src/prompts/index.ts",
     "./embeddings": "./src/embeddings/index.ts",
-    "./llm": "./src/llm/index.ts"
+    "./llm": "./src/llm/index.ts",
+    "./sentiment": "./src/sentiment/index.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.0.0",
-    "ai": "^4.0.0"
+    "@ai-sdk/anthropic": "^3.0.28",
+    "@ai-sdk/openai": "^1.3.24",
+    "ai": "^4.3.19"
   },
   "devDependencies": {
     "@soulcanvas/typescript-config": "*",

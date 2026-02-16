@@ -1,6 +1,8 @@
 // Landing page components barrel export
+export { GalaxyView } from './GalaxyView';
 export { HeroSection } from './HeroSection';
-export { FeaturesSection } from './FeaturesSection';
-export { HowItWorksSection } from './HowItWorksSection';
-export { TestimonialsSection } from './TestimonialsSection';
-export { CTASection } from './CTASection';
+export { TimelineSection } from './TimelineSection';
+export { VaultSection } from './VaultSection';
+export { ArtifactsSection } from './ArtifactsSection';
+export { SundayReviewSection } from './SundayReviewSection';
+export { MinimalFooter } from './MinimalFooter';

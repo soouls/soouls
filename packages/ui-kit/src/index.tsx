@@ -17,3 +17,6 @@ export {
 } from './Typography';
 export { Navbar, type NavbarProps, type NavLink } from './Navbar';
 export { Footer, type FooterProps, type FooterColumn, type SocialLink } from './Footer';
+export { AuraBackground } from './AuraBackground';
+export { LifeCanvas3D } from './LifeCanvas3D';
+export { RiverTimeline } from './RiverTimeline';

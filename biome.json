@@ -8,6 +8,7 @@
   "files": {
     "ignoreUnknown": false,
     "ignore": [
+      "**/.agent/**",
       "**/node_modules/**",
       "**/dist/**",
       "**/.next/**",

@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
+import { ServicesModule } from '../services/services.module';
+import { TrpcController } from './trpc.controller';
 import { TrpcRouter } from './trpc.router';
-import { TrpcService } from './trpc.service';
 
 @Module({
-  providers: [TrpcService, TrpcRouter],
-  exports: [TrpcService, TrpcRouter],
+  imports: [ServicesModule],
+  controllers: [TrpcController],
+  providers: [TrpcRouter],
+  exports: [TrpcRouter],
 })
 export class TrpcModule {}

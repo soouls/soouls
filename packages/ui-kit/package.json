@@ -11,15 +11,22 @@
     "./Typography": "./src/Typography.tsx",
     "./Navbar": "./src/Navbar.tsx",
     "./Footer": "./src/Footer.tsx",
+    "./AuraBackground": "./src/AuraBackground.tsx",
+    "./LifeCanvas3D": "./src/LifeCanvas3D.tsx",
+    "./RiverTimeline": "./src/RiverTimeline.tsx",
     "./styles": "./src/styles/index.css"
   },
   "scripts": {
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@types/three": "^0.182.0",
+    "framer-motion": "^11.11.17",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "framer-motion": "^11.11.17"
+    "three": "^0.182.0"
   },
   "peerDependencies": {
     "next": ">=14.0.0"
