@@ -97,12 +97,18 @@ export default function DashboardPage() {
           className="col-span-1"
         >
           <div className="grid grid-cols-3 gap-3 mt-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="group cursor-pointer">
+            {[
+              { id: 'project-1', label: 'Project 1' },
+              { id: 'project-2', label: 'Project 2' },
+              { id: 'project-3', label: 'Project 3' },
+            ].map((project) => (
+              <div key={project.id} className="group cursor-pointer">
                 <div className="aspect-square rounded-xl bg-white/5 border border-white/5 flex items-center justify-center transition-colors group-hover:bg-amber-500/10 group-hover:border-amber-500/30">
                   <FolderOpenIcon className="w-6 h-6 text-slate-600 group-hover:text-amber-500 transition-colors" />
                 </div>
-                <p className="mt-2 text-[10px] text-center text-slate-500 truncate">Project {i}</p>
+                <p className="mt-2 text-[10px] text-center text-slate-500 truncate">
+                  {project.label}
+                </p>
               </div>
             ))}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { BookOpen, Camera, Link2, Music } from 'lucide-react';
 import React from 'react';
 
@@ -51,46 +51,48 @@ export const ArtifactsSection = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {artifacts.map((artifact, i) => (
-            <motion.div
-              key={artifact.title}
-              whileHover={{ y: -10 }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              className={`relative p-10 rounded-[2rem] border ${artifact.borderColor} ${artifact.color} backdrop-blur-sm group overflow-hidden`}
-            >
-              <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <artifact.Icon size={160} />
-              </div>
-
-              <div className="relative z-10 space-y-6">
-                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-base-charcoal flex items-center justify-center shadow-lg">
-                  <artifact.Icon className="text-slate-800 dark:text-slate-200" size={24} />
+        <LazyMotion features={domAnimation}>
+          <div className="grid md:grid-cols-2 gap-8">
+            {artifacts.map((artifact, i) => (
+              <m.div
+                key={artifact.title}
+                whileHover={{ y: -10 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className={`relative p-10 rounded-[2rem] border ${artifact.borderColor} ${artifact.color} backdrop-blur-sm group overflow-hidden`}
+              >
+                <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <artifact.Icon size={160} />
                 </div>
 
-                <h3 className="font-editorial text-3xl text-slate-900 dark:text-base-cream">
-                  {artifact.title}
-                </h3>
+                <div className="relative z-10 space-y-6">
+                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-base-charcoal flex items-center justify-center shadow-lg">
+                    <artifact.Icon className="text-slate-800 dark:text-slate-200" size={24} />
+                  </div>
 
-                <p className="font-clarity text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {artifact.description}
-                </p>
+                  <h3 className="font-editorial text-3xl text-slate-900 dark:text-base-cream">
+                    {artifact.title}
+                  </h3>
 
-                <div className="pt-4">
-                  <button
-                    type="button"
-                    className="font-clarity text-xs tracking-[0.2em] uppercase text-slate-400 hover:text-slate-900 dark:hover:text-base-cream transition-colors"
-                  >
-                    Learn More
-                  </button>
+                  <p className="font-clarity text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {artifact.description}
+                  </p>
+
+                  <div className="pt-4">
+                    <button
+                      type="button"
+                      className="font-clarity text-xs tracking-[0.2em] uppercase text-slate-400 hover:text-slate-900 dark:hover:text-base-cream transition-colors"
+                    >
+                      Learn More
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </m.div>
+            ))}
+          </div>
+        </LazyMotion>
       </div>
     </section>
   );

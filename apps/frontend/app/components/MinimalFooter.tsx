@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 
 export const MinimalFooter = () => {
@@ -18,24 +19,24 @@ export const MinimalFooter = () => {
           </div>
 
           <div className="flex gap-12 font-clarity text-sm tracking-widest uppercase text-slate-400">
-            <a
+            <Link
               href="/sign-up"
               className="hover:text-slate-900 dark:hover:text-base-cream transition-colors"
             >
               Waitlist
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              href="/philosophy"
               className="hover:text-slate-900 dark:hover:text-base-cream transition-colors"
             >
               Philosophy
-            </a>
-            <a
-              href="#"
+            </Link>
+            <Link
+              href="/privacy"
               className="hover:text-slate-900 dark:hover:text-base-cream transition-colors"
             >
               Privacy
-            </a>
+            </Link>
           </div>
 
           <div className="font-clarity text-xs text-slate-300 dark:text-slate-600">
