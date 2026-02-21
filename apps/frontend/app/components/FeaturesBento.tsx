@@ -17,7 +17,16 @@ interface BentoCardProps {
   bgColor?: string;
 }
 
-function BentoCard({ className, children, icon: Icon, title, desc, tag, delay = 0, bgColor = "bg-white/5" }: BentoCardProps) {
+function BentoCard({
+  className,
+  children,
+  icon: Icon,
+  title,
+  desc,
+  tag,
+  delay = 0,
+  bgColor = 'bg-white/5',
+}: BentoCardProps) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
 

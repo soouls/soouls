@@ -116,7 +116,6 @@ a {
 /* ─── Premium Utility Classes ─── */
 
 @layer utilities {
-
   /* Glassmorphism panel */
   .glass {
     background: rgba(255, 255, 255, 0.03);
@@ -170,11 +169,13 @@ a {
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg,
-        rgba(153, 246, 228, 0.3),
-        rgba(253, 230, 138, 0.2),
-        rgba(253, 164, 175, 0.2),
-        rgba(153, 246, 228, 0.3));
+    background: linear-gradient(
+      135deg,
+      rgba(153, 246, 228, 0.3),
+      rgba(253, 230, 138, 0.2),
+      rgba(253, 164, 175, 0.2),
+      rgba(153, 246, 228, 0.3)
+    );
     background-size: 300% 300%;
     animation: border-flow 4s ease infinite;
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -186,10 +187,12 @@ a {
 
   /* Shimmer effect for loading or decorative */
   .shimmer-bg {
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.03) 50%,
-        transparent 100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      transparent 100%
+    );
     background-size: 200% 100%;
     animation: shimmer 2.5s linear infinite;
   }

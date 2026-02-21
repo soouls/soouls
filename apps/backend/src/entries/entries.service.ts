@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { db } from '@soulcanvas/database/client';
 import { and, eq, sql } from '@soulcanvas/database/client';
 import { canvasNodes, journalEntries } from '@soulcanvas/database/schema';
-import { encryptData, decryptData } from '../utils/encryption';
+import { decryptData, encryptData } from '../utils/encryption';
 
 @Injectable()
 export class EntriesService {
@@ -100,7 +100,7 @@ export class EntriesService {
       .where(eq(journalEntries.userId, userId));
 
     // Decrypt on the way out
-    return rawData.map(entry => ({
+    return rawData.map((entry) => ({
       ...entry,
       content: decryptData(entry.content, userId),
     }));

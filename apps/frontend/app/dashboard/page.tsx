@@ -12,13 +12,22 @@ export default function DashboardPage() {
 
   const totalEntries = galaxyData?.length || 0;
 
-  const latestEntry = galaxyData && galaxyData.length > 0 ? galaxyData[galaxyData.length - 1] : null;
+  const latestEntry =
+    galaxyData && galaxyData.length > 0 ? galaxyData[galaxyData.length - 1] : null;
   const latestEntryId = latestEntry ? latestEntry.id : null;
-  const continueLink = latestEntryId ? `/dashboard/new-entry?id=${latestEntryId}` : '/dashboard/new-entry';
+  const continueLink = latestEntryId
+    ? `/dashboard/new-entry?id=${latestEntryId}`
+    : '/dashboard/new-entry';
 
   // Use raw content from latest entry (it arrives decrypted from backend)
-  const firstLine = latestEntry ? latestEntry.content.split('\n').find(l => l.trim().length > 0) : null;
-  const displayTitle = firstLine ? (firstLine.length > 40 ? firstLine.substring(0, 40) + '...' : firstLine) : 'Latest Entry';
+  const firstLine = latestEntry
+    ? latestEntry.content.split('\n').find((l) => l.trim().length > 0)
+    : null;
+  const displayTitle = firstLine
+    ? firstLine.length > 40
+      ? `${firstLine.substring(0, 40)}...`
+      : firstLine
+    : 'Latest Entry';
 
   return (
     <DashboardLayout
@@ -82,9 +91,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <Link href={continueLink} className="ml-auto">
-              <ActionButton icon={Plus}>
-                {latestEntryId ? 'Continue' : 'New Entry'}
-              </ActionButton>
+              <ActionButton icon={Plus}>{latestEntryId ? 'Continue' : 'New Entry'}</ActionButton>
             </Link>
           </div>
         </WidgetCard>

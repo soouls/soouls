@@ -21,7 +21,7 @@ const SplineHero: React.FC<SplineHeroProps> = ({
         fallback={
           <div className="absolute inset-0 flex items-center justify-center text-slate-400">
             <div className="animate-pulse flex flex-col items-center">
-              <div className="w-12 h-12 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin mb-4"></div>
+              <div className="w-12 h-12 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin mb-4" />
               <p>Loading 3D Experience...</p>
             </div>
           </div>

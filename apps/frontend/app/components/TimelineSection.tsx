@@ -126,8 +126,9 @@ export const TimelineSection = () => {
                   whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.7, ease: 'easeOut' }}
-                  className={`relative pl-16 md:pl-0 md:grid md:grid-cols-2 md:gap-12 items-start ${isRight ? '' : 'md:direction-rtl'
-                    }`}
+                  className={`relative pl-16 md:pl-0 md:grid md:grid-cols-2 md:gap-12 items-start ${
+                    isRight ? '' : 'md:direction-rtl'
+                  }`}
                 >
                   {/* Dot on timeline */}
                   <div className="absolute left-[26px] md:left-1/2 md:-translate-x-1/2 top-2 z-10">
