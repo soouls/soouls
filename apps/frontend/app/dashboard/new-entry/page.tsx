@@ -125,15 +125,14 @@ export default function NewEntryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white font-clarity flex flex-col relative overflow-hidden">
-      {/* Background text watermark */}
+    <div className="min-h-screen bg-grey-500 text-white font-clarity flex flex-col relative overflow-hidden">
       <div
-        className="absolute top-20 left-0 right-0 flex justify-center pointer-events-none opacity-[0.15] select-none z-0 overflow-hidden whitespace-nowrap"
+        className="absolute top-20 left-0 right-0 flex justify-center pointer-events-none opacity-60 select-none z-0 overflow-hidden whitespace-nowrap"
         aria-hidden="true"
       >
         <span
           className="font-editorial text-[22vw] leading-none text-transparent tracking-tighter"
-          style={{ WebkitTextStroke: '2px rgba(255,255,255,0.7)' }}
+          style={{ WebkitTextStroke: '2px rgba(255,255,255,0.7)' }} // Thinner stroke looks cleaner behind blur
         >
           Soulcanvas
         </span>
@@ -193,8 +192,8 @@ export default function NewEntryPage() {
       </header>
 
       {/* Main writing area */}
-      <main className="flex-1 w-full max-w-5xl mx-auto mt-4 px-6 relative z-10 flex flex-col h-full">
-        <div className="flex-1 rounded-tr-3xl rounded-tl-3xl bg-[#1A1A1A] p-10 pb-32 relative flex flex-col max-h-[80vh]">
+      <main className="flex-1 w-full max-w-7xl mx-auto mt-4 px-6 relative z-10 flex flex-col h-full">
+        <div className="flex-1 mt-20 rounded-t-[40px] bg-[#1A1A1A]/60 backdrop-blur-2xl p-10 pb-32 relative flex flex-col max-h-[80vh] border-x border-t border-white/5">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
