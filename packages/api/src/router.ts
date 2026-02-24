@@ -42,7 +42,7 @@ export type EntriesApi = {
 };
 
 export type TasksApi = {
-  convertToTask: (entryId: string, deadline: Date) => Promise<void>;
+  convertToTask: (userId: string, entryId: string, deadline: Date) => Promise<void>;
 };
 
 export type UsersApi = {
@@ -114,8 +114,8 @@ export function createAppRouter(services: {
           deadline: z.string(), // ISO string
         }),
       )
-      .mutation(async ({ input }) => {
-        await services.tasks.convertToTask(input.entryId, new Date(input.deadline));
+      .mutation(async ({ input, ctx }) => {
+        await services.tasks.convertToTask(ctx.userId, input.entryId, new Date(input.deadline));
         return { success: true };
       }),
   });
