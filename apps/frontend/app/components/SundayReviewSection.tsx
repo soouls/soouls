@@ -1,210 +1,162 @@
 'use client';
 
-import { Button } from '@soulcanvas/ui-kit';
-import { LazyMotion, domAnimation, m, useMotionValue, useTransform } from 'framer-motion';
-import { Calendar, ChevronRight, Star, Sun } from 'lucide-react';
-import type React from 'react';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-export const SundayReviewSection = () => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0.5);
-  const mouseY = useMotionValue(0.5);
+export default function SundayReviewSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
 
-  const rotateX = useTransform(mouseY, [0, 1], [6, -6]);
-  const rotateY = useTransform(mouseX, [0, 1], [-6, 6]);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    mouseX.set((e.clientX - rect.left) / rect.width);
-    mouseY.set((e.clientY - rect.top) / rect.height);
-  };
-
-  const handleMouseLeave = () => {
-    mouseX.set(0.5);
-    mouseY.set(0.5);
-  };
-
-  const mockInsights = [
-    { color: 'bg-aura-joy', text: 'Joy peaked on Wednesday after your morning walk.' },
-    { color: 'bg-aura-focus', text: 'Most focused during evening writing sessions.' },
-    { color: 'bg-aura-melancholy', text: 'Lighter overall mood compared to last week.' },
-  ];
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.reveal').forEach((el, i) => {
+              setTimeout(() => el.classList.add('in-view'), i * 150);
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="review" className="relative py-32 md:py-44 bg-base-void overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute w-[500px] h-[500px] rounded-full bg-aura-joy/3 blur-[200px] top-10 right-0" />
-        <div className="absolute w-[400px] h-[400px] rounded-full bg-indigo-500/3 blur-[150px] bottom-20 left-10" />
-      </div>
+    <section
+      ref={sectionRef}
+      id="sunday-review"
+      className="relative"
+      style={{
+        backgroundColor: '#222222',
+        minHeight: '100svh',
+        padding: '120px 60px',
+      }}
+    >
+      {/* Decorative blurred circle */}
+      <div
+        className="absolute"
+        style={{
+          width: '400px', height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(214,194,163,0.15) 0%, rgba(214,194,163,0) 70%)',
+          filter: 'blur(80px)',
+          top: '-80px', left: '50%', transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+        }}
+      />
 
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {[...Array(6)].map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: visual particles only
-          <div
-            key={`particle-${i}`}
-            className="absolute w-1 h-1 rounded-full bg-white/10 animate-float"
-            style={{
-              left: `${15 + i * 15}%`,
-              top: `${20 + ((i * 37) % 60)}%`,
-              animationDelay: `${i * 1.2}s`,
-              animationDuration: `${8 + i * 2}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      <LazyMotion features={domAnimation}>
-        <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-          {/* 3D Tilt Card — Left */}
-          <m.div
-            initial={{ opacity: 0, x: -40, filter: 'blur(10px)' }}
-            whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="order-2 lg:order-1"
-          >
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-16 items-center">
+          {/* Left: Sunday Review Card */}
+          <div className="reveal flex-1">
             <div
-              ref={cardRef}
-              className="perspective-[1000px]"
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
+              className="rounded-[32px]"
+              style={{
+                padding: '48px',
+                maxWidth: '560px',
+                background: '#1C1C1C',
+                border: '1px solid rgba(214,194,163,0.08)',
+                boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+              }}
             >
-              <m.div
-                className="relative rounded-3xl glass-strong p-8 md:p-10 border border-white/5"
+              {/* Card header */}
+              <div className="flex justify-between items-start mb-10">
+                <div>
+                  <p
+                    className="font-urbanist"
+                    style={{ fontSize: '13px', letterSpacing: '0.1em', color: '#6E6E6E', marginBottom: '4px' }}
+                  >
+                    NOV, 02, 2023
+                  </p>
+                  <p
+                    className="font-urbanist"
+                    style={{ fontSize: '14px', color: '#A8A8A8', letterSpacing: '0.05em' }}
+                  >
+                    SUNDAY REVIEW
+                  </p>
+                </div>
+                {/* Squiggly / logo mark placeholder */}
+                <div style={{ width: 48, height: 48, opacity: 0.4 }}>
+                  <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 24C8 24 12 8 24 8C36 8 40 24 40 24C40 24 36 40 24 40C12 40 8 24 8 24Z" stroke="#D6C2A3" strokeWidth="1.5" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3
+                className="font-playfair mb-4"
                 style={{
-                  rotateX,
-                  rotateY,
-                  transformStyle: 'preserve-3d',
+                  fontSize: 'clamp(28px, 3vw, 40px)',
+                  lineHeight: '1.1em',
+                  letterSpacing: '-0.035em',
+                  color: '#D6C2A3',
                 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               >
-                {/* Animated gradient border */}
-                <div className="absolute -inset-px rounded-3xl bg-gradient-to-r from-aura-joy/20 via-aura-focus/20 to-indigo-500/20 opacity-50 blur-sm -z-10 animate-border-flow" />
+                Steady &amp; Resilient
+              </h3>
 
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-aura-joy/10 flex items-center justify-center">
-                      <Sun size={14} className="text-aura-joy" />
-                    </div>
-                    <div>
-                      <div className="font-editorial text-lg text-white/80">Sunday Review</div>
-                      <div className="font-clarity text-[10px] text-white/25 tracking-wider">
-                        Feb 16, 2025
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: visual stars only
-                      <Star
-                        key={`star-${i}`}
-                        size={10}
-                        className={i < 4 ? 'text-aura-joy fill-aura-joy' : 'text-white/10'}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Weekly Sentiment Bar */}
-                <div className="mb-8">
-                  <div className="font-clarity text-[10px] tracking-[0.2em] uppercase text-white/20 mb-3">
-                    Weekly Mood Map
-                  </div>
-                  <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
-                    {[
-                      { color: 'bg-aura-joy/50', width: 'w-[35%]' },
-                      { color: 'bg-aura-focus/50', width: 'w-[28%]' },
-                      { color: 'bg-aura-melancholy/50', width: 'w-[22%]' },
-                      { color: 'bg-aura-anxiety/50', width: 'w-[15%]' },
-                    ].map((bar, idx) => (
-                      <m.div
-                        key={bar.color}
-                        className={`${bar.color} ${bar.width} rounded-md`}
-                        initial={{ scaleX: 0 }}
-                        whileInView={{ scaleX: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.5 + idx * 0.1 }}
-                        style={{ transformOrigin: 'left' }}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-2">
-                    <span className="font-clarity text-[9px] text-white/15">Mon</span>
-                    <span className="font-clarity text-[9px] text-white/15">Sun</span>
-                  </div>
-                </div>
-
-                {/* Insights */}
-                <div className="space-y-3">
-                  {mockInsights.map((insight, idx) => (
-                    <m.div
-                      key={insight.text}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.8 + idx * 0.1 }}
-                      className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors duration-500"
-                    >
-                      <div
-                        className={`w-2 h-2 rounded-full ${insight.color} mt-1.5 flex-shrink-0`}
-                      />
-                      <span className="font-clarity text-xs text-white/40 leading-relaxed">
-                        {insight.text}
-                      </span>
-                    </m.div>
-                  ))}
-                </div>
-              </m.div>
-            </div>
-          </m.div>
-
-          {/* Text — Right */}
-          <m.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="space-y-8 order-1 lg:order-2"
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/5 bg-white/[0.02] font-clarity text-[10px] tracking-[0.25em] uppercase text-white/30">
-              <Calendar size={11} className="text-aura-joy/60" />
-              Weekly Ritual
-            </span>
-
-            <h2 className="font-editorial text-5xl md:text-6xl lg:text-7xl text-white leading-[0.9]">
-              The <span className="italic text-gradient">Sunday</span>
-              <br />
-              Review
-            </h2>
-
-            <p className="font-clarity text-sm md:text-base text-white/30 leading-relaxed max-w-md">
-              A curated weekly reflection, assembled by AI. It synthesizes your week's emotions,
-              highlights meaningful patterns, and gently nudges you toward self-awareness — every
-              Sunday, automatically.
-            </p>
-
-            <div className="flex items-center gap-3 pt-4">
-              <Button
-                size="lg"
-                className="group px-8 py-6 rounded-full bg-white/[0.05] border border-white/10 text-white/60 hover:bg-white/[0.08] hover:text-white/80 hover:border-white/15 transition-all duration-500 font-clarity text-sm font-medium tracking-wide"
+              {/* Body text */}
+              <p
+                className="font-urbanist"
+                style={{
+                  fontSize: '20px',
+                  lineHeight: '1.6em',
+                  letterSpacing: '-0.035em',
+                  color: '#A8A8A8',
+                }}
               >
-                <span className="flex items-center gap-2">
-                  See a Sample Review
-                  <ChevronRight
-                    size={14}
-                    className="group-hover:translate-x-0.5 transition-transform duration-300"
+                This week, your entries gravitated toward themes of endurance. The silence of the desert reflected in your Tuesday voice notes, revealing a growing peace with the unknown...
+              </p>
+
+              {/* Color bar graphic */}
+              <div className="mt-12 flex gap-4">
+                {[50, 75, 40, 65, 50, 80, 45].map((h, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: h,
+                      borderRadius: '6px',
+                      background: i % 2 === 0
+                        ? '#504A41'
+                        : '#613E34',
+                    }}
                   />
-                </span>
-              </Button>
+                ))}
+              </div>
             </div>
-          </m.div>
+          </div>
+
+          {/* Right: Title + Description */}
+          <div className="reveal flex-1 lg:max-w-lg">
+            <h2
+              className="font-playfair mb-8"
+              style={{
+                fontSize: 'clamp(48px, 6vw, 100px)',
+                lineHeight: '1em',
+                letterSpacing: '-0.035em',
+                color: '#D6C2A3',
+              }}
+            >
+              The Sunday Review
+            </h2>
+            <p
+              className="font-urbanist"
+              style={{
+                fontSize: 'clamp(18px, 1.8vw, 28px)',
+                lineHeight: '1.5em',
+                letterSpacing: '-0.035em',
+                color: '#EFEBDD',
+                opacity: 0.85,
+              }}
+            >
+              A beautifully typeset, single-screen summary of your week. Synthesized by intent — delivered with care.
+            </p>
+          </div>
         </div>
-      </LazyMotion>
+      </div>
     </section>
   );
-};
+}

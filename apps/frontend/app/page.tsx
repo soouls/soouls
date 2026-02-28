@@ -1,17 +1,21 @@
-import { Navbar } from '@soulcanvas/ui-kit';
-import { GalaxyView } from './components/GalaxyView';
-
-const navLinks = [
-  { label: 'Features', href: '#features' },
-  { label: 'Safe Space', href: '#safe-space' },
-  { label: 'Sunday Review', href: '#review' },
-];
+import LandingNavbar from './components/LandingNavbar';
+import HeroSection from './components/HeroSection';
+import RiverOfTimeSection from './components/RiverOfTimeSection';
+import SpatialCanvasSection from './components/SpatialCanvasSection';
+import SundayReviewSection from './components/SundayReviewSection';
+import WaitlistSection from './components/WaitlistSection';
+import FooterSection from './components/FooterSection';
 
 export default function Home() {
   return (
-    <main className="bg-base-void min-h-screen">
-      <Navbar links={navLinks} ctaText="Get Started" ctaHref="/sign-up" transparent />
-      <GalaxyView />
+    <main style={{ backgroundColor: '#222222' }}>
+      <LandingNavbar />
+      <HeroSection />
+      <RiverOfTimeSection />
+      <SpatialCanvasSection />
+      <SundayReviewSection />
+      <WaitlistSection />
+      <FooterSection />
     </main>
   );
 }
