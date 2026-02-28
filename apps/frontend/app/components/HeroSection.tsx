@@ -1,186 +1,124 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!sectionRef.current || !bgRef.current || !contentRef.current) return;
+      if (!sectionRef.current || !contentRef.current) return;
       const scrollY = window.scrollY;
       const sectionTop = sectionRef.current.offsetTop;
       const relativeScroll = scrollY - sectionTop;
 
-      // Parallax: BG moves slower than content
-      bgRef.current.style.transform = `translateY(${relativeScroll * 0.35}px)`;
+      // Parallax effect for the text content
       contentRef.current.style.transform = `translateY(${relativeScroll * 0.15}px)`;
       contentRef.current.style.opacity = `${Math.max(0, 1 - relativeScroll / 500)}`;
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <section
       ref={sectionRef}
       id="hero"
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden bg-[#222222]"
       style={{
-        backgroundColor: '#222222',
-        height: '100svh',
-        minHeight: '700px',
+        height: "100svh",
+        minHeight: "700px",
       }}
     >
-      {/* Hero Background Image (parallax layer) */}
-      <div
-        ref={bgRef}
-        className="absolute inset-0 parallax-layer"
-        style={{ top: '-10%', height: '120%' }}
-      >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="object-cover object-center w-full h-full"
-          style={{ opacity: 0.85 }}
-        >
-          <source src="/images/red_sun_remix.mp4" type="video/mp4" />
-        </video>
-        {/* Dark gradient overlay — bottom fade to black */}
+      {/* Hero Background Video */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(to bottom, rgba(34,34,34,0.15) 0%, rgba(34,34,34,0.0) 40%, rgba(34,34,34,0.6) 75%, rgba(34,34,34,1) 100%)',
+          className="absolute inset-0 w-full h-full"
+          dangerouslySetInnerHTML={{
+            __html: `
+              <video
+                autoplay
+                loop
+                muted
+                playsinline
+                poster="/hero-bg-figma.png"
+                class="w-full h-full object-cover"
+                style="width: 100%; height: 100%; object-fit: cover;"
+              >
+                <source src="/images/red_sun_remix.mp4" type="video/mp4" />
+              </video>
+            `,
           }}
         />
+        {/* Dark overlay to make the white text readable */}
+        <div className="absolute inset-0 bg-black/30 z-[1]" />
       </div>
 
       {/* Content */}
       <div
         ref={contentRef}
-        className="relative z-10 flex flex-col items-center justify-center h-full text-center px-6"
-        style={{ paddingTop: '80px' }}
+        className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4"
       >
-        {/* Main headline */}
-        <div
-          className="mb-6 flex flex-col sm:flex-row items-center justify-center sm:gap-4 flex-wrap"
-          style={{ maxWidth: '1100px' }}
-        >
+        <div className="flex flex-col items-center">
           <span
-            className="font-urbanist font-medium tracking-tight"
-            style={{
-              fontSize: 'clamp(46px, 6.5vw, 92px)',
-              lineHeight: '1.05em',
-              color: '#FFFFFF',
-              letterSpacing: '-0.03em',
-            }}
+            className="font-urbanist font-bold text-white tracking-tight"
+            style={{ fontSize: "clamp(40px, 8vw, 80px)", lineHeight: "1em" }}
           >
             Welcome to a
           </span>
 
-          <span
-            className="font-playfair font-medium"
-            style={{
-              fontSize: 'clamp(48px, 6.8vw, 96px)',
-              lineHeight: '1.05em',
-              letterSpacing: '-0.02em',
-              color: '#E07A5F',
-              textShadow: '0 4px 42px rgba(224, 122, 95, 0.45)',
-            }}
-          >
-            quieter
-          </span>
-
-          <span
-            className="font-urbanist font-medium tracking-tight"
-            style={{
-              fontSize: 'clamp(46px, 6.5vw, 92px)',
-              lineHeight: '1.05em',
-              color: '#FFFFFF',
-              letterSpacing: '-0.03em',
-            }}
-          >
-            way to think.
-          </span>
+          <div className="flex flex-wrap justify-center items-center gap-4 mt-3 mb-8">
+            <span
+              className="font-playfair font-bold italic text-[#E07A5F]"
+              style={{
+                fontSize: "clamp(46px, 9vw, 92px)",
+                lineHeight: "1em",
+                textShadow: "0px 7px 16px rgba(224, 124, 96, 0.4)",
+              }}
+            >
+              quieter
+            </span>
+            <span
+              className="font-urbanist font-bold text-white tracking-tight"
+              style={{ fontSize: "clamp(40px, 8vw, 80px)", lineHeight: "1em" }}
+            >
+              way to think.
+            </span>
+          </div>
         </div>
 
-        {/* Subtitle */}
         <p
-          className="font-urbanist font-normal mb-10"
-          style={{
-            fontSize: 'clamp(16px, 1.8vw, 26px)',
-            lineHeight: '1.5em',
-            letterSpacing: '-0.035em',
-            color: '#EFEBDD',
-            maxWidth: '760px',
-            opacity: 0.9,
-          }}
+          className="font-urbanist font-normal mb-11 text-[#EFEBDD] opacity-90 max-w-[760px]"
+          style={{ fontSize: "20px", lineHeight: "1.5em" }}
         >
-          Non-linear journaling designed for depth. Capture your thoughts as they happen, not just
-          when they fit a timeline. Build a map of your mind.
+          Non-linear journaling designed for depth. Capture your thoughts as
+          they happen, not just when they fit a timeline. Build a map of your
+          mind.
         </p>
 
-        {/* CTA Button */}
         <a
-          href="#waitlist"
-          className="font-urbanist font-medium rounded-xl transition-all duration-300 group"
-          style={{
-            backgroundColor: '#E07A5F',
-            color: '#222222',
-            padding: '16px 36px',
-            fontSize: '18px',
-            lineHeight: '1em',
-            letterSpacing: '0.01em',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            borderRadius: '12px',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)';
-            (e.currentTarget as HTMLElement).style.backgroundColor = '#d4694e';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-            (e.currentTarget as HTMLElement).style.backgroundColor = '#E07A5F';
-          }}
+          href="/sign-up"
+          className="font-urbanist font-semibold bg-[#E07A5F] text-[#222222] px-8 h-16 rounded-xl flex items-center transition-transform hover:scale-105 active:scale-95"
+          style={{ fontSize: "20px" }}
         >
           Start Writing
         </a>
 
-        {/* Tagline below CTA */}
-        <p
-          className="font-playfair mt-5"
-          style={{
-            fontSize: 'clamp(14px, 1.6vw, 26px)',
-            letterSpacing: '-0.035em',
-            color: '#D9D9D9',
-            opacity: 0.7,
-          }}
-        >
+        <p className="font-playfair italic mt-10 text-[#D9D9D9] opacity-80 text-2xl">
           No cards, No noise, Just your story
         </p>
 
-        {/* Scroll caret */}
-        <div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
-          style={{ animation: 'float-up 2s ease-in-out infinite alternate' }}
-        >
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <path
-              d="M7 10.5L14 17.5L21 10.5"
-              stroke="#EFEBDD"
+              d="M14 6V22M14 22L8 16M14 22L20 16"
+              stroke="white"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              opacity="0.5"
             />
           </svg>
         </div>
