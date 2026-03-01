@@ -1,12 +1,16 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { json, urlencoded } from 'express';
 
 // @ts-ignore — @nestjs/platform-express re-exports helmet types
 import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
 
   // ─── Security: HTTP Headers ──────────────────────────────────────────────
   // Helmet sets a suite of well-known protective HTTP headers

@@ -3,6 +3,7 @@ import { db } from '@soulcanvas/database/client';
 import { and, eq, sql } from '@soulcanvas/database/client';
 import { canvasNodes, journalEntries } from '@soulcanvas/database/schema';
 import { decryptData, encryptData } from '../utils/encryption';
+import LZString from 'lz-string';
 
 @Injectable()
 export class EntriesService {
@@ -101,9 +102,24 @@ export class EntriesService {
       .where(eq(journalEntries.userId, userId));
 
     // Decrypt on the way out
-    return rawData.map((entry) => ({
-      ...entry,
-      content: decryptData(entry.content, userId),
-    }));
+    return rawData.map((entry) => {
+      const dec = decryptData(entry.content, userId);
+      let optimizedContent = dec;
+      try {
+        const decompressed = LZString.decompressFromUTF16(dec) || dec;
+        const parsed = JSON.parse(decompressed);
+        if (parsed && typeof parsed === 'object') {
+          // Keep only textContent to save megabytes of base64 images/audio for galaxy endpoint
+          parsed.blocks = [];
+          optimizedContent = LZString.compressToUTF16(JSON.stringify(parsed));
+        }
+      } catch (e) {
+        // Not LZString JSON, probably legacy plain text - do nothing
+      }
+      return {
+        ...entry,
+        content: optimizedContent,
+      };
+    });
   }
 }

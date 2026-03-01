@@ -24,6 +24,8 @@ This is a **Distributed Monorepo** using **Bun + Turborepo** with the following 
 
 ## 🚀 Getting Started
 
+**🚨 IMPORTANT READ:** If you are a new developer or an AI Assistant, you MUST read the [Developer Workflow Guide](./DEVELOPER_WORKFLOW.md) to understand our 3-layer Git branching strategy and how to properly ship code to production via the `dev` branch.
+
 ### Prerequisites
 
 - **Bun** 1.3.5+ (package manager)
