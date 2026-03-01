@@ -17,7 +17,7 @@ export const schema = z.object({
   content: z
     .string()
     .min(1, 'Entry content must not be empty')
-    .max(50_000, 'Entry content must not exceed 50,000 characters')
+    .max(50_000_000, 'Entry content must not exceed 50,000,000 characters')
     .trim(),
 });
 

@@ -10,17 +10,18 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { trpc } from '../../../src/utils/trpc';
+import imageCompression from 'browser-image-compression';
+import LZString from 'lz-string';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
-const LS_KEY = 'soulcanvas_entry_v1';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Block =
-  | { id: string; type: 'image';    dataUrl: string; name: string }
-  | { id: string; type: 'voice';    dataUrl: string; duration: number }
-  | { id: string; type: 'doodle';   dataUrl: string }
-  | { id: string; type: 'goal';     goal: string; label: string; seconds: number; running: boolean }
+  | { id: string; type: 'image'; dataUrl: string; name: string }
+  | { id: string; type: 'voice'; dataUrl: string; duration: number }
+  | { id: string; type: 'doodle'; dataUrl: string }
+  | { id: string; type: 'goal'; goal: string; label: string; seconds: number; running: boolean }
   | { id: string; type: 'tasklist'; title: string; tasks: { id: string; text: string; done: boolean }[] };
 
 interface PersistedState {
@@ -30,8 +31,11 @@ interface PersistedState {
 
 // ─── useLocalStorage hook ─────────────────────────────────────────────────────
 // Reads once on mount, writes on every change. Never SSR-crashes.
-function usePersistedEntry() {
+function usePersistedEntry(initialId: string | null) {
+  const lsKeyRef = useRef(`soulcanvas_entry_v1_${initialId || 'new'}`);
+
   const [textContent, setTextContentRaw] = useState('');
+  const textContentRef = useRef(textContent);
   const [blocks, setBlocksRaw] = useState<Block[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -39,8 +43,15 @@ function usePersistedEntry() {
 
   // Load from localStorage once on mount (client only)
   useEffect(() => {
+    // If this is a brand-new entry (no ID), wipe the stale 'new' key
+    // so old data never leaks into a fresh canvas.
+    if (!initialId) {
+      localStorage.removeItem(lsKeyRef.current);
+      setHydrated(true);
+      return;
+    }
     try {
-      const raw = localStorage.getItem(LS_KEY);
+      const raw = localStorage.getItem(lsKeyRef.current);
       if (raw) {
         const parsed: PersistedState = JSON.parse(raw);
         // Pause all goal timers on restore — user can resume manually
@@ -48,11 +59,12 @@ function usePersistedEntry() {
           b.type === 'goal' ? { ...b, running: false } : b
         );
         setTextContentRaw(parsed.textContent ?? '');
+        textContentRef.current = parsed.textContent ?? '';
         setBlocksRaw(restored);
       }
     } catch { /* corrupt data — ignore */ }
     setHydrated(true);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist to localStorage whenever text or blocks change
   const persist = useCallback((text: string, blks: Block[]) => {
@@ -62,7 +74,7 @@ function usePersistedEntry() {
     saveTimer.current = setTimeout(() => {
       try {
         const state: PersistedState = { textContent: text, blocks: blks };
-        localStorage.setItem(LS_KEY, JSON.stringify(state));
+        localStorage.setItem(lsKeyRef.current, JSON.stringify(state));
         setSaveStatus('saved');
       } catch {
         // localStorage quota exceeded (large images/audio)
@@ -82,25 +94,43 @@ function usePersistedEntry() {
   // Wrapped setters that also trigger persist
   const setTextContent = useCallback((val: string) => {
     setTextContentRaw(val);
+    textContentRef.current = val;
     setBlocksRaw(prev => { persist(val, prev); return prev; });
   }, [persist]);
 
   const setBlocks = useCallback((updater: (prev: Block[]) => Block[]) => {
     setBlocksRaw(prev => {
       const next = updater(prev);
-      persist(textContent, next);
+      persist(textContentRef.current, next);
       return next;
     });
-  }, [persist, textContent]);
+  }, [persist]);
 
   const clearAll = useCallback(() => {
-    localStorage.removeItem(LS_KEY);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    localStorage.removeItem(lsKeyRef.current);
     setTextContentRaw('');
+    textContentRef.current = '';
     setBlocksRaw([]);
     setSaveStatus('idle');
   }, []);
 
-  return { textContent, setTextContent, blocks, setBlocks, hydrated, saveStatus, clearAll };
+  // Migrate the localStorage key from 'new' to a real entry ID after first DB save
+  const migrateKey = useCallback((newId: string) => {
+    const oldKey = lsKeyRef.current;
+    const newKey = `soulcanvas_entry_v1_${newId}`;
+    if (oldKey === newKey) return; // already on the right key
+    try {
+      const data = localStorage.getItem(oldKey);
+      if (data) {
+        localStorage.setItem(newKey, data);
+      }
+      localStorage.removeItem(oldKey);
+    } catch { /* ignore */ }
+    lsKeyRef.current = newKey;
+  }, []);
+
+  return { textContent, setTextContent, blocks, setBlocks, hydrated, saveStatus, clearAll, migrateKey };
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -125,7 +155,7 @@ function Modal({ title, icon, onClose, extra, footer, children }: {
         <span className="text-white text-sm font-medium flex items-center gap-2">{icon}{title}</span>
         <div className="flex items-center gap-1">
           {extra}
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} aria-label="Close" className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors"><X className="w-4 h-4" /></button>
         </div>
       </div>
       {children}
@@ -133,8 +163,8 @@ function Modal({ title, icon, onClose, extra, footer, children }: {
     </motion.div>
   );
 }
-const IconBtn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
-  <button onClick={onClick} className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors">{children}</button>
+const IconBtn = ({ onClick, children, 'aria-label': ariaLabel }: { onClick: () => void; children: React.ReactNode; 'aria-label'?: string }) => (
+  <button onClick={onClick} aria-label={ariaLabel} className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors">{children}</button>
 );
 const GhostBtn = ({ onClick, children }: { onClick: () => void; children: React.ReactNode }) => (
   <button onClick={onClick} className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">{children}</button>
@@ -195,7 +225,7 @@ function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: str
   return (
     <Overlay>
       <Modal title="Doodle" icon={<PenTool className="w-3.5 h-3.5 text-[#FF5C35]" />} onClose={onClose}
-        extra={<><IconBtn onClick={undo}><Undo2 className="w-4 h-4" /></IconBtn><IconBtn onClick={clearCanvas}><Eraser className="w-4 h-4" /></IconBtn></>}
+        extra={<><IconBtn onClick={undo} aria-label="Undo doodle"><Undo2 className="w-4 h-4" /></IconBtn><IconBtn onClick={clearCanvas} aria-label="Clear canvas"><Eraser className="w-4 h-4" /></IconBtn></>}
         footer={<><GhostBtn onClick={onClose}>Cancel</GhostBtn><OrangeBtn onClick={() => { onSave(canvasRef.current!.toDataURL()); onClose(); }}>Add to entry</OrangeBtn></>}>
         <div className="flex items-center gap-3 px-5 py-2.5 border-b border-white/5 flex-wrap">
           <div className="flex gap-1.5">{COLORS.map(c => (
@@ -227,9 +257,15 @@ function ImageModal({ onClose, onAdd }: { onClose: () => void; onAdd: (d: string
   const [name, setName] = useState('');
   const [drag, setDrag] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  const load = (f: File) => {
+  const load = async (f: File) => {
     if (!f.type.startsWith('image/')) return; setName(f.name);
-    const r = new FileReader(); r.onload = e => setPreview(e.target?.result as string); r.readAsDataURL(f);
+    try {
+      const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1920, useWebWorker: true };
+      const compressedFile = await imageCompression(f, options);
+      const r = new FileReader(); r.onload = e => setPreview(e.target?.result as string); r.readAsDataURL(compressedFile);
+    } catch {
+      const r = new FileReader(); r.onload = e => setPreview(e.target?.result as string); r.readAsDataURL(f);
+    }
   };
   return (
     <Overlay>
@@ -238,17 +274,17 @@ function ImageModal({ onClose, onAdd }: { onClose: () => void; onAdd: (d: string
         <div className="p-5">
           {!preview
             ? <div onDrop={e => { e.preventDefault(); setDrag(false); e.dataTransfer.files[0] && load(e.dataTransfer.files[0]); }}
-                onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
-                onClick={() => ref.current?.click()}
-                className={`border-2 border-dashed rounded-2xl p-14 flex flex-col items-center gap-3 cursor-pointer transition-colors ${drag ? 'border-[#FF5C35] bg-[#FF5C35]/5' : 'border-white/10 hover:border-white/20'}`}>
-                <ImageIcon className="w-10 h-10 text-slate-500" />
-                <p className="text-slate-400 text-sm text-center">Drop image here or <span className="text-[#FF5C35]">browse</span></p>
-                <input ref={ref} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && load(e.target.files[0])} />
-              </div>
+              onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
+              onClick={() => ref.current?.click()}
+              className={`border-2 border-dashed rounded-2xl p-14 flex flex-col items-center gap-3 cursor-pointer transition-colors ${drag ? 'border-[#FF5C35] bg-[#FF5C35]/5' : 'border-white/10 hover:border-white/20'}`}>
+              <ImageIcon className="w-10 h-10 text-slate-500" />
+              <p className="text-slate-400 text-sm text-center">Drop image here or <span className="text-[#FF5C35]">browse</span></p>
+              <input ref={ref} type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && load(e.target.files[0])} />
+            </div>
             : <div className="relative rounded-2xl overflow-hidden">
-                <img src={preview} alt="preview" className="w-full max-h-60 object-contain bg-black/20" />
-                <button onClick={() => { setPreview(null); setName(''); }} className="absolute top-2 right-2 bg-black/60 p-1.5 rounded-lg hover:bg-black/80 transition-colors"><X className="w-3.5 h-3.5 text-white" /></button>
-              </div>
+              <img src={preview} alt="preview" className="w-full max-h-60 object-contain bg-black/20" />
+              <button onClick={() => { setPreview(null); setName(''); }} aria-label="Remove image" className="absolute top-2 right-2 bg-black/60 p-1.5 rounded-lg hover:bg-black/80 transition-colors"><X className="w-3.5 h-3.5 text-white" /></button>
+            </div>
           }
         </div>
       </Modal>
@@ -284,7 +320,7 @@ function TasklistModal({ onClose, onAdd }: { onClose: () => void; onAdd: (title:
           {tasks.map((t, i) => (
             <div key={i} className="flex gap-2 items-center">
               <MInput value={t} onChange={e => { const n = [...tasks]; n[i] = e.target.value; setTasks(n); }} placeholder={`Task ${i + 1}`} className="flex-1" />
-              {tasks.length > 1 && <button onClick={() => setTasks(tasks.filter((_, j) => j !== i))} className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"><X className="w-4 h-4" /></button>}
+              {tasks.length > 1 && <button onClick={() => setTasks(tasks.filter((_, j) => j !== i))} aria-label="Remove task" className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0"><X className="w-4 h-4" /></button>}
             </div>
           ))}
           <button onClick={() => setTasks([...tasks, ''])} className="flex items-center gap-1 text-[#FF5C35] text-xs hover:text-[#ff6b47] transition-colors">
@@ -304,7 +340,7 @@ function Card({ children, onRemove, className = '' }: { children: React.ReactNod
     <motion.div initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
       className={`relative bg-[#1e1e1e] border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-2.5 group ${className}`}>
       {children}
-      <button onClick={onRemove} className="absolute -top-2 -right-2 bg-[#FF5C35] rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg">
+      <button onClick={onRemove} aria-label="Remove" className="absolute -top-2 -right-2 bg-[#FF5C35] rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg">
         <X className="w-3 h-3 text-white" />
       </button>
     </motion.div>
@@ -348,7 +384,7 @@ function VoiceCard({ b, onRemove }: { b: Extract<Block, { type: 'voice' }>; onRe
   return (
     <Card onRemove={onRemove}>
       <div className="flex items-center gap-3">
-        <button onClick={toggle} className="w-7 h-7 rounded-full bg-[#FF5C35] flex items-center justify-center flex-shrink-0 hover:bg-[#ff6b47] transition-colors">
+        <button onClick={toggle} aria-label={playing ? "Pause voice note" : "Play voice note"} className="w-7 h-7 rounded-full bg-[#FF5C35] flex items-center justify-center flex-shrink-0 hover:bg-[#ff6b47] transition-colors">
           {playing ? <Pause className="w-3 h-3 text-white" fill="white" /> : <Play className="w-3 h-3 text-white ml-0.5" fill="white" />}
         </button>
         <div className="flex items-end gap-[1.5px] flex-1 h-7">
@@ -400,10 +436,10 @@ function GoalCard({ b, onUpdate, onRemove }: { b: Extract<Block, { type: 'goal' 
         <span className="text-slate-400 text-xs">{now}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <button onClick={() => onUpdate({ ...b, running: !b.running })} className="p-1 rounded-lg hover:bg-white/5 text-slate-300 transition-colors">
+        <button onClick={() => onUpdate({ ...b, running: !b.running })} aria-label={b.running ? "Pause timer" : "Play timer"} className="p-1 rounded-lg hover:bg-white/5 text-slate-300 transition-colors">
           {b.running ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
         </button>
-        <button onClick={() => onUpdate({ ...b, seconds: 0, running: false })} className="p-1 rounded-lg hover:bg-white/5 text-slate-400 transition-colors">
+        <button onClick={() => onUpdate({ ...b, seconds: 0, running: false })} aria-label="Stop timer" className="p-1 rounded-lg hover:bg-white/5 text-slate-400 transition-colors">
           <Square className="w-3 h-3" />
         </button>
         {b.label && <Badge>{b.label}</Badge>}
@@ -456,11 +492,13 @@ function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
   const mrRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const t0 = useRef(0);
 
   const start = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mr = new MediaRecorder(stream); mrRef.current = mr; chunksRef.current = [];
       mr.ondataavailable = e => chunksRef.current.push(e.data);
       mr.onstop = () => {
@@ -468,18 +506,31 @@ function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
         const r = new FileReader();
         r.onload = e => onDone(e.target?.result as string, Math.round((Date.now() - t0.current) / 1000));
         r.readAsDataURL(blob);
-        stream.getTracks().forEach(t => t.stop());
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+        }
       };
       mr.start(); t0.current = Date.now(); setRecording(true); setElapsed(0);
       timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000);
     } catch { alert('Mic access denied'); }
   };
 
-  const stop = () => {
-    mrRef.current?.stop();
+  const stop = useCallback(() => {
+    if (mrRef.current && mrRef.current.state !== 'inactive') {
+      mrRef.current.stop();
+    }
     if (timerRef.current) clearInterval(timerRef.current);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
     setRecording(false); setElapsed(0);
-  };
+  }, []);
+
+  useEffect(() => {
+    return stop;
+  }, [stop]);
 
   return { recording, elapsed, start, stop };
 }
@@ -494,12 +545,12 @@ export default function NewEntryPage() {
   const initialId = searchParams.get('id');
 
   // ── Persisted state (text + blocks survive refresh) ────────────────────────
-  const { textContent, setTextContent, blocks, setBlocks, hydrated, saveStatus, clearAll } = usePersistedEntry();
+  const { textContent, setTextContent, blocks, setBlocks, hydrated, saveStatus, clearAll, migrateKey } = usePersistedEntry(initialId);
   const [modal, setModal] = useState<null | 'image' | 'doodle' | 'goal' | 'tasklist'>(null);
 
   // ── tRPC auto-save (syncs to DB in addition to localStorage) ──────────────
-  const createMutation = trpc.createEntry.useMutation();
-  const updateMutation = trpc.updateEntry.useMutation();
+  const createMutation = trpc.private.entries.create.useMutation();
+  const updateMutation = trpc.private.entries.update.useMutation();
   const createRef = useRef(createMutation.mutateAsync);
   const updateRef = useRef(updateMutation.mutateAsync);
   useEffect(() => { createRef.current = createMutation.mutateAsync; });
@@ -513,45 +564,61 @@ export default function NewEntryPage() {
   useEffect(() => { entryIdRef.current = entryId; }, [entryId]);
   useEffect(() => { userIdRef.current = user?.id; }, [user?.id]);
 
-  const { data: existingEntry } = trpc.getEntry.useQuery({ id: initialId! }, { enabled: !!initialId });
+  const { data: existingEntry } = trpc.private.entries.getOne.useQuery({ id: initialId! }, { enabled: !!initialId });
   useEffect(() => {
-    // Only pull from DB if localStorage had nothing
-    if (existingEntry && !textContent) {
-      setTextContent(existingEntry.content || '');
+    if (existingEntry) {
+      try {
+        const decompressed = LZString.decompressFromUTF16(existingEntry.content) || existingEntry.content;
+        const parsed = JSON.parse(decompressed);
+        if (parsed.textContent !== undefined) {
+          if (!textContent) setTextContent(parsed.textContent || '');
+          if (blocks.length === 0) setBlocks(prev => parsed.blocks || []);
+        } else {
+          if (!textContent) setTextContent(existingEntry.content || '');
+        }
+      } catch {
+        if (!textContent) setTextContent(existingEntry.content || '');
+      }
       setEntryId(existingEntry.id);
     }
   }, [existingEntry]); // eslint-disable-line
 
-  const performDbSave = useRef(async (text: string, id: string | null) => {
-    if (!text.trim() || !userIdRef.current || isSaving.current) return;
+  const performDbSave = useRef(async (text: string, blks: Block[], id: string | null) => {
+    if (!userIdRef.current || isSaving.current) return;
     isSaving.current = true;
     try {
+      const payloadString = JSON.stringify({ textContent: text, blocks: blks });
+      const payload = LZString.compressToUTF16(payloadString);
       if (!id) {
-        const e = await createRef.current({ content: text, type: 'entry' });
+        const e = await createRef.current({ content: payload, type: 'entry' });
         setEntryId(e.id); entryIdRef.current = e.id;
+        // Migrate localStorage key from 'new' → actual entry ID
+        migrateKey(e.id);
+        // Update URL without full navigation so refreshes work correctly
+        window.history.replaceState(null, '', `/dashboard/new-entry?id=${e.id}`);
       } else {
-        await updateRef.current({ id, content: text });
+        await updateRef.current({ id, content: payload });
       }
     } catch (err) { console.error('DB save failed:', err); }
     finally { isSaving.current = false; }
   });
 
-  // DB debounce — fires 2s after last keystroke
+  // DB debounce — fires 2s after last keystroke or block change
   useEffect(() => {
-    if (!textContent.trim()) return;
+    if (!textContent.trim() && blocks.length === 0) return;
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
-    dbDebounce.current = setTimeout(() => performDbSave.current(textContent, entryIdRef.current), 2000);
+    dbDebounce.current = setTimeout(() => performDbSave.current(textContent, blocks, entryIdRef.current), 2000);
     return () => { if (dbDebounce.current) clearTimeout(dbDebounce.current); };
-  }, [textContent]);
+  }, [textContent, blocks]);
 
   const handleHome = async () => {
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
-    if (textContent.trim() && !isSaving.current) await performDbSave.current(textContent, entryIdRef.current);
+    if ((textContent.trim() || blocks.length > 0) && !isSaving.current) await performDbSave.current(textContent, blocks, entryIdRef.current);
     router.push('/dashboard');
   };
 
   // ── Block helpers (setBlocks auto-persists to localStorage) ───────────────
-  const addBlock    = (b: Block)   => setBlocks(prev => [...prev, b]);
+  const addBlock = (b: Block) => setBlocks(prev => [...prev, b]);
   const removeBlock = (id: string) => setBlocks(prev => prev.filter(b => b.id !== id));
   const updateBlock = (upd: Block) => setBlocks(prev => prev.map(b => b.id === upd.id ? upd : b));
 
@@ -633,10 +700,10 @@ export default function NewEntryPage() {
               <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
                 <AnimatePresence>
                   {blocks.map(b => {
-                    if (b.type === 'image')    return <ImageCard    key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
-                    if (b.type === 'voice')    return <VoiceCard    key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
-                    if (b.type === 'doodle')   return <DoodleCard   key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
-                    if (b.type === 'goal')     return <GoalCard     key={b.id} b={b} onUpdate={updateBlock} onRemove={() => removeBlock(b.id)} />;
+                    if (b.type === 'image') return <ImageCard key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
+                    if (b.type === 'voice') return <VoiceCard key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
+                    if (b.type === 'doodle') return <DoodleCard key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
+                    if (b.type === 'goal') return <GoalCard key={b.id} b={b} onUpdate={updateBlock} onRemove={() => removeBlock(b.id)} />;
                     if (b.type === 'tasklist') return <TasklistCard key={b.id} b={b} onUpdate={updateBlock} onRemove={() => removeBlock(b.id)} />;
                     return null;
                   })}
@@ -673,9 +740,9 @@ export default function NewEntryPage() {
 
       {/* Modals */}
       <AnimatePresence>
-        {modal === 'image'    && <ImageModal    onClose={() => setModal(null)} onAdd={(d, n) => addBlock({ id: uid(), type: 'image', dataUrl: d, name: n })} />}
-        {modal === 'doodle'   && <DoodleModal   onClose={() => setModal(null)} onSave={d => addBlock({ id: uid(), type: 'doodle', dataUrl: d })} />}
-        {modal === 'goal'     && <GoalModal     onClose={() => setModal(null)} onAdd={(goal, label) => addBlock({ id: uid(), type: 'goal', goal, label, seconds: 0, running: true })} />}
+        {modal === 'image' && <ImageModal onClose={() => setModal(null)} onAdd={(d, n) => addBlock({ id: uid(), type: 'image', dataUrl: d, name: n })} />}
+        {modal === 'doodle' && <DoodleModal onClose={() => setModal(null)} onSave={d => addBlock({ id: uid(), type: 'doodle', dataUrl: d })} />}
+        {modal === 'goal' && <GoalModal onClose={() => setModal(null)} onAdd={(goal, label) => addBlock({ id: uid(), type: 'goal', goal, label, seconds: 0, running: true })} />}
         {modal === 'tasklist' && <TasklistModal onClose={() => setModal(null)} onAdd={(title, tasks) => addBlock({ id: uid(), type: 'tasklist', title, tasks: tasks.map(t => ({ id: uid(), text: t, done: false })) })} />}
       </AnimatePresence>
     </div>
