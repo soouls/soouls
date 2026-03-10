@@ -5,6 +5,20 @@ import { ActionButton, DashboardLayout, StatsWidget, WidgetCard } from '@soulcan
 import { CheckCircle2, ChevronRight, Folder, Mic, PenLine, Plus } from 'lucide-react'; // Fixed imports
 import Link from 'next/link';
 import { trpc } from '../../src/utils/trpc'; // Relative path
+import LZString from 'lz-string';
+import { useMemo } from 'react';
+
+function decodeEntryContent(rawContent: string | null | undefined): string {
+  if (!rawContent) return '';
+  try {
+    const decompressed = LZString.decompressFromUTF16(rawContent) || rawContent;
+    const parsed = JSON.parse(decompressed);
+    return parsed.textContent || '';
+  } catch {
+    // Fallback for old uncompressed/unformatted entries
+    return rawContent;
+  }
+}
 
 function formatRelativeTime(dateInput: string | Date | undefined | null) {
   if (!dateInput) return 'Past';
@@ -25,18 +39,36 @@ export default function DashboardPage() {
   const { user } = useUser();
   const { data: galaxyData } = trpc.private.entries.getGalaxy.useQuery();
 
-  const totalEntries = galaxyData?.length || 0;
+  const processedGalaxyData = useMemo(() => {
+    if (!galaxyData) return null;
+    return galaxyData.map((entry) => {
+      const decodedContent = decodeEntryContent(entry.content);
+      const firstLineMatches = (decodedContent || '').split('\n').filter((l) => l.trim().length > 0);
+      const firstLine = firstLineMatches.length > 0 ? firstLineMatches[0] : 'Empty entry';
+      const display = firstLine.length > 30 ? `${firstLine.substring(0, 30)}...` : firstLine;
+
+      return {
+        ...entry,
+        decodedContent,
+        displayTitleTimeline: display,
+      };
+    });
+  }, [galaxyData]);
+
+  const totalEntries = processedGalaxyData?.length || 0;
 
   const latestEntry =
-    galaxyData && galaxyData.length > 0 ? galaxyData[galaxyData.length - 1] : null;
+    processedGalaxyData && processedGalaxyData.length > 0 ? processedGalaxyData[processedGalaxyData.length - 1] : null;
+
   const latestEntryId = latestEntry ? latestEntry.id : null;
   const continueLink = latestEntryId
     ? `/dashboard/new-entry?id=${latestEntryId}`
     : '/dashboard/new-entry';
 
   // Use raw content from latest entry (it arrives decrypted from backend)
-  const firstLine = latestEntry
-    ? latestEntry.content.split('\n').find((l) => l.trim().length > 0)
+  const decodedLatestContent = latestEntry ? latestEntry.decodedContent : '';
+  const firstLine = decodedLatestContent
+    ? decodedLatestContent.split('\n').find((l) => l.trim().length > 0)
     : null;
   const displayTitle = firstLine
     ? firstLine.length > 40
@@ -83,7 +115,7 @@ export default function DashboardPage() {
                   {displayTitle}
                 </h4>
                 <p className="font-clarity text-slate-400 mt-4 leading-relaxed line-clamp-3">
-                  {latestEntry ? latestEntry.content : 'Loading...'}
+                  {latestEntry ? decodedLatestContent : 'Loading...'}
                 </p>
               </Link>
             ) : (
@@ -224,7 +256,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Historical Entries Timeline */}
-      {galaxyData && galaxyData.length > 0 && (
+      {processedGalaxyData && processedGalaxyData.length > 0 && (
         <section className="mt-16 mb-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="font-editorial text-3xl text-base-cream">Your Timeline</h2>
@@ -237,15 +269,10 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galaxyData
+            {processedGalaxyData
               .slice()
               .reverse()
               .map((entry) => {
-                const first =
-                  (entry.content || '').split('\n').find((l: string) => l.trim().length > 0) ||
-                  'Empty entry';
-                const display = first.length > 30 ? `${first.substring(0, 30)}...` : first;
-
                 return (
                   <Link
                     key={entry.id}
@@ -266,11 +293,11 @@ export default function DashboardPage() {
                           )}
                         </div>
                         <h4 className="font-editorial text-xl text-slate-300 group-hover:text-amber-500 transition-colors">
-                          {display}
+                          {entry.displayTitleTimeline}
                         </h4>
                       </div>
                       <p className="font-clarity text-sm text-slate-500 mt-3 line-clamp-2 leading-relaxed">
-                        {entry.content}
+                        {entry.decodedContent}
                       </p>
                     </div>
                   </Link>

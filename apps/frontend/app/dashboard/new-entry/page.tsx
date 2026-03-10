@@ -23,10 +23,11 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { trpc } from '../../../src/utils/trpc';
+import imageCompression from 'browser-image-compression';
+import LZString from 'lz-string';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
-const LS_KEY = 'soulcanvas_entry_v1';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Block =
@@ -48,8 +49,11 @@ interface PersistedState {
 
 // ─── useLocalStorage hook ─────────────────────────────────────────────────────
 // Reads once on mount, writes on every change. Never SSR-crashes.
-function usePersistedEntry() {
+function usePersistedEntry(initialId: string | null) {
+  const lsKeyRef = useRef(`soulcanvas_entry_v1_${initialId || 'new'}`);
+
   const [textContent, setTextContentRaw] = useState('');
+  const textContentRef = useRef(textContent);
   const [blocks, setBlocksRaw] = useState<Block[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -57,8 +61,15 @@ function usePersistedEntry() {
 
   // Load from localStorage once on mount (client only)
   useEffect(() => {
+    // If this is a brand-new entry (no ID), wipe the stale 'new' key
+    // so old data never leaks into a fresh canvas.
+    if (!initialId) {
+      localStorage.removeItem(lsKeyRef.current);
+      setHydrated(true);
+      return;
+    }
     try {
-      const raw = localStorage.getItem(LS_KEY);
+      const raw = localStorage.getItem(lsKeyRef.current);
       if (raw) {
         const parsed: PersistedState = JSON.parse(raw);
         // Pause all goal timers on restore — user can resume manually
@@ -66,13 +77,14 @@ function usePersistedEntry() {
           b.type === 'goal' ? { ...b, running: false } : b,
         );
         setTextContentRaw(parsed.textContent ?? '');
+        textContentRef.current = parsed.textContent ?? '';
         setBlocksRaw(restored);
       }
     } catch {
       /* corrupt data — ignore */
     }
     setHydrated(true);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist to localStorage whenever text or blocks change
   const persist = useCallback(
@@ -126,13 +138,30 @@ function usePersistedEntry() {
   );
 
   const clearAll = useCallback(() => {
-    localStorage.removeItem(LS_KEY);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    localStorage.removeItem(lsKeyRef.current);
     setTextContentRaw('');
+    textContentRef.current = '';
     setBlocksRaw([]);
     setSaveStatus('idle');
   }, []);
 
-  return { textContent, setTextContent, blocks, setBlocks, hydrated, saveStatus, clearAll };
+  // Migrate the localStorage key from 'new' to a real entry ID after first DB save
+  const migrateKey = useCallback((newId: string) => {
+    const oldKey = lsKeyRef.current;
+    const newKey = `soulcanvas_entry_v1_${newId}`;
+    if (oldKey === newKey) return; // already on the right key
+    try {
+      const data = localStorage.getItem(oldKey);
+      if (data) {
+        localStorage.setItem(newKey, data);
+      }
+      localStorage.removeItem(oldKey);
+    } catch { /* ignore */ }
+    lsKeyRef.current = newKey;
+  }, []);
+
+  return { textContent, setTextContent, blocks, setBlocks, hydrated, saveStatus, clearAll, migrateKey };
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -866,6 +895,7 @@ function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
   const mrRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const t0 = useRef(0);
 
   const start = async () => {
@@ -893,8 +923,10 @@ function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
     }
   };
 
-  const stop = () => {
-    mrRef.current?.stop();
+  const stop = useCallback(() => {
+    if (mrRef.current && mrRef.current.state !== 'inactive') {
+      mrRef.current.stop();
+    }
     if (timerRef.current) clearInterval(timerRef.current);
     setRecording(false);
     setElapsed(0);
@@ -918,8 +950,8 @@ export default function NewEntryPage() {
   const [modal, setModal] = useState<null | 'image' | 'doodle' | 'goal' | 'tasklist'>(null);
 
   // ── tRPC auto-save (syncs to DB in addition to localStorage) ──────────────
-  const createMutation = trpc.createEntry.useMutation();
-  const updateMutation = trpc.updateEntry.useMutation();
+  const createMutation = trpc.private.entries.create.useMutation();
+  const updateMutation = trpc.private.entries.update.useMutation();
   const createRef = useRef(createMutation.mutateAsync);
   const updateRef = useRef(updateMutation.mutateAsync);
   useEffect(() => {
@@ -946,23 +978,35 @@ export default function NewEntryPage() {
     { enabled: !!initialId },
   );
   useEffect(() => {
-    // Only pull from DB if localStorage had nothing
-    if (existingEntry && !textContent) {
-      setTextContent(existingEntry.content || '');
+    if (existingEntry) {
+      try {
+        const decompressed = LZString.decompressFromUTF16(existingEntry.content) || existingEntry.content;
+        const parsed = JSON.parse(decompressed);
+        if (parsed.textContent !== undefined) {
+          if (!textContent) setTextContent(parsed.textContent || '');
+          if (blocks.length === 0) setBlocks(prev => parsed.blocks || []);
+        } else {
+          if (!textContent) setTextContent(existingEntry.content || '');
+        }
+      } catch {
+        if (!textContent) setTextContent(existingEntry.content || '');
+      }
       setEntryId(existingEntry.id);
     }
   }, [existingEntry]); // eslint-disable-line
 
-  const performDbSave = useRef(async (text: string, id: string | null) => {
-    if (!text.trim() || !userIdRef.current || isSaving.current) return;
+  const performDbSave = useRef(async (text: string, blks: Block[], id: string | null) => {
+    if (!userIdRef.current || isSaving.current) return;
     isSaving.current = true;
     try {
+      const payloadString = JSON.stringify({ textContent: text, blocks: blks });
+      const payload = LZString.compressToUTF16(payloadString);
       if (!id) {
         const e = await createRef.current({ content: text, type: 'entry' });
         setEntryId(e.id);
         entryIdRef.current = e.id;
       } else {
-        await updateRef.current({ id, content: text });
+        await updateRef.current({ id, content: payload });
       }
     } catch (err) {
       console.error('DB save failed:', err);
@@ -971,9 +1015,9 @@ export default function NewEntryPage() {
     }
   });
 
-  // DB debounce — fires 2s after last keystroke
+  // DB debounce — fires 2s after last keystroke or block change
   useEffect(() => {
-    if (!textContent.trim()) return;
+    if (!textContent.trim() && blocks.length === 0) return;
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
     dbDebounce.current = setTimeout(
       () => performDbSave.current(textContent, entryIdRef.current),
