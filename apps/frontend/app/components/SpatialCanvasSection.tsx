@@ -1,17 +1,19 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 
 export default function SpatialCanvasSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const constraintsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.querySelectorAll(".reveal").forEach((el, i) => {
-              setTimeout(() => el.classList.add("in-view"), i * 150);
+            entry.target.querySelectorAll('.reveal').forEach((el, i) => {
+              setTimeout(() => el.classList.add('in-view'), i * 150);
             });
           }
         });
@@ -26,123 +28,137 @@ export default function SpatialCanvasSection() {
     <section
       ref={sectionRef}
       id="philosophy"
-      className="relative overflow-hidden"
+      className="relative overflow-hidden px-6 py-24 md:px-[60px] md:py-[120px]"
       style={{
-        backgroundColor: "#1B242D", // Exact dark slate background from image
-        minHeight: "100svh",
-        padding: "120px 60px",
+        backgroundColor: '#1B242D', // Exact dark slate background from image
+        minHeight: '100svh',
       }}
     >
       {/* Heading Block */}
       <div
         className="reveal"
         style={{
-          maxWidth: "1239px",
-          margin: "0 auto 60px",
-          textAlign: "center",
+          maxWidth: '1239px',
+          margin: '0 auto 60px',
+          textAlign: 'center',
         }}
       >
-        <div className="flex items-center justify-center gap-3 flex-wrap font-playfair">
+        <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap font-playfair">
           <span
             style={{
-              fontSize: "64px",
-              color: "#EFEBDD",
-              letterSpacing: "-0.03em",
+              fontSize: 'clamp(40px, 8vw, 64px)',
+              color: '#EFEBDD',
+              letterSpacing: '-0.03em',
+              lineHeight: '1.1',
             }}
           >
             Your
           </span>
           <span
             style={{
-              fontSize: "64px",
-              color: "#E07A5F",
-              letterSpacing: "-0.03em",
-              textShadow: "0 4px 24px rgba(224,122,95,0.4)",
+              fontSize: 'clamp(40px, 8vw, 64px)',
+              color: '#E07A5F',
+              letterSpacing: '-0.03em',
+              lineHeight: '1.1',
+              textShadow: '0 4px 24px rgba(224,122,95,0.4)',
             }}
           >
             thoughts
           </span>
           <span
             style={{
-              fontSize: "64px",
-              color: "#EFEBDD",
-              letterSpacing: "-0.03em",
+              fontSize: 'clamp(40px, 8vw, 64px)',
+              color: '#EFEBDD',
+              letterSpacing: '-0.03em',
+              lineHeight: '1.1',
             }}
           >
             don't belong in boxes
           </span>
         </div>
         <p
-          className="font-urbanist reveal mt-6"
+          className="font-urbanist reveal mt-4 md:mt-6 px-4"
           style={{
-            fontSize: "22px",
-            lineHeight: "1.4em",
-            letterSpacing: "-0.03em",
-            color: "#D9D9D9",
-            maxWidth: "900px",
-            margin: "24px auto 0",
+            fontSize: 'clamp(16px, 4vw, 22px)',
+            lineHeight: '1.4em',
+            letterSpacing: '-0.03em',
+            color: '#D9D9D9',
+            maxWidth: '900px',
+            margin: '24px auto 0',
             opacity: 0.85,
           }}
         >
-          Soulcanvas gives you a spatial entry field where ideas, emotions,
-          voice, notes, sketches, and tasks can coexist naturally arranged the
-          way your mind works
+          Soulcanvas gives you a spatial entry field where ideas, emotions, voice, notes, sketches,
+          and tasks can coexist naturally arranged the way your mind works
         </p>
       </div>
 
       {/* Spatial Canvas Demo — card cluster */}
       <div
+        ref={constraintsRef}
         className="reveal relative mx-auto"
         style={{
-          maxWidth: "1200px",
-          height: "600px",
+          maxWidth: '1200px',
+          height: 'clamp(480px, 75svh, 600px)',
           background:
-            "radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%)",
-          borderRadius: "24px",
-          border: "1px solid rgba(255,255,255,0.05)",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.2)",
-          overflow: "hidden",
+            'radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
+          overflow: 'hidden',
         }}
       >
         {/* Text entry card */}
-        <div
-          className="absolute font-urbanist flex items-center justify-center transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          whileHover={{ scale: 1.05 }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute font-urbanist flex items-center justify-center cursor-grab w-auto min-w-[200px] max-w-[85vw]"
           style={{
-            left: "12%",
-            top: "25%",
-            background: "#1C1C1C",
-            borderRadius: "16px",
-            padding: "24px 32px",
-            transform: "rotate(-12deg)",
-            boxShadow: "0 12px 24px rgba(0,0,0,0.3)",
+            left: 'max(12%, 10px)',
+            top: 'max(20%, 20px)',
+            background: '#1C1C1C',
+            borderRadius: '16px',
+            padding: '24px 32px',
+            rotate: -12,
+            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
           }}
         >
           <p
+            contentEditable
+            suppressContentEditableWarning
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            className="outline-none focus:ring-1 focus:ring-[#E07A5F]/50 rounded px-1 transition-all cursor-text text-center w-full min-w-[50px]"
             style={{
-              fontSize: "20px",
-              color: "#EFEBDD",
-              letterSpacing: "0.01em",
+              fontSize: '20px',
+              color: '#EFEBDD',
+              letterSpacing: '0.01em',
             }}
           >
             Hey! Today I am feeling great.
           </p>
-        </div>
+        </motion.div>
 
         {/* Voice note card */}
-        <div
-          className="absolute flex items-center transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          whileHover={{ scale: 1.05 }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute flex items-center cursor-grab"
           style={{
-            left: "10%",
-            top: "65%",
-            width: "320px",
-            background: "#1C1C1C",
-            borderRadius: "16px",
-            padding: "16px 20px",
-            transform: "rotate(-4deg)",
-            boxShadow: "0 12px 24px rgba(0,0,0,0.3)",
+            left: 'max(10%, 10px)',
+            top: 'max(65%, 260px)',
+            width: 'min(320px, 85vw)',
+            background: '#1C1C1C',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            rotate: -4,
+            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
           }}
         >
-          <div className="flex items-center gap-3 w-full">
+          <div className="flex items-center gap-2 md:gap-3 w-full">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M8 5V19L19 12L8 5Z" fill="#E07A5F" />
             </svg>
@@ -153,10 +169,10 @@ export default function SpatialCanvasSection() {
                   <div
                     key={j}
                     style={{
-                      width: "3px",
+                      width: '3px',
                       height: `${Math.max(6, h)}px`,
-                      background: j < 12 ? "#FFFFFF" : "rgba(255,255,255,0.3)",
-                      borderRadius: "2px",
+                      background: j < 12 ? '#FFFFFF' : 'rgba(255,255,255,0.3)',
+                      borderRadius: '2px',
                     }}
                   />
                 );
@@ -164,130 +180,153 @@ export default function SpatialCanvasSection() {
             </div>
             <span
               style={{
-                fontSize: "12px",
-                color: "#E07A5F",
-                fontFamily: "Urbanist",
+                fontSize: '12px',
+                color: '#E07A5F',
+                fontFamily: 'Urbanist',
                 fontWeight: 600,
               }}
             >
               00:06
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Image card */}
-        <div
-          className="absolute transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          whileHover={{ scale: 1.05 }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute cursor-grab hidden md:flex"
           style={{
-            left: "38%",
-            top: "30%",
-            width: "260px",
-            height: "190px",
-            background: "#1C1C1C",
-            borderRadius: "16px",
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
-            padding: "16px",
-            boxShadow: "0 12px 24px rgba(0,0,0,0.3)",
+            left: '38%',
+            top: '30%',
+            width: '260px',
+            height: '190px',
+            background: '#1C1C1C',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            padding: '16px',
+            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
           }}
         >
           <div
             style={{
-              position: "absolute",
+              position: 'absolute',
               inset: 0,
-              background:
-                "linear-gradient(to bottom, #1B2936 0%, #151C24 60%, #0F1318 100%)", // Simulated desert dusk
-              borderBottom: "40px solid #1C1C1C",
+              background: 'linear-gradient(to bottom, #1B2936 0%, #151C24 60%, #0F1318 100%)', // Simulated desert dusk
+              borderBottom: '40px solid #1C1C1C',
             }}
           >
             {/* Simulated dune curves */}
             <div
               style={{
-                position: "absolute",
-                bottom: "40px",
-                left: "-10%",
-                right: "-10%",
-                height: "60px",
-                background: "#12171C",
-                borderRadius: "50% 50% 0 0",
+                position: 'absolute',
+                bottom: '40px',
+                left: '-10%',
+                right: '-10%',
+                height: '60px',
+                background: '#12171C',
+                borderRadius: '50% 50% 0 0',
               }}
             />
             <div
               style={{
-                position: "absolute",
-                bottom: "40px",
-                left: "20%",
-                right: "-30%",
-                height: "80px",
-                background: "#0A0C10",
-                borderRadius: "50% 50% 0 0",
+                position: 'absolute',
+                bottom: '40px',
+                left: '20%',
+                right: '-30%',
+                height: '80px',
+                background: '#0A0C10',
+                borderRadius: '50% 50% 0 0',
               }}
             />
           </div>
           <span
-            className="font-urbanist relative z-10"
-            style={{ fontSize: "16px", color: "#D8D8D8", textAlign: "center" }}
+            contentEditable
+            suppressContentEditableWarning
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            className="font-urbanist relative z-10 outline-none focus:ring-1 focus:ring-[#E07A5F]/50 rounded px-1 transition-all cursor-text text-center w-full min-w-[50px]"
+            style={{ fontSize: '16px', color: '#D8D8D8', textAlign: 'center' }}
           >
             Deserted evening
           </span>
-        </div>
+        </motion.div>
 
         {/* Tasks card */}
-        <div
-          className="absolute rounded-2xl transition-transform hover:scale-105 duration-300 font-urbanist"
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          whileHover={{ scale: 1.05 }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute rounded-2xl font-urbanist cursor-grab"
           style={{
-            left: "55%",
-            top: "60%",
-            width: "260px",
-            background: "#1C1C1C",
-            borderRadius: "16px",
-            padding: "24px",
-            boxShadow: "0 12px 24px rgba(0,0,0,0.3)",
+            left: 'max(55%, 20px)',
+            top: 'max(50%, 150px)',
+            width: 'min(260px, 80vw)',
+            background: '#1C1C1C',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
           }}
         >
           {[
-            { label: "2k running" },
-            { label: "3 litr water" },
-            { label: "backend integration" },
+            { label: '2k running' },
+            { label: '3 litr water' },
+            { label: 'backend integration' },
           ].map((t, i) => (
             <div key={i} className="flex items-center gap-3 mb-4 last:mb-0">
               <div
                 style={{
                   width: 14,
                   height: 14,
-                  border: "2px solid #E5B36A",
-                  borderRadius: "3px",
+                  border: '2px solid #E5B36A',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
                 }}
               />
-              <span style={{ fontSize: "16px", color: "#D8D8D8" }}>
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                onPointerDownCapture={(e) => e.stopPropagation()}
+                className="outline-none focus:ring-1 focus:ring-[#E5B36A]/50 rounded px-1 transition-all cursor-text min-w-[50px] overflow-hidden text-ellipsis whitespace-nowrap"
+                style={{ fontSize: '16px', color: '#D8D8D8' }}
+              >
                 {t.label}
               </span>
             </div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Highlighted task card */}
-        <div
-          className="absolute transition-transform hover:scale-105 duration-300 font-urbanist"
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          whileHover={{ scale: 1.05 }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute font-urbanist cursor-grab hidden md:block"
           style={{
-            left: "58%",
-            top: "18%",
-            width: "290px",
-            background: "rgba(28, 28, 28, 0.8)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(224, 122, 95, 0.5)",
-            borderRadius: "16px",
-            padding: "20px 24px",
-            boxShadow: "0 0 24px rgba(224,122,95,.15)",
+            left: '58%',
+            top: '18%',
+            width: 'min(290px, 85vw)',
+            background: 'rgba(28, 28, 28, 0.8)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(224, 122, 95, 0.5)',
+            borderRadius: '16px',
+            padding: '20px 24px',
+            boxShadow: '0 0 24px rgba(224,122,95,.15)',
           }}
         >
           <p
-            className="mb-4"
+            contentEditable
+            suppressContentEditableWarning
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            className="mb-4 outline-none focus:ring-1 focus:ring-[#E07A5F]/50 rounded px-1 transition-all cursor-text min-w-[50px]"
             style={{
-              fontSize: "16px",
-              color: "#EFEBDD",
+              fontSize: '16px',
+              color: '#EFEBDD',
               lineHeight: 1.3,
               fontWeight: 500,
             }}
@@ -297,33 +336,30 @@ export default function SpatialCanvasSection() {
           <div className="flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
               <circle cx="8" cy="8" r="6" stroke="#E5B36A" strokeWidth="1.5" />
-              <path
-                d="M8 5V8.5L10 10"
-                stroke="#E5B36A"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
+              <path d="M8 5V8.5L10 10" stroke="#E5B36A" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <span
-              style={{ fontSize: "12px", color: "#E5B36A", fontWeight: 500 }}
-            >
+            <span style={{ fontSize: '12px', color: '#E5B36A', fontWeight: 500 }}>
               8 hours 24mins left.
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Doodle card */}
-        <div
-          className="absolute flex items-center justify-center transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={constraintsRef}
+          whileHover={{ scale: 1.05 }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute flex items-center justify-center cursor-grab"
           style={{
-            left: "80%",
-            top: "40%",
-            width: "140px",
-            height: "140px",
-            background: "#181818",
-            borderRadius: "16px",
-            boxShadow: "0 12px 24px rgba(0,0,0,0.3)",
-            transform: "rotate(4deg)",
+            left: '80%',
+            top: '40%',
+            width: '140px',
+            height: '140px',
+            background: '#181818',
+            borderRadius: '16px',
+            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
+            rotate: 4,
           }}
         >
           {/* Stickman Doodle SVG */}
@@ -350,40 +386,32 @@ export default function SpatialCanvasSection() {
             <path d="M50 80 L30 100" />
             {/* Phone holding */}
             <path d="M50 80 L70 90 L65 75" />
-            <rect
-              x="62"
-              y="70"
-              width="8"
-              height="14"
-              rx="2"
-              fill="#FFFFFF"
-              stroke="none"
-            />
+            <rect x="62" y="70" width="8" height="14" rx="2" fill="#FFFFFF" stroke="none" />
             {/* Music notes */}
             <path d="M10 20 Q15 15 20 20 V30" strokeWidth="2" />
             <circle cx="18" cy="30" r="3" fill="#FFFFFF" stroke="none" />
             <path d="M85 30 Q90 25 95 35 V45" strokeWidth="2" />
             <circle cx="93" cy="45" r="3" fill="#FFFFFF" stroke="none" />
           </svg>
-        </div>
+        </motion.div>
 
         {/* DRAG • MOVE • CONNECT • REFLECT */}
         <div
-          className="absolute flex items-center gap-6 font-urbanist"
+          className="absolute flex items-center gap-2 md:gap-6 font-urbanist"
           style={{
-            bottom: "32px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
           }}
         >
-          {["DRAG", "•", "MOVE", "•", "CONNECT", "•", "REFLECT"].map((w, i) => (
+          {['DRAG', '•', 'MOVE', '•', 'CONNECT', '•', 'REFLECT'].map((w, i) => (
             <span
               key={i}
               style={{
-                fontSize: "14px",
-                letterSpacing: "0.15em",
-                color: w === "•" ? "rgba(224, 122, 95, 0.5)" : "#E07A5F",
+                fontSize: 'clamp(10px, 2.5vw, 14px)',
+                letterSpacing: w === '•' ? '0' : '0.15em',
+                color: w === '•' ? 'rgba(224, 122, 95, 0.5)' : '#E07A5F',
                 fontWeight: 600,
               }}
             >

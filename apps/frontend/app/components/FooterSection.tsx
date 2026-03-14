@@ -1,176 +1,159 @@
-"use client";
+'use client';
 
-import { SiX, SiLinkedin, SiInstagram } from "react-icons/si";
+import { SiDiscord, SiInstagram, SiLinkedin, SiX } from 'react-icons/si';
+
+const links = {
+  PRODUCT: ['Features', 'Downloads', 'Release Notes'],
+  COMPANY: ['About Us', 'Careers', 'Contact'],
+  RESOURCES: ['Documentation', 'Blog', 'Community'],
+  'LEGAL & COMPLIANCE': ['Privacy Policy', 'Terms & Services', 'Cookie Policy', 'Security'],
+};
 
 export default function FooterSection() {
   return (
     <footer
-      id="footer"
-      className="relative flex items-center justify-center overflow-hidden"
+      className="relative flex flex-col overflow-hidden font-urbanist"
       style={{
-        backgroundColor: "#161616", // Adjusted slightly darker to match image
-        minHeight: "507px",
-        padding: "40px 0",
+        backgroundColor: '#111111', // Deep dark background
+        paddingTop: '80px',
       }}
     >
-      {/* Noise Overlay */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
-          opacity: 0.08,
-          mixBlendMode: "overlay",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Top content - Header, Links, Socials */}
-      <div className="relative z-20 w-full max-w-[1100px] mx-auto px-8 flex justify-between items-start pt-24 pb-32">
-        {/* Left: Brand & Description */}
-        <div className="flex flex-col max-w-[380px]">
-          {/* Exact Clover Logo SVG */}
-          <div className="mb-[20px]">
-            <svg
-              width="60"
-              height="60"
-              viewBox="0 0 100 100"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+      {/* Top content container */}
+      <div className="relative z-20 w-full max-w-[1200px] mx-auto px-6 md:px-12 flex flex-col pb-16">
+        {/* Main Grid */}
+        <div className="flex flex-col lg:flex-row justify-between w-full gap-16 lg:gap-8 mb-24">
+          {/* Brand Column */}
+          <div className="flex flex-col items-start lg:w-1/4">
+            <div className="mb-4">
+              <svg
+                width="80"
+                height="80"
+                viewBox="0 0 100 100"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {/* Four hearts making a clover, simple outline match */}
+                <path
+                  d="M48 48 C 20 8, -5 40, 48 48 Z"
+                  stroke="#E6D3B8"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M52 48 C 80 8, 105 40, 52 48 Z"
+                  stroke="#E6D3B8"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M52 52 C 80 92, 105 60, 52 52 Z"
+                  stroke="#E6D3B8"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M48 52 C 20 92, -5 60, 48 52 Z"
+                  stroke="#E6D3B8"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span
+              className="font-playfair font-normal"
+              style={{ fontSize: '32px', color: '#E0DECE', letterSpacing: '-0.02em' }}
             >
-              {/* Four hearts making a clover, outline exact match to image */}
-              <path
-                d="M48 48 C 20 8, -5 40, 48 48 Z"
-                stroke="#E6D3B8"
-                strokeWidth="3"
-                fill="none"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M52 48 C 80 8, 105 40, 52 48 Z"
-                stroke="#E6D3B8"
-                strokeWidth="3"
-                fill="none"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M52 52 C 80 92, 105 60, 52 52 Z"
-                stroke="#E6D3B8"
-                strokeWidth="3"
-                fill="none"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M48 52 C 20 92, -5 60, 48 52 Z"
-                stroke="#E6D3B8"
-                strokeWidth="3"
-                fill="none"
-                strokeLinejoin="round"
-              />
-            </svg>
+              Soulcanvas
+            </span>
           </div>
-          <span
-            className="font-urbanist tracking-tight mb-3"
-            style={{ fontSize: "32px", color: "#E0DECE", fontWeight: 500 }}
-          >
-            Soulcanvas
-          </span>
-          <p
-            className="font-urbanist"
-            style={{
-              fontSize: "12px",
-              color: "#A8A8A8",
-              lineHeight: "1.4em",
-              letterSpacing: "0.01em",
-              opacity: 0.8,
-            }}
-          >
-            Transforming the act of daily documentation into a highly
-            <br />
-            aesthetic, deeply meaningful experience
-          </p>
+
+          {/* Links Columns */}
+          <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
+            {Object.entries(links).map(([title, items]) => (
+              <div key={title} className="flex flex-col gap-4">
+                <h4 className="text-[#FFFFFF] text-[13px] font-bold tracking-wider uppercase mb-1">
+                  {title}
+                </h4>
+                {items.map((item) => (
+                  <a
+                    key={item}
+                    href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="text-[#999999] text-[14px] hover:text-[#e07a5f] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)] transition-all duration-300"
+                  >
+                    {item}
+                  </a>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Center: Links */}
-        <div className="flex flex-col gap-[20px] mt-[88px] ml-[-60px]">
-          {["TEAM", "PHILOSOPHY", "PRIVACY"].map((link) => (
+        {/* Bottom Bar: Socials and Copyright */}
+        <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 w-full">
+          <div className="flex items-center gap-6">
             <a
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              className="font-urbanist tracking-wide hover:text-white transition-colors duration-200"
-              style={{ fontSize: "13px", color: "#D8D8D8", fontWeight: 600 }}
+              href="#"
+              className="text-white opacity-70 hover:opacity-100 hover:text-[#e07a5f] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)] transition-all duration-300"
             >
-              {link}
+              <SiX size={20} className="fill-current" />
             </a>
-          ))}
-        </div>
-
-        {/* Right: Socials & Copyright */}
-        <div className="flex flex-col items-end mt-[88px]">
-          <div className="flex items-center gap-[24px] mt-[44px] mb-[28px]">
-            {/* X (Twitter) */}
             <a
-              href="https://twitter.com/soulcanvas_app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-80 hover:opacity-100 transition-opacity"
+              href="#"
+              className="text-white opacity-70 hover:opacity-100 hover:text-[#e07a5f] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)] transition-all duration-300"
             >
-              <SiX size={18} color="#D8D8D8" />
+              <SiLinkedin size={22} className="fill-current" />
             </a>
-            {/* LinkedIn */}
             <a
-              href="https://linkedin.com/company/soulcanvas"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-80 hover:opacity-100 transition-opacity"
+              href="#"
+              className="text-white opacity-70 hover:opacity-100 hover:text-[#e07a5f] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)] transition-all duration-300"
             >
-              <SiLinkedin size={20} color="#D8D8D8" />
+              <SiInstagram size={22} className="fill-current" />
             </a>
-            {/* Instagram */}
             <a
-              href="https://instagram.com/soulcanvas_app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="opacity-80 hover:opacity-100 transition-opacity"
+              href="#"
+              className="text-white opacity-70 hover:opacity-100 hover:text-[#e07a5f] hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)] transition-all duration-300"
             >
-              <SiInstagram size={20} color="#D8D8D8" />
+              <SiDiscord size={22} className="fill-current" />
             </a>
           </div>
-          <span
-            className="font-urbanist mt-auto"
-            style={{
-              fontSize: "11px",
-              color: "#888888",
-              letterSpacing: "0.02em",
-              fontWeight: 500,
-            }}
-          >
+
+          <span className="text-[#777777] text-[13px] tracking-wide text-center md:text-right italic md:not-italic">
             All rights reserved © SOULCANVAS 2026
           </span>
         </div>
       </div>
 
-      {/* Stacked Text block matching Figma */}
-      <div className="absolute bottom-[-60px] left-0 right-0 z-10 flex flex-col items-center justify-center pointer-events-none opacity-20">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <span
-            key={i}
-            className="font-playfair"
-            style={{
-              fontFamily: "ABC Whyte Inktrap, sans-serif",
-              fontSize: "300px",
-              lineHeight: "150px",
-              letterSpacing: "-0.035em",
-              fontWeight: 800,
-              color: "transparent",
-              WebkitTextStroke: "1px #FFFFFF",
-              userSelect: "none",
-              textTransform: "none",
-            }}
-          >
-            Soulcanvas
-          </span>
-        ))}
+      {/* Repeating Outlined Background Text */}
+      <div
+        className="relative w-full h-[250px] overflow-hidden flex flex-col justify-end pointer-events-none select-none opacity-40 mt-[-60px]"
+        style={{
+          maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+          WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)',
+        }}
+      >
+        <div className="flex flex-col items-center whitespace-nowrap leading-[0.7]">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-row justify-center w-full">
+              {Array.from({ length: 4 }).map((_, j) => (
+                <span
+                  key={`${i}-${j}`}
+                  className="font-playfair font-normal px-4"
+                  style={{
+                    fontSize: 'clamp(100px, 16vw, 240px)',
+                    color: 'transparent',
+                    WebkitTextStroke: '1px rgba(255, 255, 255, 0.4)',
+                  }}
+                >
+                  Soulcanvas
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </footer>
   );

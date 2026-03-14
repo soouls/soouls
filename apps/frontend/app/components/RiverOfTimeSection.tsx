@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 interface JournalCard {
   id: string;
@@ -8,76 +8,76 @@ interface JournalCard {
   text: string;
   highlighted?: boolean;
   style?: React.CSSProperties;
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
 }
 
 const CARDS: JournalCard[] = [
   {
-    id: "c1",
-    date: "July 6",
-    text: "Getting it done today without any delay in results",
+    id: 'c1',
+    date: 'July 6',
+    text: 'Getting it done today without any delay in results',
     style: {
-      top: "25%",
-      right: "12%",
-      "--rotate": "-3deg",
+      top: '25%',
+      right: '12%',
+      '--rotate': '-3deg',
     } as React.CSSProperties,
-    size: "md",
+    size: 'md',
   },
   {
-    id: "c2",
-    date: "August 4",
-    text: "The scent of rain in the canyon was unlike anything ive felt.",
+    id: 'c2',
+    date: 'August 4',
+    text: 'The scent of rain in the canyon was unlike anything ive felt.',
     style: {
-      top: "15%",
-      right: "35%",
-      "--rotate": "2deg",
+      top: '15%',
+      right: '35%',
+      '--rotate': '2deg',
     } as React.CSSProperties,
-    size: "sm",
+    size: 'sm',
   },
   {
-    id: "c3",
-    date: "October 3",
-    text: "Finally, the clarity I was looking for.",
+    id: 'c3',
+    date: 'October 3',
+    text: 'Finally, the clarity I was looking for.',
     style: {
-      top: "35%",
-      right: "5%",
-      "--rotate": "-1deg",
+      top: '35%',
+      right: '5%',
+      '--rotate': '-1deg',
     } as React.CSSProperties,
-    size: "lg",
+    size: 'lg',
   },
   {
-    id: "c4",
-    date: "July 6",
-    text: "Getting it done today without any delay in results",
+    id: 'c4',
+    date: 'July 6',
+    text: 'Getting it done today without any delay in results',
     style: {
-      top: "55%",
-      right: "25%",
-      "--rotate": "4deg",
+      top: '55%',
+      right: '25%',
+      '--rotate': '4deg',
     } as React.CSSProperties,
-    size: "lg",
+    size: 'lg',
   },
   {
-    id: "c5",
-    date: "August 4",
-    text: "The scent of rain in the canyon was unlike anything ive felt.",
+    id: 'c5',
+    date: 'August 4',
+    text: 'The scent of rain in the canyon was unlike anything ive felt.',
     style: {
-      top: "35%",
-      right: "45%",
-      "--rotate": "-2deg",
+      top: '35%',
+      right: '45%',
+      '--rotate': '-2deg',
     } as React.CSSProperties,
-    size: "md",
+    size: 'md',
   },
   {
-    id: "c6",
-    date: "Midnight Echoes",
-    text: "Why does the silence here feels so heavy yet so hollow?",
+    id: 'c6',
+    date: 'Midnight Echoes',
+    text: 'Why does the silence here feels so heavy yet so hollow?',
     highlighted: true,
     style: {
-      top: "45%",
-      right: "32%",
-      "--rotate": "3deg",
+      top: '45%',
+      right: '32%',
+      '--rotate': '3deg',
     } as React.CSSProperties,
-    size: "lg",
+    size: 'lg',
   },
 ];
 
@@ -86,63 +86,62 @@ function FloatingCard({ card }: { card: JournalCard }) {
     // 133x69
     sm: {
       width: 133,
-      fontSize: "9px",
-      dateFontSize: "12.63px",
-      padding: "10px 13px",
-      gap: "9px",
-      stroke: "0.45px",
-      blur: "27px",
+      fontSize: '9px',
+      dateFontSize: '12.63px',
+      padding: '10px 13px',
+      gap: '9px',
+      stroke: '0.45px',
+      blur: '27px',
     },
     // 159x87
     md: {
       width: 159,
-      fontSize: "10.78px",
-      dateFontSize: "15px",
-      padding: "17px 15px",
-      gap: "11px",
-      stroke: "0.54px",
-      blur: "32.3px",
+      fontSize: '10.78px',
+      dateFontSize: '15px',
+      padding: '17px 15px',
+      gap: '11px',
+      stroke: '0.54px',
+      blur: '32.3px',
     },
     // 295x162
     lg: {
       width: 295,
-      fontSize: "20px",
-      dateFontSize: "28px",
-      padding: "33px 29px",
-      gap: "20px",
-      stroke: "1px",
-      blur: "60px",
+      fontSize: '20px',
+      dateFontSize: '28px',
+      padding: '33px 29px',
+      gap: '20px',
+      stroke: '1px',
+      blur: '60px',
     },
   };
-  const s = sizeMap[card.size ?? "md"];
+  const s = sizeMap[card.size ?? 'md'];
 
   return (
     <div
-      className="absolute rounded-[24px]" // Made sure corners match
+      className="absolute rounded-[24px] cursor-pointer transition-all duration-500 hover:scale-105 hover:z-50 group hover:-translate-y-2"
       style={{
         ...card.style,
         width: s.width,
         padding: s.padding,
-        background: card.highlighted
-          ? "rgba(15,15,15,0.5)"
-          : "rgba(15, 15, 15, 0.5)",
+        background: card.highlighted ? 'rgba(224, 122, 95, 0.08)' : 'rgba(15, 15, 15, 0.5)',
         backdropFilter: `blur(${s.blur})`,
         WebkitBackdropFilter: `blur(${s.blur})`,
         animation: `card-float ${3 + Math.random() * 2}s ease-in-out infinite`,
         border: card.highlighted
-          ? `${s.stroke} solid rgba(224,122,95,0.4)`
-          : `${s.stroke} solid rgba(34,34,34,1)`,
+          ? `${s.stroke} solid rgba(224,122,95,0.6)`
+          : `${s.stroke} solid rgba(255,255,255,0.05)`,
         boxShadow: card.highlighted
-          ? "0px 5px 12px 0px rgba(224, 122, 95, 0.06), 0px 22px 22px 0px rgba(224, 122, 95, 0.05), 0px 49px 29px 0px rgba(224, 122, 95, 0.03), 0px 87px 35px 0px rgba(224, 122, 95, 0.01), 0px 136px 38px 0px rgba(224, 122, 95, 0)"
-          : "0 8px 32px rgba(0,0,0,0.3)",
+          ? '0px 8px 32px 0px rgba(224, 122, 95, 0.15)'
+          : '0 8px 32px rgba(0,0,0,0.3)',
       }}
     >
+      <div className="absolute inset-0 rounded-[24px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none shadow-[0_0_30px_rgba(224,122,95,0.2)]" />
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          justifyContent: "center",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
           gap: s.gap,
         }}
       >
@@ -150,10 +149,10 @@ function FloatingCard({ card }: { card: JournalCard }) {
           className="font-playfair"
           style={{
             fontSize: s.dateFontSize,
-            color: "#EFEBDD",
-            lineHeight: "1em",
-            letterSpacing: "-0.035em",
-            textAlign: "right",
+            color: '#EFEBDD',
+            lineHeight: '1em',
+            letterSpacing: '-0.035em',
+            textAlign: 'right',
           }}
         >
           {card.date}
@@ -162,10 +161,10 @@ function FloatingCard({ card }: { card: JournalCard }) {
           className="font-urbanist"
           style={{
             fontSize: s.fontSize,
-            color: "#A8A8A8",
-            lineHeight: "1em",
-            letterSpacing: "-0.035em",
-            textAlign: "right",
+            color: '#A8A8A8',
+            lineHeight: '1em',
+            letterSpacing: '-0.035em',
+            textAlign: 'right',
           }}
         >
           {card.text}
@@ -186,8 +185,8 @@ export default function RiverOfTimeSection() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.querySelectorAll(".reveal").forEach((el, i) => {
-              setTimeout(() => el.classList.add("in-view"), i * 120);
+            entry.target.querySelectorAll('.reveal').forEach((el, i) => {
+              setTimeout(() => el.classList.add('in-view'), i * 120);
             });
           }
         });
@@ -207,108 +206,148 @@ export default function RiverOfTimeSection() {
       const progress = -rect.top / (rect.height + window.innerHeight);
       cardsRef.current.style.transform = `translateY(${progress * -80}px)`;
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <section
       ref={sectionRef}
       id="product"
-      className="relative overflow-hidden flex items-center w-full"
+      className="relative overflow-hidden flex items-center w-full px-6 py-24 lg:p-[60px]"
       style={{
-        backgroundColor: "#222222",
-        minHeight: "982px",
-        padding: "0 60px",
+        backgroundColor: '#222222',
+        minHeight: '100svh',
       }}
     >
       {/* Left Column — Text */}
       <div
         ref={leftRef}
-        className="relative z-10 flex flex-col justify-start"
-        style={{ width: "100%", maxWidth: "650px", marginLeft: "80px" }}
+        className="relative z-10 flex flex-col justify-start w-full lg:max-w-[650px] mx-auto lg:ml-[80px] lg:mr-auto text-center lg:text-left"
       >
-        <div className="reveal" style={{ marginBottom: "22px" }}>
+        <div className="reveal" style={{ marginBottom: '22px' }}>
           <h2
             className="font-playfair"
             style={{
-              fontSize: "80px",
-              lineHeight: "1em",
-              letterSpacing: "-0.035em",
-              color: "#D6C2A3",
+              fontSize: 'clamp(48px, 10vw, 80px)',
+              lineHeight: '1em',
+              letterSpacing: '-0.035em',
+              color: '#D6C2A3',
             }}
           >
             The River of Time
           </h2>
         </div>
 
-        <div className="reveal" style={{ marginBottom: "60px" }}>
+        <div className="reveal" style={{ marginBottom: '60px' }}>
           <p
-            className="font-urbanist"
+            className="font-urbanist mx-auto lg:ml-0"
             style={{
-              fontSize: "24px",
-              lineHeight: "1.4em",
-              letterSpacing: "-0.035em",
-              color: "#EFEBDD",
+              fontSize: 'clamp(18px, 4vw, 24px)',
+              lineHeight: '1.4em',
+              letterSpacing: '-0.035em',
+              color: '#EFEBDD',
               opacity: 0.85,
+              maxWidth: '600px',
             }}
           >
-            A seamless, non-linear architecture that lets your life flow
-            naturally. Forget chronological constraints — connect moments by
-            their emotional resonance
+            A seamless, non-linear architecture that lets your life flow naturally. Forget
+            chronological constraints — connect moments by their emotional resonance
           </p>
         </div>
 
         {/* Feature tag */}
-        <div className="reveal">
-          <div className="flex items-center gap-[12px] mb-[12px]">
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                background:
-                  "radial-gradient(circle, #E07A5F 0%, rgba(224,122,95,0) 70%)",
-                boxShadow:
-                  "0px 7px 16px 0px rgba(224, 124, 96, 0.22), 0px 29px 29px 0px rgba(224, 124, 96, 0.19), 0px 65px 39px 0px rgba(224, 124, 96, 0.11), 0px 115px 46px 0px rgba(224, 124, 96, 0.03), 0px 180px 50px 0px rgba(224, 124, 96, 0)",
-                flexShrink: 0,
-              }}
-            />
+        <div className="reveal group cursor-pointer inline-flex flex-col items-center lg:items-start lg:mt-4">
+          <div className="flex items-center justify-center lg:justify-start gap-[10px] mb-[6px]">
+            <div className="relative flex items-center justify-center w-[30px] h-[30px]">
+              {/* Dynamic Glow Background */}
+              <div className="absolute inset-0 bg-[#E07A5F] rounded-full blur-[15px] opacity-30 group-hover:opacity-60 group-hover:blur-[22px] transition-all duration-500" />
+
+              {/* Magic Star with Upward Arrow SVG */}
+              <svg
+                width="34"
+                height="34"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="relative z-10 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.9)] transition-all duration-500"
+                style={{ marginLeft: '-4px' }}
+              >
+                {/* Custom Organic Star & Arrow Path */}
+                <path
+                  d="M12 2.5C12 2.5 10.8 6.5 10.5 7.5C10.2 8.5 6.5 9 5.5 9.5C4.5 10 5.5 11 6.5 12C7.5 13 8 16 9 17C10 18 11 15 12 14.5C13 14 16 17 17 16C18 15 15.5 13 16.5 12C17.5 11 20.5 10 19.5 9.5C18.5 9 14.5 9 14 8C13.5 7 12 2.5 12 2.5Z"
+                  stroke="#E07A5F"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                {/* Inner Arrow upward swoop */}
+                <path
+                  d="M9.5 6C10.5 5 12 2.5 12 2.5C12 2.5 13.5 5 14.5 6M12 2.5V8"
+                  stroke="#E07A5F"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                {/* Organic floating particle dots to the right */}
+                <path
+                  d="M20 12C20.5 12 21 12 21.5 12.5C21 13 20 13 20 12.5V12Z"
+                  fill="#E07A5F"
+                  stroke="#E07A5F"
+                  strokeWidth="1"
+                />
+                <path
+                  d="M18.5 15C19 15 19.5 15.5 19.5 16C19 16.5 18 16 18.5 15Z"
+                  fill="#E07A5F"
+                  stroke="#E07A5F"
+                  strokeWidth="0.8"
+                />
+                <path
+                  d="M21 17C21.5 17 22 17.5 22 18C21.5 18.5 20.5 18 21 17Z"
+                  fill="#E07A5F"
+                  stroke="#E07A5F"
+                  strokeWidth="0.8"
+                />
+              </svg>
+            </div>
+
             <span
-              className="font-playfair"
+              className="font-playfair italic font-medium transition-all duration-500 group-hover:text-[#F39982] group-hover:translate-x-1"
               style={{
-                fontSize: "32px",
-                lineHeight: "1em",
-                color: "#E07A5F",
-                letterSpacing: "-0.035em",
+                fontSize: 'clamp(28px, 6vw, 42px)',
+                lineHeight: '1em',
+                color: '#E07A5F',
+                letterSpacing: '-0.01em',
+                textShadow: '0px 0px 15px rgba(224, 122, 95, 0.5)',
               }}
             >
               Dynamic Synthesis
             </span>
           </div>
           <p
-            className="font-urbanist"
+            className="font-urbanist transition-all duration-300 group-hover:text-[#e07a5f] group-hover:drop-shadow-[0_0_8px_rgba(224,122,95,0.5)] group-hover:translate-x-1"
             style={{
-              fontSize: "20px",
-              lineHeight: "1em",
-              letterSpacing: "-0.035em",
-              color: "#EFEBDD",
-              opacity: 0.8,
-              maxWidth: "500px",
-              marginLeft: "44px",
+              fontSize: '18px',
+              lineHeight: '1.4em',
+              letterSpacing: '-0.01em',
+              color: '#EFEBDD',
+              opacity: 0.85,
+              maxWidth: '480px',
+              marginTop: '4px',
             }}
           >
-            Our engine suggests connections based on semantic meaning and mood,
-            not just dates.
+            Our engine suggests connections based on semantic meaning and mood, not just dates.
           </p>
         </div>
       </div>
 
-      {/* Right: Floating journal cards */}
+      {/* Right: Floating journal cards (Hidden on small screens) */}
       <div
         ref={cardsRef}
-        className="absolute right-0 top-0 h-full parallax-layer"
-        style={{ width: "55%", minHeight: "982px" }}
+        className="hidden md:block absolute right-0 top-0 h-[100svh] parallax-layer overflow-hidden pointer-events-none"
+        style={{ width: '55%' }}
       >
         {CARDS.map((card) => (
           <FloatingCard key={card.id} card={card} />
