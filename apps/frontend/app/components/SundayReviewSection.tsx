@@ -28,23 +28,17 @@ export default function SundayReviewSection() {
       id="sunday-review"
       className="relative flex items-center overflow-hidden"
       style={{
-        backgroundColor: '#1D1E1E', // Matches the deep slate/grey background
+        background: 'linear-gradient(to bottom, #1B1B1B 20%, #40321F 65%, #C29557 100%)',
         minHeight: '100svh',
         padding: '120px 60px',
       }}
     >
-      {/* Massive subtle golden radial glow at the bottom left/center */}
+      {/* Soft ambient light overlay for extra richness from the bottom */}
       <div
-        className="absolute pointer-events-none"
+        className="absolute inset-0 pointer-events-none z-0"
         style={{
-          width: '1200px',
-          height: '800px',
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(199, 163, 116, 0.25) 0%, rgba(199, 163, 116, 0.05) 40%, rgba(199, 163, 116, 0) 70%)',
-          bottom: '-300px',
-          left: '20%',
-          opacity: 0.8,
+          background: 'linear-gradient(to bottom, transparent 60%, rgba(255, 220, 150, 0.25) 100%)',
+          mixBlendMode: 'color-dodge',
         }}
       />
 

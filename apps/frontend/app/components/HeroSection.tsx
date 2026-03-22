@@ -1,12 +1,20 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [_scrolled, _setScrolled] = useState(false);
+  const [videoStarted, setVideoStarted] = useState(false);
 
   useEffect(() => {
+    // Reveal video cleanly after 1.5 seconds via CSS opacity instead of relying on unpredictable programmatic play()
+    const _timer = setTimeout(() => {
+      setVideoStarted(true);
+    }, 1500);
+
     const handleScroll = () => {
       if (!sectionRef.current || !contentRef.current) return;
       const scrollY = window.scrollY;
@@ -33,28 +41,22 @@ export default function HeroSection() {
       }}
     >
       {/* Hero Background Video */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div
-          className="absolute inset-0 w-full h-full"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: Need safe autoplaying background video without React hydration interference
-          dangerouslySetInnerHTML={{
-            __html: `
-              <video
-                autoplay
-                loop
-                muted
-                playsinline
-                poster="/hero-bg-figma.png"
-                class="w-full h-full object-cover"
-                style="width: 100%; height: 100%; object-fit: cover;"
-              >
-                <source src="/images/red_sun_remix.mp4" type="video/mp4" />
-              </video>
-            `,
-          }}
-        />
+      <div
+        className={`absolute inset-0 z-0 pointer-events-none transition-opacity duration-[1500ms] ${videoStarted ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/hero-bg-figma.png"
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/images/red_sun_remix.mp4" type="video/mp4" />
+        </video>
         {/* Dark overlay to make the white text readable */}
-        <div className="absolute inset-0 bg-black/30 z-[1]" />
+        <div className="absolute inset-0 bg-[#0A0A0A]/40 z-[1]" />
       </div>
 
       {/* Content */}
@@ -70,7 +72,17 @@ export default function HeroSection() {
             Welcome to a
           </span>
 
-          <div className="flex flex-wrap justify-center items-center gap-4 mt-3 mb-8">
+          <div className="flex flex-wrap justify-center items-center gap-4 mt-3 mb-8 relative">
+            {/* The golden glow */}
+            <div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] md:w-[450px] h-[150px] md:h-[250px] pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(ellipse, rgba(224, 122, 95, 0.45) 0%, transparent 70%)',
+                filter: 'blur(30px)',
+                zIndex: 0,
+              }}
+            />
             <span
               className="font-playfair font-bold italic text-[#E07A5F]"
               style={{
@@ -82,7 +94,7 @@ export default function HeroSection() {
               quieter
             </span>
             <span
-              className="font-urbanist font-bold text-white tracking-tight"
+              className="font-urbanist font-bold text-white tracking-tight relative z-10"
               style={{ fontSize: 'clamp(40px, 8vw, 80px)', lineHeight: '1em' }}
             >
               way to think.
@@ -99,11 +111,11 @@ export default function HeroSection() {
         </p>
 
         <a
-          href="/sign-up"
+          href="#waitlist"
           className="font-urbanist font-semibold bg-[#E07A5F] text-[#222222] px-8 h-16 rounded-xl flex items-center transition-transform hover:scale-105 active:scale-95"
           style={{ fontSize: '20px' }}
         >
-          Start Writing
+          Join Waitlist
         </a>
 
         <p className="font-playfair italic mt-10 text-[#D9D9D9] opacity-80 text-2xl">
@@ -111,13 +123,20 @@ export default function HeroSection() {
         </p>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-80 hover:opacity-100 transition-opacity">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ marginTop: '10px' }}>
             <title>Scroll Down</title>
             <path
-              d="M14 6V22M14 22L8 16M14 22L20 16"
-              stroke="white"
-              strokeWidth="2"
+              d="M6 8L12 14L18 8"
+              stroke="#D6C2A3"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M6 14L12 20L18 14"
+              stroke="#D6C2A3"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />

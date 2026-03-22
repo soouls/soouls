@@ -257,26 +257,35 @@ export default function RiverOfTimeSection() {
         </div>
 
         {/* Feature tag */}
-        <div className="reveal">
-          <div className="flex items-center gap-[12px] mb-[12px]">
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, #E07A5F 0%, rgba(224,122,95,0) 70%)',
-                boxShadow:
-                  '0px 7px 16px 0px rgba(224, 124, 96, 0.22), 0px 29px 29px 0px rgba(224, 124, 96, 0.19), 0px 65px 39px 0px rgba(224, 124, 96, 0.11), 0px 115px 46px 0px rgba(224, 124, 96, 0.03), 0px 180px 50px 0px rgba(224, 124, 96, 0)',
-                flexShrink: 0,
-              }}
-            />
+        <div className="reveal mt-[40px]">
+          <div className="flex items-center gap-[12px] mb-[8px]">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Star outline */}
+              <path
+                d="M12 3L14.4 9.6L21 10.2L16 14.5L17.5 21L12 17.5L6.5 21L8 14.5L3 10.2L9.6 9.6L12 3Z"
+                stroke="#E07A5F"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* Sparkle lines */}
+              <path d="M12 10V14" stroke="#E07A5F" strokeWidth="1.2" strokeLinecap="round" />
+              <path d="M10 12H14" stroke="#E07A5F" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
             <span
-              className="font-playfair"
+              className="font-playfair italic"
               style={{
-                fontSize: '32px',
+                fontSize: '28px',
                 lineHeight: '1em',
                 color: '#E07A5F',
-                letterSpacing: '-0.035em',
+                letterSpacing: '-0.02em',
+                textShadow: '0 4px 12px rgba(224,122,95,0.2)',
               }}
             >
               Dynamic Synthesis
@@ -285,13 +294,11 @@ export default function RiverOfTimeSection() {
           <p
             className="font-urbanist"
             style={{
-              fontSize: '20px',
-              lineHeight: '1em',
-              letterSpacing: '-0.035em',
-              color: '#EFEBDD',
-              opacity: 0.8,
+              fontSize: '18px',
+              lineHeight: '1.4em',
+              letterSpacing: '-0.02em',
+              color: '#A8A8A8',
               maxWidth: '500px',
-              marginLeft: '44px',
             }}
           >
             Our engine suggests connections based on semantic meaning and mood, not just dates.

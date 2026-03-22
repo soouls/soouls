@@ -24,10 +24,12 @@ export default function WaitlistSection() {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
       setSubmitted(true);
+      window.location.href =
+        'https://docs.google.com/forms/d/e/1FAIpQLSegPVQKipXygjPx9MI6yCwd8dJuMwIlH3fmUJoq1j9JjD0NDw/viewform?usp=sharing&ouid=118057366711670267557';
     }
   };
 
@@ -143,40 +145,17 @@ export default function WaitlistSection() {
         <div className="reveal inline-flex items-center mb-8">
           <div
             style={{
-              border: '1px solid #D6C2A3',
-              borderRadius: '12px',
-              padding: '8px 18px',
+              border: '1px solid rgba(214,194,163,0.3)',
+              borderRadius: '24px',
+              padding: '8px 16px',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
             }}
           >
-            {/* Animated dot */}
-            <div className="relative" style={{ width: 8, height: 8 }}>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: '#D6C2A3',
-                  animation: 'ping-dot 1.5s ease-in-out infinite',
-                  position: 'absolute',
-                }}
-              />
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  backgroundColor: '#D6C2A3',
-                  position: 'relative',
-                }}
-              />
-            </div>
             <span
               className="font-urbanist"
               style={{
-                fontSize: '13px',
+                fontSize: '11px',
                 letterSpacing: '0.12em',
                 color: '#D6C2A3',
                 fontWeight: 500,
@@ -243,25 +222,26 @@ export default function WaitlistSection() {
             </div>
             <button
               type="submit"
-              className="font-urbanist font-bold transition-all duration-300"
+              className="font-urbanist font-bold transition-all duration-300 flex items-center justify-center"
               style={{
-                backgroundColor: '#1C1C1C',
-                border: '1px solid #E07A5F',
-                borderRadius: '12px',
-                padding: '18px 28px',
-                color: '#EFEBDD',
-                fontSize: '14px',
-                letterSpacing: '0.08em',
+                backgroundColor: '#E07A5F',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '16px 24px',
+                color: '#222222',
+                fontSize: '13px',
+                letterSpacing: '0.05em',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
+                height: '56px',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = '#E07A5F';
-                (e.currentTarget as HTMLElement).style.color = '#222';
+                (e.currentTarget as HTMLElement).style.backgroundColor = '#d4694e';
+                (e.currentTarget as HTMLElement).style.color = '#FFFFFF';
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = '#1C1C1C';
-                (e.currentTarget as HTMLElement).style.color = '#EFEBDD';
+                (e.currentTarget as HTMLElement).style.backgroundColor = '#E07A5F';
+                (e.currentTarget as HTMLElement).style.color = '#222222';
               }}
             >
               RESERVE YOUR SPOT
