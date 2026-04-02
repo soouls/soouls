@@ -1,9 +1,11 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
 export default function SpatialCanvasSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -26,63 +28,30 @@ export default function SpatialCanvasSection() {
     <section
       ref={sectionRef}
       id="philosophy"
-      className="relative overflow-hidden"
-      style={{
-        backgroundColor: '#1B242D', // Exact dark slate background from image
-        minHeight: '100svh',
-        padding: '120px 60px',
-      }}
+      className="relative overflow-hidden bg-[#1B242D] min-h-[100svh] px-6 py-20 md:px-[60px] md:py-[120px]"
     >
       {/* Heading Block */}
       <div
-        className="reveal"
-        style={{
-          maxWidth: '1239px',
-          margin: '0 auto 60px',
-          textAlign: 'center',
-        }}
+        className="reveal mb-12 md:mb-[60px] max-w-[1239px] mx-auto text-center"
       >
-        <div className="flex items-center justify-center gap-3 flex-wrap font-playfair">
-          <span
-            style={{
-              fontSize: '64px',
-              color: '#EFEBDD',
-              letterSpacing: '-0.03em',
-            }}
-          >
+        <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap font-playfair text-[40px] md:text-[64px] leading-[1em] tracking-tight">
+          <span className="text-[#EFEBDD]">
             Your
           </span>
           <span
+            className="text-[#E07A5F] italic"
             style={{
-              fontSize: '64px',
-              color: '#E07A5F',
-              letterSpacing: '-0.03em',
               textShadow: '0 4px 24px rgba(224,122,95,0.4)',
             }}
           >
             thoughts
           </span>
-          <span
-            style={{
-              fontSize: '64px',
-              color: '#EFEBDD',
-              letterSpacing: '-0.03em',
-            }}
-          >
+          <span className="text-[#EFEBDD]">
             don't belong in boxes
           </span>
         </div>
         <p
-          className="font-urbanist reveal mt-6"
-          style={{
-            fontSize: '22px',
-            lineHeight: '1.4em',
-            letterSpacing: '-0.03em',
-            color: '#D9D9D9',
-            maxWidth: '900px',
-            margin: '24px auto 0',
-            opacity: 0.85,
-          }}
+          className="font-urbanist reveal mt-4 md:mt-6 text-[#D9D9D9] opacity-85 text-[16px] md:text-[22px] leading-[1.4em] tracking-tight max-w-[900px] mx-auto"
         >
           Soulcanvas gives you a spatial entry field where ideas, emotions, voice, notes, sketches,
           and tasks can coexist naturally arranged the way your mind works
@@ -91,29 +60,25 @@ export default function SpatialCanvasSection() {
 
       {/* Spatial Canvas Demo — card cluster */}
       <div
-        className="reveal relative mx-auto"
+        ref={containerRef}
+        className="reveal relative mx-auto w-full max-w-[1200px] h-[900px] md:h-[600px] overflow-hidden"
         style={{
-          maxWidth: '1200px',
-          height: '600px',
           background:
             'radial-gradient(120% 120% at 50% 0%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%)',
           borderRadius: '24px',
           border: '1px solid rgba(255,255,255,0.05)',
           boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
-          overflow: 'hidden',
         }}
       >
         {/* Text entry card */}
-        <div
-          className="absolute font-urbanist flex items-center justify-center transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          whileHover={{ scale: 1.05, zIndex: 50, cursor: 'grab' }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute font-urbanist flex items-center justify-center transition-shadow duration-300 left-[5%] md:left-[10%] top-[3%] md:top-[12%] max-w-[80vw] md:max-w-none bg-[#1C1C1C] rounded-[16px] px-6 py-4 md:px-8 md:py-6 shadow-[0_12px_24px_rgba(0,0,0,0.3)]"
           style={{
-            left: '12%',
-            top: '25%',
-            background: '#1C1C1C',
-            borderRadius: '16px',
-            padding: '24px 32px',
-            transform: 'rotate(-12deg)',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
+            rotate: '-12deg',
           }}
         >
           <p
@@ -125,20 +90,17 @@ export default function SpatialCanvasSection() {
           >
             Hey! Today I am feeling great.
           </p>
-        </div>
+        </motion.div>
 
         {/* Voice note card */}
-        <div
-          className="absolute flex items-center transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          whileHover={{ scale: 1.05, zIndex: 50, cursor: 'grab' }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute flex items-center transition-shadow duration-300 left-[5%] md:left-[15%] top-[85%] md:top-[70%] w-[300px] md:w-[320px] bg-[#1C1C1C] rounded-[16px] p-4 shadow-[0_12px_24px_rgba(0,0,0,0.3)]"
           style={{
-            left: '10%',
-            top: '65%',
-            width: '320px',
-            background: '#1C1C1C',
-            borderRadius: '16px',
-            padding: '16px 20px',
-            transform: 'rotate(-4deg)',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
+            rotate: '-4deg',
           }}
         >
           <div className="flex items-center gap-3 w-full">
@@ -174,25 +136,15 @@ export default function SpatialCanvasSection() {
               00:06
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Image card */}
-        <div
-          className="absolute transition-transform hover:scale-105 duration-300"
-          style={{
-            left: '38%',
-            top: '30%',
-            width: '260px',
-            height: '190px',
-            background: '#1C1C1C',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            padding: '16px',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
-          }}
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          whileHover={{ scale: 1.05, zIndex: 50, cursor: 'grab' }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute transition-shadow duration-300 left-[35%] md:left-[45%] top-[55%] md:top-[35%] w-[220px] md:w-[260px] h-[160px] md:h-[190px] bg-[#1C1C1C] rounded-[16px] overflow-hidden flex flex-col justify-end p-4 shadow-[0_12px_24px_rgba(0,0,0,0.3)]"
         >
           <div
             style={{
@@ -232,20 +184,15 @@ export default function SpatialCanvasSection() {
           >
             Deserted evening
           </span>
-        </div>
+        </motion.div>
 
         {/* Tasks card */}
-        <div
-          className="absolute rounded-2xl transition-transform hover:scale-105 duration-300 font-urbanist"
-          style={{
-            left: '55%',
-            top: '60%',
-            width: '260px',
-            background: '#1C1C1C',
-            borderRadius: '16px',
-            padding: '24px',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
-          }}
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          whileHover={{ scale: 1.05, zIndex: 50, cursor: 'grab' }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute transition-shadow duration-300 font-urbanist left-[15%] md:left-[20%] top-[40%] md:top-[42%] w-[200px] md:w-[260px] bg-[#1C1C1C] rounded-[16px] p-5 md:p-6 shadow-[0_12px_24px_rgba(0,0,0,0.3)]"
         >
           {[
             { label: '2k running' },
@@ -267,20 +214,19 @@ export default function SpatialCanvasSection() {
               </div>
             );
           })}
-        </div>
+        </motion.div>
 
         {/* Highlighted task card */}
-        <div
-          className="absolute transition-transform hover:scale-105 duration-300 font-urbanist"
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          whileHover={{ scale: 1.05, zIndex: 50, cursor: 'grab' }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute transition-shadow duration-300 font-urbanist left-[15%] md:left-[55%] top-[20%] md:top-[12%] w-[260px] md:w-[290px] rounded-[16px] p-5 md:p-6"
           style={{
-            left: '58%',
-            top: '18%',
-            width: '290px',
             background: 'rgba(28, 28, 28, 0.8)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(224, 122, 95, 0.5)',
-            borderRadius: '16px',
-            padding: '20px 24px',
             boxShadow: '0 0 24px rgba(224,122,95,.15)',
           }}
         >
@@ -305,20 +251,17 @@ export default function SpatialCanvasSection() {
               8 hours 24mins left.
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Doodle card */}
-        <div
-          className="absolute flex items-center justify-center transition-transform hover:scale-105 duration-300"
+        <motion.div
+          drag
+          dragConstraints={containerRef}
+          whileHover={{ scale: 1.05, zIndex: 50, cursor: 'grab' }}
+          whileDrag={{ scale: 1.05, cursor: 'grabbing', zIndex: 50 }}
+          className="absolute flex items-center justify-center transition-shadow duration-300 right-[5%] md:left-[75%] md:right-auto top-[75%] md:top-[60%] w-[100px] h-[100px] md:w-[140px] md:h-[140px] bg-[#181818] rounded-[16px] shadow-[0_12px_24px_rgba(0,0,0,0.3)]"
           style={{
-            left: '80%',
-            top: '40%',
-            width: '140px',
-            height: '140px',
-            background: '#181818',
-            borderRadius: '16px',
-            boxShadow: '0 12px 24px rgba(0,0,0,0.3)',
-            transform: 'rotate(4deg)',
+            rotate: '4deg',
           }}
         >
           {/* Stickman Doodle SVG */}
@@ -353,16 +296,17 @@ export default function SpatialCanvasSection() {
             <path d="M85 30 Q90 25 95 35 V45" strokeWidth="2" />
             <circle cx="93" cy="45" r="3" fill="#FFFFFF" stroke="none" />
           </svg>
-        </div>
+        </motion.div>
 
         {/* DRAG • MOVE • CONNECT • REFLECT */}
         <div
-          className="absolute flex items-center gap-6 font-urbanist"
+          className="absolute flex items-center gap-6 font-urbanist "
           style={{
             bottom: '32px',
             left: '50%',
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
+            color: '#E5B36A',
           }}
         >
           {['DRAG', '•', 'MOVE', '•', 'CONNECT', '•', 'REFLECT'].map((w, i) => {
@@ -373,8 +317,8 @@ export default function SpatialCanvasSection() {
                 style={{
                   fontSize: '14px',
                   letterSpacing: '0.15em',
-                  color: w === '•' ? '#E5B36A' : '#A8A8A8',
-                  opacity: w === '•' ? 1 : 0.6,
+                  color: '#E07A5F',
+                  opacity: w === '•' ? 1 : 0.8,
                   fontWeight: 600,
                 }}
               >

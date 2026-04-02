@@ -41,20 +41,69 @@ export type EntryKind = 'entry' | 'task';
 export type GalaxyEntry = {
   id: string;
   content: string;
+  previewText: string;
   type: EntryKind;
   sentimentColor: string | null;
   sentimentLabel: string | null;
+  createdAt: string;
   x: number;
   y: number;
   z: number;
   visualMass: number | null;
 };
 
+export type UserEntry = {
+  id: string;
+  content: string;
+  type: EntryKind;
+  title: string | null;
+  mediaUrl: string | null;
+  sentimentColor: string | null;
+  sentimentLabel: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+};
+
+export type AdminEntry = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string | null;
+  type: EntryKind;
+  title: string | null;
+  content: string;
+  mediaUrl: string | null;
+  sentimentColor: string | null;
+  sentimentLabel: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+};
+
 export type EntriesApi = {
   createEntry: (userId: string, content: string, type?: EntryKind) => Promise<{ id: string }>;
   updateEntry: (userId: string, id: string, content: string) => Promise<void>;
   getEntry: (userId: string, id: string) => Promise<{ id: string; content: string } | null>;
-  getGalaxyData: (userId: string) => Promise<GalaxyEntry[]>;
+  getGalaxyData: (
+    userId: string,
+    limit?: number,
+    cursor?: number,
+  ) => Promise<{ items: GalaxyEntry[]; nextCursor: number | null }>;
+  getAllEntries: (
+    userId: string,
+    limit?: number,
+    cursor?: number,
+  ) => Promise<{ items: UserEntry[]; nextCursor: number | null }>;
+  listAllEntriesAdmin: (
+    limit?: number,
+    offset?: number,
+  ) => Promise<{ items: AdminEntry[]; total: number }>;
+  getUploadPresignedUrl: (
+    userId: string,
+    entryId: string,
+    contentType: string,
+  ) => Promise<{ uploadUrl: string; publicUrl: string }>;
+  updateEntryMediaUrl: (userId: string, entryId: string, mediaUrl: string) => Promise<void>;
+  migrateMedia: (userId: string) => Promise<{ migratedCount: number }>;
 };
 
 export type TasksApi = {
@@ -222,8 +271,35 @@ import {
 } from './namespaces/private/entries/getOne/constants.js';
 import { run as getOneRun } from './namespaces/private/entries/getOne/run.js';
 
-import { config as getGalaxyConfig } from './namespaces/private/entries/getGalaxy/constants.js';
+import {
+  config as getGalaxyConfig,
+  schema as getGalaxySchema,
+} from './namespaces/private/entries/getGalaxy/constants.js';
 import { run as getGalaxyRun } from './namespaces/private/entries/getGalaxy/run.js';
+
+import {
+  config as getUploadUrlConfig,
+  schema as getUploadUrlSchema,
+} from './namespaces/private/entries/getUploadUrl/constants.js';
+import { run as getUploadUrlRun } from './namespaces/private/entries/getUploadUrl/run.js';
+
+import {
+  config as updateMediaUrlConfig,
+  schema as updateMediaUrlSchema,
+} from './namespaces/private/entries/updateMediaUrl/constants.js';
+import { run as updateMediaUrlRun } from './namespaces/private/entries/updateMediaUrl/run.js';
+
+import {
+  config as migrateMediaConfig,
+  inputSchema as migrateMediaSchema,
+} from './namespaces/private/entries/migrateMedia/constants.js';
+import { run as migrateMediaRun } from './namespaces/private/entries/migrateMedia/run.js';
+
+import {
+  config as getAllConfig,
+  schema as getAllSchema,
+} from './namespaces/private/entries/getAll/constants.js';
+import { run as getAllRun } from './namespaces/private/entries/getAll/run.js';
 
 import {
   config as getCenterConfig,
@@ -283,7 +359,28 @@ function buildPrivateRouter(services: Services) {
 
       getGalaxy: authedProcedure
         .use(makeRateLimitMiddleware(getGalaxyConfig.rateLimit))
-        .query(({ ctx }) => getGalaxyRun(undefined, ctx, services)),
+        .input(getGalaxySchema) // Use the schema from constants
+        .query(({ input, ctx }) => getGalaxyRun(input, ctx, services)),
+
+      getUploadUrl: authedProcedure
+        .use(makeRateLimitMiddleware(getUploadUrlConfig.rateLimit))
+        .input(getUploadUrlSchema)
+        .mutation(({ input, ctx }) => getUploadUrlRun(input, ctx, services)),
+
+      updateMediaUrl: authedProcedure
+        .use(makeRateLimitMiddleware(updateMediaUrlConfig.rateLimit))
+        .input(updateMediaUrlSchema)
+        .mutation(({ input, ctx }) => updateMediaUrlRun(input, ctx, services)),
+
+      migrateMedia: authedProcedure
+        .use(makeRateLimitMiddleware(migrateMediaConfig.rateLimit))
+        .input(migrateMediaSchema)
+        .mutation(({ input, ctx }) => migrateMediaRun(input, ctx, services)),
+
+      getAll: authedProcedure
+        .use(makeRateLimitMiddleware(getAllConfig.rateLimit))
+        .input(getAllSchema)
+        .query(({ input, ctx }) => getAllRun(input, ctx, services)),
     }),
 
     tasks: router({

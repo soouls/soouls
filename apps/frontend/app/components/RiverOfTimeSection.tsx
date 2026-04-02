@@ -213,43 +213,24 @@ export default function RiverOfTimeSection() {
     <section
       ref={sectionRef}
       id="product"
-      className="relative overflow-hidden flex items-center w-full"
-      style={{
-        backgroundColor: '#222222',
-        minHeight: '982px',
-        padding: '0 60px',
-      }}
+      className="relative overflow-hidden flex flex-col lg:flex-row items-center lg:items-center w-full bg-[#222222] min-h-[600px] lg:min-h-[982px] px-6 lg:px-[60px] py-16 lg:py-0"
     >
       {/* Left Column — Text */}
       <div
         ref={leftRef}
-        className="relative z-10 flex flex-col justify-start"
-        style={{ width: '100%', maxWidth: '650px', marginLeft: '80px' }}
+        className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:max-w-[650px] lg:ml-[80px]"
       >
-        <div className="reveal" style={{ marginBottom: '22px' }}>
+        <div className="reveal mb-[22px]">
           <h2
-            className="font-playfair"
-            style={{
-              fontSize: '80px',
-              lineHeight: '1em',
-              letterSpacing: '-0.035em',
-              color: '#D6C2A3',
-            }}
+            className="font-playfair text-[#D6C2A3] text-[48px] lg:text-[80px] leading-[1em] tracking-tight"
           >
             The River of Time
           </h2>
         </div>
 
-        <div className="reveal" style={{ marginBottom: '60px' }}>
+        <div className="reveal mb-[40px] md:mb-[60px]">
           <p
-            className="font-urbanist"
-            style={{
-              fontSize: '24px',
-              lineHeight: '1.4em',
-              letterSpacing: '-0.035em',
-              color: '#EFEBDD',
-              opacity: 0.85,
-            }}
+            className="font-urbanist text-[#EFEBDD] opacity-85 text-[18px] lg:text-[24px] leading-[1.4em] tracking-tight"
           >
             A seamless, non-linear architecture that lets your life flow naturally. Forget
             chronological constraints — connect moments by their emotional resonance
@@ -257,42 +238,38 @@ export default function RiverOfTimeSection() {
         </div>
 
         {/* Feature tag */}
-        <div className="reveal">
-          <div className="flex items-center gap-[12px] mb-[12px]">
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, #E07A5F 0%, rgba(224,122,95,0) 70%)',
-                boxShadow:
-                  '0px 7px 16px 0px rgba(224, 124, 96, 0.22), 0px 29px 29px 0px rgba(224, 124, 96, 0.19), 0px 65px 39px 0px rgba(224, 124, 96, 0.11), 0px 115px 46px 0px rgba(224, 124, 96, 0.03), 0px 180px 50px 0px rgba(224, 124, 96, 0)',
-                flexShrink: 0,
-              }}
-            />
+        <div className="reveal mt-[30px] lg:mt-[40px] flex flex-col items-center lg:items-start w-full">
+          <div className="flex flex-col lg:flex-row items-center gap-[12px] mb-[8px]">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Star outline */}
+              <path
+                d="M12 3L14.4 9.6L21 10.2L16 14.5L17.5 21L12 17.5L6.5 21L8 14.5L3 10.2L9.6 9.6L12 3Z"
+                stroke="#E07A5F"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              {/* Sparkle lines */}
+              <path d="M12 10V14" stroke="#E07A5F" strokeWidth="1.2" strokeLinecap="round" />
+              <path d="M10 12H14" stroke="#E07A5F" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
             <span
-              className="font-playfair"
+              className="font-playfair italic text-[#E07A5F] text-[24px] lg:text-[28px] leading-[1em] tracking-tight"
               style={{
-                fontSize: '32px',
-                lineHeight: '1em',
-                color: '#E07A5F',
-                letterSpacing: '-0.035em',
+                textShadow: '0 4px 12px rgba(224,122,95,0.2)',
               }}
             >
               Dynamic Synthesis
             </span>
           </div>
           <p
-            className="font-urbanist"
-            style={{
-              fontSize: '20px',
-              lineHeight: '1em',
-              letterSpacing: '-0.035em',
-              color: '#EFEBDD',
-              opacity: 0.8,
-              maxWidth: '500px',
-              marginLeft: '44px',
-            }}
+            className="font-urbanist text-[#A8A8A8] text-[16px] lg:text-[18px] leading-[1.4em] tracking-tight max-w-[500px]"
           >
             Our engine suggests connections based on semantic meaning and mood, not just dates.
           </p>
@@ -302,12 +279,19 @@ export default function RiverOfTimeSection() {
       {/* Right: Floating journal cards */}
       <div
         ref={cardsRef}
-        className="absolute right-0 top-0 h-full parallax-layer"
-        style={{ width: '55%', minHeight: '982px' }}
+        className="relative lg:absolute mt-12 lg:mt-0 right-0 top-0 h-[450px] sm:h-[600px] lg:h-full parallax-layer w-full lg:w-[55%] lg:min-h-[982px]"
       >
-        {CARDS.map((card) => (
-          <FloatingCard key={card.id} card={card} />
-        ))}
+        <div className="absolute inset-0 scale-[0.7] sm:scale-[0.85] lg:scale-100 origin-top">
+          {CARDS.map((card, index) => (
+            <div 
+              key={card.id} 
+              className="reveal absolute inset-0 w-full h-full pointer-events-none" 
+              style={{ transitionDelay: `${index * 250}ms` }}
+            >
+              <FloatingCard card={card} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

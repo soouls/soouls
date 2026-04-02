@@ -25,6 +25,8 @@ export interface TrpcContext {
   authToken?: string;
   /** Caller IP — set by the NestJS adapter layer. */
   ip: string;
+  /** Whether this request is an admin masquerading as the user. */
+  isMasquerade?: boolean;
 }
 
 export type ProtectedContext = TrpcContext & { userId: string };
@@ -60,7 +62,7 @@ export const router = t.router;
 export function makeRateLimitMiddleware(config: RateLimitConfig = DEFAULT_RATE_LIMIT) {
   return t.middleware(async ({ ctx, path, next }) => {
     const ip = ctx.ip ?? '127.0.0.1';
-    const result = checkRateLimit(ip, path, config);
+    const result = await checkRateLimit(ip, path, config);
 
     if (!result.ok) {
       const retryAfterSec = Math.ceil(result.retryAfterMs / 1000);
@@ -85,6 +87,51 @@ const requireAuth = t.middleware(async ({ ctx, next }) => {
   return next({ ctx: ctx as ProtectedContext });
 });
 
+/** Recursively scrambles strings in an object. */
+function scrambleData(data: Extract<unknown, any>): any {
+  if (!data) return data;
+  if (typeof data === 'string') {
+    // Keep first and last char, scramble the rest
+    if (data.length <= 2) return '*'.repeat(data.length);
+    return `${data[0]}${'*'.repeat(data.length - 2)}${data[data.length - 1]}`;
+  }
+  if (Array.isArray(data)) {
+    return data.map(scrambleData);
+  }
+  if (typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
+    const scrambled: Record<string, unknown> = {};
+    for (const key of Object.keys(obj)) {
+      // Don't scramble IDs or timestamps
+      if (
+        key.toLowerCase().endsWith('id') ||
+        key.toLowerCase().endsWith('at') ||
+        key === 'status' ||
+        key === 'type'
+      ) {
+        scrambled[key] = obj[key];
+      } else {
+        scrambled[key] = scrambleData(obj[key]);
+      }
+    }
+    return scrambled;
+  }
+  return data;
+}
+
+/** Zero-Knowledge Interceptor: Scrambles output if masquerading. */
+const masqueradeScramblerMiddleware = t.middleware(async ({ ctx, next }) => {
+  const result = await next();
+
+  if (ctx.isMasquerade && result.ok) {
+    return {
+      ...result,
+      data: scrambleData(result.data),
+    };
+  }
+  return result;
+});
+
 // ---------------------------------------------------------------------------
 // Base procedures
 // ---------------------------------------------------------------------------
@@ -100,4 +147,5 @@ export const publicProcedure = t.procedure.use(makeRateLimitMiddleware(DEFAULT_R
  */
 export const protectedProcedure = t.procedure
   .use(makeRateLimitMiddleware(DEFAULT_RATE_LIMIT))
-  .use(requireAuth);
+  .use(requireAuth)
+  .use(masqueradeScramblerMiddleware);

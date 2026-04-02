@@ -1,10 +1,24 @@
+import * as Sentry from '@sentry/nestjs';
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
+import pino from 'pino-http';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+
   const app = await NestFactory.create(AppModule);
+
+  app.use(
+    pino({
+      autoLogging: true,
+    }),
+  );
   const isDevelopment = process.env.NODE_ENV !== 'production';
   const appWithBodyParser = app as typeof app & {
     useBodyParser: (
@@ -22,7 +36,10 @@ async function bootstrap() {
 
   const allowedOrigins = [
     process.env.FRONTEND_URL ?? 'http://localhost:3001',
-    process.env.COMMAND_CENTER_URL ?? 'http://localhost:4000',
+    process.env.COMMAND_CENTER_URL ?? 'http://localhost:3002',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3000',
   ];
 
   app.enableCors({
@@ -45,7 +62,13 @@ async function bootstrap() {
       callback(new Error(`CORS origin not allowed: ${origin}`), false);
     },
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Forwarded-User-Id',
+      'X-Masquerade-Session',
+      'X-Clerk-Authorization',
+    ],
     credentials: true,
   });
 

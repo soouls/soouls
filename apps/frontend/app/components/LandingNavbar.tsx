@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { SymbolLogo } from './SymbolLogo';
 
 interface NavLink {
   label: string;
@@ -68,22 +68,64 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
         border: scrolled ? '1px solid rgba(255,255,255,0.05)' : 'none',
       }}
     >
-      <nav className="flex items-center justify-between w-full h-full">
+      <nav className="flex items-center justify-between w-full h-full relative">
+        {/* Mobile menu (Left) */}
+        <div className="flex md:hidden items-center justify-start w-[80px]">
+          <button
+            className="text-[#EFEBDD] p-2 hover:bg-white/10 rounded-md transition-colors"
+            aria-label="Menu"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+        </div>
+
         {/* Logo */}
-        <div className="flex-shrink-0" style={{ width: '200px' }}>
+        <div className="flex-shrink-0 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start w-auto md:w-[200px] h-[32px]">
+          {/* Text Logo */}
           <span
-            className="font-playfair font-bold"
+            className="absolute font-playfair font-bold"
             style={{
               fontFamily: 'ABC Whyte Inktrap, sans-serif',
               color: '#D6C2A3',
-              fontSize: scrolled ? '22px' : '28px',
+              fontSize: '28px',
               lineHeight: '1em',
               letterSpacing: '-0.035em',
+              opacity: scrolled ? 0 : 1,
+              transform: scrolled ? 'translateX(-20px)' : 'translateX(0)',
+              pointerEvents: scrolled ? 'none' : 'auto',
               transition: 'all 0.5s ease',
             }}
           >
             Soulcanvas
           </span>
+          {/* Symbol Logo */}
+          <div
+            className="absolute"
+            style={{
+              opacity: scrolled ? 1 : 0,
+              transform: scrolled
+                ? 'translateX(0) rotate(0deg)'
+                : 'translateX(20px) rotate(-90deg)',
+              pointerEvents: scrolled ? 'auto' : 'none',
+              color: '#D6C2A3',
+              transition: 'all 0.5s ease',
+            }}
+          >
+            <SymbolLogo variant="solid" width="36" height="36" />
+          </div>
         </div>
 
         {/* Nav Links — centered */}
@@ -106,7 +148,7 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
                 transition: 'color 0.2s, font-size 0.5s ease',
               }}
               onMouseEnter={(e) => {
-                (e.target as HTMLElement).style.color = '#FFFFFF';
+                (e.target as HTMLElement).style.color = '#E07A5F';
               }}
               onMouseLeave={(e) => {
                 (e.target as HTMLElement).style.color = scrolled ? '#EFEBDD' : '#A8A8A8';
@@ -117,56 +159,28 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
           ))}
         </div>
 
-        {/* CTA Right */}
-        <div
-          className="flex flex-row items-center justify-end gap-[24px]"
-          style={{ width: '200px' }}
-        >
-          <Link
-            href="/sign-in"
-            className="font-urbanist font-semibold"
+        {/* Right side — CTA */}
+        <div className="flex-shrink-0 flex items-center justify-end w-auto md:w-[200px]">
+          <a
+            href="#waitlist"
+            className="font-urbanist font-bold transition-all duration-300 flex justify-center items-center"
             style={{
-              color: '#E07C60',
-              fontSize: scrolled ? '16px' : '18px',
-              lineHeight: '1em',
-              letterSpacing: '-0.035em',
-              transition: 'all 0.5s ease',
+              backgroundColor: '#E07A5F',
+              color: '#111111',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              whiteSpace: 'nowrap',
             }}
             onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.color = '#EFEBDD';
+              (e.currentTarget as HTMLElement).style.backgroundColor = '#EFEBDD';
             }}
             onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.color = '#E07C60';
+              (e.currentTarget as HTMLElement).style.backgroundColor = '#E07A5F';
             }}
           >
-            Login
-          </Link>
-
-          <Link
-            href="/sign-up"
-            className="font-urbanist font-semibold transition-all duration-300 flex justify-center items-center"
-            style={{
-              backgroundColor: '#E07C60',
-              color: '#222222',
-              fontSize: scrolled ? '15px' : '16px',
-              lineHeight: '1em',
-              letterSpacing: '-0.035em',
-              padding: scrolled ? '10px 18px' : '12px 20px',
-              borderRadius: '12px',
-              gap: '7.5px',
-              transition: 'all 0.5s ease',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)';
-              (e.currentTarget as HTMLElement).style.backgroundColor = '#d4694e';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-              (e.currentTarget as HTMLElement).style.backgroundColor = '#E07C60';
-            }}
-          >
-            Start Writing
-          </Link>
+            Join the Waitlist
+          </a>
         </div>
       </nav>
     </header>
