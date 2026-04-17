@@ -41,6 +41,8 @@ export class EntriesService {
     for (const pattern of patterns) {
       await this.redis.invalidatePattern(pattern);
     }
+    // Invalidate admin entries cache
+    await this.redis.invalidatePattern('admin:entries:*');
   }
 
   async createEntry(userId: string, content: string, type: 'entry' | 'task' = 'entry') {
@@ -311,6 +313,10 @@ export class EntriesService {
    * Returns decrypted descriptions with user info.
    */
   async listAllEntriesAdmin(limit = 50, offset = 0) {
+    const cacheKey = this.getCacheKey('admin:entries', limit, offset);
+    const cached = await this.redis.get<{ items: unknown[]; total: number }>(cacheKey);
+    if (cached) return cached;
+
     const rawData = await db
       .select({
         id: journalEntries.id,
@@ -367,7 +373,9 @@ export class EntriesService {
     const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(journalEntries);
     const total = Number(countResult?.count ?? 0);
 
-    return { items, total };
+    const result = { items, total };
+    await this.redis.set(cacheKey, result, 300); // 5 minutes cache for admin list
+    return result;
   }
 
   async migrateMedia(userId: string) {
@@ -431,12 +439,14 @@ export class EntriesService {
           .set({ content: encrypted, updatedAt: new Date() })
           .where(eq(journalEntries.id, entry.id));
 
+        // Invalidate specific entry cache
+        await this.redis.del(this.getCacheKey('entry', entry.id));
+
         migratedCount++;
       }
     }
 
-    // Invalidate cache
-    await this.redis.del(this.getCacheKey('entry', userId));
+    // Invalidate user cache
     await this.invalidateUserEntryCache(userId);
 
     return { migratedCount };
