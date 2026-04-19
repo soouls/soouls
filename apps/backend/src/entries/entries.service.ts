@@ -389,7 +389,7 @@ export class EntriesService {
       try {
         const decompressed = LZString.decompressFromUTF16(decrypted) || decrypted;
         contentData = JSON.parse(decompressed);
-      } catch (e) {
+      } catch (_e) {
         // Not a JSON block entry, skip
         continue;
       }

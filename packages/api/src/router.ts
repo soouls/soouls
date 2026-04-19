@@ -18,6 +18,14 @@
  *   2. Calls the run() handler.
  *   3. Exports the AppRouter type consumed by the frontend client.
  */
+import type {
+  OnboardingAtmosphere,
+  OnboardingCompanionTone,
+  OnboardingExpressionStyle,
+  OnboardingPurpose,
+  OnboardingThinkingRhythm,
+  UserOnboardingProfile,
+} from '@soouls/database/schema';
 import { TRPCError } from '@trpc/server';
 import {
   type Services,
@@ -215,6 +223,35 @@ export type MessagingApi = {
   requestSecureAccessLink: (email: string) => Promise<{ accepted: boolean }>;
 };
 
+export type UserProfileData = {
+  id: string;
+  clerkId: string;
+  email: string;
+  name: string | null;
+  themePreference: string | null;
+  mascot: string | null;
+  onboardingCompletedAt: Date | null;
+  onboardingProfile: UserOnboardingProfile | null;
+};
+
+export type CompleteOnboardingInput = {
+  purpose: OnboardingPurpose;
+  expressionStyle: OnboardingExpressionStyle;
+  atmosphere: OnboardingAtmosphere;
+  thinkingRhythm: OnboardingThinkingRhythm;
+  companionTone: OnboardingCompanionTone;
+  successDefinition?: string | null;
+  journalContext?: string | null;
+  displayName: string;
+  universeName: string;
+  firstEntry: string;
+};
+
+export type ProfileApi = {
+  getCurrentProfile: (userId: string) => Promise<UserProfileData>;
+  completeOnboarding: (userId: string, input: CompleteOnboardingInput) => Promise<UserProfileData>;
+};
+
 export type UsersApi = {
   ensureUser: (clerkId: string) => Promise<string>;
 };
@@ -317,6 +354,16 @@ import {
 } from './namespaces/private/messaging/updatePreferences/constants.js';
 import { run as updatePreferencesRun } from './namespaces/private/messaging/updatePreferences/run.js';
 import {
+  config as completeOnboardingConfig,
+  schema as completeOnboardingSchema,
+} from './namespaces/private/profile/completeOnboarding/constants.js';
+import { run as completeOnboardingRun } from './namespaces/private/profile/completeOnboarding/run.js';
+import {
+  config as getCurrentProfileConfig,
+  schema as getCurrentProfileSchema,
+} from './namespaces/private/profile/getCurrent/constants.js';
+import { run as getCurrentProfileRun } from './namespaces/private/profile/getCurrent/run.js';
+import {
   config as convertToTaskConfig,
   schema as convertToTaskSchema,
 } from './namespaces/private/tasks/convertToTask/constants.js';
@@ -405,6 +452,18 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(sendCampaignConfig.rateLimit))
         .input(sendCampaignSchema)
         .mutation(({ input, ctx }) => sendCampaignRun(input, ctx, services)),
+    }),
+
+    profile: router({
+      getCurrent: authedProcedure
+        .use(makeRateLimitMiddleware(getCurrentProfileConfig.rateLimit))
+        .input(getCurrentProfileSchema)
+        .query(({ input, ctx }) => getCurrentProfileRun(input, ctx, services)),
+
+      completeOnboarding: authedProcedure
+        .use(makeRateLimitMiddleware(completeOnboardingConfig.rateLimit))
+        .input(completeOnboardingSchema)
+        .mutation(({ input, ctx }) => completeOnboardingRun(input, ctx, services)),
     }),
   });
 }

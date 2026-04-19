@@ -62,6 +62,47 @@ export const adminInviteStatusEnum = pgEnum('admin_invite_status', [
 ]);
 export const developerApiKeyStatusEnum = pgEnum('developer_api_key_status', ['active', 'revoked']);
 
+export type OnboardingPurpose =
+  | 'clear_my_mind'
+  | 'track_habits'
+  | 'process_emotions'
+  | 'creative_writing';
+
+export type OnboardingExpressionStyle =
+  | 'flowing_streams'
+  | 'guided_steps'
+  | 'voice_bursts'
+  | 'mixed_media';
+
+export type OnboardingAtmosphere =
+  | 'clear_horizon'
+  | 'living_archive'
+  | 'signal_tower'
+  | 'depth_chamber';
+
+export type OnboardingThinkingRhythm =
+  | 'first_thing'
+  | 'whenever_it_hits'
+  | 'after_the_noise'
+  | 'late_at_night';
+
+export type OnboardingCompanionTone = 'silent' | 'gentle' | 'honest' | 'deep';
+
+export interface UserOnboardingProfile {
+  version: 1;
+  purpose: OnboardingPurpose;
+  expressionStyle: OnboardingExpressionStyle;
+  atmosphere: OnboardingAtmosphere;
+  thinkingRhythm: OnboardingThinkingRhythm;
+  companionTone: OnboardingCompanionTone;
+  successDefinition: string | null;
+  journalContext: string | null;
+  displayName: string;
+  universeName: string;
+  firstEntry: string;
+  completedAt: string;
+}
+
 // ────────────────────────────────────────
 // Users table
 // ────────────────────────────────────────
@@ -78,6 +119,8 @@ export const users = pgTable('users', {
   billingTier: billingTierEnum('billing_tier').default('free').notNull(),
   themePreference: text('theme_preference').default('aurora'),
   mascot: text('mascot').default('Lumi'),
+  onboardingProfile: jsonb('onboarding_profile').$type<UserOnboardingProfile | null>(),
+  onboardingCompletedAt: timestamp('onboarding_completed_at'),
   stripeCustomerId: text('stripe_customer_id'),
   walletAddress: text('wallet_address'),
   marketingEmailOptIn: boolean('marketing_email_opt_in').default(true).notNull(),

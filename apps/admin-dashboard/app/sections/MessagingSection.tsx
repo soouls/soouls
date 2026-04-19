@@ -44,9 +44,9 @@ export function MessagingSection() {
   const [testEmail, setTestEmail] = useState('');
   const [showTestDialog, setShowTestDialog] = useState(false);
 
-  const [composeBrand, setComposeBrand] = useState<
-    'soouls' | 'soouls-studio' | 'founder-desk'
-  >('soouls');
+  const [composeBrand, setComposeBrand] = useState<'soouls' | 'soouls-studio' | 'founder-desk'>(
+    'soouls',
+  );
   const [composeTitle, setComposeTitle] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeBody, setComposeBody] = useState('');
@@ -264,9 +264,7 @@ export function MessagingSection() {
                   id="composeBrand"
                   value={composeBrand}
                   onChange={(e) =>
-                    setComposeBrand(
-                      e.target.value as 'soouls' | 'soouls-studio' | 'founder-desk',
-                    )
+                    setComposeBrand(e.target.value as 'soouls' | 'soouls-studio' | 'founder-desk')
                   }
                   className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none"
                 >

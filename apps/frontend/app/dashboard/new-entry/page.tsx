@@ -10,13 +10,11 @@ import {
   Image as ImageIcon,
   ListTodo,
   Loader2,
-  Mic,
   Pause,
   PenTool,
   Play,
   Plus,
   Square,
-  StopCircle,
   Trash2,
   Undo2,
   X,
@@ -24,6 +22,10 @@ import {
 import LZString from 'lz-string';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { EntryActionRail } from './EntryActionRail';
+import { decodeEntryPayload, encodeEntryPayload } from './payload';
+import type { EntryBlock } from './types';
+import { AppTransition } from '../../components/motion/AppTransition';
 import { getOptimizedImageUrl } from '../../../src/utils/images';
 import { trpc } from '../../../src/utils/trpc';
 
@@ -31,17 +33,7 @@ import { trpc } from '../../../src/utils/trpc';
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Block =
-  | { id: string; type: 'image'; dataUrl: string; name: string }
-  | { id: string; type: 'voice'; dataUrl: string; duration: number }
-  | { id: string; type: 'doodle'; dataUrl: string }
-  | { id: string; type: 'goal'; goal: string; label: string; seconds: number; running: boolean }
-  | {
-      id: string;
-      type: 'tasklist';
-      title: string;
-      tasks: { id: string; text: string; done: boolean }[];
-    };
+type Block = EntryBlock;
 
 interface PersistedState {
   textContent: string;
@@ -298,7 +290,13 @@ function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: str
   const [color, setColor] = useState('#ffffff');
   const [size, setSize] = useState(4);
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
+  const [tab, setTab] = useState<'draw' | 'stickers'>('draw');
   const COLORS = ['#ffffff', '#FF5C35', '#f59e0b', '#34d399', '#60a5fa', '#a78bfa', '#f472b6'];
+  const stickerPresets = [
+    `data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='28' fill='#111'/><path d='M33 66c10-18 20-27 31-27 16 0 24 13 24 29 0 13-6 22-17 25-9 3-19 1-30-8' fill='none' stroke='white' stroke-width='7' stroke-linecap='round'/><circle cx='43' cy='44' r='7' fill='#FF5C35'/><circle cx='77' cy='38' r='6' fill='#FFD166'/></svg>")}`,
+    `data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='28' fill='#111'/><path d='M35 73c6-23 16-35 27-35 12 0 21 11 21 27 0 17-9 28-23 28-7 0-14-3-20-9' fill='none' stroke='white' stroke-width='7' stroke-linecap='round'/><path d='M76 64c11 3 17 8 17 16 0 10-8 16-18 16' fill='none' stroke='#FF5C35' stroke-width='6' stroke-linecap='round'/></svg>")}`,
+    `data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><rect width='120' height='120' rx='28' fill='#111'/><path d='M60 24l9 19 21 3-15 14 4 20-19-10-19 10 4-20-15-14 21-3z' fill='white'/><circle cx='60' cy='60' r='8' fill='#FF5C35'/></svg>")}`,
+  ];
 
   const getPos = (e: React.MouseEvent | React.TouchEvent) => {
     const c = canvasRef.current;
@@ -407,58 +405,96 @@ function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: str
           </>
         }
       >
-        <div className="flex items-center gap-3 px-5 py-2.5 border-b border-white/5 flex-wrap">
-          <div className="flex gap-1.5">
-            {COLORS.map((c) => (
+        <div className="flex items-center gap-3 border-b border-white/5 px-5 py-2.5 flex-wrap">
+          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1">
+            <button
+              type="button"
+              onClick={() => setTab('draw')}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${tab === 'draw' ? 'bg-white/10 text-white' : 'text-slate-400'}`}
+            >
+              Draw
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('stickers')}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${tab === 'stickers' ? 'bg-white/10 text-white' : 'text-slate-400'}`}
+            >
+              Stickers
+            </button>
+          </div>
+          {tab === 'draw' ? (
+            <>
+              <div className="flex gap-1.5">
+                {COLORS.map((c) => (
+                  <button
+                    type="button"
+                    key={c}
+                    onClick={() => {
+                      setColor(c);
+                      setTool('pen');
+                    }}
+                    className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
+                    style={{
+                      background: c,
+                      borderColor: color === c && tool === 'pen' ? 'white' : 'transparent',
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="w-px h-4 bg-white/10" />
               <button
                 type="button"
-                key={c}
+                onClick={() => setTool((t) => (t === 'eraser' ? 'pen' : 'eraser'))}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs transition-colors ${tool === 'eraser' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Eraser className="w-3 h-3" /> Eraser
+              </button>
+              <div className="ml-auto flex items-center gap-2">
+                <span className="text-slate-500 text-xs">Size</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={24}
+                  value={size}
+                  onChange={(e) => setSize(+e.target.value)}
+                  className="w-20 accent-[#FF5C35]"
+                />
+              </div>
+            </>
+          ) : null}
+        </div>
+        {tab === 'draw' ? (
+          <canvas
+            ref={canvasRef}
+            width={800}
+            height={400}
+            className="w-full block"
+            style={{ cursor: tool === 'eraser' ? 'cell' : 'crosshair' }}
+            onMouseDown={onDown}
+            onMouseMove={onMove}
+            onMouseUp={onUp}
+            onMouseLeave={onUp}
+            onTouchStart={onDown}
+            onTouchMove={onMove}
+            onTouchEnd={onUp}
+          />
+        ) : (
+          <div className="grid grid-cols-3 gap-4 p-5">
+            {stickerPresets.map((sticker) => (
+              <button
+                type="button"
+                key={sticker}
                 onClick={() => {
-                  setColor(c);
-                  setTool('pen');
+                  onSave(sticker);
+                  onClose();
                 }}
-                className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
-                style={{
-                  background: c,
-                  borderColor: color === c && tool === 'pen' ? 'white' : 'transparent',
-                }}
-              />
+                className="rounded-2xl border border-white/10 bg-[#111] p-3 transition hover:border-[#FF5C35]/50 hover:bg-white/[0.03]"
+              >
+                <img src={sticker} alt="Sticker preset" className="h-24 w-full object-contain" />
+              </button>
             ))}
           </div>
-          <div className="w-px h-4 bg-white/10" />
-          <button
-            type="button"
-            onClick={() => setTool((t) => (t === 'eraser' ? 'pen' : 'eraser'))}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs transition-colors ${tool === 'eraser' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            <Eraser className="w-3 h-3" /> Eraser
-          </button>
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="text-slate-500 text-xs">Size</span>
-            <input
-              type="range"
-              min={1}
-              max={24}
-              value={size}
-              onChange={(e) => setSize(+e.target.value)}
-              className="w-20 accent-[#FF5C35]"
-            />
-          </div>
-        </div>
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={400}
-          className="w-full block"
-          style={{ cursor: tool === 'eraser' ? 'cell' : 'crosshair' }}
-          onMouseDown={onDown}
-          onMouseMove={onMove}
-          onMouseUp={onUp}
-          onMouseLeave={onUp}
-          onTouchStart={onDown}
-          onTouchMove={onMove}
-          onTouchEnd={onUp}
-        />
+        )}
       </Modal>
     </Overlay>
   );
@@ -678,8 +714,16 @@ function TasklistModal({
 function Card({
   children,
   onRemove,
+  onMoveUp,
+  onMoveDown,
   className = '',
-}: { children: React.ReactNode; onRemove: () => void; className?: string }) {
+}: {
+  children: React.ReactNode;
+  onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.93 }}
@@ -688,6 +732,28 @@ function Card({
       className={`relative bg-[#1e1e1e] border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-2.5 group ${className}`}
     >
       {children}
+      <div className="absolute right-3 top-3 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        {onMoveUp ? (
+          <button
+            type="button"
+            onClick={onMoveUp}
+            className="rounded-full bg-black/60 p-1 text-white/80 transition hover:bg-black/80"
+            aria-label="Move block up"
+          >
+            <Plus className="h-3 w-3 rotate-45" />
+          </button>
+        ) : null}
+        {onMoveDown ? (
+          <button
+            type="button"
+            onClick={onMoveDown}
+            className="rounded-full bg-black/60 p-1 text-white/80 transition hover:bg-black/80"
+            aria-label="Move block down"
+          >
+            <Plus className="h-3 w-3 rotate-[135deg]" />
+          </button>
+        ) : null}
+      </div>
       <button
         type="button"
         onClick={onRemove}
@@ -709,9 +775,16 @@ const Badge = ({ children }: { children: React.ReactNode }) => (
 function ImageCard({
   b,
   onRemove,
-}: { b: Extract<Block, { type: 'image' }>; onRemove: () => void }) {
+  onMoveUp,
+  onMoveDown,
+}: {
+  b: Extract<Block, { type: 'image' }>;
+  onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+}) {
   return (
-    <Card onRemove={onRemove}>
+    <Card onRemove={onRemove} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
       <img
         src={getOptimizedImageUrl(b.dataUrl, { width: 1200 })}
         alt={b.name}
@@ -725,7 +798,14 @@ function ImageCard({
 function VoiceCard({
   b,
   onRemove,
-}: { b: Extract<Block, { type: 'voice' }>; onRemove: () => void }) {
+  onMoveUp,
+  onMoveDown,
+}: {
+  b: Extract<Block, { type: 'voice' }>;
+  onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+}) {
   const [playing, setPlaying] = useState(false);
   const [prog, setProg] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -759,7 +839,7 @@ function VoiceCard({
   );
 
   return (
-    <Card onRemove={onRemove}>
+    <Card onRemove={onRemove} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -801,9 +881,16 @@ function VoiceCard({
 function DoodleCard({
   b,
   onRemove,
-}: { b: Extract<Block, { type: 'doodle' }>; onRemove: () => void }) {
+  onMoveUp,
+  onMoveDown,
+}: {
+  b: Extract<Block, { type: 'doodle' }>;
+  onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+}) {
   return (
-    <Card onRemove={onRemove}>
+    <Card onRemove={onRemove} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
       <img
         src={b.dataUrl}
         alt="doodle"
@@ -876,16 +963,20 @@ function TasklistCard({
   b,
   onUpdate,
   onRemove,
+  onMoveUp,
+  onMoveDown,
 }: {
   b: Extract<Block, { type: 'tasklist' }>;
   onUpdate: (x: Block) => void;
   onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }) {
   const toggle = (tid: string) =>
     onUpdate({ ...b, tasks: b.tasks.map((t) => (t.id === tid ? { ...t, done: !t.done } : t)) });
   const done = b.tasks.filter((t) => t.done).length;
   return (
-    <Card onRemove={onRemove}>
+    <Card onRemove={onRemove} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
       <p className="text-white text-xs font-medium">{b.title}</p>
       <div className="flex flex-col gap-1.5">
         {b.tasks.map((task) => (
@@ -1058,7 +1149,7 @@ function NewEntryContent() {
       try {
         const decompressed =
           LZString.decompressFromUTF16(existingEntry.content) || existingEntry.content;
-        const parsed = JSON.parse(decompressed);
+        const parsed = decodeEntryPayload(decompressed);
         if (parsed.textContent !== undefined) {
           if (!textContent) setTextContent(parsed.textContent || '');
           if (blocks.length === 0) setBlocks((_prev) => parsed.blocks || []);
@@ -1073,7 +1164,7 @@ function NewEntryContent() {
   }, [existingEntry]); // eslint-disable-line
 
   const getUploadUrlMutation = trpc.private.entries.getUploadUrl.useMutation();
-  const updateMediaUrlMutation = trpc.private.entries.updateMediaUrl.useMutation();
+  const _updateMediaUrlMutation = trpc.private.entries.updateMediaUrl.useMutation();
 
   const performDbSave = useRef(async (text: string, blks: Block[], id: string | null) => {
     if (!userIdRef.current || isSaving.current) return;
@@ -1085,12 +1176,13 @@ function NewEntryContent() {
 
       for (let i = 0; i < updatedBlocks.length; i++) {
         const block = updatedBlocks[i];
-        if (!block || block.type !== 'image') continue;
-        if (!('dataUrl' in block) || !block.dataUrl.startsWith('data:')) continue;
+        if (!block || !('dataUrl' in block)) continue;
+        if (block.type !== 'image' && block.type !== 'voice' && block.type !== 'doodle') continue;
+        if (!block.dataUrl.startsWith('data:')) continue;
 
         const blockDataUrl = block.dataUrl;
         try {
-          const tempId = id || 'temp-' + Date.now();
+          const tempId = id || `temp-${Date.now()}`;
           const mimePart = blockDataUrl.split(';')[0];
           const contentType = mimePart?.split(':')[1] ?? 'image/png';
           const { uploadUrl, publicUrl } = await getUploadUrlMutation.mutateAsync({
@@ -1118,7 +1210,7 @@ function NewEntryContent() {
         setBlocks((_prev) => updatedBlocks);
       }
 
-      const payloadString = JSON.stringify({ textContent: text, blocks: updatedBlocks });
+      const payloadString = encodeEntryPayload(text, updatedBlocks);
       const payload = LZString.compressToUTF16(payloadString);
 
       if (!id) {
@@ -1162,6 +1254,18 @@ function NewEntryContent() {
   const removeBlock = (id: string) => setBlocks((prev) => prev.filter((b) => b.id !== id));
   const updateBlock = (upd: Block) =>
     setBlocks((prev) => prev.map((b) => (b.id === upd.id ? upd : b)));
+  const moveBlock = (id: string, direction: 'up' | 'down') =>
+    setBlocks((prev) => {
+      const index = prev.findIndex((block) => block.id === id);
+      if (index < 0) return prev;
+      const nextIndex = direction === 'up' ? index - 1 : index + 1;
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      if (!item) return prev;
+      next.splice(nextIndex, 0, item);
+      return next;
+    });
 
   const {
     recording,
@@ -1176,243 +1280,245 @@ function NewEntryContent() {
   if (!hydrated) return <div className="min-h-screen bg-[#0a0a0a]" />;
 
   return (
-    <div
-      className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden"
-      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
-    >
-      {/* Background watermark */}
-      <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-35 select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[22vw] leading-none text-transparent tracking-tighter"
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            WebkitTextStroke: '1.5px rgba(255,255,255,0.55)',
-          }}
-        >
-          Soouls
-        </span>
-      </div>
-
-      {/* Header */}
-      <header className="px-8 py-6 flex justify-between items-center relative z-10">
-        <div
-          className="flex items-center gap-1 text-sm"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          <button
-            type="button"
-            onClick={handleHome}
-            className="text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-none cursor-pointer text-base"
+    <AppTransition>
+      <div
+        className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden"
+        style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+      >
+        {/* Background watermark */}
+        <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-35 select-none z-0 overflow-hidden whitespace-nowrap">
+          <span
+            className="text-[22vw] leading-none text-transparent tracking-tighter"
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              WebkitTextStroke: '1.5px rgba(255,255,255,0.55)',
+            }}
           >
-            Home
-          </button>
-          <span className="text-slate-600">/</span>
-          <span className="text-[#FF5C35] text-base">New Entry</span>
+            Soouls
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Save status — shows localStorage save state */}
-          <div className="min-w-[90px] flex justify-end">
-            <AnimatePresence mode="wait">
-              {saveStatus === 'saving' && (
-                <motion.div
-                  key="s"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-1.5 text-slate-500 text-xs"
-                >
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Saving...
-                </motion.div>
-              )}
-              {saveStatus === 'saved' && (
-                <motion.div
-                  key="d"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex items-center gap-1 text-emerald-400 text-xs bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20"
-                >
-                  <Check className="w-3 h-3" />
-                  Saved
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Clear all button */}
-          {(blocks.length > 0 || textContent) && (
+        {/* Header */}
+        <header className="px-8 py-6 flex justify-between items-center relative z-10">
+          <div
+            className="flex items-center gap-1 text-sm"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
             <button
               type="button"
-              onClick={() => {
-                if (confirm('Sab kuch clear kar dein?')) clearAll();
-              }}
-              className="flex items-center gap-1.5 text-slate-600 hover:text-red-400 transition-colors text-xs border border-white/[0.06] hover:border-red-400/30 px-3 py-1.5 rounded-full"
+              onClick={handleHome}
+              className="text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-none cursor-pointer text-base"
             >
-              <Trash2 className="w-3 h-3" />
-              Clear
+              Home
             </button>
-          )}
+            <span className="text-slate-600">/</span>
+            <span className="text-[#FF5C35] text-base">New Entry</span>
+          </div>
 
-          {user?.imageUrl && (
-            <img
-              src={user.imageUrl}
-              alt="Profile"
-              className="w-9 h-9 rounded-full border border-white/10"
-            />
-          )}
-        </div>
-      </header>
+          <div className="flex items-center gap-3">
+            {/* Save status — shows localStorage save state */}
+            <div className="min-w-[90px] flex justify-end">
+              <AnimatePresence mode="wait">
+                {saveStatus === 'saving' && (
+                  <motion.div
+                    key="s"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1.5 text-slate-500 text-xs"
+                  >
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Saving...
+                  </motion.div>
+                )}
+                {saveStatus === 'saved' && (
+                  <motion.div
+                    key="d"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1 text-emerald-400 text-xs bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20"
+                  >
+                    <Check className="w-3 h-3" />
+                    Saved
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-      {/* ── THE CANVAS PANEL ─────────────────────────────────────────────────── */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-6 relative z-10 flex flex-col mt-14 pb-8">
-        <div className="flex-1 rounded-[28px] bg-[#141414] border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden">
-          {/* Scrollable writing + blocks — everything lives here */}
-          <div
-            className="flex-1 overflow-y-auto p-7 flex flex-col gap-5"
-            style={{ minHeight: 380 }}
-          >
-            <textarea
-              value={textContent}
-              onChange={(e) => setTextContent(e.target.value)}
-              placeholder="Drop new entry..."
-              className="w-full bg-transparent border-none outline-none resize-none text-xl text-white placeholder:text-slate-600 focus:ring-0 leading-relaxed font-light"
-              style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                minHeight: blocks.length ? 56 : 220,
-              }}
-            />
-
-            {/* All blocks — inside canvas, restored from localStorage on refresh */}
-            {blocks.length > 0 && (
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
+            {/* Clear all button */}
+            {(blocks.length > 0 || textContent) && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Sab kuch clear kar dein?')) clearAll();
+                }}
+                className="flex items-center gap-1.5 text-slate-600 hover:text-red-400 transition-colors text-xs border border-white/[0.06] hover:border-red-400/30 px-3 py-1.5 rounded-full"
               >
-                <AnimatePresence>
-                  {blocks.map((b) => {
-                    if (b.type === 'image')
-                      return <ImageCard key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
-                    if (b.type === 'voice')
-                      return <VoiceCard key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
-                    if (b.type === 'doodle')
-                      return <DoodleCard key={b.id} b={b} onRemove={() => removeBlock(b.id)} />;
-                    if (b.type === 'goal')
-                      return (
-                        <GoalCard
-                          key={b.id}
-                          b={b}
-                          onUpdate={updateBlock}
-                          onRemove={() => removeBlock(b.id)}
-                        />
-                      );
-                    if (b.type === 'tasklist')
-                      return (
-                        <TasklistCard
-                          key={b.id}
-                          b={b}
-                          onUpdate={updateBlock}
-                          onRemove={() => removeBlock(b.id)}
-                        />
-                      );
-                    return null;
-                  })}
-                </AnimatePresence>
-              </div>
+                <Trash2 className="w-3 h-3" />
+                Clear
+              </button>
+            )}
+
+            {user?.imageUrl && (
+              <img
+                src={user.imageUrl}
+                alt="Profile"
+                className="w-9 h-9 rounded-full border border-white/10"
+              />
             )}
           </div>
+        </header>
 
-          {/* Tooltip */}
-          <div className="flex justify-center py-3 border-t border-white/[0.04]">
-            <span className="bg-[#1e1e1e] border border-white/[0.08] text-slate-400 text-xs px-4 py-1.5 rounded-full select-none">
-              Add if it helps you remember
-            </span>
+        {/* ── THE CANVAS PANEL ─────────────────────────────────────────────────── */}
+        <main className="flex-1 w-full max-w-4xl mx-auto px-6 relative z-10 flex flex-col mt-14 pb-8">
+          <div className="flex-1 rounded-[28px] bg-[#141414] border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden">
+            {/* Scrollable writing + blocks — everything lives here */}
+            <div
+              className="flex-1 overflow-y-auto p-7 flex flex-col gap-5"
+              style={{ minHeight: 380 }}
+            >
+              <textarea
+                value={textContent}
+                onChange={(e) => setTextContent(e.target.value)}
+                placeholder="Drop new entry..."
+                className="w-full bg-transparent border-none outline-none resize-none text-xl text-white placeholder:text-slate-600 focus:ring-0 leading-relaxed font-light"
+                style={{
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  minHeight: blocks.length ? 56 : 220,
+                }}
+              />
+
+              {/* All blocks — inside canvas, restored from localStorage on refresh */}
+              {blocks.length > 0 && (
+                <div
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
+                >
+                  <AnimatePresence>
+                    {blocks.map((b, index) => {
+                      const onMoveUp = index > 0 ? () => moveBlock(b.id, 'up') : undefined;
+                      const onMoveDown =
+                        index < blocks.length - 1 ? () => moveBlock(b.id, 'down') : undefined;
+                      if (b.type === 'image')
+                        return (
+                          <ImageCard
+                            key={b.id}
+                            b={b}
+                            onRemove={() => removeBlock(b.id)}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                          />
+                        );
+                      if (b.type === 'voice')
+                        return (
+                          <VoiceCard
+                            key={b.id}
+                            b={b}
+                            onRemove={() => removeBlock(b.id)}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                          />
+                        );
+                      if (b.type === 'doodle')
+                        return (
+                          <DoodleCard
+                            key={b.id}
+                            b={b}
+                            onRemove={() => removeBlock(b.id)}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                          />
+                        );
+                      if (b.type === 'goal')
+                        return (
+                          <GoalCard
+                            key={b.id}
+                            b={b}
+                            onUpdate={updateBlock}
+                            onRemove={() => removeBlock(b.id)}
+                          />
+                        );
+                      if (b.type === 'tasklist')
+                        return (
+                          <TasklistCard
+                            key={b.id}
+                            b={b}
+                            onUpdate={updateBlock}
+                            onRemove={() => removeBlock(b.id)}
+                            onMoveUp={onMoveUp}
+                            onMoveDown={onMoveDown}
+                          />
+                        );
+                      return null;
+                    })}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            {/* Tooltip */}
+            <div className="flex justify-center py-3 border-t border-white/[0.04]">
+              <span className="bg-[#1e1e1e] border border-white/[0.08] text-slate-400 text-xs px-4 py-1.5 rounded-full select-none">
+                Add if it helps you remember
+              </span>
+            </div>
+
+            {/* Toolbar */}
+            <EntryActionRail
+              imageCount={blocks.filter((b) => b.type === 'image').length}
+              voiceCount={blocks.filter((b) => b.type === 'voice').length}
+              doodleCount={blocks.filter((b) => b.type === 'doodle').length}
+              tasklistCount={blocks.filter((b) => b.type === 'tasklist').length}
+              goalCount={blocks.filter((b) => b.type === 'goal').length}
+              recording={recording}
+              elapsed={elapsed}
+              onAddImage={() => setModal('image')}
+              onToggleRecording={recording ? stopRec : startRec}
+              onAddDoodle={() => setModal('doodle')}
+              onAddTasklist={() => setModal('tasklist')}
+              onAddGoal={() => setModal('goal')}
+            />
           </div>
+        </main>
 
-          {/* Toolbar */}
-          <div className="border-t border-white/[0.06] flex items-stretch divide-x divide-white/[0.06]">
-            <ToolBtn
-              icon={<ImageIcon className="w-4 h-4 text-[#FF5C35]" />}
-              label="Add image"
-              count={blocks.filter((b) => b.type === 'image').length}
-              onClick={() => setModal('image')}
+        {/* Modals */}
+        <AnimatePresence>
+          {modal === 'image' && (
+            <ImageModal
+              onClose={() => setModal(null)}
+              onAdd={(d, n) => addBlock({ id: uid(), type: 'image', dataUrl: d, name: n })}
             />
-            <ToolBtn
-              icon={
-                recording ? (
-                  <StopCircle className="w-4 h-4 text-red-400 animate-pulse" />
-                ) : (
-                  <Mic className="w-4 h-4 text-[#FF5C35]" />
-                )
+          )}
+          {modal === 'doodle' && (
+            <DoodleModal
+              onClose={() => setModal(null)}
+              onSave={(d) => addBlock({ id: uid(), type: 'doodle', dataUrl: d })}
+            />
+          )}
+          {modal === 'goal' && (
+            <GoalModal
+              onClose={() => setModal(null)}
+              onAdd={(goal, label) =>
+                addBlock({ id: uid(), type: 'goal', goal, label, seconds: 0, running: true })
               }
-              label={
-                recording
-                  ? `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '00')}`
-                  : 'Voice note'
+            />
+          )}
+          {modal === 'tasklist' && (
+            <TasklistModal
+              onClose={() => setModal(null)}
+              onAdd={(title, tasks) =>
+                addBlock({
+                  id: uid(),
+                  type: 'tasklist',
+                  title,
+                  tasks: tasks.map((t) => ({ id: uid(), text: t, done: false })),
+                })
               }
-              count={!recording ? blocks.filter((b) => b.type === 'voice').length : 0}
-              onClick={recording ? stopRec : startRec}
-              active={recording}
             />
-            <ToolBtn
-              icon={<PenTool className="w-4 h-4 text-[#FF5C35]" />}
-              label="Doodle"
-              count={blocks.filter((b) => b.type === 'doodle').length}
-              onClick={() => setModal('doodle')}
-            />
-            <ToolBtn
-              icon={<ListTodo className="w-4 h-4 text-[#FF5C35]" />}
-              label="Tasklist"
-              count={blocks.filter((b) => b.type === 'tasklist').length}
-              onClick={() => setModal('tasklist')}
-            />
-            <ToolBtn
-              icon={<Clock className="w-4 h-4 text-[#FF5C35]" />}
-              label="Set time"
-              count={blocks.filter((b) => b.type === 'goal').length}
-              onClick={() => setModal('goal')}
-            />
-          </div>
-        </div>
-      </main>
-
-      {/* Modals */}
-      <AnimatePresence>
-        {modal === 'image' && (
-          <ImageModal
-            onClose={() => setModal(null)}
-            onAdd={(d, n) => addBlock({ id: uid(), type: 'image', dataUrl: d, name: n })}
-          />
-        )}
-        {modal === 'doodle' && (
-          <DoodleModal
-            onClose={() => setModal(null)}
-            onSave={(d) => addBlock({ id: uid(), type: 'doodle', dataUrl: d })}
-          />
-        )}
-        {modal === 'goal' && (
-          <GoalModal
-            onClose={() => setModal(null)}
-            onAdd={(goal, label) =>
-              addBlock({ id: uid(), type: 'goal', goal, label, seconds: 0, running: true })
-            }
-          />
-        )}
-        {modal === 'tasklist' && (
-          <TasklistModal
-            onClose={() => setModal(null)}
-            onAdd={(title, tasks) =>
-              addBlock({
-                id: uid(),
-                type: 'tasklist',
-                title,
-                tasks: tasks.map((t) => ({ id: uid(), text: t, done: false })),
-              })
-            }
-          />
-        )}
-      </AnimatePresence>
-    </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AppTransition>
   );
 }

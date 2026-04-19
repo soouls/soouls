@@ -19,8 +19,9 @@ export function ActionButton({
     'flex items-center justify-center gap-2 rounded-full px-6 py-3 font-clarity text-sm font-medium transition-all active:scale-95';
   const variants = {
     primary:
-      'bg-[#1A1A1A] text-amber-400 border border-amber-500/20 hover:bg-[#222] hover:border-amber-500/40 shadow-lg shadow-amber-900/10',
-    secondary: 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white',
+      'border border-[var(--app-border)] bg-[var(--app-surface-strong)] text-[var(--app-accent)] shadow-[0_12px_40px_-18px_var(--app-glow)] hover:bg-[color:var(--app-surface)] hover:border-[var(--app-accent-soft)]',
+    secondary:
+      'bg-white/5 text-[var(--app-text-muted)] hover:bg-white/10 hover:text-[var(--app-text)]',
   };
 
   return (

@@ -1,6 +1,11 @@
 'use client';
 
-import { HiGlobeAlt, HiDevicePhoneMobile, HiDeviceTablet, HiComputerDesktop } from 'react-icons/hi2';
+import {
+  HiComputerDesktop,
+  HiDevicePhoneMobile,
+  HiDeviceTablet,
+  HiGlobeAlt,
+} from 'react-icons/hi2';
 
 export default function DownloadsSection() {
   const cards = [
@@ -89,9 +94,7 @@ export default function DownloadsSection() {
 
               <div className="flex flex-col">
                 <div className="flex items-start justify-between mb-8">
-                  <div className="p-3 bg-white/5 rounded-2xl">
-                    {card.icon}
-                  </div>
+                  <div className="p-3 bg-white/5 rounded-2xl">{card.icon}</div>
                   <span
                     className="px-3 py-1 rounded-full font-urbanist font-bold text-[10px] tracking-[0.1em]"
                     style={{

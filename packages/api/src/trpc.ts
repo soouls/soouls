@@ -12,7 +12,7 @@
  */
 import { TRPCError, initTRPC } from '@trpc/server';
 import { DEFAULT_RATE_LIMIT, type RateLimitConfig, checkRateLimit } from './rate-limit.js';
-import type { EntriesApi, MessagingApi, TasksApi, UsersApi } from './router.js';
+import type { EntriesApi, MessagingApi, ProfileApi, TasksApi, UsersApi } from './router.js';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -38,6 +38,7 @@ export type ProtectedContext = TrpcContext & { userId: string };
 export interface Services {
   entries: EntriesApi;
   messaging: MessagingApi;
+  profile: ProfileApi;
   tasks: TasksApi;
   users: UsersApi;
 }

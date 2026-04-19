@@ -77,7 +77,7 @@ export default function FooterSection() {
             </span>
             <div className="flex items-center gap-[24px]">
               <a
-                href="https://twitter.com/soouls_app"
+                href="https://x.com/soouls_in"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="opacity-80 hover:opacity-100 transition-opacity hover:text-[#E07A5F] text-[#D8D8D8]"

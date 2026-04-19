@@ -253,12 +253,12 @@ export default function WaitlistSection() {
 
         {/* Meta info row */}
         <div className="reveal flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center mt-12 md:mt-0">
-          <span
-            className="font-urbanist text-[11px] md:text-[13px] tracking-[0.1em] text-[#A8A8A8]"
-          >
+          <span className="font-urbanist text-[11px] md:text-[13px] tracking-[0.1em] text-[#A8A8A8]">
             LAUNCHING FALL 2026
           </span>
-          <span className="hidden sm:inline" style={{ color: '#A8A8A8', opacity: 0.4 }}>—</span>
+          <span className="hidden sm:inline" style={{ color: '#A8A8A8', opacity: 0.4 }}>
+            —
+          </span>
           <span className="font-urbanist text-[11px] md:text-[13px] text-[#A8A8A8]">
             Private early access. Human centered design.
           </span>

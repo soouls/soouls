@@ -21,6 +21,20 @@
   /* Legacy vars */
   --background: #222222;
   --foreground: #efebdd;
+
+  /* Personalized universe theme vars */
+  --app-accent: #f4956c;
+  --app-accent-strong: #ffb088;
+  --app-accent-soft: rgba(244, 149, 108, 0.2);
+  --app-glow: rgba(244, 149, 108, 0.34);
+  --app-bg: #090910;
+  --app-bg-secondary: #171322;
+  --app-surface: rgba(20, 16, 27, 0.82);
+  --app-surface-strong: #121018;
+  --app-border: rgba(244, 149, 108, 0.16);
+  --app-text: #f8efe8;
+  --app-text-muted: #b7a59a;
+  --app-sidebar: #0b0a10;
 }
 
 /* Smooth scroll */
@@ -40,6 +54,7 @@ html {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -50,11 +65,17 @@ body {
 }
 
 body {
-  color: var(--sc-white2);
-  background: var(--sc-black);
+  color: var(--app-text);
+  background: radial-gradient(
+      circle at 20% 20%,
+      color-mix(in srgb, var(--app-accent) 12%, transparent) 0%,
+      transparent 32%
+    ), radial-gradient(circle at 80% 10%, rgba(110, 91, 195, 0.16) 0%, transparent 28%),
+    linear-gradient(180deg, var(--app-bg-secondary) 0%, var(--app-bg) 42%, #06070b 100%);
   font-family: "Urbanist", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 700ms ease, color 350ms ease;
 }
 
 * {
@@ -69,12 +90,12 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--sc-orange);
+  outline: 2px solid var(--app-accent);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgba(224, 122, 95, 0.3);
+  background: var(--app-accent-soft);
   color: #fff;
 }
 
@@ -259,6 +280,57 @@ a {
   100% {
     transform: scale(2);
     opacity: 0;
+  }
+}
+
+@keyframes curve-run {
+  0% {
+    transform: translateX(0px) translateY(0px) scale(0.92);
+  }
+
+  25% {
+    transform: translateX(34px) translateY(-18px) scale(1);
+  }
+
+  50% {
+    transform: translateX(68px) translateY(0px) scale(0.92);
+  }
+
+  75% {
+    transform: translateX(104px) translateY(18px) scale(1);
+  }
+
+  100% {
+    transform: translateX(136px) translateY(0px) scale(0.92);
+  }
+}
+
+@keyframes dash-drift {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes companion-blink {
+  0%,
+  44%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  47%,
+  49% {
+    transform: scaleY(0.18);
+  }
+}
+
+@keyframes slow-orbit {
+  0% {
+    transform: rotate(0deg) translateX(8px) rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg) translateX(8px) rotate(-360deg);
   }
 }
 

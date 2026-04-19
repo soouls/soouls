@@ -1,59 +1,194 @@
-import { SignIn } from '@clerk/nextjs';
+'use client';
+
+import { useSignIn } from '@clerk/nextjs';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { AuthSocialActions } from '../../components/auth/AuthSocialActions';
+import { AuthButton, AuthInput, AuthScaffold } from '../../components/auth/auth-ui';
+
+function getClerkErrorMessage(error: unknown) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'errors' in error &&
+    Array.isArray((error as { errors?: Array<{ longMessage?: string; message?: string }> }).errors)
+  ) {
+    const first = (error as { errors: Array<{ longMessage?: string; message?: string }> })
+      .errors[0];
+    return first?.longMessage || first?.message || 'Something went wrong. Please try again.';
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Something went wrong. Please try again.';
+}
 
 export default function SignInPage() {
-  return (
-    <div className="min-h-screen bg-[#050816] text-white">
-      <div className="mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-6 py-12 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="relative overflow-hidden rounded-[36px] border border-white/10 bg-[radial-gradient(circle_at_top,#3b1d10_0%,#120f1d_40%,#050816_100%)] p-8 lg:p-12">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(249,115,22,0.16),transparent_45%,rgba(15,118,110,0.12))]" />
-          <div className="relative space-y-6">
-            <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.28em] text-orange-200">
-              Soouls Access
-            </div>
-            <div className="space-y-4">
-              <h1 className="max-w-xl font-playfair text-5xl leading-tight text-white">
-                Sign back into the quietest workspace in your stack.
-              </h1>
-              <p className="max-w-xl text-base leading-8 text-slate-300">
-                Your journal, your campaigns, your onboarding system, and your product voice all
-                live in one place now.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-                <p className="text-sm uppercase tracking-[0.24em] text-orange-200/80">Private</p>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  Soouls keeps the journaling experience quiet while internal systems stay
-                  behind the scenes.
-                </p>
-              </div>
-              <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-                <p className="text-sm uppercase tracking-[0.24em] text-emerald-200/80">
-                  Onboarding
-                </p>
-                <p className="mt-3 text-sm leading-7 text-slate-300">
-                  New accounts still trigger branded welcome messaging automatically without turning
-                  the product UI into a mail tool.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300">
-              <Link href="/" className="text-slate-400 transition hover:text-white">
-                Back to home
-              </Link>
-            </div>
-          </div>
-        </section>
+  const router = useRouter();
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [keepAlive, setKeepAlive] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<
+    'oauth_google' | 'oauth_facebook' | 'oauth_apple' | null
+  >(null);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex items-center justify-center">
-          <SignIn
-            fallbackRedirectUrl="/dashboard"
-            forceRedirectUrl="/dashboard"
-            signUpFallbackRedirectUrl="/dashboard"
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!isLoaded) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const result = await signIn.create({
+        identifier: email.trim(),
+        password,
+      });
+
+      if (result.status !== 'complete' || !result.createdSessionId) {
+        setError('Your sign-in needs another step that is not configured in this custom flow yet.');
+        return;
+      }
+
+      await setActive({ session: result.createdSessionId });
+      router.replace('/dashboard');
+    } catch (caughtError) {
+      setError(getClerkErrorMessage(caughtError));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleOAuth(strategy: 'oauth_google' | 'oauth_facebook' | 'oauth_apple') {
+    if (!isLoaded) {
+      return;
+    }
+
+    setError(null);
+    setSocialLoading(strategy);
+
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy,
+        redirectUrl: '/sign-in/sso-callback',
+        redirectUrlComplete: '/dashboard',
+      });
+    } catch (caughtError) {
+      setError(getClerkErrorMessage(caughtError));
+      setSocialLoading(null);
+    }
+  }
+
+  return (
+    <AuthScaffold
+      eyebrow="Return To The Sanctuary"
+      title={
+        <>
+          Return to the
+          <br />
+          <span className="italic text-[var(--app-accent-strong)]">Sanctuary</span>
+        </>
+      }
+      description="Your private universe is waiting where you left it. Step back in quietly, and we’ll bring the atmosphere back with you."
+      footer="SoulCanvas Digital Sanctuary"
+      sideNote={<span>{keepAlive ? 'Session stays warm' : 'Private session'}</span>}
+    >
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--app-accent)]">
+            Continue your creative journey
+          </p>
+          <h2 className="font-editorial text-4xl leading-none text-[var(--app-text)] lg:hidden">
+            Enter the sanctuary
+          </h2>
+          <p className="text-sm leading-7 text-[var(--app-text-muted)]">
+            Custom auth UI on top of Clerk, tuned to the product style you shared.
+          </p>
+        </div>
+
+        <AuthInput
+          label="Email Address"
+          value={email}
+          onChange={setEmail}
+          placeholder="curator@soulcanvas.space"
+          type="email"
+          autoComplete="email"
+        />
+
+        <AuthInput
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          placeholder="Enter your private key"
+          type="password"
+          autoComplete="current-password"
+        />
+
+        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-[var(--app-text-muted)]">
+          <label className="inline-flex items-center gap-3">
+            <input
+              checked={keepAlive}
+              onChange={(event) => setKeepAlive(event.target.checked)}
+              type="checkbox"
+              className="h-4 w-4 rounded border-[var(--app-border)] bg-transparent text-[var(--app-accent)] focus:ring-[var(--app-accent)]"
+            />
+            Keep session active
+          </label>
+
+          <Link
+            href="/forgot-password"
+            className="text-[var(--app-accent)] transition hover:brightness-110"
+          >
+            Forgot key?
+          </Link>
+        </div>
+
+        {error ? (
+          <div className="rounded-[1.4rem] border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+            {error}
+          </div>
+        ) : null}
+
+        <AuthButton type="submit" disabled={isSubmitting || !email.trim() || !password.trim()}>
+          {isSubmitting ? 'Opening your universe…' : 'Enter the Sanctuary'}
+        </AuthButton>
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 text-xs uppercase tracking-[0.28em] text-[var(--app-text-muted)]">
+            <span className="h-px flex-1 bg-white/10" />
+            <span>Or enter another way</span>
+            <span className="h-px flex-1 bg-white/10" />
+          </div>
+          <AuthSocialActions
+            onSelect={handleOAuth}
+            loadingStrategy={socialLoading}
+            modeLabel="Sign in"
           />
         </div>
-      </div>
-    </div>
+
+        <div className="rounded-[1.6rem] border border-[var(--app-border)] bg-black/10 p-4 text-sm leading-7 text-[var(--app-text-muted)]">
+          Returning after onboarding? We’ll route you straight back in. If your profile still needs
+          calibration, the first-time flow will resume automatically.
+        </div>
+
+        <p className="text-center text-sm text-[var(--app-text-muted)]">
+          New to the collective?{' '}
+          <Link
+            href="/sign-up"
+            className="text-[var(--app-accent)] transition hover:brightness-110"
+          >
+            Create an identity
+          </Link>
+        </p>
+      </form>
+    </AuthScaffold>
   );
 }
