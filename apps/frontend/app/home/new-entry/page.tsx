@@ -30,13 +30,23 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getOptimizedImageUrl } from '../../../src/utils/images';
 import { trpc } from '../../../src/utils/trpc';
+import dynamic from 'next/dynamic';
+import { GiphyFetch } from '@giphy/js-fetch-api';
+import { Grid } from '@giphy/react-components';
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
+const gf = new GiphyFetch(process.env.NEXT_PUBLIC_GIPHY_API_KEY || 'umSoMdQJRH8u5gCmX0BXFNPOsWRVhqHe');
+
+// Stable references for Giphy Grid to prevent infinite re-renders
+const fetchGifsTrending = (offset: number) => gf.trending({ offset, limit: 10, type: 'gifs' });
+const fetchStickersTrending = (offset: number) => gf.trending({ offset, limit: 12, type: 'stickers' });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Block =
-  | { id: string; type: 'image'; dataUrl: string; name: string }
+  | { id: string; type: 'image'; dataUrl: string; name: string; isSticker?: boolean; isGif?: boolean }
   | { id: string; type: 'voice'; dataUrl: string; duration: number }
   | { id: string; type: 'doodle'; dataUrl: string }
   | { id: string; type: 'goal'; goal: string; label: string; seconds: number; running: boolean }
@@ -121,11 +131,14 @@ function usePersistedEntry(initialId: string | null) {
 
   // Wrapped setters that also trigger persist
   const setTextContent = useCallback(
-    (val: string) => {
-      setTextContentRaw(val);
-      setBlocksRaw((prev) => {
-        persist(val, prev);
-        return prev;
+    (valOrUpdater: string | ((prev: string) => string)) => {
+      setTextContentRaw((prevRaw) => {
+        const nextVal = typeof valOrUpdater === 'function' ? valOrUpdater(prevRaw) : valOrUpdater;
+        setBlocksRaw((prevBlocks) => {
+          persist(nextVal, prevBlocks);
+          return prevBlocks;
+        });
+        return nextVal;
       });
     },
     [persist],
@@ -212,29 +225,29 @@ function Modal({
 }) {
   return (
     <motion.div
-      initial={{ scale: 0.92, y: 16 }}
+      initial={{ scale: 0.95, y: 16 }}
       animate={{ scale: 1, y: 0 }}
-      exit={{ scale: 0.92, y: 16 }}
-      className="bg-[#0e0e0e] border border-white/10 rounded-3xl overflow-hidden shadow-2xl w-full max-w-2xl flex flex-col"
+      exit={{ scale: 0.95, y: 16 }}
+      className="bg-[#1C1C1C]/90 backdrop-blur-3xl border border-white/10 ring-1 ring-white/5 rounded-[32px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.8)] w-full max-w-[460px] flex flex-col relative"
     >
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.08]">
-        <span className="text-white text-sm font-medium flex items-center gap-2">
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.04] bg-black/10">
+        <span className="text-white text-[15px] tracking-wide font-medium flex items-center gap-3">
           {icon}
           {title}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 pr-8">
           {extra}
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
         </div>
       </div>
       {children}
-      <div className="flex justify-end gap-3 px-5 py-3.5 border-t border-white/[0.08]">
+      <div className="flex justify-end items-center gap-3 px-6 py-4 border-t border-white/[0.04] bg-black/10">
         {footer}
       </div>
     </motion.div>
@@ -253,7 +266,7 @@ const GhostBtn = ({ onClick, children }: { onClick: () => void; children: React.
   <button
     type="button"
     onClick={onClick}
-    className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+    className="px-4 py-2.5 text-[13px] font-medium text-white/50 hover:text-white transition-colors tracking-wide"
   >
     {children}
   </button>
@@ -267,7 +280,7 @@ const OrangeBtn = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="px-5 py-2 bg-[#FF5C35] hover:bg-[#ff6b47] disabled:opacity-30 text-white text-sm rounded-xl transition-colors font-medium"
+    className="px-8 py-2.5 bg-[#D46B4E] hover:bg-[#E58B76] disabled:opacity-40 disabled:hover:translate-y-0 text-white text-[13px] rounded-full transition-all duration-300 font-semibold shadow-[0_8px_20px_rgba(212,107,78,0.3)] hover:shadow-[0_8px_30px_rgba(212,107,78,0.5)] tracking-wide hover:-translate-y-0.5"
   >
     {children}
   </button>
@@ -287,22 +300,57 @@ const MInput = ({
     value={value}
     onChange={onChange}
     placeholder={placeholder}
-    className={`bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-slate-500 outline-none focus:border-[#FF5C35]/50 w-full ${className}`}
+    className={`bg-black/20 border border-white/5 rounded-2xl px-5 py-3.5 text-white text-[14px] placeholder:text-white/30 outline-none focus:border-[#D46B4E]/50 focus:bg-black/40 transition-all w-full shadow-inner ${className}`}
   />
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MODALS
 // ══════════════════════════════════════════════════════════════════════════════
-function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: string) => void }) {
+function DoodleModal({
+  onClose,
+  onSave,
+  onSaveImage,
+  onAppendText,
+}: {
+  onClose: () => void;
+  onSave: (d: string) => void;
+  onSaveImage: (u: string, n: string, isSticker?: boolean, isGif?: boolean) => void;
+  onAppendText: (t: string) => void;
+}) {
+  const [tab, setTab] = useState<'stickers' | 'emoji' | 'gif' | 'draw'>('stickers');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+  }, [tab]);
+
+  const fetchStickers = useCallback((offset: number) => {
+    return debouncedQuery 
+      ? gf.search(debouncedQuery, { offset, limit: 12, type: 'stickers' }) 
+      : fetchStickersTrending(offset);
+  }, [debouncedQuery]);
+
+  const fetchGifs = useCallback((offset: number) => {
+    return debouncedQuery 
+      ? gf.search(debouncedQuery, { offset, limit: 10, type: 'gifs' }) 
+      : fetchGifsTrending(offset);
+  }, [debouncedQuery]);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const last = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
-  const [color, setColor] = useState('#ffffff');
+  const [color, setColor] = useState('#D46B4E');
   const [size, setSize] = useState(4);
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
-  const COLORS = ['#ffffff', '#FF5C35', '#f59e0b', '#34d399', '#60a5fa', '#a78bfa', '#f472b6'];
 
   const getPos = (e: React.MouseEvent | React.TouchEvent) => {
     const c = canvasRef.current;
@@ -334,7 +382,8 @@ function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: str
     if (!ctx) return;
     ctx.beginPath();
     ctx.arc(p.x, p.y, (tool === 'eraser' ? size * 3 : size) / 2, 0, Math.PI * 2);
-    ctx.fillStyle = tool === 'eraser' ? '#111' : color;
+    ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
+    ctx.fillStyle = color;
     ctx.fill();
   };
   const onMove = (e: React.MouseEvent | React.TouchEvent) => {
@@ -347,7 +396,8 @@ function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: str
     ctx.beginPath();
     ctx.moveTo(last.current.x, last.current.y);
     ctx.lineTo(p.x, p.y);
-    ctx.strokeStyle = tool === 'eraser' ? '#111' : color;
+    ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = color;
     ctx.lineWidth = tool === 'eraser' ? size * 3 : size;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -369,101 +419,156 @@ function DoodleModal({ onClose, onSave }: { onClose: () => void; onSave: (d: str
     if (!c) return;
     const ctx = c.getContext('2d');
     if (!ctx) return;
-    ctx.fillStyle = '#111';
-    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.clearRect(0, 0, c.width, c.height);
   };
-  useEffect(() => {
-    const c = canvasRef.current;
-    if (!c) return;
-    const ctx = c.getContext('2d');
-    if (!ctx) return;
-    ctx.fillStyle = '#111';
-    ctx.fillRect(0, 0, c.width, c.height);
-  }, []);
 
   return (
     <Overlay>
-      <Modal
-        title="Doodle"
-        icon={<PenTool className="w-3.5 h-3.5 text-[#FF5C35]" />}
-        onClose={onClose}
-        extra={
-          <>
-            <IconBtn onClick={undo}>
-              <Undo2 className="w-4 h-4" />
-            </IconBtn>
-            <IconBtn onClick={clearCanvas}>
-              <Eraser className="w-4 h-4" />
-            </IconBtn>
-          </>
-        }
-        footer={
-          <>
-            <GhostBtn onClick={onClose}>Cancel</GhostBtn>
-            <OrangeBtn
-              onClick={() => {
-                onSave(canvasRef.current?.toDataURL() || '');
-                onClose();
-              }}
+      <div className="bg-[#1C1C1C]/90 backdrop-blur-3xl rounded-[32px] w-[460px] shadow-[0_24px_80px_rgba(0,0,0,0.8)] flex flex-col border border-white/10 relative overflow-hidden ring-1 ring-white/5">
+        
+        {/* Floating Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* Premium Pill Tabs */}
+        <div className="flex p-3 gap-2 border-b border-white/5 bg-black/20 z-10">
+          {[
+            { id: 'stickers', label: 'Stickers' },
+            { id: 'emoji', label: 'Emoji' },
+            { id: 'gif', label: 'GIFs' },
+            { id: 'draw', label: 'Canvas' }
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id as any)}
+              className={`flex-1 py-2.5 rounded-[16px] text-[13px] font-medium transition-all duration-300 ${tab === t.id ? 'bg-white/10 text-white shadow-lg scale-100 ring-1 ring-white/10' : 'text-white/40 hover:text-white/80 hover:bg-white/5 scale-95'}`}
             >
-              Add to entry
-            </OrangeBtn>
-          </>
-        }
-      >
-        <div className="flex items-center gap-3 px-5 py-2.5 border-b border-white/5 flex-wrap">
-          <div className="flex gap-1.5">
-            {COLORS.map((c) => (
-              <button
-                type="button"
-                key={c}
-                onClick={() => {
-                  setColor(c);
-                  setTool('pen');
-                }}
-                className="w-5 h-5 rounded-full border-2 transition-transform hover:scale-110"
-                style={{
-                  background: c,
-                  borderColor: color === c && tool === 'pen' ? 'white' : 'transparent',
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 w-full relative">
+          
+          {(tab === 'stickers' || tab === 'gif') && (
+            <div className="absolute top-0 left-0 right-0 p-3 z-10 bg-gradient-to-b from-[#151515] to-transparent">
+              <input
+                type="text"
+                placeholder={`Search ${tab}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:border-[#D46B4E]/60 focus:bg-black/60 transition-all shadow-inner"
+              />
+            </div>
+          )}
+
+          {tab === 'stickers' && (
+            <div className="h-[480px] overflow-y-auto px-4 pt-20 pb-4 custom-scrollbar bg-[#151515]">
+              <Grid
+                width={428}
+                columns={3}
+                gutter={8}
+                fetchGifs={fetchStickers}
+                key={`stickers-${debouncedQuery}`}
+                noResultsMessage={<div className="text-white/40 text-center py-10">No stickers found</div>}
+                onGifClick={(gif, e) => {
+                  e.preventDefault();
+                  onSaveImage(gif.images.downsized.url, gif.title || 'Sticker', true, false);
+                  onClose();
                 }}
               />
-            ))}
-          </div>
-          <div className="w-px h-4 bg-white/10" />
-          <button
-            type="button"
-            onClick={() => setTool((t) => (t === 'eraser' ? 'pen' : 'eraser'))}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs transition-colors ${tool === 'eraser' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white'}`}
-          >
-            <Eraser className="w-3 h-3" /> Eraser
-          </button>
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="text-slate-500 text-xs">Size</span>
-            <input
-              type="range"
-              min={1}
-              max={24}
-              value={size}
-              onChange={(e) => setSize(+e.target.value)}
-              className="w-20 accent-[#FF5C35]"
-            />
-          </div>
+            </div>
+          )}
+
+          {tab === 'emoji' && (
+            <div className="h-[480px] bg-[#151515]">
+              <EmojiPicker
+                theme={'dark' as any}
+                width="100%"
+                height="100%"
+                skinTonesDisabled
+                searchDisabled={false}
+                onEmojiClick={(emojiData) => {
+                  onAppendText(emojiData.emoji);
+                  onClose();
+                }}
+              />
+            </div>
+          )}
+
+          {tab === 'gif' && (
+            <div className="h-[480px] overflow-y-auto px-4 pt-20 pb-4 custom-scrollbar bg-[#151515]">
+              <Grid
+                width={428}
+                columns={2}
+                gutter={8}
+                fetchGifs={fetchGifs}
+                key={`gifs-${debouncedQuery}`}
+                noResultsMessage={<div className="text-white/40 text-center py-10">No GIFs found</div>}
+                onGifClick={(gif, e) => {
+                  e.preventDefault();
+                  onSaveImage(gif.images.downsized.url, gif.title || 'GIF', false, true);
+                  onClose();
+                }}
+              />
+            </div>
+          )}
+
+          {tab === 'draw' && (
+            <div className="relative w-full h-[440px] bg-[#0A0A0A] bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:20px_20px]">
+              
+              {/* Floating Glass Toolbars */}
+              <div className="absolute top-4 left-4 flex gap-3 items-center bg-black/40 backdrop-blur-xl px-4 py-2.5 rounded-full border border-white/10 shadow-2xl z-10">
+                {['#D46B4E', '#60A5FA', '#34D399', '#ffffff'].map(c => (
+                   <button key={c} type="button" onClick={() => { setColor(c); setTool('pen'); }} 
+                     className={`w-4 h-4 rounded-full transition-all duration-300 ${color===c && tool==='pen' ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-black scale-110' : 'hover:scale-110 opacity-70 hover:opacity-100'}`} style={{ backgroundColor: c }} />
+                ))}
+                <div className="w-px h-4 bg-white/20 mx-1" />
+                <button type="button" onClick={() => setTool('eraser')} className={`p-1.5 rounded-full transition-all ${tool==='eraser'?'bg-white/20 text-white shadow-inner':'text-white/40 hover:text-white/90'}`}>
+                  <Eraser className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="absolute top-4 right-16 flex gap-1 items-center bg-black/40 backdrop-blur-xl px-2.5 py-1.5 rounded-full border border-white/10 shadow-2xl z-10">
+                <button type="button" onClick={undo} className="p-2 hover:text-white text-white/50 transition-colors rounded-full hover:bg-white/10"><Undo2 className="w-4 h-4"/></button>
+                <button type="button" onClick={clearCanvas} className="p-2 hover:text-red-400 text-white/50 transition-colors rounded-full hover:bg-red-400/10"><Trash2 className="w-4 h-4"/></button>
+              </div>
+
+              {/* Interaction Canvas */}
+              <canvas
+                ref={canvasRef}
+                width={1000}
+                height={800}
+                className="absolute inset-0 w-full h-full block touch-none z-0"
+                style={{ cursor: tool === 'eraser' ? 'cell' : 'crosshair' }}
+                onMouseDown={onDown}
+                onMouseMove={onMove}
+                onMouseUp={onUp}
+                onMouseLeave={onUp}
+                onTouchStart={onDown}
+                onTouchMove={onMove}
+                onTouchEnd={onUp}
+              />
+
+              {/* Glowing Save Button */}
+              <div className="absolute bottom-6 left-0 right-0 flex justify-center z-10 pointer-events-none">
+                <button 
+                  type="button"
+                  onClick={() => { onSave(canvasRef.current?.toDataURL() || ''); onClose(); }}
+                  className="px-10 py-3.5 rounded-full bg-[#D46B4E] hover:bg-[#E58B76] text-white text-[14px] transition-all duration-300 pointer-events-auto shadow-[0_10px_40px_rgba(212,107,78,0.4)] hover:shadow-[0_10px_60px_rgba(212,107,78,0.6)] font-semibold tracking-wide hover:-translate-y-1"
+                >
+                  Drop into Entry
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={400}
-          className="w-full block"
-          style={{ cursor: tool === 'eraser' ? 'cell' : 'crosshair' }}
-          onMouseDown={onDown}
-          onMouseMove={onMove}
-          onMouseUp={onUp}
-          onMouseLeave={onUp}
-          onTouchStart={onDown}
-          onTouchMove={onMove}
-          onTouchEnd={onUp}
-        />
-      </Modal>
+      </div>
     </Overlay>
   );
 }
@@ -676,6 +781,64 @@ function TasklistModal({
   );
 }
 
+function VoiceModal({ onClose, onAdd }: { onClose: () => void; onAdd: (dataUrl: string, duration: number) => void }) {
+  const { recording, elapsed, start, stop } = useVoiceRecorder((dataUrl, duration) => {
+    onAdd(dataUrl, duration);
+    onClose();
+  });
+
+  return (
+    <Overlay>
+      <div className="bg-[#1C1C1C]/90 backdrop-blur-3xl border border-white/10 ring-1 ring-white/5 rounded-[32px] w-[360px] py-14 flex flex-col items-center relative shadow-[0_24px_80px_rgba(0,0,0,0.8)]">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <p className="text-white text-[16px] font-medium tracking-wide mb-2">Record Voice Note</p>
+        <p className="text-[#D46B4E] text-[32px] font-mono font-light tracking-tight mb-10 h-10">
+          {recording ? `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}` : '00:00'}
+        </p>
+
+        <button
+          type="button"
+          onClick={recording ? undefined : start}
+          className={`w-28 h-28 rounded-full flex items-center justify-center transition-all duration-500 mb-12 ${recording ? 'bg-[#D46B4E]/10 ring-2 ring-[#D46B4E]/50 scale-105' : 'bg-black/40 hover:bg-black/60 shadow-inner ring-1 ring-white/5'}`}
+        >
+          <Mic className={`w-10 h-10 ${recording ? 'text-[#D46B4E] animate-pulse drop-shadow-[0_0_15px_rgba(212,107,78,0.8)]' : 'text-white/30'}`} fill="currentColor" />
+        </button>
+
+        <div className="flex gap-14">
+          <div className="flex flex-col items-center gap-3 group">
+            <button
+              type="button"
+              className="w-14 h-14 rounded-full bg-black/20 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105"
+            >
+              <Pause className="w-5 h-5 text-white/60 group-hover:text-white" fill="currentColor" />
+            </button>
+            <span className="text-[11px] text-white/30 font-medium tracking-wide group-hover:text-white/60">PAUSE</span>
+          </div>
+          <div className="flex flex-col items-center gap-3 group">
+            <button
+              type="button"
+              onClick={() => {
+                if (recording) stop();
+                else onClose();
+              }}
+              className="w-14 h-14 rounded-full bg-black/20 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105"
+            >
+              <Square className="w-4 h-4 text-white/60 group-hover:text-white" fill="currentColor" />
+            </button>
+            <span className="text-[11px] text-white/30 font-medium tracking-wide group-hover:text-white/60">STOP</span>
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // BLOCK CARDS  (all inside canvas)
 // ══════════════════════════════════════════════════════════════════════════════
@@ -698,18 +861,18 @@ function Card({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.93 }}
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       draggable={!!onDragStart}
       onDragStart={onDragStart as any}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className={`relative bg-[#1e1e1e] border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-2.5 group cursor-grab active:cursor-grabbing ${className}`}
+      className={`relative bg-[#1e1e1e] border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-3 group cursor-grab active:cursor-grabbing ${className}`}
     >
       {onDragStart && (
-        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-60 transition-opacity z-10">
-          <GripVertical className="w-4 h-4 text-slate-500" />
+        <div className="absolute -left-5 top-2 opacity-0 group-hover:opacity-40 transition-opacity z-10 cursor-grab">
+          <GripVertical className="w-4 h-4 text-white" />
         </div>
       )}
       {children}
@@ -725,31 +888,42 @@ function Card({
 }
 
 const Badge = ({ children }: { children: React.ReactNode }) => (
-  <span className="text-[10px] text-emerald-400 flex items-center gap-1">
-    <Check className="w-3 h-3" />
+  <span className="text-[10px] text-[#4ade80] flex items-center gap-1.5 font-medium tracking-wide">
     {children}
+    <span className="flex items-center justify-center w-3 h-3 bg-[#4ade80] rounded-full">
+      <Check className="w-2 h-2 text-black" strokeWidth={3.5} />
+    </span>
   </span>
 );
 
 function ImageCard({
   b,
   onRemove,
+  className = '',
   ...dragProps
 }: {
   b: Extract<Block, { type: 'image' }>;
   onRemove: () => void;
+  className?: string;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
 }) {
+  const isSticker = b.isSticker || b.isGif;
+  
   return (
-    <Card onRemove={onRemove} {...dragProps}>
+    <Card className={className} onRemove={onRemove} {...dragProps}>
       <img
-        src={getOptimizedImageUrl(b.dataUrl, { width: 1200 })}
+        src={isSticker ? b.dataUrl : getOptimizedImageUrl(b.dataUrl, { width: 1200 })}
         alt={b.name}
-        className="w-full h-36 object-cover rounded-xl"
+        className={isSticker ? "w-auto max-w-[180px] h-auto object-contain mx-auto drop-shadow-lg hover:scale-105 transition-transform" : "w-full h-auto rounded-[16px] shadow-sm"}
       />
-      <Badge>Image added</Badge>
+      {!isSticker && (
+        <div className="flex justify-between items-center w-full px-1">
+          <span className="text-[10px] text-white/40 max-w-[120px] truncate">{b.name}</span>
+          <Badge>Image added</Badge>
+        </div>
+      )}
     </Card>
   );
 }
@@ -757,10 +931,12 @@ function ImageCard({
 function VoiceCard({
   b,
   onRemove,
+  className = '',
   ...dragProps
 }: {
   b: Extract<Block, { type: 'voice' }>;
   onRemove: () => void;
+  className?: string;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -798,22 +974,21 @@ function VoiceCard({
   );
 
   return (
-    <Card onRemove={onRemove} {...dragProps}>
-      <div className="flex items-center gap-3">
+    <Card className={className} onRemove={onRemove} {...dragProps}>
+      <div className="flex items-center gap-3 bg-white/[0.03] p-3 rounded-[16px] border border-white/5">
         <button
           type="button"
           onClick={toggle}
-          className="w-7 h-7 rounded-full bg-[#FF5C35] flex items-center justify-center flex-shrink-0 hover:bg-[#ff6b47] transition-colors"
+          className="w-8 h-8 rounded-full bg-[#FF5C35] flex items-center justify-center flex-shrink-0 hover:bg-[#ff6b47] transition-colors shadow-lg"
         >
           {playing ? (
-            <Pause className="w-3 h-3 text-white" fill="white" />
+            <Pause className="w-4 h-4 text-white" fill="white" />
           ) : (
-            <Play className="w-3 h-3 text-white ml-0.5" fill="white" />
+            <Play className="w-4 h-4 text-white ml-0.5" fill="white" />
           )}
         </button>
-        <div className="flex items-end gap-[1.5px] flex-1 h-7">
+        <div className="flex items-end gap-[1.5px] flex-1 h-8">
           {bars.map((h, i) => {
-            // biome-ignore lint/suspicious/noArrayIndexKey: static playback visual
             return (
               <div
                 key={`bar-${i}`}
@@ -827,11 +1002,10 @@ function VoiceCard({
             );
           })}
         </div>
-        <span className="text-slate-400 text-xs">{fmt(b.duration)}</span>
+        <span className="text-slate-400 text-[11px] font-mono">{fmt(b.duration)}</span>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-end px-1 mt-1">
         <Badge>Voice note added</Badge>
-        <span className="text-slate-600 text-[10px]">Add more</span>
       </div>
     </Card>
   );
@@ -840,22 +1014,26 @@ function VoiceCard({
 function DoodleCard({
   b,
   onRemove,
+  className = '',
   ...dragProps
 }: {
   b: Extract<Block, { type: 'doodle' }>;
   onRemove: () => void;
+  className?: string;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
 }) {
   return (
-    <Card onRemove={onRemove} {...dragProps}>
+    <Card className={className} onRemove={onRemove} {...dragProps}>
       <img
         src={b.dataUrl}
         alt="doodle"
-        className="w-full h-36 object-contain rounded-xl bg-[#111]"
+        className="w-full h-auto max-h-48 object-contain drop-shadow-2xl"
       />
-      <Badge>Doodle added</Badge>
+      <div className="flex justify-center w-full px-1">
+        <Badge>Doodle added</Badge>
+      </div>
     </Card>
   );
 }
@@ -864,11 +1042,13 @@ function GoalCard({
   b,
   onUpdate,
   onRemove,
+  className = '',
   ...dragProps
 }: {
   b: Extract<Block, { type: 'goal' }>;
   onUpdate: (x: Block) => void;
   onRemove: () => void;
+  className?: string;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -882,45 +1062,50 @@ function GoalCard({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [b.running, b.seconds]); // biome-ignore lint/correctness/useExhaustiveDependencies: custom run cycle
+  }, [b.running, b.seconds]);
 
   const fmt = (s: number) => {
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    return `${String(h).padStart(2, '0')} : ${String(m).padStart(2, '0')} : ${String(sec).padStart(2, '0')}`;
+    return `${String(h).padStart(2, '0')}: ${String(m).padStart(2, '0')}: ${String(sec).padStart(2, '0')}`;
   };
-  const now = new Date()
-    .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    .toLowerCase();
+  const now = new Date();
+  const ampm = now.getHours() >= 12 ? 'pm' : 'am';
 
   return (
-    <Card onRemove={onRemove} {...dragProps}>
-      <div className="border border-white/10 rounded-xl px-3 py-2 bg-white/[0.03] text-white text-xs leading-snug">
-        {b.goal}
-      </div>
-      <div className="flex items-baseline gap-2">
-        <span className="text-[#FF5C35] text-2xl font-mono font-bold tracking-tight">
-          {fmt(b.seconds)}
-        </span>
-        <span className="text-slate-400 text-xs">{now}</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => onUpdate({ ...b, running: !b.running })}
-          className="p-1 rounded-lg hover:bg-white/5 text-slate-300 transition-colors"
-        >
-          {b.running ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-        </button>
-        <button
-          type="button"
-          onClick={() => onUpdate({ ...b, seconds: 0, running: false })}
-          className="p-1 rounded-lg hover:bg-white/5 text-slate-400 transition-colors"
-        >
-          <Square className="w-3 h-3" />
-        </button>
-        {b.label && <Badge>{b.label}</Badge>}
+    <Card className={className} onRemove={onRemove} {...dragProps}>
+      <div className="flex flex-col gap-3 group/goal">
+        <div className="inline-flex items-center border border-white/60 rounded-full px-5 py-2 text-white/90 text-[13px] font-light w-max max-w-full">
+          <span className="truncate">{b.goal}</span>
+        </div>
+        
+        <div className="flex items-baseline gap-2 relative">
+          <span className="text-[#FF5C35] text-[32px] font-light tracking-tight tabular-nums">
+            {fmt(b.seconds)}
+          </span>
+          <span className="text-[#FF5C35]/60 text-sm">{ampm}</span>
+          
+          {/* Floating controls that appear on hover */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/goal:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={() => onUpdate({ ...b, running: !b.running })}
+              className="p-1.5 rounded-full hover:bg-white/10 text-white/60 transition-colors"
+            >
+              {b.running ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => onUpdate({ ...b, seconds: 0, running: false })}
+              className="p-1.5 rounded-full hover:bg-white/10 text-white/60 transition-colors"
+            >
+              <Square className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+        
+        <Badge>Goal set</Badge>
       </div>
     </Card>
   );
@@ -930,45 +1115,48 @@ function TasklistCard({
   b,
   onUpdate,
   onRemove,
+  className = '',
   ...dragProps
 }: {
   b: Extract<Block, { type: 'tasklist' }>;
   onUpdate: (x: Block) => void;
   onRemove: () => void;
+  className?: string;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
 }) {
   const toggle = (tid: string) =>
     onUpdate({ ...b, tasks: b.tasks.map((t) => (t.id === tid ? { ...t, done: !t.done } : t)) });
-  const done = b.tasks.filter((t) => t.done).length;
   return (
-    <Card onRemove={onRemove} {...dragProps}>
-      <p className="text-white text-xs font-medium">{b.title}</p>
-      <div className="flex flex-col gap-1.5">
-        {b.tasks.map((task) => (
-          <button
-            type="button"
-            key={task.id}
-            onClick={() => toggle(task.id)}
-            className="flex items-center gap-2 text-left group/t"
-          >
-            <div
-              className={`w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0 border transition-colors ${task.done ? 'bg-[#FF5C35] border-[#FF5C35]' : 'border-white/20 group-hover/t:border-white/40'}`}
+    <Card className={className} onRemove={onRemove} {...dragProps}>
+      <div className="flex flex-col gap-3">
+        <p className="text-white/80 text-[14px] font-light tracking-wide">{b.title}</p>
+        <div className="flex flex-col gap-2.5">
+          {b.tasks.map((task) => (
+            <button
+              type="button"
+              key={task.id}
+              onClick={() => toggle(task.id)}
+              className="flex items-center gap-3 text-left group/t w-max"
             >
-              {task.done && <Check className="w-2.5 h-2.5 text-white" />}
-            </div>
-            <span
-              className={`text-xs transition-colors ${task.done ? 'text-slate-500 line-through' : 'text-slate-300'}`}
-            >
-              {task.text}
-            </span>
-          </button>
-        ))}
+              <div
+                className={`w-[14px] h-[14px] rounded-[3px] flex items-center justify-center flex-shrink-0 border transition-colors ${task.done ? 'bg-transparent border-[#FF5C35]' : 'border-[#FF5C35] bg-transparent'}`}
+              >
+                {task.done && <Check className="w-3 h-3 text-[#FF5C35]" strokeWidth={4} />}
+              </div>
+              <span
+                className={`text-[13px] font-light transition-colors ${task.done ? 'text-white/30 line-through' : 'text-white/90'}`}
+              >
+                {task.text}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-1">
+          <Badge>Tasks added</Badge>
+        </div>
       </div>
-      <Badge>
-        {done}/{b.tasks.length} Tasks added
-      </Badge>
     </Card>
   );
 }
@@ -1084,7 +1272,7 @@ function NewEntryContent() {
     clearAll,
     migrateKey,
   } = usePersistedEntry(initialId);
-  const [modal, setModal] = useState<null | 'image' | 'doodle' | 'goal' | 'tasklist'>(null);
+  const [modal, setModal] = useState<null | 'image' | 'doodle' | 'goal' | 'tasklist' | 'voice'>(null);
 
   // ── tRPC auto-save (syncs to DB in addition to localStorage) ──────────────
   const createMutation = trpc.private.entries.create.useMutation();
@@ -1146,14 +1334,17 @@ function NewEntryContent() {
 
       for (let i = 0; i < updatedBlocks.length; i++) {
         const block = updatedBlocks[i];
-        if (!block || block.type !== 'image') continue;
-        if (!('dataUrl' in block) || !block.dataUrl.startsWith('data:')) continue;
+        if (!block || !['image', 'voice', 'doodle'].includes(block.type)) continue;
+        
+        // At this point, we know it's one of the 3 media block types which all have a dataUrl property.
+        const mediaBlock = block as { type: 'image' | 'voice' | 'doodle', dataUrl: string };
+        if (!mediaBlock.dataUrl || !mediaBlock.dataUrl.startsWith('data:')) continue;
 
-        const blockDataUrl = block.dataUrl;
+        const blockDataUrl = mediaBlock.dataUrl;
         try {
           const tempId = id || 'temp-' + Date.now();
           const mimePart = blockDataUrl.split(';')[0];
-          const contentType = mimePart?.split(':')[1] ?? 'image/png';
+          const contentType = mimePart?.split(':')[1] ?? (block.type === 'voice' ? 'audio/webm' : 'image/png');
           const { uploadUrl, publicUrl } = await getUploadUrlMutation.mutateAsync({
             entryId: tempId,
             contentType,
@@ -1168,10 +1359,11 @@ function NewEntryContent() {
             headers: { 'Content-Type': blob.type },
           });
 
-          updatedBlocks[i] = { ...block, dataUrl: publicUrl };
+          // Update the specific block type carefully while keeping other props (duration, name)
+          updatedBlocks[i] = { ...block, dataUrl: publicUrl } as any;
           blocksChanged = true;
         } catch (uploadErr) {
-          console.error('Failed to upload image:', uploadErr);
+          console.error(`Failed to upload ${block.type}:`, uploadErr);
         }
       }
 
@@ -1187,7 +1379,8 @@ function NewEntryContent() {
         setEntryId(e.id);
         entryIdRef.current = e.id;
         migrateKey(e.id);
-        router.replace(`/home/canvas?id=${e.id}`);
+        // Use window.history.replaceState instead of router.replace to avoid Next.js navigation flashes
+        window.history.replaceState(null, '', `/home/new-entry?id=${e.id}`);
       } else {
         await updateRef.current({ id, content: payload });
       }
@@ -1232,30 +1425,20 @@ function NewEntryContent() {
     });
   };
 
-  const {
-    recording,
-    elapsed,
-    start: startRec,
-    stop: stopRec,
-  } = useVoiceRecorder((dataUrl, duration) =>
-    addBlock({ id: uid(), type: 'voice', dataUrl, duration }),
-  );
-
   // Don't render blocks until localStorage is hydrated (avoids flash)
   if (!hydrated) return <div className="min-h-screen bg-[#0a0a0a]" />;
 
+  
   return (
     <div
-      className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden"
-      style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+      className="min-h-screen bg-[#1F1F1F] text-white flex flex-col relative overflow-hidden font-urbanist"
     >
       {/* Background watermark */}
-      <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-35 select-none z-0 overflow-hidden whitespace-nowrap">
+      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
-          className="text-[22vw] leading-none text-transparent tracking-tighter"
+          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
           style={{
-            fontFamily: "'Playfair Display', serif",
-            WebkitTextStroke: '1.5px rgba(255,255,255,0.55)',
+            WebkitTextStroke: '1px rgba(255,255,255,0.7)',
           }}
         >
           Soouls
@@ -1263,24 +1446,19 @@ function NewEntryContent() {
       </div>
 
       {/* Header */}
-      <header className="px-8 py-6 flex justify-between items-center relative z-10">
-        <div
-          className="flex items-center gap-1 text-sm"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-10">
+        <div className="flex items-center text-[22px] font-light tracking-wide">
           <button
             type="button"
             onClick={handleHome}
-            className="text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-none cursor-pointer text-base"
+            className="text-white/40 hover:text-white transition-colors"
           >
             Home
           </button>
-          <span className="text-slate-600">/</span>
-          <span className="text-[#FF5C35] text-base">New Entry</span>
+          <span className="text-[#D46B4E]">/New Entry</span>
         </div>
 
         <div className="flex items-center gap-3">
-
           {/* Save status — shows localStorage save state */}
           <div className="min-w-[90px] flex justify-end">
             <AnimatePresence mode="wait">
@@ -1290,7 +1468,7 @@ function NewEntryContent() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-1.5 text-slate-500 text-xs"
+                  className="flex items-center gap-1.5 text-white/40 text-xs"
                 >
                   <Loader2 className="w-3 h-3 animate-spin" />
                   Saving...
@@ -1316,9 +1494,9 @@ function NewEntryContent() {
             <button
               type="button"
               onClick={() => {
-                if (confirm('Sab kuch clear kar dein?')) clearAll();
+                if (confirm('Clear everything?')) clearAll();
               }}
-              className="flex items-center gap-1.5 text-slate-600 hover:text-red-400 transition-colors text-xs border border-white/[0.06] hover:border-red-400/30 px-3 py-1.5 rounded-full"
+              className="flex items-center gap-1.5 text-white/50 hover:text-red-400 transition-colors text-xs border border-white/10 hover:border-red-400/30 px-3 py-1.5 rounded-full"
             >
               <Trash2 className="w-3 h-3" />
               Clear
@@ -1329,32 +1507,26 @@ function NewEntryContent() {
             <img
               src={user.imageUrl}
               alt="Profile"
-              className="w-9 h-9 rounded-full border border-white/10"
+              className="w-10 h-10 rounded-full border-2 border-white/10"
             />
           )}
         </div>
       </header>
 
       {/* ── THE CANVAS PANEL ─────────────────────────────────────────────────── */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-row gap-4 mt-8 pb-8 items-stretch">
-        <div className="flex-1 rounded-[28px] bg-[#141414] border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-24 pb-0 items-stretch h-full">
+        <div className="flex-1 rounded-t-[32px] bg-[#0F0F0F]/60 backdrop-blur-[48px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden relative border-t border-white/10">
           {/* Scrollable writing + blocks — everything lives here */}
-          <div
-            className="flex-1 overflow-y-auto p-7 flex flex-col gap-5"
-            style={{ minHeight: 380 }}
-          >
+          <div className="flex-1 overflow-y-auto pt-6 px-10 pb-40 flex flex-col gap-5">
             <textarea
               value={textContent}
               onChange={(e) => setTextContent(e.target.value)}
               placeholder="Drop new entry..."
-              className="w-full bg-transparent border-none outline-none resize-none text-xl text-white placeholder:text-slate-600 focus:ring-0 leading-relaxed font-light"
-              style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                minHeight: blocks.length ? 56 : 220,
-              }}
+              className="w-full bg-transparent border-none outline-none resize-none text-[28px] text-white/80 placeholder:text-white/30 focus:outline-none focus:ring-0 focus:border-transparent focus:ring-offset-0 leading-relaxed font-light shadow-none"
+              style={{ minHeight: blocks.length ? 56 : 300, boxShadow: 'none' }}
             />
 
-            {/* All blocks — inside canvas, restored from localStorage on refresh */}
+            {/* All blocks */}
             {blocks.length > 0 &&
               (() => {
                 const dragIdx = { current: -1 };
@@ -1374,110 +1546,104 @@ function NewEntryContent() {
                 });
                 return (
                   <div
-                    className="grid gap-4"
-                    style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}
+                    className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 w-full [column-fill:_balance]"
                   >
                     <AnimatePresence>
                       {blocks.map((b, i) => {
                         const dh = makeDragHandlers(i);
-                        if (b.type === 'image')
-                          return (
-                            <ImageCard
-                              key={b.id}
-                              b={b}
-                              onRemove={() => removeBlock(b.id)}
-                              {...dh}
-                            />
-                          );
-                        if (b.type === 'voice')
-                          return (
-                            <VoiceCard
-                              key={b.id}
-                              b={b}
-                              onRemove={() => removeBlock(b.id)}
-                              {...dh}
-                            />
-                          );
-                        if (b.type === 'doodle')
-                          return (
-                            <DoodleCard
-                              key={b.id}
-                              b={b}
-                              onRemove={() => removeBlock(b.id)}
-                              {...dh}
-                            />
-                          );
-                        if (b.type === 'goal')
-                          return (
-                            <GoalCard
-                              key={b.id}
-                              b={b}
-                              onUpdate={updateBlock}
-                              onRemove={() => removeBlock(b.id)}
-                              {...dh}
-                            />
-                          );
-                        if (b.type === 'tasklist')
-                          return (
-                            <TasklistCard
-                              key={b.id}
-                              b={b}
-                              onUpdate={updateBlock}
-                              onRemove={() => removeBlock(b.id)}
-                              {...dh}
-                            />
-                          );
-                        return null;
+                        
+                        return (
+                          <div key={b.id} className="break-inside-avoid mb-6 group/masonry-item">
+                            {b.type === 'image' && <ImageCard b={b} onRemove={() => removeBlock(b.id)} {...dh} />}
+                            {b.type === 'voice' && <VoiceCard b={b} onRemove={() => removeBlock(b.id)} {...dh} />}
+                            {b.type === 'doodle' && <DoodleCard b={b} onRemove={() => removeBlock(b.id)} {...dh} />}
+                            {b.type === 'goal' && <GoalCard b={b} onUpdate={updateBlock} onRemove={() => removeBlock(b.id)} {...dh} />}
+                            {b.type === 'tasklist' && <TasklistCard b={b} onUpdate={updateBlock} onRemove={() => removeBlock(b.id)} {...dh} />}
+                          </div>
+                        );
                       })}
                     </AnimatePresence>
                   </div>
                 );
               })()}
           </div>
-        </div>
-        {/* Floating Toolbar */}
-        <div className="flex flex-col gap-3 shrink-0 pt-4">
-          <ToolBtn
-            icon={<ImageIcon className="w-5 h-5 text-[#FF5C35]" />}
-            label="Add image"
-            count={blocks.filter((b) => b.type === 'image').length}
-            onClick={() => setModal('image')}
-          />
-          <ToolBtn
-            icon={
-              recording ? (
-                <StopCircle className="w-5 h-5 text-red-400 animate-pulse" />
-              ) : (
-                <Mic className="w-5 h-5 text-[#FF5C35]" />
-              )
-            }
-            label={
-              recording
-                ? `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '00')}`
-                : 'Voice note'
-            }
-            count={!recording ? blocks.filter((b) => b.type === 'voice').length : 0}
-            onClick={recording ? stopRec : startRec}
-            active={recording}
-          />
-          <ToolBtn
-            icon={<PenTool className="w-5 h-5 text-[#FF5C35]" />}
-            label="Doodle"
-            count={blocks.filter((b) => b.type === 'doodle').length}
-            onClick={() => setModal('doodle')}
-          />
-          <ToolBtn
-            icon={<ListTodo className="w-5 h-5 text-[#FF5C35]" />}
-            label="Tasklist"
-            count={blocks.filter((b) => b.type === 'tasklist').length}
-            onClick={() => setModal('tasklist')}
-          />
-          <ToolBtn
-            icon={<Clock className="w-5 h-5 text-[#FF5C35]" />}
-            label="Set time"
-            count={blocks.filter((b) => b.type === 'goal').length}
-            onClick={() => setModal('goal')}
-          />
+
+          {/* Floating Horizontal Toolbar fixed to the bottom right of the main panel */}
+          <div className="absolute bottom-8 right-8 flex flex-col items-start gap-4 z-50">
+            {/* Tooltip */}
+            <div className="bg-[#1C1C1C] border border-white/5 rounded-full px-5 py-2.5 text-[14px] font-light text-white/60 relative shadow-2xl ml-8">
+              Add if it helps you remember
+              <div className="absolute -bottom-1.5 right-[20%] w-3 h-3 bg-[#1C1C1C] border-b border-r border-white/5 rotate-45 shadow-sm" />
+            </div>
+
+            {/* Toolbar Buttons */}
+            <div className="flex items-center rounded-full border border-white/20 bg-[#1C1C1C]/90 backdrop-blur-xl overflow-hidden shadow-2xl">
+              <button
+                type="button"
+                onClick={() => setModal('image')}
+                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some(b => b.type === 'image' && !b.isSticker && !b.isGif) ? 'text-[#D46B4E]' : 'text-white/80 hover:text-[#D46B4E]'}`}
+              >
+                <ImageIcon className="w-5 h-5" />
+                <span className="text-[15px] font-light">Add image</span>
+                {blocks.filter(b => b.type === 'image' && !b.isSticker && !b.isGif).length > 0 && (
+                  <span className="bg-[#D46B4E] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">{blocks.filter(b => b.type === 'image' && !b.isSticker && !b.isGif).length}</span>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setModal('voice')}
+                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some(b => b.type === 'voice') ? 'text-[#60A5FA]' : 'text-white/80 hover:text-[#60A5FA]'}`}
+              >
+                <Mic className="w-5 h-5" />
+                <span className="text-[15px] font-light">
+                  Voice note
+                </span>
+                {blocks.filter(b => b.type === 'voice').length > 0 && (
+                  <span className="bg-[#D46B4E] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">{blocks.filter(b => b.type === 'voice').length}</span>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setModal('doodle')}
+                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some(b => b.type === 'doodle' || (b.type === 'image' && (b.isSticker || b.isGif))) ? 'text-[#A78BFA]' : 'text-white/80 hover:text-[#A78BFA]'}`}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <path d="M14 2v6h6M10 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                  <path d="m8 15 4 4 6-6" />
+                </svg>
+                <span className="text-[15px] font-light">Doodle</span>
+                {blocks.filter(b => b.type === 'doodle' || (b.type === 'image' && (b.isSticker || b.isGif))).length > 0 && (
+                  <span className="bg-[#A78BFA] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">{blocks.filter(b => b.type === 'doodle' || (b.type === 'image' && (b.isSticker || b.isGif))).length}</span>
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setModal('tasklist')}
+                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some(b => b.type === 'tasklist') ? 'text-[#F59E0B]' : 'text-white/80 hover:text-[#F59E0B]'}`}
+              >
+                <ListTodo className="w-5 h-5" />
+                <span className="text-[15px] font-light">Tasklist</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setModal('goal')}
+                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 transition-colors group ${blocks.some(b => b.type === 'goal') ? 'text-[#34D399]' : 'text-white/80 hover:text-[#34D399]'}`}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+                  <path d="M5 22h14" />
+                  <path d="M5 2h14" />
+                  <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" />
+                  <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+                </svg>
+                <span className="text-[15px] font-light">Set time</span>
+              </button>
+            </div>
+          </div>
         </div>
       </main>
 
@@ -1493,6 +1659,8 @@ function NewEntryContent() {
           <DoodleModal
             onClose={() => setModal(null)}
             onSave={(d) => addBlock({ id: uid(), type: 'doodle', dataUrl: d })}
+            onSaveImage={(d, n, isS, isG) => addBlock({ id: uid(), type: 'image', dataUrl: d, name: n, isSticker: isS, isGif: isG })}
+            onAppendText={(t) => setTextContent(prev => prev + t)}
           />
         )}
         {modal === 'goal' && (
@@ -1514,6 +1682,12 @@ function NewEntryContent() {
                 tasks: tasks.map((t) => ({ id: uid(), text: t, done: false })),
               })
             }
+          />
+        )}
+        {modal === 'voice' && (
+          <VoiceModal
+            onClose={() => setModal(null)}
+            onAdd={(u, d) => addBlock({ id: uid(), type: 'voice', dataUrl: u, duration: d })}
           />
         )}
       </AnimatePresence>
