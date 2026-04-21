@@ -20,7 +20,7 @@ export default function ContactSection() {
                </div>
                <div className="flex flex-col gap-2">
                   <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase">X (formerly Twitter)</span>
-                  <a href="https://x.com/soouls_app" target="_blank" className="font-urbanist text-2xl font-semibold text-[#EFEBDD] hover:text-[#E07A5F] transition-colors">@soouls_app</a>
+                  <a href="https://x.com/soouls_in" target="_blank" className="font-urbanist text-2xl font-semibold text-[#EFEBDD] hover:text-[#E07A5F] transition-colors">@soouls_in</a>
                </div>
             </div>
           </div>
