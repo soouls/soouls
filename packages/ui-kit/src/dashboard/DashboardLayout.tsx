@@ -7,9 +7,10 @@ import { Sidebar } from './Sidebar';
 interface DashboardLayoutProps {
   children: ReactNode;
   userActionSlot?: ReactNode;
+  title?: string;
 }
 
-export function DashboardLayout({ children, userActionSlot }: DashboardLayoutProps) {
+export function DashboardLayout({ children, userActionSlot, title }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-base-cream selection:bg-amber-400/30">
       <Sidebar />
@@ -19,7 +20,7 @@ export function DashboardLayout({ children, userActionSlot }: DashboardLayoutPro
         <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-white/5 bg-[#0A0A0A]/80 px-8 backdrop-blur-xl">
           <div className="flex items-center gap-4 text-slate-400">
             {/* Breadcrumbs or Title could go here */}
-            <span className="font-clarity text-sm">Dashboard</span>
+            <span className="font-clarity text-sm">{title ?? 'Dashboard'}</span>
           </div>
 
           <div className="flex items-center gap-6">
