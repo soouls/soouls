@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FaLinkedinIn } from 'react-icons/fa6';
 import { SiDiscord, SiInstagram, SiX } from 'react-icons/si';
+import { SymbolLogo } from './SymbolLogo';
 
 export default function FooterSection() {
   return (
@@ -31,43 +32,7 @@ export default function FooterSection() {
           {/* Left: Brand & Socials */}
           <div className="flex flex-col max-w-[380px] w-full mb-16 md:mb-0 items-center md:items-start text-center md:text-left">
             <div className="mb-[20px]">
-              <svg
-                width="60"
-                height="60"
-                viewBox="0 0 100 100"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <title>Soouls Clover Logo</title>
-                <path
-                  d="M48 48 C 20 8, -5 40, 48 48 Z"
-                  stroke="#E6D3B8"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M52 48 C 80 8, 105 40, 52 48 Z"
-                  stroke="#E6D3B8"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M52 52 C 80 92, 105 60, 52 52 Z"
-                  stroke="#E6D3B8"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M48 52 C 20 92, -5 60, 48 52 Z"
-                  stroke="#E6D3B8"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <SymbolLogo className="w-[60px] h-[60px] text-[#E6D3B8]" variant="solid" />
             </div>
             <span
               className="font-urbanist tracking-tight mb-[40px] md:mb-[60px]"
