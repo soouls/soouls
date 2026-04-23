@@ -23,9 +23,9 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Redirect /home/clusters to /home/canvas (clusters renamed to canvas)
-  if (userId && req.nextUrl.pathname === '/home/clusters') {
-    return NextResponse.redirect(new URL('/home/canvas', req.url));
-  }
+  // if (userId && req.nextUrl.pathname === '/home/clusters') {
+  //   return NextResponse.redirect(new URL('/home/canvas', req.url));
+  // }
 
   // Redirect /home/dashboard to /home for backward compatibility (dashboard is now at /home)
   if (userId && req.nextUrl.pathname === '/home/dashboard') {

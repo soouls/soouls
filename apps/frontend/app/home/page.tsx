@@ -459,8 +459,8 @@ export default function HomePage() {
               <nav className="flex-1 space-y-2 relative z-10">
                 {[
                   { label: 'Dashboard', href: '/home', icon: <DiamondIcon className="w-5 h-5" /> },
-                  { label: 'Insights', href: '/home', icon: <Sparkles className="w-5 h-5 stroke-[1.5]" /> },
-                  { label: 'Clusters', href: '/home', icon: <NetworkIcon className="w-5 h-5" /> },
+                  { label: 'Insights', href: '/home/insights', icon: <Sparkles className="w-5 h-5 stroke-[1.5]" /> },
+                  { label: 'Clusters', href: '/home/clusters', icon: <NetworkIcon className="w-5 h-5" /> },
                   { label: 'Canvas', href: '/home/canvas', icon: <CanvasLoopIcon className="w-5 h-5" /> },
                   { label: 'Account', href: '/home/account', icon: <UserCircle className="w-5 h-5 stroke-[1.5]" /> },
                   { label: 'Settings', href: '/home/settings', icon: <Settings className="w-5 h-5 stroke-[1.5]" /> },
