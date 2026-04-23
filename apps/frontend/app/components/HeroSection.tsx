@@ -1,33 +1,47 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
-    // Explicitly play video to ensure it starts immediately
-    if (videoRef.current) {
-      videoRef.current.play().catch((err) => {
-        console.warn('Video autoplay failed:', err);
-      });
-    }
+    const video = videoRef.current;
+    if (!video) return;
 
+    // ── Intersection Observer: pause when off-screen, play when visible ──
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(video);
+
+    // ── Parallax on scroll ──
     const handleScroll = () => {
-      if (!sectionRef.current || !contentRef.current) return;
-      const scrollY = window.scrollY;
-      const sectionTop = sectionRef.current.offsetTop;
-      const relativeScroll = scrollY - sectionTop;
-
-      // Parallax effect for the text content
-      contentRef.current.style.transform = `translateY(${relativeScroll * 0.15}px)`;
-      contentRef.current.style.opacity = `${Math.max(0, 1 - relativeScroll / 500)}`;
+      const content = contentRef.current;
+      const section = sectionRef.current;
+      if (!content || !section) return;
+      const rel = window.scrollY - section.offsetTop;
+      content.style.transform = `translateY(${rel * 0.15}px)`;
+      content.style.opacity = `${Math.max(0, 1 - rel / 500)}`;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
@@ -35,31 +49,37 @@ export default function HeroSection() {
       ref={sectionRef}
       id="hero"
       className="relative w-full overflow-hidden bg-[#222222]"
-      style={{
-        height: '100svh',
-        minHeight: '700px',
-      }}
+      style={{ height: '100svh', minHeight: '700px' }}
     >
-      {/* Hero Background Video */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster="/hero-bg-figma.png"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: 'center center' }}
-        >
-          <source src="/images/red_sun_remix.mp4" type="video/mp4" />
-        </video>
-        {/* Dark overlay to make the white text readable */}
-        <div className="absolute inset-0 bg-[#0A0A0A]/40 z-[1]" />
-      </div>
+      {/* Background Video */}
+<div className="absolute inset-0 z-0 pointer-events-none">
+  <video
+    ref={videoRef}
+    autoPlay
+    loop
+    muted
+    playsInline
+    preload="metadata"
+    disablePictureInPicture
+    disableRemotePlayback
+    poster="/hero-bg-figma.png"
+    className="absolute inset-0 w-full h-full object-cover"
+    style={{ objectPosition: 'center center' }}
+  >
+    {/* Cloudinary auto-serves WebM to Chrome/Firefox, MP4 to Safari */}
+    <source
+      src="https://res.cloudinary.com/dkwjn4n33/video/upload/v1776944721/red_sun_remix_mxe0as.webm"
+      type="video/webm"
+    />
+    <source
+      src="https://res.cloudinary.com/dkwjn4n33/video/upload/v1776944721/red_sun_remix_mxe0as.mp4"
+      type="video/mp4"
+    />
+  </video>
+  <div className="absolute inset-0 bg-[#0A0A0A]/40 z-[1]" />
+</div>
 
-      {/* Content */}
+      {/* ── Content ── */}
       <div
         ref={contentRef}
         className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4"
@@ -73,12 +93,10 @@ export default function HeroSection() {
           </span>
 
           <div className="flex flex-wrap justify-center items-center gap-4 mt-3 mb-8 relative">
-            {/* The golden glow */}
             <div
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] md:w-[450px] h-[150px] md:h-[250px] pointer-events-none"
               style={{
-                background:
-                  'radial-gradient(ellipse, rgba(224, 122, 95, 0.45) 0%, transparent 70%)',
+                background: 'radial-gradient(ellipse, rgba(224, 122, 95, 0.45) 0%, transparent 70%)',
                 filter: 'blur(30px)',
                 zIndex: 0,
               }}
@@ -122,24 +140,11 @@ export default function HeroSection() {
           No cards, No noise, Just your story
         </p>
 
-        {/* Scroll Indicator */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-80 hover:opacity-100 transition-opacity">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ marginTop: '10px' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <title>Scroll Down</title>
-            <path
-              d="M6 8L12 14L18 8"
-              stroke="#D6C2A3"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M6 14L12 20L18 14"
-              stroke="#D6C2A3"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <path d="M6 8L12 14L18 8" stroke="#D6C2A3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6 14L12 20L18 14" stroke="#D6C2A3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
       </div>
