@@ -12,7 +12,13 @@ const isPublicRoute = createRouteMatcher([
   '/api/trpc/(.*)',
   ...publicInfoPaths,
 ]);
-const isDashboardRoute = createRouteMatcher(['/home(.*)', '/home/dashboard(.*)', '/home/canvas(.*)', '/home/new-entry(.*)', '/home/clusters(.*)']);
+const isDashboardRoute = createRouteMatcher([
+  '/home(.*)',
+  '/home/dashboard(.*)',
+  '/home/canvas(.*)',
+  '/home/new-entry(.*)',
+  '/home/clusters(.*)',
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, redirectToSignIn } = await auth();
@@ -23,9 +29,9 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Redirect /home/clusters to /home/canvas (clusters renamed to canvas)
-  if (userId && req.nextUrl.pathname === '/home/clusters') {
-    return NextResponse.redirect(new URL('/home/canvas', req.url));
-  }
+  // if (userId && req.nextUrl.pathname === '/home/clusters') {
+  //   return NextResponse.redirect(new URL('/home/canvas', req.url));
+  // }
 
   // Redirect /home/dashboard to /home for backward compatibility (dashboard is now at /home)
   if (userId && req.nextUrl.pathname === '/home/dashboard') {

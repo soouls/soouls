@@ -14,11 +14,30 @@ const nextConfig = {
   turbopack: {
     root: monorepoRoot,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {
         source: '/trpc/:path*',
         destination: `${backendUrl}/trpc/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/videos/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Accept-Ranges', value: 'bytes' },
+        ],
       },
     ];
   },
