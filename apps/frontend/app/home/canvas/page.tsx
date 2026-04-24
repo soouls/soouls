@@ -97,7 +97,7 @@ export default function CanvasPage() {
 
   // Drag and Drop Logic
   const handleDragEnd = (
-    event: MouseEvent | TouchEvent | PointerEvent,
+    _event: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo,
     entry: Entry,
   ) => {
@@ -140,7 +140,9 @@ export default function CanvasPage() {
       {/* Header (Original Logic Kept) */}
       <header className="px-8 py-6 flex justify-between items-center relative z-10">
         <div className="flex items-center gap-2 text-sm text-white/60">
-          <button className="hover:text-[#FF5C35] transition">Home</button>
+          <button onClick={() => window.history.back()} className="hover:text-[#FF5C35] transition">
+            Home
+          </button>
           <span>/</span>
           <span className="text-[#FF5C35]">Canvas</span>
         </div>
@@ -153,11 +155,6 @@ export default function CanvasPage() {
               className="w-9 h-9 rounded-full border border-white/10"
             />
           )}
-          {/* <img
-            src={user.imageUrl}
-            alt={user.fullName}
-            className="w-full h-full object-cover"
-          /> */}
         </div>
       </header>
 
