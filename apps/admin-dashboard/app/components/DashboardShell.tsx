@@ -2,7 +2,6 @@
 
 import {
   Activity,
-  BookOpen,
   Cpu,
   CreditCard,
   FileText,
@@ -17,8 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import type { AdminRole, Viewer } from '../lib/api';
 import {
   AiSection,
@@ -78,14 +76,54 @@ const ROLE_LABELS: Record<AdminRole, string> = {
   support: 'Support',
 };
 
+const SECTION_ROUTE_MAP: Record<SectionName, string> = {
+  dashboard: '/',
+  users: '/users',
+  entries: '/entries',
+  messaging: '/messaging',
+  team: '/settings/team',
+  billing: '/billing',
+  ai: '/ai-telemetry',
+  health: '/health',
+  'rate-limits': '/rate-limits',
+  'feature-flags': '/feature-flags',
+  'service-controls': '/service-controls',
+  'api-keys': '/api-keys',
+  'audit-logs': '/audit-logs',
+};
+
+function getActiveSectionFromPath(pathname: string): SectionName {
+  const path = pathname.replace(/^\/+|\/+$/g, '');
+
+  const sectionMap: Record<string, SectionName> = {
+    '': 'dashboard',
+    dashboard: 'dashboard',
+    users: 'users',
+    entries: 'entries',
+    messaging: 'messaging',
+    'settings/team': 'team',
+    billing: 'billing',
+    'ai-telemetry': 'ai',
+    health: 'health',
+    'rate-limits': 'rate-limits',
+    'feature-flags': 'feature-flags',
+    'service-controls': 'service-controls',
+    'api-keys': 'api-keys',
+    'audit-logs': 'audit-logs',
+    'dashboard/settings': 'team',
+  };
+
+  return sectionMap[path] ?? 'dashboard';
+}
+
 interface DashboardShellProps {
   viewer: Viewer | null;
 }
 
 export function DashboardShell({ viewer }: DashboardShellProps) {
   const pathname = usePathname();
-  const [activeSection, setActiveSection] = useState<SectionName>('dashboard');
-  const [_mobileMenuOpen, _setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const activeSection = getActiveSectionFromPath(pathname);
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (item.divider || item.groupLabel) return true;
@@ -93,7 +131,10 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
   });
 
   const handleNavigate = (section: string) => {
-    if (section) setActiveSection(section as SectionName);
+    const route = SECTION_ROUTE_MAP[section as SectionName];
+    if (route) {
+      router.push(route);
+    }
   };
 
   const renderSection = () => {
@@ -127,26 +168,6 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
       default:
         return <DashboardSection onNavigate={handleNavigate} />;
     }
-  };
-
-  const _getActiveSectionFromPath = () => {
-    const path = pathname.replace('/', '');
-    if (!path) return 'dashboard';
-    const sectionMap: Record<string, SectionName> = {
-      users: 'users',
-      entries: 'entries',
-      messaging: 'messaging',
-      'settings/team': 'team',
-      billing: 'billing',
-      'ai-telemetry': 'ai',
-      health: 'health',
-      'rate-limits': 'rate-limits',
-      'feature-flags': 'feature-flags',
-      'service-controls': 'service-controls',
-      'api-keys': 'api-keys',
-      'audit-logs': 'audit-logs',
-    };
-    return sectionMap[path] || 'dashboard';
   };
 
   return (
@@ -202,7 +223,7 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
               <button
                 key={item.label}
                 type="button"
-                onClick={() => item.section && setActiveSection(item.section as SectionName)}
+                onClick={() => item.section && router.push(SECTION_ROUTE_MAP[item.section as SectionName])}
                 className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
                   isActive
                     ? 'bg-gradient-to-r from-amber-400/15 to-orange-400/10 text-amber-200 shadow-inner'

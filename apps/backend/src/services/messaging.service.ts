@@ -7,6 +7,7 @@ import {
   normalizePhoneNumber,
   parseEnvList,
 } from '../notifications/notification.constants';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import { NotificationQueueService } from '../notifications/notification.queue';
 import { buildCampaignTemplate } from '../notifications/notification.templates';
 import {
@@ -117,8 +118,9 @@ export class MessagingService {
   };
 
   constructor(
-    private readonly notificationQueue: NotificationQueueService,
-    private readonly redis: RedisService,
+    @Inject(NotificationQueueService) private readonly notificationQueue: NotificationQueueService,
+    @Inject(NotificationDispatchService) private readonly notificationDispatch: NotificationDispatchService,
+    @Inject(RedisService) private readonly redis: RedisService,
   ) {}
 
   private isAdmin(user: Pick<UserMessagingProfile, 'email' | 'clerkId'>) {
@@ -368,10 +370,16 @@ export class MessagingService {
   }
 
   async sendWelcomeSequence(userId: string) {
+    if (!this.notificationQueue.isConfigured()) {
+      await this.notificationDispatch.processWelcomeSequence(userId);
+      return;
+    }
+
     try {
       await this.notificationQueue.enqueueWelcomeSequence(userId);
     } catch (error) {
       console.error('[Messaging] Failed to enqueue welcome sequence', { userId, error });
+      await this.notificationDispatch.processWelcomeSequence(userId);
     }
   }
 

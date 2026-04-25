@@ -1,6 +1,10 @@
 import {
   Controller,
   Get,
+  Inject,
+  Param,
+  Patch,
+  Post,
   Query,
   Redirect,
   Req,
@@ -33,7 +37,7 @@ import { GoogleCalendarService } from './google-calendar.service';
 export class GoogleCalendarController {
   private readonly logger = new Logger(GoogleCalendarController.name);
 
-  constructor(private readonly gcalService: GoogleCalendarService) { }
+  constructor(@Inject(GoogleCalendarService) private readonly gcalService: GoogleCalendarService) { }
 
   // ─── Helper: verify Clerk JWT from Authorization header or query param ────
 
