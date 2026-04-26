@@ -46,6 +46,7 @@ const child = spawn('node', [devServerScript, String(port)], {
     ...process.env,
     PORT: String(port),
   },
+  shell: true,
 });
 
 function stopChild(signal: NodeJS.Signals = 'SIGTERM') {

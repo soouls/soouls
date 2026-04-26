@@ -25,99 +25,20 @@ import { useEffect, useState } from 'react';
 import { SymbolLogo } from '../components/SymbolLogo';
 import { CalendarModal } from './components/CalendarModal';
 
-// Custom Leaf Icon
-const LeafIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-  </svg>
-);
-
-// Custom Diamond Outline Icon for Dashboard
-const DiamondIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <polygon points="12 2 16 6 12 10 8 6 12 2" />
-    <polygon points="12 14 16 18 12 22 8 18 12 14" />
-    <polygon points="2 12 6 16 10 12 6 8 2 12" />
-    <polygon points="14 12 18 16 22 12 18 8 14 12" />
-  </svg>
-);
-
-// Custom Loop Icon for Canvas
-const CanvasLoopIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M12 12C9.5 8 5 8 5 12C5 16 9.5 16 12 12Z" />
-    <path d="M12 12C14.5 8 19 8 19 12C19 16 14.5 16 12 12Z" />
-    <path d="M12 12C8 9.5 8 5 12 5C16 5 16 9.5 12 12Z" />
-    <path d="M12 12C8 14.5 8 19 12 19C16 19 16 14.5 12 12Z" />
-  </svg>
-);
-
-// Custom Compass Icon
-const CompassIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-  </svg>
-);
-
-// Custom Network Icon
-const NetworkIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="3" />
-    <circle cx="18" cy="6" r="2" />
-    <circle cx="6" cy="18" r="2" />
-    <path d="M14.5 10.5l1.5-1.5" />
-    <path d="M9.5 13.5l-1.5 1.5" />
-  </svg>
-);
+import {
+  LeafIcon,
+  DiamondIcon,
+  CanvasLoopIcon,
+  CompassIcon,
+  NetworkIcon,
+} from '../components/Icons';
+import { useSidebar } from '../../src/providers/sidebar-provider';
 
 export default function HomePage() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { setIsOpen } = useSidebar();
   const [scrolled, setScrolled] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -208,7 +129,7 @@ export default function HomePage() {
 
           {/* Profile avatar */}
           <button
-            onClick={() => setShowSidebar(true)}
+            onClick={() => setIsOpen(true)}
             className="w-10 h-10 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center overflow-hidden hover:border-white/30 transition-all cursor-pointer shadow-md"
           >
             {user?.imageUrl ? (
@@ -487,177 +408,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* ─── Profile Sidebar ─── */}
-      <AnimatePresence>
-        {showSidebar && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-              onClick={() => setShowSidebar(false)}
-            />
-            <motion.aside
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 z-50 w-80 h-full bg-[#222222] shadow-2xl p-8 flex flex-col rounded-l-2xl overflow-hidden"
-            >
-              <button
-                onClick={() => setShowSidebar(false)}
-                className="absolute top-6 right-6 text-white hover:text-white/80 transition-colors z-10"
-              >
-                <X className="w-6 h-6 stroke-[1]" />
-              </button>
 
-              {/* Profile Header */}
-              <div className="mb-10 pt-2 flex flex-col items-start relative z-10">
-                <div className="flex gap-4 items-center mb-2">
-                  <div className="w-16 h-16 rounded-full bg-[#1A1A1A] overflow-hidden shrink-0 border-2 border-white/10">
-                    {user?.imageUrl ? (
-                      <img src={user.imageUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-white/50">
-                        U
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-[22px] text-white/90 font-playfair italic leading-tight">
-                      Hello there,
-                    </p>
-                  </div>
-                </div>
-                <h2 className="text-[32px] font-bold text-[#D46B4E] tracking-tight leading-none mb-4">
-                  {userName} {user?.lastName || 'Lane'}
-                </h2>
-                <p className="text-xl text-white font-playfair italic leading-snug">
-                  &quot;You&apos;ve shown up <span className="text-[#D46B4E]">12 days</span>
-                  <br />
-                  in a row.&quot;
-                </p>
-              </div>
-
-              {/* Nav Links */}
-              <nav className="flex-1 space-y-2 relative z-10">
-                {[
-                  { label: 'Dashboard', href: '/home', icon: <DiamondIcon className="w-5 h-5" /> },
-                  {
-                    label: 'Insights',
-                    href: '/home/insights',
-                    icon: <Sparkles className="w-5 h-5 stroke-[1.5]" />,
-                  },
-                  {
-                    label: 'Clusters',
-                    href: '/home/clusters',
-                    icon: <NetworkIcon className="w-5 h-5" />,
-                  },
-                  {
-                    label: 'Canvas',
-                    href: '/home/canvas',
-                    icon: <CanvasLoopIcon className="w-5 h-5" />,
-                  },
-                  {
-                    label: 'Account',
-                    href: '/home/account',
-                    icon: <UserCircle className="w-5 h-5 stroke-[1.5]" />,
-                  },
-                  {
-                    label: 'Settings',
-                    href: '/home/settings',
-                    icon: <Settings className="w-5 h-5 stroke-[1.5]" />,
-                  },
-                ].map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="flex items-center gap-4 px-2 py-3 text-white hover:text-white/80 transition-all"
-                    onClick={() => setShowSidebar(false)}
-                  >
-                    {item.icon}
-                    <span className="text-lg font-light tracking-wide">{item.label}</span>
-                  </Link>
-                ))}
-
-                {/* Logout */}
-                <button
-                  onClick={() => {
-                    setShowSidebar(false);
-                    setShowLogoutModal(true);
-                  }}
-                  className="flex items-center gap-4 px-2 py-3 text-red-500 hover:text-red-400 transition-all mt-4 w-full"
-                >
-                  <LogOut className="w-5 h-5 stroke-[1.5]" />
-                  <span className="text-lg font-light tracking-wide">Logout</span>
-                </button>
-              </nav>
-
-              {/* Decorative Butterfly Logo */}
-              <SymbolLogo
-                className="absolute -bottom-16 -right-16 w-64 h-64 text-[#E6E1D8]/30 pointer-events-none"
-                variant="solid"
-              />
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* ─── Logout Modal ─── */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-lg bg-[#838182] rounded-[2rem] p-10 text-center shadow-2xl relative overflow-hidden"
-            >
-              {/* Decorative Butterfly Logo */}
-              <SymbolLogo
-                className="absolute -top-4 -right-4 w-32 h-32 text-[#D46B4E] rotate-12 opacity-90"
-                variant="solid"
-              />
-
-              <div className="relative z-10 text-left">
-                <h2 className="text-[40px] font-urbanist font-light text-white mb-2">
-                  Leaving for now?
-                </h2>
-                <p className="text-2xl text-white/90 font-playfair italic mb-16">
-                  Your thoughts are safely stored. You can
-                  <br />
-                  return anytime.
-                </p>
-
-                <div className="flex gap-6 justify-center mb-8">
-                  <button
-                    onClick={() => setShowLogoutModal(false)}
-                    className="w-36 py-3.5 rounded-2xl bg-[#4A4A4A] border border-[#D46B4E] text-white hover:bg-[#5a5a5a] transition-all text-lg font-medium shadow-lg"
-                  >
-                    Stay
-                  </button>
-                  <button
-                    onClick={() => signOut({ redirectUrl: '/' })}
-                    className="w-36 py-3.5 rounded-2xl bg-[#D33F3F] border border-[#B33535] text-white hover:bg-[#E34A4A] transition-all text-lg font-medium shadow-lg"
-                  >
-                    Logout
-                  </button>
-                </div>
-
-                <p className="text-center text-lg text-white/60 font-playfair italic">
-                  See you soon.
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {isCalendarOpen && (

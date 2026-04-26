@@ -2,6 +2,7 @@
 import { useUser } from '@clerk/nextjs';
 import { Calendar, Moon, Sparkles, Target, TrendingDown, TrendingUp, Zap } from 'lucide-react';
 import React from 'react';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
 
 /**
  * NOTE: @clerk/nextjs is removed for the preview environment.
@@ -11,6 +12,7 @@ import React from 'react';
 export default function InsightsPage() {
   // Mocking user data since Clerk is unavailable in this sandbox
   const { user } = useUser();
+  const { setIsOpen } = useSidebar();
 
   const thoughtThemes = [
     { label: 'CAREER DIRECTION', entries: 24, progress: 85 },
@@ -54,11 +56,14 @@ export default function InsightsPage() {
           <span className="text-[#FF5C35]">Insights</span>
         </div>
 
-        <div className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden ring-2 ring-white/5">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden ring-2 ring-white/5 hover:border-white/30 transition-all cursor-pointer"
+        >
           {user?.imageUrl && (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
           )}
-        </div>
+        </button>
       </header>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-col pt-4 pb-20">

@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { AnimatePresence, type PanInfo, motion } from 'framer-motion';
 import { Search } from 'lucide-react';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
 
 interface Entry {
   id: string;
@@ -58,6 +59,7 @@ export default function CanvasPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
+  const { setIsOpen } = useSidebar();
 
   // Replaced searchParams logic with local state for the standalone preview
   const [query, setQuery] = useState('');
@@ -147,15 +149,18 @@ export default function CanvasPage() {
           <span className="text-[#FF5C35]">Canvas</span>
         </div>
 
-        <div className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden">
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden hover:border-white/30 transition-all cursor-pointer"
+        >
           {user?.imageUrl && (
             <img
               src={user.imageUrl}
               alt="Profile"
-              className="w-9 h-9 rounded-full border border-white/10"
+              className="w-9 h-9 rounded-full"
             />
           )}
-        </div>
+        </button>
       </header>
 
       {/* Main */}

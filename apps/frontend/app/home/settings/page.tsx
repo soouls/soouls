@@ -1,10 +1,11 @@
 'use client';
 
-import { UserButton } from '@clerk/nextjs';
-import { Bell, ChevronDown, Clock, Moon, Sparkles } from 'lucide-react';
+import { Bell, ChevronDown, Clock, Moon, Sparkles, User } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { trpc } from '../../../src/utils/trpc';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
+import { useUser } from '@clerk/nextjs';
 
 const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
 
@@ -93,6 +94,8 @@ function SettingRow({
 }
 
 export default function SettingsPage() {
+  const { user } = useUser();
+  const { setIsOpen } = useSidebar();
   const [prefs, setPrefs] = useState<AppPrefs>(DEFAULT_PREFS);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [notifDailyReminder, setNotifDailyReminder] = useState(false);
@@ -195,14 +198,16 @@ export default function SettingsPage() {
             <span className="text-slate-600">/</span>
             <span className="text-[#e07a5f] text-lg">Settings</span>
           </div>
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: 'h-9 w-9 ring-2 ring-white/10 hover:ring-white/20 transition-all',
-              },
-            }}
-            afterSignOutUrl="/"
-          />
+          <button
+            onClick={() => setIsOpen(true)}
+            className="w-9 h-9 rounded-full ring-2 ring-white/10 hover:ring-white/20 transition-all overflow-hidden"
+          >
+            {user?.imageUrl ? (
+              <img src={user.imageUrl} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              <User className="w-5 h-5 text-white/60 mx-auto" />
+            )}
+          </button>
         </header>
 
         <main className="max-w-4xl mx-auto px-8 py-10 space-y-6 pb-16">

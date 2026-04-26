@@ -35,6 +35,7 @@ const spawnOptions = {
   cwd: appRoot,
   stdio: 'inherit' as const,
   env: process.env,
+  shell: true,
 };
 
 const child =
