@@ -1,12 +1,14 @@
 'use client';
 
-import { UserButton, useUser } from '@clerk/nextjs';
+import type { UserEntry } from '@soouls/api/router';
+import { UserButton, useAuth, useClerk, useUser } from '@clerk/nextjs';
 import {
   ArrowLeft,
   Calendar,
   Download,
   Flame,
   HardDrive,
+  Loader2,
   Moon,
   PenLine,
   Shield,
@@ -17,6 +19,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { downloadJson } from '../../../src/utils/home';
+import { getTRPCClient, trpc } from '../../../src/utils/trpc';
 
 const FONT_PLAYFAIR = "'Playfair Display', Georgia, serif";
 const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
@@ -25,27 +30,27 @@ function StatCard({
   value,
   label,
   icon,
-  highlight = false,
 }: {
   value: string | number;
   label: string;
   icon: React.ReactNode;
-  highlight?: boolean;
 }) {
   return (
     <div
-      className="rounded-2xl border border-white/5 bg-[#1a1a1a] p-6 flex flex-col gap-4 min-h-[120px] justify-between"
-      style={{ fontFamily: FONT_URBANIST }}
+      className="rounded-2xl border p-6 flex flex-col gap-4 min-h-[120px] justify-between"
+      style={{
+        fontFamily: FONT_URBANIST,
+        backgroundColor: 'var(--soouls-bg-surface)',
+        borderColor: 'var(--soouls-border)',
+      }}
     >
       <div className="flex items-start justify-between">
-        <span
-          className={`text-5xl font-bold leading-none ${highlight ? 'text-white' : 'text-[#e07a5f]'}`}
-        >
+        <span className="text-5xl font-bold leading-none" style={{ color: 'var(--soouls-accent)' }}>
           {value}
         </span>
-        <span className="text-[#FFA500]">{icon}</span>
+        <span style={{ color: 'var(--soouls-accent)' }}>{icon}</span>
       </div>
-      <p className="text-white/50 text-base font-medium">{label}</p>
+      <p className="text-base font-medium text-[var(--soouls-text-muted)]">{label}</p>
     </div>
   );
 }
@@ -53,8 +58,12 @@ function StatCard({
 function Tag({ label }: { label: string }) {
   return (
     <span
-      className="inline-block rounded-full border border-white/15 px-4 py-1.5 text-sm text-white/70"
-      style={{ fontFamily: FONT_URBANIST }}
+      className="inline-block rounded-full border px-4 py-1.5 text-sm"
+      style={{
+        borderColor: 'rgba(255,255,255,0.15)',
+        color: 'var(--soouls-text-muted)',
+        fontFamily: FONT_URBANIST,
+      }}
     >
       {label}
     </span>
@@ -64,10 +73,10 @@ function Tag({ label }: { label: string }) {
 function ThemeBar({ label, percent }: { label: string; percent: number }) {
   return (
     <div className="flex items-center justify-between py-1.5">
-      <span className="text-[#e07a5f] font-medium text-sm" style={{ fontFamily: FONT_URBANIST }}>
+      <span className="font-medium text-sm" style={{ color: 'var(--soouls-accent)', fontFamily: FONT_URBANIST }}>
         {label}
       </span>
-      <span className="text-white/60 text-sm" style={{ fontFamily: FONT_URBANIST }}>
+      <span className="text-sm text-[var(--soouls-text-muted)]" style={{ fontFamily: FONT_URBANIST }}>
         {percent} %
       </span>
     </div>
@@ -79,22 +88,25 @@ function OutlineButton({
   icon,
   onClick,
   danger = false,
+  disabled = false,
 }: {
   children: React.ReactNode;
   icon?: React.ReactNode;
   onClick?: () => void;
   danger?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2.5 rounded-full border px-6 py-3 text-sm font-medium transition-all duration-200 ${
-        danger
-          ? 'border-red-500/40 text-red-400 hover:bg-red-500/10 hover:border-red-500/60'
-          : 'border-white/15 text-white/70 hover:bg-white/5 hover:border-white/30 hover:text-white'
-      }`}
-      style={{ fontFamily: FONT_URBANIST }}
+      disabled={disabled}
+      className="flex items-center gap-2.5 rounded-full border px-6 py-3 text-sm font-medium transition-all duration-200 disabled:opacity-50"
+      style={{
+        borderColor: danger ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.15)',
+        color: danger ? '#f87171' : 'var(--soouls-text-muted)',
+        fontFamily: FONT_URBANIST,
+      }}
     >
       {icon}
       {children}
@@ -102,203 +114,266 @@ function OutlineButton({
   );
 }
 
-function DataActionBtn({ children, icon }: { children: React.ReactNode; icon: React.ReactNode }) {
+function DataActionBtn({
+  children,
+  icon,
+  onClick,
+  loading = false,
+}: {
+  children: React.ReactNode;
+  icon: React.ReactNode;
+  onClick: () => void;
+  loading?: boolean;
+}) {
   return (
     <button
       type="button"
-      className="flex flex-1 items-center gap-3 rounded-2xl border border-white/8 bg-[#1a1a1a] px-5 py-4 text-sm text-white/70 font-medium transition-all duration-200 hover:bg-white/5 hover:text-white hover:border-white/20"
-      style={{ fontFamily: FONT_URBANIST }}
+      onClick={onClick}
+      disabled={loading}
+      className="flex flex-1 items-center gap-3 rounded-2xl border px-5 py-4 text-sm font-medium transition-all duration-200 hover:bg-white/5 disabled:opacity-60"
+      style={{
+        backgroundColor: 'var(--soouls-bg-surface)',
+        borderColor: 'var(--soouls-border)',
+        color: 'var(--soouls-text-muted)',
+        fontFamily: FONT_URBANIST,
+      }}
     >
-      <span className="text-[#e07a5f]">{icon}</span>
+      <span style={{ color: 'var(--soouls-accent)' }}>
+        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : icon}
+      </span>
       {children}
     </button>
   );
 }
 
 export default function AccountPage() {
-  const { user } = useUser();
   const router = useRouter();
+  const { user } = useUser();
+  const { getToken } = useAuth();
+  const { signOut } = useClerk();
+  const trpcClient = useMemo(() => getTRPCClient(getToken), [getToken]);
+
+  const [exporting, setExporting] = useState<'all' | 'entries' | null>(null);
+
+  const { data: account } = trpc.private.home.getAccount.useQuery(undefined);
+  const { data: insights } = trpc.private.home.getInsights.useQuery(undefined);
+  const { data: settings } = trpc.private.home.getSettings.useQuery(undefined);
+
+  const deleteAccount = trpc.private.home.deleteAccount.useMutation({
+    onSuccess: async () => {
+      await signOut({ redirectUrl: '/' });
+    },
+  });
 
   const displayName = user?.fullName || user?.firstName || 'Unknownname';
   const email = user?.primaryEmailAddress?.emailAddress || 'you@example.com';
   const avatarUrl = user?.imageUrl;
 
+  const loadAllEntries = async (): Promise<UserEntry[]> => {
+    const items: UserEntry[] = [];
+    let cursor: number | null = 0;
+
+    while (cursor !== null) {
+      const response = await trpcClient.private.entries.getAll.query({
+        cursor,
+        limit: 200,
+      });
+      items.push(...response.items);
+      cursor = response.nextCursor;
+    }
+
+    return items;
+  };
+
+  const handleExportAll = async () => {
+    try {
+      setExporting('all');
+      const entries = await loadAllEntries();
+      downloadJson(`soouls-data-${new Date().toISOString().slice(0, 10)}.json`, {
+        exportedAt: new Date().toISOString(),
+        account,
+        insights,
+        settings,
+        entries,
+      });
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handleBackupEntries = async () => {
+    try {
+      setExporting('entries');
+      const entries = await loadAllEntries();
+      downloadJson(`soouls-entries-backup-${new Date().toISOString().slice(0, 10)}.json`, {
+        exportedAt: new Date().toISOString(),
+        entries,
+      });
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'This will permanently delete your Soouls account and journal data. This cannot be undone. Continue?',
+    );
+    if (!confirmed) return;
+    deleteAccount.mutate();
+  };
+
   return (
-    <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Urbanist:wght@300;400;500;600&display=swap"
-        rel="stylesheet"
-      />
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text-strong)', fontFamily: FONT_URBANIST }}>
+      <header className="px-8 py-6 flex items-center justify-between border-b" style={{ borderColor: 'var(--soouls-border)' }}>
+        <div className="flex items-center gap-4">
+          <Link href="/home" className="flex items-center gap-2 text-[var(--soouls-text-muted)] hover:text-[var(--soouls-text-strong)] transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Home
+          </Link>
+          <span className="text-[var(--soouls-text-faint)]">/</span>
+          <span className="text-lg" style={{ color: 'var(--soouls-accent)' }}>
+            Account
+          </span>
+        </div>
+        <UserButton
+          appearance={{
+            elements: {
+              avatarBox: 'h-9 w-9 ring-2 ring-white/10 hover:ring-white/20 transition-all',
+            },
+          }}
+          afterSignOutUrl="/"
+        />
+      </header>
 
-      <div className="min-h-screen bg-[#0A0A0A] text-white" style={{ fontFamily: FONT_URBANIST }}>
-        {/* Header */}
-        <header className="px-8 py-6 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/home"
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Home
-            </Link>
-            <span className="text-slate-600">/</span>
-            <span className="text-[#e07a5f] text-lg">Account</span>
-          </div>
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: 'h-9 w-9 ring-2 ring-white/10 hover:ring-white/20 transition-all',
-              },
-            }}
-            afterSignOutUrl="/"
-          />
-        </header>
-
-        <main className="max-w-4xl mx-auto px-8 py-10 space-y-6 pb-16">
-          {/* Profile + Stats */}
-          <div className="rounded-2xl border border-white/5 bg-[#141414] p-6">
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="flex items-start gap-5 flex-1">
-                <div className="relative flex-shrink-0">
-                  {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={displayName}
-                      className="h-20 w-20 rounded-full object-cover ring-2 ring-[#e07a5f]/30"
-                    />
-                  ) : (
-                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[#e07a5f]/40 to-amber-500/30 flex items-center justify-center ring-2 ring-[#e07a5f]/20">
-                      <User className="w-8 h-8 text-[#e07a5f]/70" />
-                    </div>
-                  )}
-                  <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-400 ring-2 ring-[#141414]" />
-                </div>
-
-                <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-                  <h2
-                    className="text-4xl text-white leading-none"
-                    style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
+      <main className="max-w-4xl mx-auto px-8 py-10 space-y-6 pb-16">
+        <div className="rounded-2xl border p-6" style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}>
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex items-start gap-5 flex-1">
+              <div className="relative flex-shrink-0">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="h-20 w-20 rounded-full object-cover ring-2" style={{ ['--tw-ring-color' as string]: 'rgba(var(--soouls-accent-rgb), 0.3)' }} />
+                ) : (
+                  <div
+                    className="h-20 w-20 rounded-full flex items-center justify-center ring-2"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(var(--soouls-accent-rgb), 0.45), rgba(var(--soouls-accent-rgb), 0.2))',
+                      ['--tw-ring-color' as string]: 'rgba(var(--soouls-accent-rgb), 0.2)',
+                    }}
                   >
-                    {displayName}
-                  </h2>
-                  <p className="text-[#e07a5f] text-base">{email}</p>
-                  <div className="text-base text-white/60 mt-0.5">
-                    Trying to make sense of my thoughts.
+                    <User className="w-8 h-8" style={{ color: 'var(--soouls-accent)' }} />
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-400 text-sm font-semibold">
-                      You&apos;ve been staying consistent.
-                    </span>
-                  </div>
+                )}
+                <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-400 ring-2" style={{ ['--tw-ring-color' as string]: 'var(--soouls-bg-surface)' }} />
+              </div>
+
+              <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+                <h2 className="text-4xl leading-none" style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}>
+                  {displayName}
+                </h2>
+                <p className="text-base" style={{ color: 'var(--soouls-accent)' }}>
+                  {email}
+                </p>
+                <div className="text-base text-[var(--soouls-text-muted)] mt-0.5">
+                  {account?.bio ?? 'Trying to make sense of my thoughts.'}
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 text-sm font-semibold">
+                    {account?.consistencyMessage ?? "You're building momentum."}
+                  </span>
                 </div>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4 w-full sm:w-1/2">
-                <StatCard value={32} label="Days Joined" icon={<Calendar className="w-6 h-6" />} />
-                <StatCard value={64} label="Entries" icon={<PenLine className="w-6 h-6" />} />
-                <StatCard value={9} label="Day Streak" icon={<Flame className="w-6 h-6" />} />
-                <StatCard
-                  value="Evenings"
-                  label="Most Active"
-                  icon={<Moon className="w-6 h-6" />}
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-4 w-full sm:w-1/2">
+              <StatCard value={account?.stats.daysJoined ?? 0} label="Days Joined" icon={<Calendar className="w-6 h-6" />} />
+              <StatCard value={account?.stats.entries ?? 0} label="Entries" icon={<PenLine className="w-6 h-6" />} />
+              <StatCard value={account?.stats.streak ?? 0} label="Day Streak" icon={<Flame className="w-6 h-6" />} />
+              <StatCard value={account?.stats.mostActivePeriod ?? '—'} label="Most Active" icon={<Moon className="w-6 h-6" />} />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-3 rounded-2xl border p-6 space-y-4" style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}>
+            <p className="font-semibold text-base text-[var(--soouls-text-strong)]">Your writing patterns</p>
+            <p className="text-xs uppercase tracking-[0.18em] font-medium text-[var(--soouls-text-faint)]">Primary Style</p>
+            <h3 className="text-3xl leading-tight" style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}>
+              {account?.writingProfile.title ?? insights?.writingProfile.title ?? 'Thoughtful self-reflection'}
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--soouls-accent)' }}>
+              {account?.writingProfile.description ??
+                insights?.writingProfile.description ??
+                'Your entries are grounding emotion in language and turning reflection into clarity.'}
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {(account?.writingProfile.tags ?? insights?.writingProfile.tags ?? ['Reflective']).map((tag) => (
+                <Tag key={tag} label={tag} />
+              ))}
             </div>
           </div>
 
-          {/* Writing Patterns + Insight Analysis */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3 rounded-2xl border border-white/5 bg-[#141414] p-6 space-y-4">
-              <p className="text-white/70 font-semibold text-base">Your writing patterns</p>
-              <p className="text-white/25 text-xs uppercase tracking-[0.18em] font-medium">
-                Primary Style
-              </p>
-              <h3
-                className="text-3xl leading-tight text-white"
-                style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
-              >
-                Thoughtful self-reflection
-              </h3>
-              <p className="text-[#e07a5f] text-sm leading-relaxed">
-                You often pause to process your emotions before responding. Your entries show a
-                pattern of careful observation and internal clarity-building.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Tag label="Reflective" />
-                <Tag label="Aware" />
-                <Tag label="Grounded" />
-              </div>
+          <div className="lg:col-span-2 rounded-2xl border p-6 space-y-3" style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}>
+            <p className="font-semibold text-base text-[var(--soouls-text-strong)]">Insight Analysis</p>
+            <p className="text-xs uppercase tracking-[0.18em] font-medium text-[var(--soouls-text-faint)]">Core Theme</p>
+            <div className="divide-y divide-white/5">
+              {(account?.coreThemes ?? insights?.coreThemes ?? []).slice(0, 3).map((theme) => (
+                <ThemeBar key={theme.label} label={theme.label} percent={theme.percent} />
+              ))}
             </div>
+            <p className="text-xs leading-relaxed pt-2 text-center text-[var(--soouls-text-faint)]">
+              Insights are based on your real entry cadence, recurring themes, and tone patterns.
+            </p>
+          </div>
+        </div>
 
-            <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#141414] p-6 space-y-3">
-              <p className="text-white/70 font-semibold text-base">Insight Analysis</p>
-              <p className="text-white/25 text-xs uppercase tracking-[0.18em] font-medium">
-                Core Theme
-              </p>
-              <div className="divide-y divide-white/5">
-                <ThemeBar label="Healing" percent={41} />
-                <ThemeBar label="Anxiety" percent={26} />
-                <ThemeBar label="Self-worth" percent={17} />
-              </div>
-              <p className="text-white/30 text-xs leading-relaxed pt-2 text-center">
-                Insights are based on sentiment and tone analysis.
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-3 rounded-2xl border p-6 space-y-4" style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}>
+            <p className="font-semibold text-base text-[var(--soouls-text-strong)]">Data &amp; Ownership</p>
+            <div className="flex gap-3">
+              <DataActionBtn icon={<Download className="w-4 h-4" />} onClick={handleExportAll} loading={exporting === 'all'}>
+                Download your data
+              </DataActionBtn>
+              <DataActionBtn icon={<Upload className="w-4 h-4" />} onClick={handleBackupEntries} loading={exporting === 'entries'}>
+                Backup your entries
+              </DataActionBtn>
             </div>
           </div>
 
-          {/* Data & Ownership + Privacy Snapshot */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3 rounded-2xl border border-white/5 bg-[#141414] p-6 space-y-4">
-              <p className="text-white/70 font-semibold text-base">Data &amp; Ownership</p>
-              <div className="flex gap-3">
-                <DataActionBtn icon={<Download className="w-4 h-4" />}>
-                  Download your data
-                </DataActionBtn>
-                <DataActionBtn icon={<Upload className="w-4 h-4" />}>
-                  Backup your entries
-                </DataActionBtn>
-              </div>
+          <div className="lg:col-span-2 rounded-2xl border p-6 space-y-3" style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <p className="font-semibold text-sm text-emerald-400">Privacy Snapshot</p>
             </div>
-
-            <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#141414] p-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-400" />
-                <p className="text-emerald-400 font-semibold text-sm">Privacy Snapshot</p>
-              </div>
-              <p
-                className="text-white text-lg leading-snug"
-                style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
-              >
-                Your privacy comes first.
-              </p>
-              <p className="text-[#e07a5f] text-xs leading-relaxed">
-                Your data is encrypted end-to-end and used only to generate your personal insights.
-                We don&apos;t share, sell, or use it for ads.
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <HardDrive className="w-3.5 h-3.5 text-white/30" />
-                <span className="text-white/30 text-xs">Your data belongs only to you.</span>
-              </div>
+            <p className="text-lg leading-snug" style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}>
+              Your privacy comes first.
+            </p>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--soouls-accent)' }}>
+              Your data is stored for your own reflective experience and exported exactly as your account sees it.
+            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <HardDrive className="w-3.5 h-3.5 text-[var(--soouls-text-faint)]" />
+              <span className="text-xs text-[var(--soouls-text-faint)]">
+                Your downloaded archive includes entries, settings, and insight summaries.
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Bottom Actions */}
-          <div className="flex items-center gap-3 pt-2 flex-wrap">
-            <OutlineButton
-              icon={<ArrowLeft className="w-4 h-4" />}
-              onClick={() => router.push('/home')}
-            >
-              Back to Home
-            </OutlineButton>
-            <OutlineButton icon={<Trash2 className="w-4 h-4" />} danger>
-              Delete account
-            </OutlineButton>
-          </div>
-        </main>
-      </div>
-    </>
+        <div className="flex items-center gap-3 pt-2 flex-wrap">
+          <OutlineButton icon={<ArrowLeft className="w-4 h-4" />} onClick={() => router.push('/home')}>
+            Back to Home
+          </OutlineButton>
+          <OutlineButton
+            icon={deleteAccount.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+            onClick={handleDeleteAccount}
+            danger
+            disabled={deleteAccount.isPending}
+          >
+            Delete account
+          </OutlineButton>
+        </div>
+      </main>
+    </div>
   );
 }

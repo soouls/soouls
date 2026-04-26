@@ -1,9 +1,10 @@
 import http from 'node:http';
+import { realpathSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import next from 'next';
 
-const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 
 function readPort() {
   const portFlagIndex = process.argv.indexOf('--port');

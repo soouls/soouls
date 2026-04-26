@@ -7,25 +7,89 @@
 
 :root {
   /* Figma SC Color Tokens */
-  --sc-black: #222222;
-  --sc-black1: #1c1c1c;
+  --soouls-bg: #222222;
+  --soouls-bg-elevated: #1c1c1c;
+  --soouls-bg-surface: #141414;
+  --soouls-bg-panel: #0f0f0f;
+  --soouls-border: rgba(255, 255, 255, 0.08);
+  --soouls-text: #efebdd;
+  --soouls-text-strong: #ffffff;
+  --soouls-text-muted: rgba(239, 235, 221, 0.62);
+  --soouls-text-faint: rgba(239, 235, 221, 0.34);
+  --soouls-accent: #e07a5f;
+  --soouls-accent-rgb: 224, 122, 95;
+  --soouls-overlay-subtle: rgba(255, 255, 255, 0.04);
+  --soouls-overlay-muted: rgba(255, 255, 255, 0.08);
+  --soouls-overlay-strong: rgba(255, 255, 255, 0.16);
+  --soouls-chip-divider: rgba(255, 255, 255, 0.2);
+  --soouls-graph-stroke: rgba(255, 255, 255, 0.24);
+  --soouls-graph-fill: rgba(255, 255, 255, 0.14);
+
+  --sc-black: var(--soouls-bg);
+  --sc-black1: var(--soouls-bg-elevated);
   --sc-deep-blue: #1e2a3a;
-  --sc-orange: #e07a5f;
-  --sc-white2: #efebdd;
-  --sc-grey1: #d8d8d8;
-  --sc-grey2: #a8a8a8;
-  --sc-grey3: #6e6e6e;
+  --sc-orange: var(--soouls-accent);
+  --sc-white2: var(--soouls-text);
+  --sc-grey1: rgba(239, 235, 221, 0.85);
+  --sc-grey2: rgba(239, 235, 221, 0.6);
+  --sc-grey3: rgba(239, 235, 221, 0.42);
   --sc-tan: #d6c2a3;
   --sc-footer-bg: #181511;
 
   /* Legacy vars */
-  --background: #222222;
-  --foreground: #efebdd;
+  --background: var(--soouls-bg);
+  --foreground: var(--soouls-text);
+}
+
+html[data-theme-mode="light"] {
+  --soouls-bg: #f3eee4;
+  --soouls-bg-elevated: #fffaf3;
+  --soouls-bg-surface: #fff8f0;
+  --soouls-bg-panel: #efe6d8;
+  --soouls-border: rgba(30, 24, 18, 0.08);
+  --soouls-text: #241d17;
+  --soouls-text-strong: #111111;
+  --soouls-text-muted: rgba(36, 29, 23, 0.72);
+  --soouls-text-faint: rgba(36, 29, 23, 0.42);
+  --soouls-overlay-subtle: rgba(36, 29, 23, 0.04);
+  --soouls-overlay-muted: rgba(36, 29, 23, 0.08);
+  --soouls-overlay-strong: rgba(36, 29, 23, 0.16);
+  --soouls-chip-divider: rgba(36, 29, 23, 0.18);
+  --soouls-graph-stroke: rgba(36, 29, 23, 0.22);
+  --soouls-graph-fill: rgba(36, 29, 23, 0.12);
+  --sc-grey1: rgba(36, 29, 23, 0.88);
+  --sc-grey2: rgba(36, 29, 23, 0.64);
+  --sc-grey3: rgba(36, 29, 23, 0.48);
+  color-scheme: light;
+}
+
+html[data-accent-theme="orange"] {
+  --soouls-accent: #e07a5f;
+  --soouls-accent-rgb: 224, 122, 95;
+}
+
+html[data-accent-theme="yellow"] {
+  --soouls-accent: #d9a23d;
+  --soouls-accent-rgb: 217, 162, 61;
+}
+
+html[data-accent-theme="green"] {
+  --soouls-accent: #73b27c;
+  --soouls-accent-rgb: 115, 178, 124;
+}
+
+html[data-accent-theme="purple"] {
+  --soouls-accent: #8c72d8;
+  --soouls-accent-rgb: 140, 114, 216;
 }
 
 /* Smooth scroll */
 html {
   scroll-behavior: smooth;
+}
+
+html:not([data-theme-mode]),
+html[data-theme-mode="dark"] {
   color-scheme: dark;
 }
 
@@ -50,8 +114,8 @@ body {
 }
 
 body {
-  color: var(--sc-white2);
-  background: var(--sc-black);
+  color: var(--foreground);
+  background: var(--background);
   font-family: "Urbanist", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -69,12 +133,12 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--sc-orange);
+  outline: 2px solid var(--soouls-accent);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgba(224, 122, 95, 0.3);
+  background: rgba(var(--soouls-accent-rgb), 0.28);
   color: #fff;
 }
 
@@ -92,7 +156,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(224, 122, 95, 0.4);
+  background: rgba(var(--soouls-accent-rgb), 0.4);
 }
 
 [id] {

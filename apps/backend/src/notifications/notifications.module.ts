@@ -5,6 +5,6 @@ import { NotificationWorker } from './notification.worker';
 
 @Module({
   providers: [NotificationQueueService, NotificationDispatchService, NotificationWorker],
-  exports: [NotificationQueueService],
+  exports: [NotificationDispatchService, NotificationQueueService],
 })
 export class NotificationsModule {}

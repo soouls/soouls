@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
-import { existsSync, symlinkSync } from 'node:fs';
+import { existsSync, realpathSync, symlinkSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const localNodeModules = resolve(appRoot, 'node_modules');
 const frontendNodeModules = resolve(appRoot, '..', 'frontend', 'node_modules');
 const nextCli = resolve(localNodeModules, 'next', 'dist', 'bin', 'next');
@@ -31,10 +31,19 @@ if (!command) {
   throw new Error('No command provided to apps/admin-dashboard/scripts/run.mjs');
 }
 
+const nextSubcommand = command === 'next' ? args[0] : undefined;
+const env =
+  nextSubcommand === 'build' || nextSubcommand === 'start'
+    ? {
+        ...process.env,
+        NODE_ENV: 'production',
+      }
+    : process.env;
+
 const spawnOptions = {
   cwd: appRoot,
   stdio: 'inherit',
-  env: process.env,
+  env,
 };
 
 const child =

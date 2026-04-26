@@ -203,6 +203,8 @@ function usePersistedEntry(initialId: string | null) {
   };
 }
 
+type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+
 // ══════════════════════════════════════════════════════════════════════════════
 // MODAL PRIMITIVES
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1336,6 +1338,7 @@ function NewEntryContent() {
   const [modal, setModal] = useState<null | 'image' | 'doodle' | 'goal' | 'tasklist' | 'voice'>(
     null,
   );
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
   // ── tRPC auto-save (syncs to DB in addition to localStorage) ──────────────
   const createMutation = trpc.private.entries.create.useMutation();
@@ -1390,6 +1393,7 @@ function NewEntryContent() {
   const performDbSave = useRef(async (text: string, blks: Block[], id: string | null) => {
     if (!userIdRef.current || isSaving.current) return;
     isSaving.current = true;
+    setSyncStatus('syncing');
     try {
       // 1. Handle image uploads if needed
       const updatedBlocks = [...blks];
@@ -1436,20 +1440,21 @@ function NewEntryContent() {
       }
 
       const payloadString = JSON.stringify({ textContent: text, blocks: updatedBlocks });
-      const payload = LZString.compressToUTF16(payloadString);
 
       if (!id) {
-        const e = await createRef.current({ content: payload, type: 'entry' });
+        const e = await createRef.current({ content: payloadString, type: 'entry' });
         setEntryId(e.id);
         entryIdRef.current = e.id;
         migrateKey(e.id);
         // Use window.history.replaceState instead of router.replace to avoid Next.js navigation flashes
         window.history.replaceState(null, '', `/home/new-entry?id=${e.id}`);
       } else {
-        await updateRef.current({ id, content: payload });
+        await updateRef.current({ id, content: payloadString });
       }
+      setSyncStatus('synced');
     } catch (err) {
       console.error('DB save failed:', err);
+      setSyncStatus('error');
     } finally {
       isSaving.current = false;
     }
@@ -1458,6 +1463,7 @@ function NewEntryContent() {
   // DB debounce — fires 2s after last keystroke or block change
   useEffect(() => {
     if (!textContent.trim() && blocks.length === 0) return;
+    setSyncStatus('idle');
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
     dbDebounce.current = setTimeout(
       () => performDbSave.current(textContent, blocks, entryIdRef.current),
@@ -1470,7 +1476,7 @@ function NewEntryContent() {
 
   const handleHome = async () => {
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
-    if (textContent.trim() && !isSaving.current)
+    if ((textContent.trim() || blocks.length > 0) && !isSaving.current)
       await performDbSave.current(textContent, blocks, entryIdRef.current);
     router.push('/home');
   };
@@ -1520,33 +1526,65 @@ function NewEntryContent() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Save status — shows localStorage save state */}
-          <div className="min-w-[90px] flex justify-end">
+          {/* Save status — local draft persistence + encrypted DB sync */}
+          <div className="min-w-[220px] flex justify-end">
             <AnimatePresence mode="wait">
-              {saveStatus === 'saving' && (
+              {syncStatus === 'syncing' ? (
                 <motion.div
-                  key="s"
+                  key="syncing"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="flex items-center gap-1.5 text-white/40 text-xs"
                 >
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  Saving...
+                  Encrypting and syncing...
                 </motion.div>
-              )}
-              {saveStatus === 'saved' && (
+              ) : syncStatus === 'synced' ? (
                 <motion.div
-                  key="d"
+                  key="synced"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
                   className="flex items-center gap-1 text-emerald-400 text-xs bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20"
                 >
                   <Check className="w-3 h-3" />
-                  Saved
+                  Encrypted and synced
                 </motion.div>
-              )}
+              ) : syncStatus === 'error' ? (
+                <motion.div
+                  key="sync-error"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-1 text-amber-300 text-xs bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20"
+                >
+                  <Clock className="w-3 h-3" />
+                  Draft stored locally, retrying cloud save
+                </motion.div>
+              ) : saveStatus === 'saving' ? (
+                <motion.div
+                  key="local-saving"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-1.5 text-white/40 text-xs"
+                >
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Saving draft...
+                </motion.div>
+              ) : saveStatus === 'saved' ? (
+                <motion.div
+                  key="local-saved"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-1 text-sky-300 text-xs bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20"
+                >
+                  <Check className="w-3 h-3" />
+                  Draft stored on this device
+                </motion.div>
+              ) : null}
             </AnimatePresence>
           </div>
 

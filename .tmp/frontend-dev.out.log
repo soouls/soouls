@@ -1,0 +1,19 @@
+○ Compiling /instrumentation ...
+[Soouls Frontend] Listening on http://localhost:3001
+○ Compiling proxy ...
+○ Compiling /onboarding ...
+ GET /onboarding 200 in 231ms (compile: 40ms, proxy.ts: 70ms, render: 120ms)
+ GET /sign-up 200 in 10.1s (compile: 9.2s, proxy.ts: 45ms, render: 812ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 8.0s (proxy.ts: 45ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 221ms (compile: 80ms, proxy.ts: 29ms, render: 112ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 238ms (compile: 77ms, proxy.ts: 48ms, render: 112ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 208ms (compile: 67ms, proxy.ts: 28ms, render: 112ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 418ms (compile: 151ms, proxy.ts: 75ms, render: 192ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 761ms (compile: 287ms, proxy.ts: 220ms, render: 254ms)
+ GET /favicon.ico 200 in 20.5s
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 1639ms (compile: 130ms, proxy.ts: 60ms, render: 1449ms)
+ GET /favicon.ico 404 in 93ms (compile: 34ms, generate-params: 14ms, render: 59ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 3.5s (compile: 1818ms, proxy.ts: 405ms, render: 1251ms)
+ GET / 200 in 10.5s (compile: 9.0s, proxy.ts: 25ms, render: 1541ms)
+ GET /sign-in?redirect_url=http%3A%2F%2Flocalhost%3A3001%2Fhome 200 in 369ms (compile: 132ms, proxy.ts: 55ms, render: 182ms)
+ GET / 200 in 316ms (compile: 77ms, proxy.ts: 41ms, render: 198ms)

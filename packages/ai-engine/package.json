@@ -7,7 +7,8 @@
     "./prompts": "./src/prompts/index.ts",
     "./embeddings": "./src/embeddings/index.ts",
     "./llm": "./src/llm/index.ts",
-    "./sentiment": "./src/sentiment/index.ts"
+    "./sentiment": "./src/sentiment/index.ts",
+    "./home-insights": "./src/home-insights/index.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit"

@@ -1,5 +1,5 @@
 import { createClerkClient } from '@clerk/backend';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { and, db, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
@@ -7,7 +7,7 @@ import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TasksService {
-  constructor(private readonly redis: RedisService) {}
+  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
 
   private getCacheKey(prefix: string, ...parts: (string | number)[]): string {
     return `${prefix}:${parts.join(':')}`;
