@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { realpathSync } from 'node:fs';
 import net from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +27,7 @@ async function findAvailablePort(startPort, attempts = 20) {
   throw new Error(`No available port found starting at ${startPort}`);
 }
 
-const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const devServerScript = resolve(appRoot, 'scripts', 'server.mjs');
 
 const requestedPort = Number.parseInt(process.env.PORT ?? '3001', 10);

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 
 export interface GCalToken {
@@ -28,7 +28,7 @@ export class GoogleCalendarService {
     process.env.GOOGLE_CALENDAR_REDIRECT_URI ??
     'http://localhost:3000/google-calendar/callback';
 
-  constructor(private readonly redis: RedisService) {}
+  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
 
   // ─── Configured? ─────────────────────────────────────────────────────────
 
@@ -72,12 +72,12 @@ export class GoogleCalendarService {
       throw new Error('Google OAuth token exchange failed');
     }
 
-    const data: {
+    const data = (await res.json()) as {
       access_token: string;
       refresh_token?: string;
       expires_in: number;
       scope: string;
-    } = await res.json();
+    };
 
     const token: GCalToken = {
       access_token: data.access_token,
@@ -111,7 +111,7 @@ export class GoogleCalendarService {
       throw new Error('Google token refresh failed');
     }
 
-    const data: { access_token: string; expires_in: number } = await res.json();
+    const data = (await res.json()) as { access_token: string; expires_in: number };
     const refreshed: GCalToken = {
       ...token,
       access_token: data.access_token,
@@ -201,7 +201,7 @@ export class GoogleCalendarService {
       return [];
     }
 
-    const data: {
+    const data = (await res.json()) as {
       items: Array<{
         id: string;
         summary?: string;
@@ -209,7 +209,7 @@ export class GoogleCalendarService {
         end: { dateTime?: string; date?: string };
         colorId?: string;
       }>;
-    } = await res.json();
+    };
 
     const events: GCalEvent[] = (data.items ?? []).map((e) => ({
       id: e.id,

@@ -34,13 +34,15 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
-  const allowedOrigins = [
-    process.env.FRONTEND_URL ?? 'http://localhost:3001',
-    process.env.COMMAND_CENTER_URL ?? 'http://localhost:3002',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3000',
-  ];
+  const allowedOrigins = Array.from(
+    new Set([
+      process.env.FRONTEND_URL ?? 'http://localhost:3001',
+      process.env.COMMAND_CENTER_URL ?? 'http://localhost:3002',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:3000',
+    ]),
+  );
 
   app.enableCors({
     origin: (origin, callback) => {

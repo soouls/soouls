@@ -3,9 +3,9 @@
  *
  * Usage:  bun run packages/database/src/seed-waitlist.ts
  */
-import { db } from './client';
-import { waitlistUsers } from './schema';
-import { WAITLIST_DATA } from './waitlist-data';
+import { db } from './client.js';
+import { waitlistUsers } from './schema/index.js';
+import { WAITLIST_DATA } from './waitlist-data.js';
 
 async function seed() {
   console.log(`[seed] Importing ${WAITLIST_DATA.length} waitlist entries...`);

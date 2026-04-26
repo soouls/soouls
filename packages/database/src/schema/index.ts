@@ -77,6 +77,7 @@ export const users = pgTable('users', {
   accountStatus: userAccountStatusEnum('account_status').default('active').notNull(),
   billingTier: billingTierEnum('billing_tier').default('free').notNull(),
   themePreference: text('theme_preference').default('aurora'),
+  preferences: jsonb('preferences').$type<Record<string, unknown> | null>(),
   mascot: text('mascot').default('Lumi'),
   isWaitlistUser: boolean('is_waitlist_user').default(false).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
@@ -235,7 +236,7 @@ export const permissionRequests = pgTable('permission_requests', {
   reviewedAt: timestamp('reviewed_at'),
   responseNote: text('response_note'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  expiresAt: timestamp('expires_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
 });
 
 export const featureFlags = pgTable('feature_flags', {

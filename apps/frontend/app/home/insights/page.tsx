@@ -1,36 +1,32 @@
 'use client';
+
 import { useUser } from '@clerk/nextjs';
 import { Calendar, Moon, Sparkles, Target, TrendingDown, TrendingUp, Zap } from 'lucide-react';
 import React from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
+import { ArrowDownRight, ArrowUpRight, Calendar, Moon, Sparkles, Target } from 'lucide-react';
+import { buildActivityBars, formatCurrentMonthRange } from '../../../src/utils/home';
+import { trpc } from '../../../src/utils/trpc';
 
-/**
- * NOTE: @clerk/nextjs is removed for the preview environment.
- * In your local project, you can keep your clerk imports and useUser hook.
- */
+const RELATION_POINTS = [
+  { top: '18%', left: '20%' },
+  { top: '50%', left: '48%' },
+  { top: '72%', left: '30%' },
+  { top: '42%', left: '78%' },
+];
 
 export default function InsightsPage() {
-  // Mocking user data since Clerk is unavailable in this sandbox
   const { user } = useUser();
   const { setIsOpen } = useSidebar();
+  const { data: insights } = trpc.private.home.getInsights.useQuery(undefined);
+  const { data: entries } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
 
-  const thoughtThemes = [
-    { label: 'CAREER DIRECTION', entries: 24, progress: 85 },
-    { label: 'SIDE PROJECTS', entries: 15, progress: 60 },
-    { label: 'SELF DEVELOPMENT', entries: 12, progress: 45 },
-    { label: 'CREATIVE EXPLORATION', entries: 7, progress: 25 },
-  ];
-
-  const shiftMetrics = [
-    { label: 'CAREER ANXIETY', value: -12, status: 'down' },
-    { label: 'GROWTH MINDSET', value: +28, status: 'up' },
-    { label: 'DISCIPLINE', value: 'STRONG', status: 'badge' },
-    { label: 'SOCIAL FEAR', value: 'LOW', status: 'icon' },
-  ];
+  const thoughtThemes = insights?.thoughtThemes ?? [];
+  const coreThemes = insights?.coreThemes ?? [];
+  const activityBars = buildActivityBars(entries?.items ?? []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-hidden font-sans select-none">
-      {/* Watermark */}
+    <div className="min-h-screen flex flex-col relative overflow-hidden font-sans select-none" style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text-strong)' }}>
       <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-10 select-none z-0 overflow-hidden whitespace-nowrap">
         <span
           className="text-[20vw] leading-none text-transparent tracking-tighter"
@@ -43,17 +39,16 @@ export default function InsightsPage() {
         </span>
       </div>
 
-      {/* Header */}
       <header className="px-8 py-6 flex justify-between items-center relative z-20">
-        <div className="flex items-center gap-2 text-sm text-white/60 font-medium">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)]">
           <button
             onClick={() => typeof window !== 'undefined' && window.history.back()}
-            className="hover:text-[#FF5C35] transition duration-300"
+            className="transition duration-300 hover:text-[var(--soouls-accent)]"
           >
             Home
           </button>
           <span>/</span>
-          <span className="text-[#FF5C35]">Insights</span>
+          <span style={{ color: 'var(--soouls-accent)' }}>Insights</span>
         </div>
 
         <button
@@ -64,173 +59,220 @@ export default function InsightsPage() {
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
           )}
         </button>
+        <div
+          className="w-9 h-9 rounded-full border overflow-hidden ring-2 ring-white/5"
+          style={{ borderColor: 'var(--soouls-border)', backgroundColor: 'var(--soouls-bg-elevated)' }}
+        >
+          {user?.imageUrl && <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />}
+        </div>
       </header>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-col pt-4 pb-20">
-        {/* Main Insights Card */}
-        <div className="bg-[#141414]/90 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
-          {/* Section Title */}
+        <div
+          className="backdrop-blur-2xl border rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden"
+          style={{
+            backgroundColor: 'var(--soouls-bg-surface)',
+            borderColor: 'var(--soouls-border)',
+          }}
+        >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
-            <h2 className="text-2xl font-medium tracking-tight text-white/90">
+            <h2 className="text-2xl font-medium tracking-tight text-[var(--soouls-text-strong)]">
               Soulcanvas Insights
             </h2>
-            <div className="flex items-center gap-2 text-white/40 text-xs tracking-wider uppercase font-semibold">
+            <div className="flex items-center gap-2 text-xs tracking-wider uppercase font-semibold text-[var(--soouls-text-faint)]">
               <Calendar className="w-3.5 h-3.5" />
-              <span>1st January–31st January</span>
+              <span>{formatCurrentMonthRange()}</span>
             </div>
           </div>
 
-          {/* Core Monthly Narrative */}
           <div className="mb-16">
             <div className="flex gap-4 mb-6">
-              <Zap className="w-6 h-6 text-[#FF5C35] shrink-0" />
+              <Sparkles className="w-6 h-6 shrink-0" style={{ color: 'var(--soouls-accent)' }} />
               <div className="space-y-4">
-                <blockquote className="text-3xl md:text-4xl font-serif italic leading-[1.3] text-white/90">
-                  "This month, your mind gravitated toward{' '}
-                  <span className="text-[#FF5C35]">turning ideas into action.</span> There's{' '}
-                  <span className="text-[#FF9E80]">a clear transition</span> from scattered
-                  inspiration to focused execution."
+                <blockquote className="text-3xl md:text-4xl font-serif italic leading-[1.3] text-[var(--soouls-text-strong)]">
+                  “{insights?.monthlyNarrative ?? 'Your recent writing is starting to reveal a clearer pattern.'}”
                 </blockquote>
-                <p className="text-white/40 text-sm leading-relaxed max-w-2xl font-light">
-                  Your activity reflects a{' '}
-                  <span className="text-white/70 font-medium">35% increase</span> in goal-oriented
-                  thinking compared to previous weeks. The recurring theme of "Exploration" has
-                  matured into "Clarity," indicating you're beginning to define your direction with
-                  confidence.
+                <p className="text-sm leading-relaxed max-w-2xl font-light text-[var(--soouls-text-muted)]">
+                  {insights
+                    ? `You've written ${insights.overview.entryCount} entries so far, with ${insights.overview.weeklyEntryCount} showing up this week. Your most active reflective window is ${insights.overview.mostActivePeriod.toLowerCase()}.`
+                    : 'Your entry rhythm, themes, and timing are being analyzed as you write.'}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Grid: Themes & Reflection */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Thought Themes */}
-            <div className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl">
-              <h3 className="text-sm font-semibold tracking-wider text-white/60 mb-8 uppercase">
+            <div
+              className="border p-8 rounded-3xl"
+              style={{
+                borderColor: 'var(--soouls-border)',
+                backgroundColor: 'var(--soouls-overlay-subtle)',
+              }}
+            >
+              <h3 className="text-sm font-semibold tracking-wider mb-8 uppercase text-[var(--soouls-text-muted)]">
                 Thought Themes
               </h3>
               <div className="space-y-8">
-                {thoughtThemes.map((theme) => (
-                  <div key={theme.label}>
-                    <div className="flex justify-between text-[10px] tracking-widest font-bold mb-3">
-                      <span className="text-white/40">{theme.label}</span>
-                      <span className="text-[#FF5C35]">{theme.entries} ENTRIES</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                {thoughtThemes.length > 0 ? (
+                  thoughtThemes.slice(0, 4).map((theme) => (
+                    <div key={theme.key}>
+                      <div className="flex justify-between text-[10px] tracking-widest font-bold mb-3">
+                        <span className="text-[var(--soouls-text-faint)]">{theme.label.toUpperCase()}</span>
+                        <span style={{ color: 'var(--soouls-accent)' }}>{theme.count} ENTRIES</span>
+                      </div>
                       <div
-                        className="h-full bg-gradient-to-r from-[#FF5C35] to-[#FF9E80] rounded-full"
-                        style={{ width: `${theme.progress}%` }}
-                      />
+                        className="h-1.5 w-full rounded-full overflow-hidden"
+                        style={{ backgroundColor: 'var(--soouls-overlay-muted)' }}
+                      >
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${theme.progress}%`,
+                            background:
+                              'linear-gradient(90deg, var(--soouls-accent), rgba(var(--soouls-accent-rgb), 0.35))',
+                          }}
+                        />
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div
+                    className="rounded-2xl border px-4 py-5 text-sm leading-relaxed"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                      color: 'var(--soouls-text-muted)',
+                    }}
+                  >
+                    Your insight themes will appear here once you have a few saved entries.
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
-            {/* Reflection Patterns */}
-            <div className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl">
-              <h3 className="text-sm font-semibold tracking-wider text-white/60 mb-6 uppercase">
+            <div
+              className="border p-8 rounded-3xl"
+              style={{
+                borderColor: 'var(--soouls-border)',
+                backgroundColor: 'var(--soouls-overlay-subtle)',
+              }}
+            >
+              <h3 className="text-sm font-semibold tracking-wider mb-6 uppercase text-[var(--soouls-text-muted)]">
                 Reflection Patterns
               </h3>
               <div className="flex gap-4 mb-10">
-                <Moon className="w-5 h-5 text-[#FF9E80] shrink-0" />
-                <p className="text-xs text-white/50 leading-relaxed italic">
-                  You tend to reflect most during late-evenings{' '}
-                  <span className="text-white/80">(10 PM – 12 AM)</span>, when your thoughts are
-                  more structured yet introspective.
+                <Moon className="w-5 h-5 shrink-0" style={{ color: 'var(--soouls-accent)' }} />
+                <p className="text-xs leading-relaxed italic text-[var(--soouls-text-muted)]">
+                  You tend to reflect most during <span className="text-[var(--soouls-text-strong)]">{insights?.overview.mostActivePeriod ?? 'Evenings'}</span>, when your thoughts gather more shape and language.
                 </p>
               </div>
 
-              {/* Simple Mock Histogram */}
               <div className="flex items-end justify-between h-24 gap-1 px-4">
-                {[20, 35, 25, 45, 80, 100, 60, 40].map((h, i) => (
+                {activityBars.map((height, index) => (
                   <div
-                    key={i}
-                    className={`w-full rounded-t-sm transition-all duration-700 ${i === 5 ? 'bg-[#FF5C35]' : 'bg-white/10'}`}
-                    style={{ height: `${h}%` }}
+                    key={`${height}-${index}`}
+                    className="w-full rounded-t-sm transition-all duration-700"
+                    style={{
+                      height: `${height}%`,
+                      backgroundColor:
+                        index === activityBars.indexOf(Math.max(...activityBars))
+                          ? 'var(--soouls-accent)'
+                          : 'var(--soouls-graph-fill)',
+                    }}
                   />
                 ))}
               </div>
-              <div className="flex justify-between text-[8px] text-white/20 mt-3 tracking-widest uppercase font-bold">
+              <div className="flex justify-between text-[8px] mt-3 tracking-widest uppercase font-bold text-[var(--soouls-text-faint)]">
                 <span>Morning</span>
                 <span>Midnight</span>
               </div>
             </div>
           </div>
 
-          {/* Grid: Connections & Shifting */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Connections Visual Placeholder */}
-            <div className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl flex flex-col">
-              <h3 className="text-sm font-semibold tracking-wider text-white/60 mb-2 uppercase">
+            <div
+              className="border p-8 rounded-3xl flex flex-col"
+              style={{
+                borderColor: 'var(--soouls-border)',
+                backgroundColor: 'var(--soouls-overlay-subtle)',
+              }}
+            >
+              <h3 className="text-sm font-semibold tracking-wider mb-2 uppercase text-[var(--soouls-text-muted)]">
                 How your Thoughts connect
               </h3>
-              <span className="text-[10px] text-white/20 tracking-widest mb-10 uppercase">
+              <span className="text-[10px] tracking-widest mb-10 uppercase text-[var(--soouls-text-faint)]">
                 RELATIONS BY SIMILARITY
               </span>
               <div className="flex-1 flex items-center justify-center relative min-h-[160px]">
-                {/* Mocking the node map from screenshot */}
-                <div
-                  className="absolute w-2 h-2 bg-[#FF5C35] rounded-full shadow-[0_0_10px_#FF5C35]"
-                  style={{ top: '20%', left: '20%' }}
-                />
-                <div
-                  className="absolute w-3 h-3 bg-white/40 rounded-full"
-                  style={{ top: '40%', left: '50%' }}
-                />
-                <div
-                  className="absolute w-2 h-2 bg-white/20 rounded-full"
-                  style={{ top: '70%', left: '30%' }}
-                />
-                <div
-                  className="absolute w-2.5 h-2.5 bg-[#FF9E80] rounded-full shadow-[0_0_8px_#FF9E80]"
-                  style={{ top: '60%', left: '80%' }}
-                />
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
-                  stroke="white"
+                  stroke="var(--soouls-graph-stroke)"
                   strokeWidth="0.5"
                 >
-                  <line x1="20%" y1="20%" x2="50%" y2="40%" />
-                  <line x1="50%" y1="40%" x2="30%" y2="70%" />
-                  <line x1="50%" y1="40%" x2="80%" y2="60%" />
+                  <line x1="20%" y1="20%" x2="48%" y2="50%" />
+                  <line x1="48%" y1="50%" x2="30%" y2="72%" />
+                  <line x1="48%" y1="50%" x2="78%" y2="42%" />
                 </svg>
+                {(coreThemes.slice(0, 4).length ? coreThemes.slice(0, 4) : [{ label: 'Reflection', percent: 100 }]).map((theme, index) => {
+                  const point = RELATION_POINTS[index] ?? { top: '50%', left: '50%' };
+                  const size = index === 1 ? 'w-3.5 h-3.5' : index === 2 ? 'w-2 h-2' : 'w-2.5 h-2.5';
+                  return (
+                    <div key={theme.label}>
+                      <div
+                        className={`absolute rounded-full shadow-[0_0_10px_var(--soouls-accent)] ${size}`}
+                        style={{
+                          top: point.top,
+                          left: point.left,
+                          backgroundColor: index <= 1 ? 'var(--soouls-accent)' : 'rgba(var(--soouls-accent-rgb), 0.55)',
+                        }}
+                      />
+                      <span
+                        className="absolute text-[8px] tracking-widest text-[var(--soouls-text-faint)]"
+                        style={{ top: `calc(${point.top} - 18px)`, left: `calc(${point.left} - 8px)` }}
+                      >
+                        {theme.label.toUpperCase()}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Shifting Metrics */}
-            <div className="bg-white/[0.03] border border-white/5 p-8 rounded-3xl">
-              <h3 className="text-sm font-semibold tracking-wider text-white/60 mb-2 uppercase">
+            <div
+              className="border p-8 rounded-3xl"
+              style={{
+                borderColor: 'var(--soouls-border)',
+                backgroundColor: 'var(--soouls-overlay-subtle)',
+              }}
+            >
+              <h3 className="text-sm font-semibold tracking-wider mb-2 uppercase text-[var(--soouls-text-muted)]">
                 Your thinking is shifting
               </h3>
-              <span className="text-[10px] text-white/20 tracking-widest mb-10 uppercase">
+              <span className="text-[10px] tracking-widest mb-10 uppercase text-[var(--soouls-text-faint)]">
                 EVOLUTION STATUS
               </span>
               <div className="space-y-6">
-                {shiftMetrics.map((item) => (
-                  <div key={item.label} className="flex justify-between items-center">
-                    <span className="text-[10px] tracking-wider text-white/40 font-bold uppercase">
-                      {item.label}
+                {(coreThemes.length ? coreThemes : thoughtThemes.slice(0, 3).map((theme) => ({ label: theme.label, percent: theme.progress }))).slice(0, 4).map((theme, index) => (
+                  <div key={theme.label} className="flex justify-between items-center">
+                    <span className="text-[10px] tracking-wider font-bold uppercase text-[var(--soouls-text-muted)]">
+                      {theme.label}
                     </span>
                     <div className="flex items-center gap-2">
-                      {item.status === 'down' && (
-                        <>
-                          <TrendingDown className="w-3 h-3 text-[#FF5C35]" />{' '}
-                          <span className="text-xs text-white/70">{item.value}%</span>
-                        </>
-                      )}
-                      {item.status === 'up' && (
-                        <>
-                          <TrendingUp className="w-3 h-3 text-emerald-500" />{' '}
-                          <span className="text-xs text-white/70">+{item.value}%</span>
-                        </>
-                      )}
-                      {item.status === 'badge' && (
-                        <span className="text-[9px] bg-[#FF5C35]/20 text-[#FF5C35] px-2 py-0.5 rounded border border-[#FF5C35]/30 font-bold tracking-widest">
-                          {item.value}
+                      {index === 0 && <ArrowUpRight className="w-3 h-3" style={{ color: 'var(--soouls-accent)' }} />}
+                      {index === 1 && <ArrowDownRight className="w-3 h-3 text-white/40" />}
+                      {index === 2 && (
+                        <span
+                          className="text-[9px] px-2 py-0.5 rounded border font-bold tracking-widest"
+                          style={{
+                            color: 'var(--soouls-accent)',
+                            backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.15)',
+                            borderColor: 'rgba(var(--soouls-accent-rgb), 0.28)',
+                          }}
+                        >
+                          EMERGING
                         </span>
                       )}
-                      {item.status === 'icon' && <Target className="w-4 h-4 text-white/30" />}
+                      {index > 2 && <Target className="w-4 h-4 text-white/30" />}
                     </div>
                   </div>
                 ))}
@@ -238,29 +280,25 @@ export default function InsightsPage() {
             </div>
           </div>
 
-          {/* Final Synthesis Section */}
           <div className="pt-12 border-t border-white/5 mt-8">
             <div className="flex flex-col items-center text-center max-w-2xl mx-auto">
-              <Sparkles className="w-6 h-6 text-[#FF5C35] mb-6" />
-              <span className="text-[10px] font-bold tracking-[0.3em] text-[#FF5C35] mb-4 uppercase">
+              <Sparkles className="w-6 h-6 mb-6" style={{ color: 'var(--soouls-accent)' }} />
+              <span className="text-[10px] font-bold tracking-[0.3em] mb-4 uppercase" style={{ color: 'var(--soouls-accent)' }}>
                 Final Synthesis
               </span>
-              <h4 className="text-2xl md:text-3xl font-serif italic text-white/90 mb-4">
-                "You are in a period of significant cognitive transition"
+              <h4 className="text-2xl md:text-3xl font-serif italic mb-4 text-[var(--soouls-text-strong)]">
+                “{insights?.finalSynthesis ?? 'Your writing suggests a meaningful transition is underway.'}”
               </h4>
-              <p className="text-white/40 text-sm leading-relaxed font-light italic">
-                The data suggests your mental architecture is shifting towards long-term legacy
-                rather than short-term gains. This synthesis marks the end of your "Exploration"
-                phase.
+              <p className="text-sm leading-relaxed font-light italic text-[var(--soouls-text-muted)]">
+                These insights update from your real entries, not placeholders, so they evolve as your writing evolves.
               </p>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Decorative Effects */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#FF5C35]/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#FF9E80]/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none" style={{ backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.08)' }} />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none" style={{ backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.06)' }} />
     </div>
   );
 }

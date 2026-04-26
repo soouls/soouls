@@ -420,7 +420,7 @@ export function buildCampaignTemplate(input: {
 export async function buildWelcomeTemplate(recipient: UserMessagingProfile) {
   const brand = BRAND_PRESETS.soouls;
   const firstName = recipient.name?.split(' ')[0] || 'there';
-  const dashboardUrl = makeAbsoluteUrl('/dashboard');
+  const dashboardUrl = makeAbsoluteUrl('/home');
   const markdownBody = `# Welcome to Soouls
 
 Hi **${firstName}**,
@@ -453,7 +453,7 @@ export async function buildSecureAccessTemplate(
 ) {
   const brand = BRAND_PRESETS.soouls;
   const firstName = recipient.name?.split(' ')[0] || 'there';
-  const settingsUrl = makeAbsoluteUrl('/dashboard/settings');
+  const settingsUrl = makeAbsoluteUrl('/home/settings');
   const markdownBody = `# Secure access for your Soouls account
 
 Hi **${firstName}**,

@@ -1,8 +1,9 @@
+import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const backendUrl =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? process.env.BACKEND_URL ?? 'http://localhost:3000';
-const monorepoRoot = fileURLToPath(new URL('../../', import.meta.url));
+const monorepoRoot = realpathSync.native(fileURLToPath(new URL('../../', import.meta.url)));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

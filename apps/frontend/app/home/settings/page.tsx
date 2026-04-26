@@ -1,48 +1,35 @@
 'use client';
 
 import { Bell, ChevronDown, Clock, Moon, Sparkles, User } from 'lucide-react';
+import type { HomeSettings } from '@soouls/api/router';
+import { UserButton } from '@clerk/nextjs';
+import { Bell, ChevronDown, Clock, Loader2, Moon, Sparkles, Sun } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  HOME_DEFAULT_SETTINGS,
+  HOME_THEME_STORAGE_KEY,
+  applyHomeTheme,
+  formatReminderTime,
+} from '../../../src/hooks/use-home-theme';
+import { clearQueryCache } from '../../../src/providers/trpc-provider';
 import { trpc } from '../../../src/utils/trpc';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { useUser } from '@clerk/nextjs';
 
 const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
 
-type AppPrefs = {
-  theme: 'Dark' | 'Light';
-  defaultView: 'Canvas' | 'List' | 'Calendar';
-  writingMode: 'Minimal' | 'Guided';
-  insightDepth: 'Minimal' | 'Balanced' | 'Deep';
-  autoClustering: boolean;
-  suggestions: boolean;
-  autosave: boolean;
-  focusMode: boolean;
-  sessionTracking: boolean;
-  dataStorage: 'Local Only' | 'Cloud';
-  dataUsage: 'Anonymous' | 'Full';
-};
-
-const DEFAULT_PREFS: AppPrefs = {
-  theme: 'Dark',
-  defaultView: 'Canvas',
-  writingMode: 'Minimal',
-  insightDepth: 'Balanced',
-  autoClustering: true,
-  suggestions: true,
-  autosave: true,
-  focusMode: false,
-  sessionTracking: true,
-  dataStorage: 'Local Only',
-  dataUsage: 'Anonymous',
-};
-
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       type="button"
       onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 rounded-full transition-colors duration-200 focus:outline-none ${on ? 'bg-[#e07a5f]' : 'bg-white/10'}`}
+      className="relative h-5 w-9 rounded-full transition-colors duration-200 focus:outline-none"
+      style={{
+        backgroundColor: on
+          ? 'rgba(var(--soouls-accent-rgb), 0.92)'
+          : 'var(--soouls-overlay-muted)',
+      }}
       aria-checked={on}
       role="switch"
     >
@@ -58,14 +45,20 @@ function SectionCard({
   className = '',
 }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl bg-[#1a1a1a] border border-white/5 p-6 ${className}`}>
+    <div
+      className={`rounded-2xl border p-6 ${className}`}
+      style={{
+        backgroundColor: 'var(--soouls-bg-surface)',
+        borderColor: 'var(--soouls-border)',
+      }}
+    >
       {children}
     </div>
   );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-white font-urbanist font-semibold text-base mb-5">{children}</h2>;
+  return <h2 className="font-urbanist font-semibold text-base mb-5 text-[var(--soouls-text-strong)]">{children}</h2>;
 }
 
 function SettingRow({
@@ -80,12 +73,15 @@ function SettingRow({
   right: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-b-0">
+    <div
+      className="flex items-center justify-between py-3 border-b last:border-b-0"
+      style={{ borderColor: 'var(--soouls-overlay-subtle)' }}
+    >
       <div className="flex items-center gap-3">
-        {icon && <span className="text-[#e07a5f]">{icon}</span>}
+        {icon && <span style={{ color: 'var(--soouls-accent)' }}>{icon}</span>}
         <div>
-          <p className="text-white font-urbanist font-medium text-sm">{label}</p>
-          {sublabel && <p className="text-white/40 font-urbanist text-xs mt-0.5">{sublabel}</p>}
+          <p className="font-urbanist font-medium text-sm text-[var(--soouls-text-strong)]">{label}</p>
+          {sublabel && <p className="font-urbanist text-xs mt-0.5 text-[var(--soouls-text-faint)]">{sublabel}</p>}
         </div>
       </div>
       <div className="flex items-center gap-2">{right}</div>
@@ -109,72 +105,161 @@ export default function SettingsPage() {
       }
     } catch {}
     setPrefsLoaded(true);
+  const utils = trpc.useUtils();
+  const timeInputRef = useRef<HTMLInputElement>(null);
+  const confirmedSettingsRef = useRef<HomeSettings>(HOME_DEFAULT_SETTINGS);
+  const queuedSettingsRef = useRef<HomeSettings | null>(null);
+  const isFlushingRef = useRef(false);
+  const hasOptimisticSettingsRef = useRef(false);
+  const [feedback, setFeedback] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [cacheMessage, setCacheMessage] = useState<string | null>(null);
+
+  const { data } = trpc.private.home.getSettings.useQuery(undefined);
+  const settings = useMemo(() => data ?? HOME_DEFAULT_SETTINGS, [data]);
+  const updateSettings = trpc.private.home.updateSettings.useMutation();
+
+  const persistThemeSelection = useCallback((next: HomeSettings) => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(
+      HOME_THEME_STORAGE_KEY,
+      JSON.stringify({
+        themeMode: next.themeMode,
+        accentTheme: next.accentTheme,
+      }),
+    );
   }, []);
 
-  useEffect(() => {
-    if (!prefsLoaded) return;
-    try {
-      localStorage.setItem('soouls_settings', JSON.stringify(prefs));
-    } catch {}
-  }, [prefs, prefsLoaded]);
-
-  const { data: centerData } = trpc.private.messaging.getCenter.useQuery(undefined);
-
-  useEffect(() => {
-    if (!centerData) return;
-    setNotifDailyReminder(centerData.preferences.transactionalEmailOptIn);
-    setNotifReflectionPrompts(centerData.preferences.marketingEmailOptIn);
-  }, [centerData]);
-
-  const updatePrefsMutation = trpc.private.messaging.updatePreferences.useMutation();
-
-  const handleNotifChange = useCallback(
-    (field: 'daily' | 'reflection', value: boolean) => {
-      const next = {
-        daily: field === 'daily' ? value : notifDailyReminder,
-        reflection: field === 'reflection' ? value : notifReflectionPrompts,
-      };
-      if (field === 'daily') setNotifDailyReminder(value);
-      else setNotifReflectionPrompts(value);
-
-      updatePrefsMutation.mutate({
-        transactionalEmailOptIn: next.daily,
-        marketingEmailOptIn: next.reflection,
-        transactionalWhatsappOptIn: centerData?.preferences.transactionalWhatsappOptIn ?? false,
-        marketingWhatsappOptIn: centerData?.preferences.marketingWhatsappOptIn ?? false,
-        phoneNumber: centerData?.preferences.phoneNumber ?? null,
-      });
+  const applySettingsLocally = useCallback(
+    (next: HomeSettings) => {
+      utils.private.home.getSettings.setData(undefined, next);
+      applyHomeTheme(next);
+      persistThemeSelection(next);
     },
-    [notifDailyReminder, notifReflectionPrompts, centerData, updatePrefsMutation],
+    [persistThemeSelection, utils],
   );
 
-  function setPref<K extends keyof AppPrefs>(key: K, value: AppPrefs[K]) {
-    setPrefs((prev) => ({ ...prev, [key]: value }));
-  }
+  useEffect(() => {
+    if (!data || hasOptimisticSettingsRef.current) return;
+    confirmedSettingsRef.current = data;
+  }, [data]);
 
-  function handleResetApp() {
-    setPrefs(DEFAULT_PREFS);
-    localStorage.removeItem('soouls_settings');
-  }
+  useEffect(() => {
+    if (feedback !== 'saved') return;
+    const timer = setTimeout(() => setFeedback('idle'), 1800);
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
-  function handleClearCache() {
+  useEffect(() => {
+    if (!cacheMessage) return;
+    const timer = setTimeout(() => setCacheMessage(null), 2500);
+    return () => clearTimeout(timer);
+  }, [cacheMessage]);
+
+  const flushQueuedSettings = useCallback(async () => {
+    if (isFlushingRef.current) return;
+    isFlushingRef.current = true;
+
     try {
-      const keys = Object.keys(localStorage);
-      for (const k of keys) {
-        if (k.startsWith('soouls_')) localStorage.removeItem(k);
+      while (queuedSettingsRef.current) {
+        const payload = queuedSettingsRef.current;
+        queuedSettingsRef.current = null;
+
+        const saved = await updateSettings.mutateAsync(payload);
+        confirmedSettingsRef.current = saved;
+
+        if (!queuedSettingsRef.current) {
+          hasOptimisticSettingsRef.current = false;
+          applySettingsLocally(saved);
+          await Promise.all([
+            utils.private.home.getInsights.invalidate(),
+            utils.private.home.getAccount.invalidate(),
+            utils.private.home.getClusters.invalidate(),
+          ]);
+          setFeedback('saved');
+        }
       }
-      setPrefs(DEFAULT_PREFS);
-    } catch {}
-  }
+    } catch (_error) {
+      hasOptimisticSettingsRef.current = false;
+      queuedSettingsRef.current = null;
+      applySettingsLocally(confirmedSettingsRef.current);
+      setFeedback('idle');
+    } finally {
+      isFlushingRef.current = false;
+
+      if (queuedSettingsRef.current) {
+        void flushQueuedSettings();
+      }
+    }
+  }, [applySettingsLocally, updateSettings, utils]);
+
+  const handlePatch = useCallback(
+    (patch: Partial<HomeSettings>) => {
+      const previous =
+        queuedSettingsRef.current ??
+        utils.private.home.getSettings.getData(undefined) ??
+        confirmedSettingsRef.current;
+      const next = { ...previous, ...patch };
+
+      hasOptimisticSettingsRef.current = true;
+      queuedSettingsRef.current = next;
+      setFeedback('saving');
+      applySettingsLocally(next);
+      void flushQueuedSettings();
+    },
+    [applySettingsLocally, flushQueuedSettings, utils],
+  );
+
+  const handleResetApp = useCallback(() => {
+    handlePatch(HOME_DEFAULT_SETTINGS);
+  }, [handlePatch]);
+
+  const handleClearCache = useCallback(async () => {
+    await clearQueryCache();
+
+    if (typeof window !== 'undefined') {
+      const keys = Object.keys(window.localStorage);
+      for (const key of keys) {
+        if (key.startsWith('soouls_entry_v1_')) {
+          window.localStorage.removeItem(key);
+        }
+      }
+    }
+
+    await Promise.all([
+      utils.private.entries.getAll.invalidate(),
+      utils.private.entries.getGalaxy.invalidate(),
+      utils.private.home.getInsights.invalidate(),
+      utils.private.home.getAccount.invalidate(),
+      utils.private.home.getClusters.invalidate(),
+    ]);
+    setCacheMessage('Cache cleared');
+  }, [utils]);
 
   return (
-    <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&family=Urbanist:wght@300;400;500;600&display=swap"
-        rel="stylesheet"
-      />
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: 'var(--soouls-bg)',
+        color: 'var(--soouls-text-strong)',
+        fontFamily: FONT_URBANIST,
+      }}
+    >
+      <header
+        className="px-8 py-6 flex items-center justify-between border-b"
+        style={{ borderColor: 'var(--soouls-border)' }}
+      >
+        <div className="flex items-center gap-4">
+          <Link href="/home" className="flex items-center gap-2 transition-colors text-[var(--soouls-text-muted)] hover:text-[var(--soouls-text-strong)]">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Home
+          </Link>
+          <span className="text-[var(--soouls-text-faint)]">/</span>
+          <span className="text-lg" style={{ color: 'var(--soouls-accent)' }}>
+            Settings
+          </span>
+        </div>
 
       <div className="min-h-screen bg-[#0A0A0A] text-white" style={{ fontFamily: FONT_URBANIST }}>
         {/* Header */}
@@ -209,301 +294,344 @@ export default function SettingsPage() {
             )}
           </button>
         </header>
-
-        <main className="max-w-4xl mx-auto px-8 py-10 space-y-6 pb-16">
-          {/* Page Header */}
-          <div>
-            <h1
-              className="font-playfair text-4xl italic text-white leading-tight"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                fontStyle: 'italic',
-                fontWeight: 600,
-              }}
-            >
-              Settings
-            </h1>
-            <p className="text-[#e07a5f] text-sm mt-1">Control how Soouls works for you.</p>
-          </div>
-
-          {/* Preferences */}
-          <SectionCard>
-            <p className="text-white/30 text-xs uppercase tracking-widest mb-4">Preferences</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-0 sm:divide-x sm:divide-white/5">
-              <div className="sm:pr-6 pb-4 sm:pb-0 border-b border-white/5 sm:border-b-0">
-                <p className="text-white/40 text-xs mb-3">Theme</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#e07a5f] text-2xl font-semibold">{prefs.theme}</span>
-                  <Moon className="w-5 h-5 text-[#e07a5f]" />
-                </div>
-              </div>
-
-              <div className="sm:px-6 pb-4 sm:pb-0 border-b border-white/5 sm:border-b-0">
-                <p className="text-white/40 text-xs mb-3">Default view</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[#e07a5f] text-2xl font-semibold">{prefs.defaultView}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const views: AppPrefs['defaultView'][] = ['Canvas', 'List', 'Calendar'];
-                      const idx = views.indexOf(prefs.defaultView);
-                      setPref('defaultView', views[(idx + 1) % views.length] ?? 'Canvas');
-                    }}
-                    className="text-[#e07a5f] hover:text-white transition-colors"
-                  >
-                    <ChevronDown className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="sm:pl-6">
-                <p className="text-white/40 text-xs mb-3">Writing Mode</p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPref('writingMode', 'Minimal')}
-                    className={`text-sm font-medium transition-colors ${
-                      prefs.writingMode === 'Minimal'
-                        ? 'text-[#e07a5f]'
-                        : 'text-white/40 hover:text-white/70'
-                    }`}
-                  >
-                    Minimal
-                  </button>
-                  <span className="text-white/20">/</span>
-                  <button
-                    type="button"
-                    onClick={() => setPref('writingMode', 'Guided')}
-                    className={`text-sm font-medium transition-colors ${
-                      prefs.writingMode === 'Guided'
-                        ? 'text-[#e07a5f]'
-                        : 'text-white/40 hover:text-white/70'
-                    }`}
-                  >
-                    Guided
-                  </button>
-                </div>
-              </div>
+        <div className="flex items-center gap-3">
+          {feedback === 'saving' && (
+            <div className="flex items-center gap-2 text-xs text-[var(--soouls-text-faint)]">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Saving
             </div>
-          </SectionCard>
+          )}
+          {feedback === 'saved' && <div className="text-xs" style={{ color: 'var(--soouls-accent)' }}>Saved</div>}
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: 'h-9 w-9 ring-2 ring-white/10 hover:ring-white/20 transition-all',
+              },
+            }}
+            afterSignOutUrl="/"
+          />
+        </div>
+      </header>
 
-          {/* Notifications */}
-          <SectionCard>
-            <SectionTitle>Notifications</SectionTitle>
+      <main className="max-w-4xl mx-auto px-8 py-10 space-y-6 pb-16">
+        <div>
+          <h1 className="font-playfair text-4xl italic leading-tight text-[var(--soouls-text-strong)]">Settings</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--soouls-accent)' }}>
+            Control how Soouls works for you.
+          </p>
+        </div>
 
-            <SettingRow
-              label="Daily reminder"
-              sublabel="Gentle nudge to reflect on your day"
-              icon={<Bell className="w-4 h-4" />}
-              right={
-                <Toggle on={notifDailyReminder} onChange={(v) => handleNotifChange('daily', v)} />
-              }
-            />
-
-            <SettingRow
-              label="Reflection prompts"
-              sublabel="AI-generated questions for deeper thought"
-              icon={<Sparkles className="w-4 h-4" />}
-              right={
-                <Toggle
-                  on={notifReflectionPrompts}
-                  onChange={(v) => handleNotifChange('reflection', v)}
-                />
-              }
-            />
-
-            <SettingRow
-              label="Time selector"
-              sublabel="When should we reach out?"
-              icon={<Clock className="w-4 h-4" />}
-              right={
-                <span className="text-[#e07a5f] text-xs bg-white/5 px-3 py-1 rounded-full border border-white/10">
-                  8:00 PM
-                </span>
-              }
-            />
-          </SectionCard>
-
-          {/* AI Behavior + App Behavior */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <SectionCard>
-              <SectionTitle>AI Behavior</SectionTitle>
-
-              <div className="mb-4">
-                <p className="text-white/30 text-xs uppercase tracking-widest mb-3">
-                  Insight depth
-                </p>
-                <div className="flex items-center bg-[#111] rounded-xl p-1 gap-1">
-                  {(['Minimal', 'Balanced', 'Deep'] as const).map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => setPref('insightDepth', level)}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        prefs.insightDepth === level
-                          ? 'bg-[#e07a5f] text-white shadow-sm'
-                          : 'text-white/40 hover:text-white/70'
-                      }`}
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <SettingRow
-                label="Auto clustering"
-                right={
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold ${prefs.autoClustering ? 'text-[#e07a5f]' : 'text-white/30'}`}
-                    >
-                      {prefs.autoClustering ? 'ON' : 'OFF'}
-                    </span>
-                    <Toggle
-                      on={prefs.autoClustering}
-                      onChange={(v) => setPref('autoClustering', v)}
-                    />
-                  </div>
-                }
-              />
-
-              <SettingRow
-                label="Suggestions"
-                right={
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold ${prefs.suggestions ? 'text-[#e07a5f]' : 'text-white/30'}`}
-                    >
-                      {prefs.suggestions ? 'ON' : 'OFF'}
-                    </span>
-                    <Toggle on={prefs.suggestions} onChange={(v) => setPref('suggestions', v)} />
-                  </div>
-                }
-              />
-            </SectionCard>
-
-            <SectionCard>
-              <SectionTitle>App Behavior</SectionTitle>
-
-              <SettingRow
-                label="Autosave"
-                right={
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold ${prefs.autosave ? 'text-[#e07a5f]' : 'text-white/30'}`}
-                    >
-                      {prefs.autosave ? 'ON' : 'OFF'}
-                    </span>
-                    <Toggle on={prefs.autosave} onChange={(v) => setPref('autosave', v)} />
-                  </div>
-                }
-              />
-
-              <SettingRow
-                label="Focus mode"
-                right={
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold ${prefs.focusMode ? 'text-[#e07a5f]' : 'text-white/30'}`}
-                    >
-                      {prefs.focusMode ? 'ON' : 'OFF'}
-                    </span>
-                    <Toggle on={prefs.focusMode} onChange={(v) => setPref('focusMode', v)} />
-                  </div>
-                }
-              />
-              <SettingRow
-                label="Session tracking"
-                right={
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold ${prefs.sessionTracking ? 'text-[#e07a5f]' : 'text-white/30'}`}
-                    >
-                      {prefs.sessionTracking ? 'ON' : 'OFF'}
-                    </span>
-                    <Toggle
-                      on={prefs.sessionTracking}
-                      onChange={(v) => setPref('sessionTracking', v)}
-                    />
-                  </div>
-                }
-              />
-            </SectionCard>
-          </div>
-
-          {/* Privacy Controls */}
-          <SectionCard>
-            <SectionTitle>Privacy Controls</SectionTitle>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-0 sm:divide-x sm:divide-white/5">
-              <div className="sm:pr-6 pb-4 sm:pb-0 border-b border-white/5 sm:border-b-0">
-                <p className="text-white/30 text-xs uppercase tracking-widest mb-3">Data storage</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-white text-base font-semibold">{prefs.dataStorage}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPref(
-                        'dataStorage',
-                        prefs.dataStorage === 'Local Only' ? 'Cloud' : 'Local Only',
-                      )
-                    }
-                    className="text-[#e07a5f] text-xs underline underline-offset-2 hover:text-white transition-colors"
-                  >
-                    Switch
-                  </button>
-                </div>
-              </div>
-
-              <div className="sm:px-6 pb-4 sm:pb-0 border-b border-white/5 sm:border-b-0">
-                <p className="text-white/30 text-xs uppercase tracking-widest mb-3">Data usage</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-white text-base font-semibold">{prefs.dataUsage}</span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPref('dataUsage', prefs.dataUsage === 'Anonymous' ? 'Full' : 'Anonymous')
-                    }
-                    className="w-6 h-1.5 rounded-full bg-[#e07a5f] hover:bg-[#c96a4f] transition-colors"
-                    aria-label="Toggle data usage"
-                  />
-                </div>
-              </div>
-
-              <div className="sm:pl-6">
-                <p className="text-white/30 text-xs uppercase tracking-widest mb-3">
-                  Clear history
-                </p>
+        <SectionCard>
+          <p className="text-xs uppercase tracking-widest mb-4 text-[var(--soouls-text-faint)]">Preferences</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-0">
+            <div
+              className="sm:pr-6 pb-4 sm:pb-0 border-b sm:border-b-0"
+              style={{ borderColor: 'var(--soouls-overlay-subtle)' }}
+            >
+              <p className="text-xs mb-3 text-[var(--soouls-text-faint)]">Theme</p>
+              <div className="flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={handleClearCache}
-                  className="text-white/40 text-sm hover:text-[#e07a5f] transition-colors"
+                  onClick={() =>
+                    handlePatch({
+                      themeMode: settings.themeMode === 'dark' ? 'light' : 'dark',
+                    })
+                  }
+                  className="text-2xl font-semibold"
+                  style={{ color: 'var(--soouls-accent)' }}
                 >
-                  Clear all data →
+                  {settings.themeMode === 'dark' ? 'Dark' : 'Light'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handlePatch({
+                      themeMode: settings.themeMode === 'dark' ? 'light' : 'dark',
+                    })
+                  }
+                  style={{ color: 'var(--soouls-accent)' }}
+                >
+                  {settings.themeMode === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                 </button>
               </div>
             </div>
+
+            <div
+              className="sm:px-6 pb-4 sm:pb-0 border-b sm:border-b-0"
+              style={{
+                borderColor: 'var(--soouls-overlay-subtle)',
+                boxShadow: 'inset 1px 0 0 var(--soouls-overlay-subtle)',
+              }}
+            >
+              <p className="text-xs mb-3 text-[var(--soouls-text-faint)]">Default view</p>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-semibold" style={{ color: 'var(--soouls-accent)' }}>
+                  {settings.defaultView.charAt(0).toUpperCase() + settings.defaultView.slice(1)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const views: HomeSettings['defaultView'][] = ['canvas', 'list', 'calendar'];
+                    const index = views.indexOf(settings.defaultView);
+                    handlePatch({ defaultView: views[(index + 1) % views.length] ?? 'canvas' });
+                  }}
+                  style={{ color: 'var(--soouls-accent)' }}
+                >
+                  <ChevronDown className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="sm:pl-6">
+              <p className="text-xs mb-3 text-[var(--soouls-text-faint)]">Writing Mode</p>
+              <div className="flex items-center gap-2">
+                {(['minimal', 'guided'] as const).map((mode, index) => (
+                  <div key={mode} className="flex items-center gap-2">
+                    {index > 0 && <span style={{ color: 'var(--soouls-chip-divider)' }}>/</span>}
+                    <button
+                      type="button"
+                      onClick={() => handlePatch({ writingMode: mode })}
+                      className="text-sm font-medium transition-colors"
+                      style={{
+                        color: settings.writingMode === mode ? 'var(--soouls-accent)' : 'var(--soouls-text-faint)',
+                      }}
+                    >
+                      {mode === 'minimal' ? 'Minimal' : 'Guided'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard>
+          <SectionTitle>Notifications</SectionTitle>
+
+          <SettingRow
+            label="Daily reminder"
+            sublabel="Gentle nudge to reflect on your day"
+            icon={<Bell className="w-4 h-4" />}
+            right={<Toggle on={settings.dailyReminder} onChange={(value) => handlePatch({ dailyReminder: value })} />}
+          />
+
+          <SettingRow
+            label="Reflection prompts"
+            sublabel="AI-generated questions for deeper thought"
+            icon={<Sparkles className="w-4 h-4" />}
+            right={
+              <Toggle
+                on={settings.reflectionPrompts}
+                onChange={(value) => handlePatch({ reflectionPrompts: value })}
+              />
+            }
+          />
+
+          <SettingRow
+            label="Time selector"
+            sublabel="When should we reach out?"
+            icon={<Clock className="w-4 h-4" />}
+            right={
+              <>
+                <input
+                  ref={timeInputRef}
+                  type="time"
+                  value={settings.reminderTime}
+                  onChange={(event) => handlePatch({ reminderTime: event.target.value })}
+                  className="sr-only"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const input = timeInputRef.current;
+                    if (!input) return;
+                    const pickerInput = input as HTMLInputElement & { showPicker?: () => void };
+                    if (pickerInput.showPicker) {
+                      pickerInput.showPicker();
+                      return;
+                    }
+                    input.click();
+                  }}
+                  className="text-xs px-3 py-1 rounded-full border"
+                  style={{
+                    color: 'var(--soouls-accent)',
+                    backgroundColor: 'var(--soouls-overlay-subtle)',
+                    borderColor: 'var(--soouls-border)',
+                  }}
+                >
+                  {formatReminderTime(settings.reminderTime)}
+                </button>
+              </>
+            }
+          />
+        </SectionCard>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <SectionCard>
+            <SectionTitle>AI Behavior</SectionTitle>
+
+            <div className="mb-4">
+              <p className="text-xs uppercase tracking-widest mb-3 text-[var(--soouls-text-faint)]">Insight depth</p>
+              <div
+                className="flex items-center rounded-xl p-1 gap-1"
+                style={{ backgroundColor: 'var(--soouls-overlay-subtle)' }}
+              >
+                {(['minimal', 'balanced', 'deep'] as const).map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => handlePatch({ insightDepth: level })}
+                    className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
+                    style={{
+                      backgroundColor:
+                        settings.insightDepth === level ? 'rgba(var(--soouls-accent-rgb), 0.95)' : 'transparent',
+                      color: settings.insightDepth === level ? '#ffffff' : 'var(--soouls-text-faint)',
+                    }}
+                  >
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <SettingRow
+              label="Auto clustering"
+              right={
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold" style={{ color: settings.autoClustering ? 'var(--soouls-accent)' : 'var(--soouls-text-faint)' }}>
+                    {settings.autoClustering ? 'ON' : 'OFF'}
+                  </span>
+                  <Toggle on={settings.autoClustering} onChange={(value) => handlePatch({ autoClustering: value })} />
+                </div>
+              }
+            />
+
+            <SettingRow
+              label="Suggestions"
+              right={
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold" style={{ color: settings.suggestions ? 'var(--soouls-accent)' : 'var(--soouls-text-faint)' }}>
+                    {settings.suggestions ? 'ON' : 'OFF'}
+                  </span>
+                  <Toggle on={settings.suggestions} onChange={(value) => handlePatch({ suggestions: value })} />
+                </div>
+              }
+            />
           </SectionCard>
 
-          {/* Bottom Actions */}
-          <div className="flex items-center gap-4 pt-2">
-            <button
-              type="button"
-              onClick={handleResetApp}
-              className="px-8 py-3 rounded-full border border-white/20 text-white text-sm font-medium hover:bg-white/5 hover:border-white/40 transition-all duration-200"
+          <SectionCard>
+            <SectionTitle>App Behavior</SectionTitle>
+
+            {([
+              ['autosave', 'Autosave'],
+              ['focusMode', 'Focus mode'],
+              ['sessionTracking', 'Session tracking'],
+            ] as const).map(([key, label]) => (
+              <SettingRow
+                key={key}
+                label={label}
+                right={
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-xs font-semibold"
+                      style={{
+                        color: settings[key] ? 'var(--soouls-accent)' : 'var(--soouls-text-faint)',
+                      }}
+                    >
+                      {settings[key] ? 'ON' : 'OFF'}
+                    </span>
+                    <Toggle on={settings[key]} onChange={(value) => handlePatch({ [key]: value })} />
+                  </div>
+                }
+              />
+            ))}
+          </SectionCard>
+        </div>
+
+        <SectionCard>
+          <SectionTitle>Privacy Controls</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-0">
+            <div
+              className="sm:pr-6 pb-4 sm:pb-0 border-b sm:border-b-0"
+              style={{ borderColor: 'var(--soouls-overlay-subtle)' }}
             >
-              Reset App
-            </button>
-            <button
-              type="button"
-              onClick={handleClearCache}
-              className="px-8 py-3 rounded-full border border-[#e07a5f]/40 text-[#e07a5f] text-sm font-medium hover:bg-[#e07a5f]/10 hover:border-[#e07a5f]/60 transition-all duration-200"
+              <p className="text-xs uppercase tracking-widest mb-3 text-[var(--soouls-text-faint)]">Data storage</p>
+              <div className="flex items-center justify-between">
+                <span className="text-base font-semibold text-[var(--soouls-text-strong)]">
+                  {settings.dataStorage === 'local' ? 'Local Only' : 'Cloud'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handlePatch({ dataStorage: settings.dataStorage === 'local' ? 'cloud' : 'local' })}
+                  className="text-xs underline underline-offset-2 transition-colors"
+                  style={{ color: 'var(--soouls-accent)' }}
+                >
+                  Switch
+                </button>
+              </div>
+            </div>
+
+            <div
+              className="sm:px-6 pb-4 sm:pb-0 border-b sm:border-b-0"
+              style={{
+                borderColor: 'var(--soouls-overlay-subtle)',
+                boxShadow: 'inset 1px 0 0 var(--soouls-overlay-subtle)',
+              }}
             >
-              Clear Cache
-            </button>
+              <p className="text-xs uppercase tracking-widest mb-3 text-[var(--soouls-text-faint)]">Data usage</p>
+              <div className="flex items-center justify-between">
+                <span className="text-base font-semibold text-[var(--soouls-text-strong)]">
+                  {settings.dataUsage === 'anonymous' ? 'Anonymous' : 'Full'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handlePatch({ dataUsage: settings.dataUsage === 'anonymous' ? 'full' : 'anonymous' })}
+                  className="w-6 h-1.5 rounded-full transition-colors"
+                  style={{ backgroundColor: 'var(--soouls-accent)' }}
+                  aria-label="Toggle data usage"
+                />
+              </div>
+            </div>
+
+            <div className="sm:pl-6">
+              <p className="text-xs uppercase tracking-widest mb-3 text-[var(--soouls-text-faint)]">Clear history</p>
+              <button
+                type="button"
+                onClick={handleClearCache}
+                className="text-sm transition-colors"
+                style={{ color: cacheMessage ? 'var(--soouls-accent)' : 'var(--soouls-text-faint)' }}
+              >
+                {cacheMessage ?? 'Clear all cached data →'}
+              </button>
+            </div>
           </div>
-        </main>
-      </div>
-    </>
+        </SectionCard>
+
+        <div className="flex items-center gap-4 pt-2">
+          <button
+            type="button"
+            onClick={handleResetApp}
+            className="px-8 py-3 rounded-full border text-sm font-medium transition-all duration-200"
+            style={{
+              borderColor: 'var(--soouls-chip-divider)',
+              color: 'var(--soouls-text-strong)',
+            }}
+          >
+            Reset App
+          </button>
+          <button
+            type="button"
+            onClick={handleClearCache}
+            className="px-8 py-3 rounded-full border text-sm font-medium transition-all duration-200"
+            style={{
+              borderColor: 'rgba(var(--soouls-accent-rgb), 0.4)',
+              color: 'var(--soouls-accent)',
+            }}
+          >
+            Clear Cache
+          </button>
+        </div>
+      </main>
+    </div>
   );
 }

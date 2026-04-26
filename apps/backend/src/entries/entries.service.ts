@@ -1,6 +1,6 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { db } from '@soouls/database/client';
 import { and, desc, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
@@ -27,10 +27,14 @@ export class EntriesService {
     GALAXY: 3600,
   };
 
-  constructor(private readonly redis: RedisService) {}
+  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
 
   private getCacheKey(prefix: string, ...parts: (string | number)[]): string {
     return `${prefix}:${parts.join(':')}`;
+  }
+
+  private getEntryCacheKey(userId: string, entryId: string): string {
+    return this.getCacheKey('entry', userId, entryId);
   }
 
   private async invalidateUserEntryCache(userId: string): Promise<void> {
@@ -43,6 +47,7 @@ export class EntriesService {
     }
     // Invalidate admin entries cache
     await this.redis.invalidatePattern('admin:entries:*');
+    await this.redis.invalidatePattern(`home:*:${userId}*`);
   }
 
   /**
@@ -82,7 +87,81 @@ export class EntriesService {
     return { text: processed, full: null };
   }
 
+  decodeEntryContent(rawContent: string, userId: string): { text: string; full: any } {
+    return this.processEntryContent(rawContent, userId);
+  }
+
+  private extractTextFromRawContent(rawContent: string): { text: string; full: any } {
+    if (!rawContent) return { text: '', full: null };
+
+    let normalizedContent = rawContent;
+    try {
+      const decompressed = LZString.decompressFromUTF16(rawContent);
+      if (decompressed) {
+        normalizedContent = decompressed;
+      }
+    } catch {
+      // Autosave payload may already be plain text or plain JSON.
+    }
+
+    try {
+      const parsed = JSON.parse(normalizedContent);
+      if (parsed && typeof parsed === 'object') {
+        return {
+          text: parsed.textContent || '',
+          full: parsed,
+        };
+      }
+    } catch {
+      // Plain text payload, keep as-is.
+    }
+
+    return { text: normalizedContent, full: null };
+  }
+
+  private deriveEntryFields(rawContent: string, type: 'entry' | 'task') {
+    const { text, full } = this.extractTextFromRawContent(rawContent);
+    const normalizedText = text.trim();
+    const firstMeaningfulLine =
+      normalizedText
+        .split('\n')
+        .map((line) => line.trim())
+        .find(Boolean) ?? '';
+    const title = firstMeaningfulLine ? firstMeaningfulLine.slice(0, 96) : null;
+    const wordCount = normalizedText.split(/\s+/).filter(Boolean).length;
+
+    let taskStatus: string | null = null;
+    if (type === 'task') {
+      const taskLists = Array.isArray(full?.blocks)
+        ? full.blocks.filter((block: unknown) => {
+            return (
+              !!block &&
+              typeof block === 'object' &&
+              'type' in block &&
+              block.type === 'tasklist' &&
+              Array.isArray((block as { tasks?: unknown[] }).tasks)
+            );
+          })
+        : [];
+
+      if (taskLists.length > 0) {
+        const tasks = taskLists.flatMap((block: { tasks: Array<{ done?: boolean }> }) => block.tasks);
+        taskStatus = tasks.length > 0 && tasks.every((task) => task.done) ? 'completed' : 'pending';
+      } else {
+        taskStatus = 'pending';
+      }
+    }
+
+    return {
+      title,
+      wordCount,
+      taskStatus,
+    };
+  }
+
   async createEntry(userId: string, content: string, type: 'entry' | 'task' = 'entry') {
+    const derived = this.deriveEntryFields(content, type);
+
     // Compress first if it looks like JSON (block editor content)
     let processedContent = content;
     if (content.startsWith('{') || content.startsWith('[')) {
@@ -97,6 +176,9 @@ export class EntriesService {
         userId,
         content: encryptedContent,
         type,
+        title: derived.title,
+        wordCount: derived.wordCount,
+        taskStatus: derived.taskStatus,
       })
       .returning();
 
@@ -113,7 +195,7 @@ export class EntriesService {
   }
 
   async getEntry(userId: string, id: string) {
-    const cacheKey = this.getCacheKey('entry', id);
+    const cacheKey = this.getEntryCacheKey(userId, id);
     const cached = await this.redis.get<{ id: string; content: string }>(cacheKey);
     if (cached) return cached;
 
@@ -134,7 +216,7 @@ export class EntriesService {
 
   async updateEntry(userId: string, id: string, content: string) {
     const existing = await db
-      .select({ id: journalEntries.id })
+      .select({ id: journalEntries.id, type: journalEntries.type })
       .from(journalEntries)
       .where(sql`${journalEntries.id} = ${id} AND ${journalEntries.userId} = ${userId}`)
       .limit(1);
@@ -142,6 +224,8 @@ export class EntriesService {
     if (existing.length === 0) {
       throw new Error('Unauthorized or entry not found.');
     }
+
+    const derived = this.deriveEntryFields(content, existing[0]?.type ?? 'entry');
 
     // Compress if it's a JSON block
     let processedContent = content;
@@ -153,11 +237,14 @@ export class EntriesService {
       .update(journalEntries)
       .set({
         content: encryptData(processedContent, userId),
+        title: derived.title,
+        wordCount: derived.wordCount,
+        taskStatus: derived.taskStatus,
         updatedAt: new Date(),
       })
       .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
 
-    await this.redis.del(this.getCacheKey('entry', id));
+    await this.redis.del(this.getEntryCacheKey(userId, id));
     await this.invalidateUserEntryCache(userId);
   }
 
@@ -206,7 +293,7 @@ export class EntriesService {
       .set({ mediaUrl })
       .where(and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId)));
 
-    await this.redis.del(this.getCacheKey('entry', entryId));
+    await this.redis.del(this.getEntryCacheKey(userId, entryId));
     await this.invalidateUserEntryCache(userId);
   }
 
@@ -460,7 +547,7 @@ export class EntriesService {
           .where(eq(journalEntries.id, entry.id));
 
         // Invalidate specific entry cache
-        await this.redis.del(this.getCacheKey('entry', entry.id));
+        await this.redis.del(this.getEntryCacheKey(userId, entry.id));
 
         migratedCount++;
       }

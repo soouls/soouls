@@ -67,7 +67,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
 
-  const isSignInPage = pathname.startsWith('/sign-in');
+  const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
 
   const loadViewer = useCallback(async () => {
     try {
@@ -93,7 +93,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (!authLoaded || isSignInPage) return;
+    if (!authLoaded || isAuthPage) return;
 
     if (!isSignedIn) {
       router.replace('/sign-in');
@@ -110,7 +110,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     return () => {
       cancelled = true;
     };
-  }, [authLoaded, isSignedIn, isSignInPage, loadViewer, router]);
+  }, [authLoaded, isAuthPage, isSignedIn, loadViewer, router]);
 
   useEffect(() => {
     if (!flash) return;
@@ -118,7 +118,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     return () => clearTimeout(timeout);
   }, [flash]);
 
-  if (isSignInPage) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
 
