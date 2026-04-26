@@ -3,6 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import { AnimatePresence, type PanInfo, motion } from 'framer-motion';
 import { Search } from 'lucide-react';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '../../../src/utils/trpc';
@@ -57,6 +58,7 @@ export default function CanvasPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
+  const { setIsOpen } = useSidebar();
   const router = useRouter();
 
   const { data } = trpc.private.home.getClusters.useQuery(undefined);
@@ -117,6 +119,18 @@ export default function CanvasPage() {
           <span style={{ color: 'var(--soouls-accent)' }}>Canvas</span>
         </div>
 
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden hover:border-white/30 transition-all cursor-pointer"
+        >
+          {user?.imageUrl && (
+            <img
+              src={user.imageUrl}
+              alt="Profile"
+              className="w-9 h-9 rounded-full"
+            />
+          )}
+        </button>
         <div
           className="w-9 h-9 rounded-full border overflow-hidden"
           style={{ borderColor: 'var(--soouls-border)', backgroundColor: 'var(--soouls-bg-elevated)' }}

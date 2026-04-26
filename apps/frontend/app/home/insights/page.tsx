@@ -1,6 +1,9 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
+import { Calendar, Moon, Sparkles, Target, TrendingDown, TrendingUp, Zap } from 'lucide-react';
+import React from 'react';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { ArrowDownRight, ArrowUpRight, Calendar, Moon, Sparkles, Target } from 'lucide-react';
 import { buildActivityBars, formatCurrentMonthRange } from '../../../src/utils/home';
 import { trpc } from '../../../src/utils/trpc';
@@ -14,6 +17,7 @@ const RELATION_POINTS = [
 
 export default function InsightsPage() {
   const { user } = useUser();
+  const { setIsOpen } = useSidebar();
   const { data: insights } = trpc.private.home.getInsights.useQuery(undefined);
   const { data: entries } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
 
@@ -47,6 +51,14 @@ export default function InsightsPage() {
           <span style={{ color: 'var(--soouls-accent)' }}>Insights</span>
         </div>
 
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden ring-2 ring-white/5 hover:border-white/30 transition-all cursor-pointer"
+        >
+          {user?.imageUrl && (
+            <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+          )}
+        </button>
         <div
           className="w-9 h-9 rounded-full border overflow-hidden ring-2 ring-white/5"
           style={{ borderColor: 'var(--soouls-border)', backgroundColor: 'var(--soouls-bg-elevated)' }}

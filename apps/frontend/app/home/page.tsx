@@ -25,6 +25,14 @@ import { buildActivityBars, formatCurrentMonthRange } from '../../src/utils/home
 import { CalendarModal } from './components/CalendarModal';
 import { trpc } from '../../src/utils/trpc';
 
+import {
+  LeafIcon,
+  DiamondIcon,
+  CanvasLoopIcon,
+  CompassIcon,
+  NetworkIcon,
+} from '../components/Icons';
+import { useSidebar } from '../../src/providers/sidebar-provider';
 const LeafIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -65,8 +73,7 @@ export default function HomePage() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { setIsOpen } = useSidebar();
   const [scrolled, setScrolled] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -180,6 +187,8 @@ export default function HomePage() {
           </Link>
 
           <button
+            onClick={() => setIsOpen(true)}
+            className="w-10 h-10 rounded-full bg-[#1A1A1A] border-2 border-white/10 flex items-center justify-center overflow-hidden hover:border-white/30 transition-all cursor-pointer shadow-md"
             onClick={() => setShowSidebar(true)}
             className="w-10 h-10 rounded-full border-2 flex items-center justify-center overflow-hidden transition-all cursor-pointer shadow-md"
             style={{
@@ -424,6 +433,7 @@ export default function HomePage() {
           </button>
         </div>
       </main>
+
 
       <AnimatePresence>
         {showSidebar && (

@@ -1,6 +1,9 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
+import { GraduationCap, Lightbulb, Search, Settings, Sparkles, Sun } from 'lucide-react';
+import React, { useState } from 'react';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { GraduationCap, Lightbulb, Search, Sparkles, Sun } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -23,6 +26,7 @@ function ClusterIcon({ index }: { index: number }) {
 export default function ClustersPage() {
   const router = useRouter();
   const { user } = useUser();
+  const { setIsOpen } = useSidebar();
   const { data } = trpc.private.home.getClusters.useQuery(undefined);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('active');
@@ -73,6 +77,18 @@ export default function ClustersPage() {
           <span style={{ color: 'var(--soouls-accent)' }}>Clusters</span>
         </div>
 
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden ring-2 ring-white/5 hover:border-white/30 transition-all cursor-pointer"
+        >
+          {user?.imageUrl && (
+            <img
+              src={user.imageUrl}
+              alt="Profile"
+              className="w-9 h-9 rounded-full"
+            />
+          )}
+        </button>
         <div
           className="w-9 h-9 rounded-full border overflow-hidden ring-2 ring-white/5"
           style={{ borderColor: 'var(--soouls-border)', backgroundColor: 'var(--soouls-bg-elevated)' }}

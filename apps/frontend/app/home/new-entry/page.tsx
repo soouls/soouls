@@ -33,6 +33,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getOptimizedImageUrl } from '../../../src/utils/images';
 import { trpc } from '../../../src/utils/trpc';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 const gf = new GiphyFetch(
@@ -1321,6 +1322,7 @@ export default function NewEntryPage() {
 function NewEntryContent() {
   const { user } = useUser();
   const router = useRouter();
+  const { setIsOpen } = useSidebar();
   const searchParams = useSearchParams();
   const initialId = searchParams.get('id');
 
@@ -1602,13 +1604,18 @@ function NewEntryContent() {
             </button>
           )}
 
-          {user?.imageUrl && (
-            <img
-              src={user.imageUrl}
-              alt="Profile"
-              className="w-10 h-10 rounded-full border-2 border-white/10"
-            />
-          )}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden"
+          >
+            {user?.imageUrl && (
+              <img
+                src={user.imageUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            )}
+          </button>
         </div>
       </header>
 

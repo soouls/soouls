@@ -1,5 +1,6 @@
 'use client';
 
+import { Bell, ChevronDown, Clock, Moon, Sparkles, User } from 'lucide-react';
 import type { HomeSettings } from '@soouls/api/router';
 import { UserButton } from '@clerk/nextjs';
 import { Bell, ChevronDown, Clock, Loader2, Moon, Sparkles, Sun } from 'lucide-react';
@@ -13,6 +14,8 @@ import {
 } from '../../../src/hooks/use-home-theme';
 import { clearQueryCache } from '../../../src/providers/trpc-provider';
 import { trpc } from '../../../src/utils/trpc';
+import { useSidebar } from '../../../src/providers/sidebar-provider';
+import { useUser } from '@clerk/nextjs';
 
 const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
 
@@ -87,6 +90,21 @@ function SettingRow({
 }
 
 export default function SettingsPage() {
+  const { user } = useUser();
+  const { setIsOpen } = useSidebar();
+  const [prefs, setPrefs] = useState<AppPrefs>(DEFAULT_PREFS);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [notifDailyReminder, setNotifDailyReminder] = useState(false);
+  const [notifReflectionPrompts, setNotifReflectionPrompts] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('soouls_settings');
+      if (raw) {
+        setPrefs({ ...DEFAULT_PREFS, ...JSON.parse(raw) });
+      }
+    } catch {}
+    setPrefsLoaded(true);
   const utils = trpc.useUtils();
   const timeInputRef = useRef<HTMLInputElement>(null);
   const confirmedSettingsRef = useRef<HomeSettings>(HOME_DEFAULT_SETTINGS);
@@ -243,6 +261,39 @@ export default function SettingsPage() {
           </span>
         </div>
 
+      <div className="min-h-screen bg-[#0A0A0A] text-white" style={{ fontFamily: FONT_URBANIST }}>
+        {/* Header */}
+        <header className="px-8 py-6 flex items-center justify-between border-b border-white/5">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/home"
+              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Home
+            </Link>
+            <span className="text-slate-600">/</span>
+            <span className="text-[#e07a5f] text-lg">Settings</span>
+          </div>
+          <button
+            onClick={() => setIsOpen(true)}
+            className="w-9 h-9 rounded-full ring-2 ring-white/10 hover:ring-white/20 transition-all overflow-hidden"
+          >
+            {user?.imageUrl ? (
+              <img src={user.imageUrl} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              <User className="w-5 h-5 text-white/60 mx-auto" />
+            )}
+          </button>
+        </header>
         <div className="flex items-center gap-3">
           {feedback === 'saving' && (
             <div className="flex items-center gap-2 text-xs text-[var(--soouls-text-faint)]">
