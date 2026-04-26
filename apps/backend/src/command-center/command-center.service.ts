@@ -1429,6 +1429,17 @@ export class CommandCenterService {
       },
     });
 
+    // CRITICAL FIX: Save the request to the database so it shows up in the Admin Dashboard
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+    await db.insert(permissionRequests).values({
+      requestedByClerkId: clerkId,
+      requestedByEmail: input.requestedBy,
+      requestedByName: input.requestedByName ?? null,
+      requestedPermission: input.permission,
+      status: 'pending',
+      expiresAt,
+    });
+
     const apiKey = process.env.RESEND_API_KEY;
     const fromEmail = process.env.MESSAGING_FROM_EMAIL;
     const fromName = process.env.MESSAGING_FROM_NAME ?? 'Soouls';
