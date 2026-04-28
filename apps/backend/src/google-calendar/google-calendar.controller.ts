@@ -149,14 +149,16 @@ export class GoogleCalendarController {
   ) {
     const clerkUserId = await this.verifyClerkToken(req);
 
-    if (!timeMin || !timeMax) {
+    let finalTimeMin = timeMin;
+    let finalTimeMax = timeMax;
+    if (!finalTimeMin || !finalTimeMax) {
       // Default: current month
       const now = new Date();
-      timeMin = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      timeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+      finalTimeMin = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      finalTimeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
     }
 
-    const events = await this.gcalService.getEvents(clerkUserId, timeMin, timeMax);
+    const events = await this.gcalService.getEvents(clerkUserId, finalTimeMin, finalTimeMax);
     return { events };
   }
 }

@@ -317,7 +317,7 @@ export default function ClusterDetailPage() {
               “{data.reflectionPrompt}”
             </p>
             <Link
-              href={`/home/new-entry`}
+              href={'/home/new-entry'}
               className="inline-flex items-center justify-center px-6 py-3 rounded-full text-sm font-medium text-white"
               style={{ backgroundColor: 'var(--soouls-accent)' }}
             >
