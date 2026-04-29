@@ -80,7 +80,7 @@ export default function SpatialCanvasSection() {
               letterSpacing: '0.01em',
             }}
           >
-            Hey! Today I am feeling great.
+            A thought can start anywhere.
           </p>
         </motion.div>
 
@@ -231,7 +231,7 @@ export default function SpatialCanvasSection() {
               fontWeight: 500,
             }}
           >
-            I will complete the design system task today
+            Capture the priority that matters most right now
           </p>
           <div className="flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">

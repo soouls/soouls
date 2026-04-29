@@ -9,7 +9,7 @@ const child = spawn(process.execPath, [entryPoint], {
   cwd: appRoot,
   stdio: 'inherit',
   env: process.env,
-  shell: true,
+  shell: false,
 });
 
 function stopChild(signal: NodeJS.Signals = 'SIGTERM') {

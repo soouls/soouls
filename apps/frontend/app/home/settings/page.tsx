@@ -202,23 +202,31 @@ export default function SettingsPage() {
 
   return (
     <div
-      className="min-h-screen text-[var(--soouls-text-strong)]"
-      style={{ backgroundColor: 'var(--soouls-bg)', fontFamily: FONT_URBANIST }}
+      className="min-h-screen flex flex-col relative overflow-hidden select-none"
+      style={{ backgroundColor: '#1F1F1F', color: '#EFEDDD', fontFamily: FONT_URBANIST }}
     >
-      <header
-        className="flex items-center justify-between border-b px-5 py-5 sm:px-8"
-        style={{ borderColor: 'var(--soouls-border)' }}
-      >
-        <div className="flex items-center gap-3 text-sm sm:text-base">
+      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
+        <span
+          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
+          style={{
+            WebkitTextStroke: '1px rgba(255,255,255,0.7)',
+          }}
+        >
+          Soouls
+        </span>
+      </div>
+
+      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
+        <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
           <Link
             href="/home"
-            className="text-[var(--soouls-text-muted)] transition-colors hover:text-[var(--soouls-text-strong)]"
+            className="text-white/40 hover:text-white transition-colors"
           >
             Home
           </Link>
-          <span className="text-[var(--soouls-text-faint)]">/</span>
-          <span style={{ color: 'var(--soouls-accent)' }}>Settings</span>
+          <span className="text-[#D46B4E] ml-2">/ Settings</span>
         </div>
+
         <div className="flex items-center gap-3">
           {feedback === 'saving' ? (
             <Loader2 className="h-4 w-4 animate-spin text-[var(--soouls-text-faint)]" />
@@ -229,10 +237,8 @@ export default function SettingsPage() {
             </span>
           ) : null}
           <button
-            type="button"
             onClick={() => setIsOpen(true)}
-            className="h-10 w-10 overflow-hidden rounded-full border border-white/10"
-            aria-label="Open profile menu"
+            className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
           >
             <img
               src={user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id)}
@@ -243,13 +249,17 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl space-y-6 px-5 py-8 pb-20 sm:px-8">
-        <div>
-          <h1 className="font-playfair text-4xl italic leading-tight sm:text-5xl">Settings</h1>
-          <p className="mt-2 text-sm" style={{ color: 'var(--soouls-accent)' }}>
-            Control how Soouls works for you.
-          </p>
-        </div>
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
+        <section
+          className="flex-1 backdrop-blur-[48px] border-t border-white/10 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
+          style={{ backgroundColor: 'rgba(15, 15, 15, 0.6)' }}
+        >
+          <div className="mb-8">
+            <h1 className="font-playfair text-4xl italic leading-tight sm:text-5xl text-[#E07A5F]">Settings</h1>
+            <p className="mt-2 text-[20px] text-[#7A7A7A]">
+              Control how Soouls works for you.
+            </p>
+          </div>
 
         <SectionCard>
           <p className="mb-4 text-xs uppercase tracking-[0.22em] text-[var(--soouls-text-faint)]">
@@ -494,6 +504,7 @@ export default function SettingsPage() {
             Clear Cache
           </button>
         </div>
+        </section>
       </main>
     </div>
   );

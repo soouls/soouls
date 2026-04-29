@@ -76,7 +76,7 @@ export class EntriesService {
       const parsed = JSON.parse(processed);
       if (parsed && typeof parsed === 'object') {
         return {
-          text: parsed.textContent || '',
+          text: this.buildEntryText(parsed),
           full: parsed,
         };
       }
@@ -108,7 +108,7 @@ export class EntriesService {
       const parsed = JSON.parse(normalizedContent);
       if (parsed && typeof parsed === 'object') {
         return {
-          text: parsed.textContent || '',
+          text: this.buildEntryText(parsed),
           full: parsed,
         };
       }
@@ -117,6 +117,41 @@ export class EntriesService {
     }
 
     return { text: normalizedContent, full: null };
+  }
+
+  private buildEntryText(parsed: any): string {
+    const textContent = typeof parsed?.textContent === 'string' ? parsed.textContent.trim() : '';
+    const title = typeof parsed?.title === 'string' ? parsed.title.trim() : '';
+    const blocks = Array.isArray(parsed?.blocks) ? parsed.blocks : [];
+    const blockText = blocks.flatMap((block: any) => this.blockToText(block));
+
+    return [textContent, ...blockText].filter(Boolean).join('\n\n').trim() || title;
+  }
+
+  private blockToText(block: any): string[] {
+    if (!block || typeof block !== 'object') return [];
+
+    if (block.type === 'goal') {
+      return [block.goal, block.label].filter(
+        (value): value is string => typeof value === 'string' && value.trim().length > 0,
+      );
+    }
+
+    if (block.type === 'tasklist') {
+      const title = typeof block.title === 'string' ? [block.title] : [];
+      const tasks = Array.isArray(block.tasks)
+        ? block.tasks
+            .map((task) => (typeof task?.text === 'string' ? task.text : ''))
+            .filter((value) => value.trim().length > 0)
+        : [];
+      return [...title, ...tasks];
+    }
+
+    if (block.type === 'image') {
+      return typeof block.name === 'string' && block.name.trim().length > 0 ? [block.name] : [];
+    }
+
+    return [];
   }
 
   private deriveEntryFields(rawContent: string, type: 'entry' | 'task') {

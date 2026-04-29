@@ -2,17 +2,26 @@
 
 import { useUser } from '@clerk/nextjs';
 import type { UserEntry } from '@soouls/api/router';
-import { AnimatePresence, type PanInfo, motion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { 
+  Search, 
+  Plus, 
+  Link as LinkIcon, 
+  Sparkles, 
+  Trash2, 
+  Maximize2,
+  ChevronLeft
+} from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { clusterMatchesEntry, getEntryTitle, truncateText } from '../../../../src/utils/home';
 import { trpc } from '../../../../src/utils/trpc';
 
-type DroppedEntry = Pick<UserEntry, 'id' | 'content' | 'title' | 'createdAt'> & {
-  instanceId: number;
+type NodePosition = {
+  id: string;
   x: number;
   y: number;
+  entry: UserEntry;
 };
 
 export default function CanvasClusterPage() {
@@ -23,8 +32,8 @@ export default function CanvasClusterPage() {
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState('');
-  const [droppedEntries, setDroppedEntries] = useState<DroppedEntry[]>([]);
-  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [nodes, setNodes] = useState<NodePosition[]>([]);
 
   const { data: clusterDetail } = trpc.private.home.getClusterDetail.useQuery(
     { clusterId },
@@ -46,232 +55,324 @@ export default function CanvasClusterPage() {
       });
   }, [allEntries?.items, clusterDetail, query]);
 
-  const handleDragEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo,
-    entry: Pick<UserEntry, 'id' | 'content' | 'title' | 'createdAt'>,
-  ) => {
-    const dropZone = dropZoneRef.current?.getBoundingClientRect();
-    if (!dropZone) return;
+  // Automatic Layout Logic
+  useEffect(() => {
+    if (entries.length > 0 && dropZoneRef.current) {
+      const rect = dropZoneRef.current.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const radius = Math.min(rect.width, rect.height) * 0.35;
 
-    const { x, y } = info.point;
-    if (x >= dropZone.left && x <= dropZone.right && y >= dropZone.top && y <= dropZone.bottom) {
-      setDroppedEntries((prev) => [
-        ...prev,
-        {
-          ...entry,
-          instanceId: Date.now(),
-          x: x - dropZone.left - 90,
-          y: y - dropZone.top - 60,
-        },
-      ]);
+      const newNodes: NodePosition[] = entries.map((entry, index) => {
+        if (index === 0) {
+          return { id: entry.id, x: centerX - 100, y: centerY - 60, entry };
+        }
+        const angle = (index / (entries.length - 1)) * 2 * Math.PI;
+        return {
+          id: entry.id,
+          x: centerX + radius * Math.cos(angle) - 100,
+          y: centerY + radius * Math.sin(angle) - 60,
+          entry,
+        };
+      });
+      setNodes(newNodes);
     }
+  }, [entries]);
 
-    setIsDraggingOver(false);
-  };
+  const selectedEntry = useMemo(() => {
+    if (!selectedEntryId) return null;
+    return entries.find(e => e.id === selectedEntryId);
+  }, [entries, selectedEntryId]);
 
   return (
-    <div
-      className="min-h-screen flex flex-col relative overflow-hidden font-sans select-none"
-      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text-strong)' }}
-    >
-      <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-18 select-none z-0 overflow-hidden whitespace-nowrap">
+    <div className="min-h-screen bg-[#1F1F1F] text-white flex flex-col relative overflow-hidden font-urbanist select-none">
+      {/* Background Watermark */}
+      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
-          className="text-[18vw] leading-none text-transparent tracking-tighter"
-          style={{
-            fontFamily: 'serif',
-            WebkitTextStroke: '1px rgba(255,255,255,0.35)',
-          }}
+          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
+          style={{ WebkitTextStroke: '1px rgba(255,255,255,0.7)' }}
         >
           Soouls
         </span>
       </div>
 
-      <header className="px-8 py-6 flex justify-between items-center relative z-10">
-        <div className="flex items-center gap-2 text-sm text-[var(--soouls-text-muted)]">
+      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
+        <div className="flex items-center text-[22px] font-light tracking-wide">
           <button
+            type="button"
             onClick={() => router.push('/home')}
-            className="transition hover:text-[var(--soouls-accent)]"
+            className="text-white/40 hover:text-white transition-colors"
           >
             Home
           </button>
-          <span>/</span>
+          <span className="text-[#D46B4E] mx-3 opacity-60">/</span>
           <button
+            type="button"
             onClick={() => router.push('/home/canvas')}
-            className="transition hover:text-[var(--soouls-accent)]"
+            className="text-white/40 hover:text-white transition-colors"
           >
             Canvas
           </button>
-          <span>/</span>
-          <span style={{ color: 'var(--soouls-accent)' }}>
-            {clusterDetail?.cluster.name ?? 'Cluster'}
-          </span>
+          <span className="text-[#D46B4E] mx-3 opacity-60">/</span>
+          <span className="text-[#D46B4E]">{clusterDetail?.cluster.name ?? 'Cluster'}</span>
         </div>
 
-        <div
-          className="w-9 h-9 rounded-full border overflow-hidden"
-          style={{
-            borderColor: 'var(--soouls-border)',
-            backgroundColor: 'var(--soouls-bg-elevated)',
-          }}
-        >
+        <div className="w-10 h-10 rounded-full border-2 border-white/10 overflow-hidden">
           {user?.imageUrl && (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
           )}
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 relative z-10 flex flex-col mt-10 md:mt-14 pb-8">
-        <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-[1.05] rounded-[28px] border shadow-2xl flex flex-col overflow-hidden"
-            style={{
-              backgroundColor: 'var(--soouls-bg-surface)',
-              borderColor: 'var(--soouls-border)',
-            }}
-          >
-            <div className="p-5 border-b border-white/[0.06]">
-              <div
-                className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 transition"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.04)',
-                  border: '1px solid var(--soouls-border)',
-                }}
-              >
-                <Search className="w-4 h-4 text-[var(--soouls-text-faint)]" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="search for entries"
-                  className="bg-transparent w-full focus:outline-none text-sm placeholder:text-[var(--soouls-text-faint)]"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <p className="text-3xl font-semibold mb-2">
-                {clusterDetail?.cluster.name ?? 'Entries'}
-              </p>
-              {entries.map((entry) => (
-                <motion.div
-                  key={entry.id}
-                  drag
-                  dragSnapToOrigin
-                  onDoubleClick={() => router.push(`/home/new-entry?id=${entry.id}`)}
-                  onDragStart={() => setIsDraggingOver(true)}
-                  onDragEnd={(event, info) => handleDragEnd(event, info, entry)}
-                  whileDrag={{ scale: 1.04, zIndex: 50, opacity: 0.84 }}
-                  className="rounded-[28px] border p-6 cursor-grab active:cursor-grabbing"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.02)',
-                    borderColor: 'var(--soouls-border)',
-                  }}
-                >
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <h3 className="text-2xl font-serif">{getEntryTitle(entry)}</h3>
-                    <span className="text-xs text-[var(--soouls-text-faint)]">
-                      {new Date(entry.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed text-[var(--soouls-text-muted)]">
-                    {truncateText(entry.content, 160)}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            ref={dropZoneRef}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{
-              opacity: 1,
-              x: 0,
-              borderColor: isDraggingOver
-                ? 'rgba(var(--soouls-accent-rgb), 0.4)'
-                : 'rgba(255,255,255,0.08)',
-              backgroundColor: isDraggingOver
-                ? 'rgba(var(--soouls-accent-rgb), 0.03)'
-                : 'transparent',
-            }}
-            className="flex-[2] rounded-[28px] border shadow-2xl relative overflow-hidden flex items-center justify-center transition"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.06),transparent_40%),radial-gradient(circle_at_75%_80%,rgba(255,255,255,0.04),transparent_50%)]" />
-            <div
-              className="absolute inset-0 backdrop-blur-sm"
-              style={{ backgroundColor: 'rgba(15,15,15,0.86)' }}
-            />
-
-            <AnimatePresence>
-              {droppedEntries.map((entry) => (
-                <motion.button
-                  key={entry.instanceId}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  drag
-                  dragMomentum={false}
-                  dragConstraints={dropZoneRef}
-                  onDoubleClick={() => router.push(`/home/new-entry?id=${entry.id}`)}
-                  className="w-44 rounded-2xl border p-4 text-left backdrop-blur-md z-30"
-                  style={{
-                    left: entry.x,
-                    top: entry.y,
-                    position: 'absolute',
-                    borderColor: 'rgba(var(--soouls-accent-rgb), 0.28)',
-                    backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.12)',
-                  }}
-                >
-                  <p className="text-sm font-semibold mb-2">{getEntryTitle(entry)}</p>
-                  <p className="text-xs leading-relaxed text-[var(--soouls-text-muted)]">
-                    {truncateText(entry.content, 96)}
-                  </p>
-                </motion.button>
-              ))}
-            </AnimatePresence>
-
-            {droppedEntries.length === 0 && (
-              <div className="relative z-10 text-center px-6 max-w-xl pointer-events-none">
-                <p
-                  className="text-[22px] md:text-[26px] leading-relaxed text-white/75"
-                  style={{ fontFamily: 'serif' }}
-                >
-                  “Your thoughts are not separate.
-                  <br />
-                  They are waiting to connect.”
-                </p>
-
-                <div className="mt-6 text-[10px] tracking-[0.3em] uppercase text-[var(--soouls-text-faint)]">
-                  Double click
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-4 pb-0 items-stretch h-full">
+        <div className="flex-1 rounded-t-[32px] bg-[#0F0F0F]/60 backdrop-blur-[48px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col relative border-t border-white/10 p-6 md:p-8 overflow-hidden">
+          <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 h-full">
+            {/* Left Sidebar: Entries List */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex-[1] rounded-[28px] border border-white/5 bg-black/20 backdrop-blur-md shadow-inner flex flex-col overflow-hidden"
+            >
+              <div className="p-5 border-b border-white/[0.06] space-y-4">
+                <div className="flex items-center gap-2 text-white/80">
+                  <ChevronLeft className="w-5 h-5 cursor-pointer hover:text-white" onClick={() => router.push('/home/canvas')} />
+                  <h2 className="text-xl font-medium tracking-tight truncate">
+                    {clusterDetail?.cluster.name ?? 'Cluster'}
+                  </h2>
                 </div>
-
-                <p className="mt-2 text-sm text-[var(--soouls-text-muted)]">
-                  Drag entries or double click to begin
-                </p>
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 focus-within:ring-[#D46B4E]/50 transition bg-white/5 border border-white/10">
+                  <Search className="w-4 h-4 text-white/40" />
+                  <input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="search for entries"
+                    className="bg-transparent w-full focus:outline-none text-sm placeholder:text-white/40 text-white"
+                  />
+                </div>
               </div>
-            )}
 
-            {isDraggingOver && (
-              <div
-                className="absolute inset-0 border-2 border-dashed m-4 rounded-[20px] flex items-center justify-center pointer-events-none z-50"
-                style={{ borderColor: 'rgba(var(--soouls-accent-rgb), 0.2)' }}
-              >
-                <span
-                  className="text-xs font-bold tracking-[0.5em] uppercase"
-                  style={{ color: 'rgba(var(--soouls-accent-rgb), 0.45)' }}
-                >
-                  Drop Here
-                </span>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                {selectedEntry ? (
+                  <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                    <button 
+                      onClick={() => setSelectedEntryId(null)}
+                      className="text-[10px] text-[#D46B4E] uppercase tracking-widest font-bold mb-4 hover:opacity-80 flex items-center gap-1"
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                      Back to list
+                    </button>
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-serif leading-tight">
+                        {getEntryTitle(selectedEntry)}
+                      </h3>
+                      <p className="text-sm text-white/60 leading-relaxed max-h-[40vh] overflow-y-auto custom-scrollbar">
+                        {selectedEntry.content}
+                      </p>
+                      <div className="flex items-center gap-3 pt-2">
+                        <button 
+                          onClick={() => router.push(`/home/new-entry?id=${selectedEntry.id}`)}
+                          className="px-4 py-2 rounded-lg bg-[#D46B4E] text-white text-xs font-bold hover:bg-[#c05a3d] transition-colors"
+                        >
+                          EDIT ENTRY
+                        </button>
+                        <button className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                          <Trash2 className="w-4 h-4 text-white/40" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 px-2 font-bold">Entries</p>
+                    {entries.map((entry) => (
+                      <motion.div
+                        key={entry.id}
+                        onClick={() => setSelectedEntryId(entry.id)}
+                        className={`p-4 rounded-2xl cursor-pointer transition-all border ${
+                          selectedEntryId === entry.id 
+                            ? 'bg-[#D46B4E]/10 border-[#D46B4E]/40' 
+                            : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="text-sm font-semibold text-white/90 truncate pr-4">{getEntryTitle(entry)}</h3>
+                          <span className="text-[10px] text-white/30 shrink-0">
+                            {new Date(entry.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-white/50 line-clamp-2">
+                          {truncateText(entry.content, 80)}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </>
+                )}
               </div>
-            )}
-          </motion.div>
+
+              <div className="p-4 bg-white/[0.02] border-t border-white/5">
+                <button className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-medium flex items-center justify-center gap-2 hover:bg-white/10 hover:text-white transition-all">
+                  <Sparkles className="w-3.5 h-3.5 text-[#D46B4E]" />
+                  Cluster Insights
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Right Side: Visual Canvas */}
+            <motion.div
+              ref={dropZoneRef}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex-[2.5] rounded-[28px] border border-white/5 relative overflow-hidden bg-black/40 backdrop-blur-xl"
+            >
+              {/* SVG Connections Layer */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-0">
+                <defs>
+                  <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="rgba(212,107,78, 0)" />
+                    <stop offset="50%" stopColor="rgba(212,107,78, 0.4)" />
+                    <stop offset="100%" stopColor="rgba(212,107,78, 0)" />
+                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                {nodes.length > 1 && nodes.slice(1).map((node) => {
+                  const centerNode = nodes[0];
+                  if (!centerNode) return null;
+                  return (
+                    <motion.line
+                      key={`line-${node.id}`}
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 1, delay: 0.5 }}
+                      x1={centerNode.x + 100}
+                      y1={centerNode.y + 60}
+                      x2={node.x + 100}
+                      y2={node.y + 60}
+                      stroke="url(#line-gradient)"
+                      strokeWidth="1.5"
+                      filter="url(#glow)"
+                    />
+                  );
+                })}
+              </svg>
+
+              {/* Grid Background */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#D46B4E_1px,transparent_1px)] [background-size:40px_40px]" />
+
+              <div className="absolute inset-0 p-8">
+                <AnimatePresence>
+                  {nodes.map((node, index) => (
+                    <motion.div
+                      key={node.id}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ 
+                        scale: selectedEntryId === node.id ? 1.05 : 1, 
+                        opacity: 1,
+                        zIndex: selectedEntryId === node.id ? 50 : 10
+                      }}
+                      drag
+                      dragMomentum={false}
+                      onDragEnd={(e, info) => {
+                        const newNodes = [...nodes];
+                        newNodes[index] = { ...node, x: node.x + info.delta.x, y: node.y + info.delta.y };
+                        setNodes(newNodes);
+                      }}
+                      onClick={() => setSelectedEntryId(node.id)}
+                      onDoubleClick={() => router.push(`/home/new-entry?id=${node.id}`)}
+                      className={`absolute w-52 p-5 rounded-2xl border backdrop-blur-2xl cursor-move transition-shadow ${
+                        selectedEntryId === node.id
+                          ? 'border-[#D46B4E]/60 bg-[#D46B4E]/20 shadow-[0_0_30px_rgba(212,107,78,0.2)]'
+                          : 'border-white/10 bg-white/5 hover:bg-white/10 shadow-xl'
+                      }`}
+                      style={{ left: node.x, top: node.y }}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-1.5 h-1.5 rounded-full ${index === 0 ? 'bg-[#D46B4E]' : 'bg-white/40'}`} />
+                          <p className={`text-[10px] font-bold uppercase tracking-wider ${index === 0 ? 'text-[#D46B4E]' : 'text-white/40'}`}>
+                            {index === 0 ? 'Focus point' : 'Linked thought'}
+                          </p>
+                        </div>
+                        <h3 className="text-[15px] font-serif font-semibold text-white/90 line-clamp-1">{getEntryTitle(node.entry)}</h3>
+                        <p className="text-[11px] leading-relaxed text-white/60 line-clamp-3">
+                          {truncateText(node.entry.content, 100)}
+                        </p>
+                        <div className="pt-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); router.push(`/home/new-entry?id=${node.id}`); }}
+                              className="p-1 hover:bg-white/10 rounded-md transition-colors"
+                            >
+                              <Plus className="w-3 h-3 text-white/40 hover:text-white" />
+                            </button>
+                            <Maximize2 className="w-3 h-3 text-white/20" />
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* Floating Toolbar */}
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5 p-1.5 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-2xl shadow-2xl z-50">
+                <ToolbarButton icon={<Plus className="w-4 h-4" />} label="CREATE" onClick={() => router.push('/home/new-entry')} />
+                <div className="w-[1px] h-6 bg-white/10 mx-1" />
+                <ToolbarButton icon={<LinkIcon className="w-4 h-4" />} label="CONNECT" />
+                <ToolbarButton icon={<Sparkles className="w-4 h-4" />} label="INSIGHTS" />
+                <div className="w-[1px] h-6 bg-white/10 mx-1" />
+                <ToolbarButton icon={<Trash2 className="w-4 h-4" />} label="CLEAR" danger onClick={() => setNodes([])} />
+              </div>
+
+              {nodes.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center px-6 max-w-xl">
+                    <p className="text-[22px] md:text-[26px] leading-relaxed text-white/75 font-light italic serif">
+                      “Your thoughts are not separate.
+                      <br />
+                      They are waiting to connect.”
+                    </p>
+                    <p className="mt-4 text-sm text-white/40 tracking-widest uppercase font-bold">
+                      Double click anywhere to begin
+                    </p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
         </div>
       </main>
     </div>
+  );
+}
+
+function ToolbarButton({ 
+  icon, 
+  label, 
+  onClick, 
+  danger = false 
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  onClick?: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all group ${
+        danger 
+          ? 'hover:bg-red-500/20 text-red-400' 
+          : 'hover:bg-white/10 text-white/70 hover:text-white'
+      }`}
+    >
+      <span className="group-hover:scale-110 transition-transform">{icon}</span>
+      <span className="text-[10px] font-bold tracking-[0.15em]">{label}</span>
+    </button>
   );
 }
