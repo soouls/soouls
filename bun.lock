@@ -8,7 +8,7 @@
         "@giphy/js-fetch-api": "^5.7.0",
         "@giphy/react-components": "^10.1.2",
         "@sentry/nextjs": "^10.50.0",
-        "emoji-picker-react": "^4.19.0",
+        "emoji-picker-react": "^4.19.1",
         "lottie-react": "^2.4.1",
         "lz-string": "^1.5.0",
         "next": "^16.2.4",
@@ -177,6 +177,7 @@
         "@ai-sdk/anthropic": "^3.0.28",
         "@ai-sdk/openai": "^1.3.24",
         "ai": "^4.3.19",
+        "zod": "^3.24.2",
       },
       "devDependencies": {
         "@soouls/typescript-config": "*",
@@ -1834,7 +1835,7 @@
 
     "emittery": ["emittery@0.13.1", "", {}, "sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ=="],
 
-    "emoji-picker-react": ["emoji-picker-react@4.19.0", "", { "dependencies": { "flairup": "1.0.0" }, "peerDependencies": { "react": ">=16" } }, "sha512-GE/L95d1rdHIsSlpme2pn3M6btS0tWexNTn/zXg5YN2lFsUZNw36+FaP7uUwSZ+nQPaVZuXAgjna8CUfrQVMcA=="],
+    "emoji-picker-react": ["emoji-picker-react@4.19.1", "", { "dependencies": { "flairup": "1.0.0" }, "peerDependencies": { "react": ">=16" } }, "sha512-BmDdqInKFVYJpv7qS9WI6L9656cDAC+FkDvUjJds56nKHbaVTBNeDmLwKBytRnzu37zWHs9Isg7gt5PT43y6xA=="],
 
     "emoji-regex": ["emoji-regex@8.0.0", "", {}, "sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A=="],
 
