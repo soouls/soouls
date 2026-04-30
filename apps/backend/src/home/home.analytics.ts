@@ -535,7 +535,7 @@ export function buildHomeAnalytics(input: {
   );
   const themeScores = countThemeMatches(entries);
   const keywords = extractTopKeywords(entries);
-  const topTheme = themeScores[0];
+  const topTheme = themeScores.length > 0 ? themeScores[0] : undefined;
   const clusters = buildClusters(entries, themeScores, input.now);
 
   return {
