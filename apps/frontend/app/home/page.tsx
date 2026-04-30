@@ -81,7 +81,12 @@ function SearchPopup({ entries, onClose }: { entries: UserEntry[]; onClose: () =
   const filtered = entries
     .filter((entry) => entryTitle(entry).toLowerCase().includes(query.toLowerCase()))
     .slice(0, 6);
-  const active = filtered[selected] ?? filtered[0] ?? entries[0];
+  const active =
+    filtered.length > 0
+      ? (filtered[selected] ?? filtered[0])
+      : entries.length > 0
+        ? entries[0]
+        : undefined;
 
   return (
     <motion.div

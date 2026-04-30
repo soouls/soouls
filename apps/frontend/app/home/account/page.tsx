@@ -206,43 +206,45 @@ export default function AccountPage() {
 
   return (
     <div
-      className="min-h-screen overflow-hidden text-[var(--soouls-text-strong)]"
-      style={{ backgroundColor: 'var(--soouls-bg)', fontFamily: FONT_URBANIST }}
+      className="min-h-screen flex flex-col relative overflow-hidden select-none"
+      style={{ backgroundColor: '#1F1F1F', color: '#EFEDDD', fontFamily: FONT_URBANIST }}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-8 flex justify-center opacity-[0.07]">
+      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
-          className="whitespace-nowrap text-[20vw] leading-none text-transparent"
-          style={{ fontFamily: FONT_PLAYFAIR, WebkitTextStroke: '1px rgba(255,255,255,0.8)' }}
+          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
+          style={{
+            WebkitTextStroke: '1px rgba(255,255,255,0.7)',
+          }}
         >
-          Soouls in
+          Soouls
         </span>
       </div>
 
-      <header className="relative z-10 flex items-center justify-between px-5 py-5 sm:px-8">
-        <div className="flex items-center gap-3 text-sm sm:text-base">
+      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
+        <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
           <Link
             href="/home"
-            className="text-[var(--soouls-text-muted)] transition-colors hover:text-[var(--soouls-text-strong)]"
+            className="text-white/40 hover:text-white transition-colors"
           >
             Home
           </Link>
-          <span className="text-[var(--soouls-text-faint)]">/</span>
-          <span style={{ color: 'var(--soouls-accent)' }}>Account</span>
+          <span className="text-[#D46B4E] ml-2">/ Account</span>
         </div>
+
         <button
-          type="button"
           onClick={() => setIsOpen(true)}
-          className="h-10 w-10 overflow-hidden rounded-full ring-2 ring-white/10 transition-all hover:ring-[rgba(var(--soouls-accent-rgb),0.5)]"
-          aria-label="Open profile menu"
+          className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
         >
-          <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+          {user?.imageUrl && (
+            <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+          )}
         </button>
       </header>
 
-      <main className="relative z-10 mx-auto max-w-6xl space-y-4 px-5 pb-24 pt-3 sm:px-8">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
         <section
-          className="rounded-[32px] border p-6 backdrop-blur-xl sm:p-8 lg:p-10"
-          style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
+          className="flex-1 backdrop-blur-[48px] border-t border-white/10 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
+          style={{ backgroundColor: 'rgba(15, 15, 15, 0.6)' }}
         >
           <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
             <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left lg:col-span-6">
@@ -308,139 +310,139 @@ export default function AccountPage() {
               />
             </div>
           </div>
-        </section>
 
-        <section className="grid gap-4 lg:grid-cols-12">
-          <div
-            className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
-            style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
-          >
-            <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
-              Your writing patterns
-            </p>
-            <p className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-[var(--soouls-text-faint)]">
-              Primary Style
-            </p>
-            <h2
-              className="max-w-2xl text-4xl leading-tight"
-              style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
+          <div className="grid gap-4 lg:grid-cols-12 mt-4">
+            <div
+              className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
+              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
             >
-              {account?.writingProfile.title ??
-                insights?.writingProfile.title ??
-                'Thoughtful self-reflection'}
-            </h2>
-            <p
-              className="mt-4 max-w-2xl text-base leading-relaxed"
-              style={{ color: 'var(--soouls-accent)' }}
+              <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
+                Your writing patterns
+              </p>
+              <p className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-[var(--soouls-text-faint)]">
+                Primary Style
+              </p>
+              <h2
+                className="max-w-2xl text-4xl leading-tight"
+                style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
+              >
+                {account?.writingProfile.title ??
+                  insights?.writingProfile.title ??
+                  'Thoughtful self-reflection'}
+              </h2>
+              <p
+                className="mt-4 max-w-2xl text-base leading-relaxed"
+                style={{ color: 'var(--soouls-accent)' }}
+              >
+                {account?.writingProfile.description ??
+                  insights?.writingProfile.description ??
+                  'Your entries are grounding emotion in language and turning reflection into clarity.'}
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {(
+                  account?.writingProfile.tags ??
+                  insights?.writingProfile.tags ?? ['Reflective']
+                ).map((tag) => (
+                  <Tag key={tag} label={tag} />
+                ))}
+              </div>
+            </div>
+            <div
+              className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
+              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
             >
-              {account?.writingProfile.description ??
-                insights?.writingProfile.description ??
-                'Your entries are grounding emotion in language and turning reflection into clarity.'}
-            </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              {(
-                account?.writingProfile.tags ??
-                insights?.writingProfile.tags ?? ['Reflective']
-              ).map((tag) => (
-                <Tag key={tag} label={tag} />
-              ))}
-            </div>
-          </div>
-          <div
-            className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
-            style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
-          >
-            <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
-              Insight Analysis
-            </p>
-            <p className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-[var(--soouls-text-faint)]">
-              Core Theme
-            </p>
-            <div className="divide-y divide-white/5">
-              {(account?.coreThemes ?? insights?.coreThemes ?? []).slice(0, 3).map((theme) => (
-                <ThemeBar key={theme.label} label={theme.label} percent={theme.percent} />
-              ))}
-            </div>
-            <p className="mt-5 text-center text-xs leading-relaxed text-[var(--soouls-text-faint)]">
-              Insights are based on your real entry cadence, recurring themes, and tone patterns.
-            </p>
-          </div>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-12">
-          <div
-            className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
-            style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
-          >
-            <p className="mb-5 text-base font-medium text-[var(--soouls-text-muted)]">
-              Data &amp; Ownership
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <DataActionButton
-                icon={<Download className="h-5 w-5" />}
-                onClick={handleExportAll}
-                loading={exporting === 'all'}
-              >
-                Download your data
-              </DataActionButton>
-              <DataActionButton
-                icon={<Upload className="h-5 w-5" />}
-                onClick={handleBackupEntries}
-                loading={exporting === 'entries'}
-              >
-                Backup your entries
-              </DataActionButton>
-            </div>
-          </div>
-          <div
-            className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
-            style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
-          >
-            <div className="mb-4 flex items-center gap-2">
-              <Shield className="h-5 w-5 text-emerald-400" />
-              <p className="text-sm font-bold uppercase tracking-wider text-emerald-400">
-                Privacy Snapshot
+              <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
+                Insight Analysis
+              </p>
+              <p className="mb-5 text-xs font-bold uppercase tracking-[0.24em] text-[var(--soouls-text-faint)]">
+                Core Theme
+              </p>
+              <div className="divide-y divide-white/5">
+                {(account?.coreThemes ?? insights?.coreThemes ?? []).slice(0, 3).map((theme) => (
+                  <ThemeBar key={theme.label} label={theme.label} percent={theme.percent} />
+                ))}
+              </div>
+              <p className="mt-5 text-center text-xs leading-relaxed text-[var(--soouls-text-faint)]">
+                Insights are based on your real entry cadence, recurring themes, and tone patterns.
               </p>
             </div>
-            <p
-              className="text-3xl leading-tight"
-              style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-12 mt-4">
+            <div
+              className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
+              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
             >
-              Your privacy comes first.
-            </p>
-            <p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--soouls-accent)' }}>
-              Your downloaded archive includes entries, settings, and insight summaries exactly as
-              your account sees them.
-            </p>
-            <div className="mt-5 flex items-center gap-2 text-xs text-[var(--soouls-text-faint)]">
-              <HardDrive className="h-4 w-4" />
-              Your data belongs only to you.
+              <p className="mb-5 text-base font-medium text-[var(--soouls-text-muted)]">
+                Data &amp; Ownership
+              </p>
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <DataActionButton
+                  icon={<Download className="h-5 w-5" />}
+                  onClick={handleExportAll}
+                  loading={exporting === 'all'}
+                >
+                  Download your data
+                </DataActionButton>
+                <DataActionButton
+                  icon={<Upload className="h-5 w-5" />}
+                  onClick={handleBackupEntries}
+                  loading={exporting === 'entries'}
+                >
+                  Backup your entries
+                </DataActionButton>
+              </div>
+            </div>
+            <div
+              className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
+              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
+            >
+              <div className="mb-4 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-emerald-400" />
+                <p className="text-sm font-bold uppercase tracking-wider text-emerald-400">
+                  Privacy Snapshot
+                </p>
+              </div>
+              <p
+                className="text-3xl leading-tight"
+                style={{ fontFamily: FONT_PLAYFAIR, fontStyle: 'italic', fontWeight: 600 }}
+              >
+                Your privacy comes first.
+              </p>
+              <p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--soouls-accent)' }}>
+                Your downloaded archive includes entries, settings, and insight summaries exactly as
+                your account sees them.
+              </p>
+              <div className="mt-5 flex items-center gap-2 text-xs text-[var(--soouls-text-faint)]">
+                <HardDrive className="h-4 w-4" />
+                Your data belongs only to you.
+              </div>
             </div>
           </div>
-        </section>
 
-        <div className="flex flex-wrap gap-3 pt-4">
-          <OutlineButton
-            icon={<ArrowLeft className="h-4 w-4" />}
-            onClick={() => router.push('/home')}
-          >
-            Back to Home
-          </OutlineButton>
-          <OutlineButton
-            icon={
-              deleteAccount.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )
-            }
-            onClick={handleDeleteAccount}
-            danger
-            disabled={deleteAccount.isPending}
-          >
-            Delete account
-          </OutlineButton>
-        </div>
+          <div className="flex flex-wrap gap-3 pt-8">
+            <OutlineButton
+              icon={<ArrowLeft className="h-4 w-4" />}
+              onClick={() => router.push('/home')}
+            >
+              Back to Home
+            </OutlineButton>
+            <OutlineButton
+              icon={
+                deleteAccount.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )
+              }
+              onClick={handleDeleteAccount}
+              danger
+              disabled={deleteAccount.isPending}
+            >
+              Delete account
+            </OutlineButton>
+          </div>
+        </section>
       </main>
     </div>
   );

@@ -9,6 +9,14 @@ const frontendNodeModules = resolve(appRoot, '..', 'frontend', 'node_modules');
 const nextCli = resolve(localNodeModules, 'next', 'dist', 'bin', 'next');
 const devServerScript = resolve(appRoot, 'scripts', 'server.mjs');
 
+function resolveExecutable(command) {
+  if (process.platform !== 'win32' || command.endsWith('.cmd') || command.endsWith('.exe')) {
+    return command;
+  }
+
+  return command === 'npx' ? 'npx.cmd' : `${command}.cmd`;
+}
+
 function ensureNodeModules() {
   if (existsSync(localNodeModules)) {
     return;
@@ -43,7 +51,7 @@ const _env =
 const spawnOptions = {
   cwd: appRoot,
   stdio: 'inherit',
-  env: process.env,
+  env: _env,
   shell: false,
 };
 
@@ -52,13 +60,9 @@ const child =
     ? spawn('node', [devServerScript, ...(args.slice(1) || [])], spawnOptions)
     : command === 'next'
       ? spawn('node', [nextCli, ...args], spawnOptions)
-      : command === 'bunx'
+      : command === 'bunx' || command === 'npx'
         ? spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', args, spawnOptions)
-        : spawn(
-            process.platform === 'win32' && !command.endsWith('.exe') ? `${command}.cmd` : command,
-            args,
-            { ...spawnOptions, shell: true },
-          );
+        : spawn(resolveExecutable(command), args, spawnOptions);
 
 function stopChild(signal = 'SIGTERM') {
   if (!child.killed && child.exitCode === null) {

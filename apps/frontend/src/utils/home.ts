@@ -1,4 +1,5 @@
 import type { HomeCluster, UserEntry } from '@soouls/api/router';
+import { getEntrySearchText, getEntryTitle as getParsedEntryTitle } from './entries';
 
 function ordinal(value: number): string {
   const mod10 = value % 10;
@@ -17,13 +18,7 @@ export function formatCurrentMonthRange(now = new Date()): string {
 }
 
 export function getEntryTitle(entry: Pick<UserEntry, 'title' | 'content'>): string {
-  if (entry.title?.trim()) return entry.title.trim();
-  const firstLine =
-    entry.content
-      .split('\n')
-      .map((line) => line.trim())
-      .find(Boolean) ?? '';
-  return firstLine.slice(0, 80) || 'Untitled entry';
+  return getParsedEntryTitle(entry);
 }
 
 export function truncateText(value: string, length: number): string {
@@ -58,7 +53,7 @@ export function clusterMatchesEntry(
 
   if (keywords.length === 0) return false;
 
-  const corpus = `${entry.title ?? ''} ${entry.content}`.toLowerCase();
+  const corpus = getEntrySearchText(entry);
   return keywords.some((keyword) => corpus.includes(keyword));
 }
 

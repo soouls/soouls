@@ -2,7 +2,7 @@
 
 import { useUser } from '@clerk/nextjs';
 import { AnimatePresence, type PanInfo, motion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
@@ -25,7 +25,7 @@ const FolderIcon = ({ className, count = '0' }: { className?: string; count?: st
   <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path
       d="M10 25C10 22.2386 12.2386 20 15 20H38.5C39.6935 20 40.8443 20.4261 41.745 21.2014L50.255 28.5486C51.1557 29.3239 52.3065 29.75 53.5 29.75H85C87.7614 29.75 90 31.9886 90 34.75V70C90 72.7614 87.7614 75 85 75H15C12.2386 75 10 72.7614 10 70V25Z"
-      fill="rgba(var(--soouls-accent-rgb), 0.18)"
+      fill="rgba(212,107,78, 0.18)"
       stroke="rgba(255,255,255,0.55)"
       strokeWidth="3.5"
       strokeLinejoin="round"
@@ -37,17 +37,17 @@ const FolderIcon = ({ className, count = '0' }: { className?: string; count?: st
       height="9"
       rx="4"
       fill="transparent"
-      stroke="var(--soouls-accent)"
+      stroke="#D46B4E"
       strokeWidth="0.8"
       opacity="0.7"
     />
     <text
       x="20"
       y="64.5"
-      fill="var(--soouls-accent)"
+      fill="#D46B4E"
       fontSize="4"
       fontWeight="600"
-      style={{ fontFamily: 'sans-serif' }}
+      className="font-urbanist"
     >
       {count} Entries
     </text>
@@ -97,203 +97,183 @@ export default function CanvasPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col relative overflow-hidden font-sans select-none"
-      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text-strong)' }}
-    >
-      <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-25 select-none z-0 overflow-hidden whitespace-nowrap">
+    <div className="min-h-screen bg-[#1F1F1F] text-white flex flex-col relative overflow-hidden font-urbanist select-none">
+      {/* Background Watermark */}
+      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
-          className="text-[20vw] leading-none text-transparent tracking-tighter"
-          style={{
-            fontFamily: 'serif',
-            WebkitTextStroke: '1px rgba(255,255,255,0.35)',
-          }}
+          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
+          style={{ WebkitTextStroke: '1px rgba(255,255,255,0.7)' }}
         >
           Soouls
         </span>
       </div>
 
-      <header className="px-8 py-6 flex justify-between items-center relative z-10">
-        <div className="flex items-center gap-2 text-sm text-[var(--soouls-text-muted)]">
+      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
+        <div className="flex items-center text-[22px] font-light tracking-wide">
           <button
+            type="button"
             onClick={() => router.push('/home')}
-            className="transition hover:text-[var(--soouls-accent)]"
+            className="text-white/40 hover:text-white transition-colors"
           >
             Home
           </button>
-          <span>/</span>
-          <span style={{ color: 'var(--soouls-accent)' }}>Canvas</span>
+          <span className="text-[#D46B4E] mx-3 opacity-60">/</span>
+          <span className="text-[#D46B4E]">Canvas</span>
         </div>
 
         <button
           onClick={() => setIsOpen(true)}
-          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 overflow-hidden hover:border-white/30 transition-all cursor-pointer"
-        >
-          {user?.imageUrl && (
-            <img src={user.imageUrl} alt="Profile" className="w-9 h-9 rounded-full" />
-          )}
-        </button>
-        <div
-          className="w-9 h-9 rounded-full border overflow-hidden"
-          style={{
-            borderColor: 'var(--soouls-border)',
-            backgroundColor: 'var(--soouls-bg-elevated)',
-          }}
+          className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
         >
           {user?.imageUrl && (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
           )}
-        </div>
+        </button>
       </header>
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-6 relative z-10 flex flex-col mt-10 md:mt-14 pb-8">
-        <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-[1.2] rounded-[28px] border shadow-2xl flex flex-col overflow-hidden"
-            style={{
-              backgroundColor: 'var(--soouls-bg-surface)',
-              borderColor: 'var(--soouls-border)',
-            }}
-          >
-            <div className="p-5 border-b border-white/[0.06]">
-              <div
-                className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 transition"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.04)',
-                  border: '1px solid var(--soouls-border)',
-                }}
-              >
-                <Search className="w-4 h-4 text-[var(--soouls-text-faint)]" />
-                <input
-                  ref={inputRef}
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="search for entries"
-                  className="bg-transparent w-full focus:outline-none text-sm placeholder:text-[var(--soouls-text-faint)]"
-                />
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
-              <div className="grid grid-cols-2 gap-x-6 gap-y-8">
-                {folders.map((folder) => (
-                  <div key={folder.id} className="relative">
-                    <motion.div
-                      drag
-                      dragSnapToOrigin
-                      onDoubleClick={() => router.push(`/home/canvas/${folder.id}`)}
-                      onDragStart={() => setIsDraggingOver(true)}
-                      onDragEnd={(event, info) => handleDragEnd(event, info, folder)}
-                      whileDrag={{ scale: 1.1, zIndex: 50, opacity: 0.82 }}
-                      className="flex flex-col items-start group cursor-grab active:cursor-grabbing z-20 relative"
-                    >
-                      <div className="relative w-full aspect-[1.1/1] mb-3 pointer-events-none">
-                        <FolderIcon
-                          className="w-full h-full drop-shadow-xl"
-                          count={String(folder.entryCount)}
-                        />
-                      </div>
-                      <p className="text-[12px] font-medium px-1 leading-tight pointer-events-none text-[var(--soouls-text-muted)] group-hover:text-[var(--soouls-text-strong)]">
-                        {folder.title}
-                      </p>
-                      <p className="text-[10px] px-1 mt-1 text-[var(--soouls-text-faint)]">
-                        {folder.updatedAtLabel}
-                      </p>
-                    </motion.div>
-                  </div>
-                ))}
-              </div>
-
-              {folders.length === 0 && (
-                <p className="text-sm text-center mt-10 text-[var(--soouls-text-faint)]">
-                  No matching folders
-                </p>
-              )}
-            </div>
-          </motion.div>
-
-          <motion.div
-            ref={dropZoneRef}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{
-              opacity: 1,
-              x: 0,
-              borderColor: isDraggingOver
-                ? 'rgba(var(--soouls-accent-rgb), 0.4)'
-                : 'rgba(255,255,255,0.08)',
-              backgroundColor: isDraggingOver
-                ? 'rgba(var(--soouls-accent-rgb), 0.03)'
-                : 'transparent',
-            }}
-            className="flex-[2] rounded-[28px] border shadow-2xl relative overflow-hidden flex items-center justify-center transition"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.06),transparent_40%),radial-gradient(circle_at_75%_80%,rgba(255,255,255,0.04),transparent_50%)]" />
-            <div
-              className="absolute inset-0 backdrop-blur-sm"
-              style={{ backgroundColor: 'rgba(15,15,15,0.86)' }}
-            />
-
-            <AnimatePresence>
-              {droppedItems.map((item) => (
-                <motion.button
-                  key={item.instanceId}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  drag
-                  dragMomentum={false}
-                  dragConstraints={dropZoneRef}
-                  style={{ left: item.x, top: item.y, position: 'absolute' }}
-                  onDoubleClick={() => router.push(`/home/canvas/${item.id}`)}
-                  className="w-28 flex flex-col items-center cursor-move group z-30"
-                >
-                  <FolderIcon
-                    className="w-full h-auto drop-shadow-2xl"
-                    count={String(item.entryCount)}
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch h-full">
+        <div className="flex-1 rounded-t-[32px] bg-[#0F0F0F]/60 backdrop-blur-[48px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col relative border-t border-white/10 p-6 md:p-8 overflow-hidden">
+          <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 h-full">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex-[1.2] rounded-[28px] border border-white/5 bg-black/20 backdrop-blur-md shadow-inner flex flex-col overflow-hidden"
+            >
+              <div className="p-5 border-b border-white/[0.06] space-y-4">
+                <h2 className="text-xl font-medium px-2">Your Spaces</h2>
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 focus-within:ring-[#D46B4E]/50 transition bg-white/5 border border-white/10">
+                  <Search className="w-4 h-4 text-white/40" />
+                  <input
+                    ref={inputRef}
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="search for entries"
+                    className="bg-transparent w-full focus:outline-none text-sm placeholder:text-white/40 text-white"
                   />
-                  <p className="mt-1 text-[10px] text-center font-medium backdrop-blur-sm truncate w-full px-2 py-1 rounded-md text-[var(--soouls-text-muted)]">
-                    {item.title}
-                  </p>
-                </motion.button>
-              ))}
-            </AnimatePresence>
+                </div>
+              </div>
 
-            {droppedItems.length === 0 && (
-              <div className="relative z-10 text-center px-6 max-w-xl pointer-events-none">
-                <p
-                  className="text-[22px] md:text-[26px] leading-relaxed text-white/75"
-                  style={{ fontFamily: 'serif' }}
-                >
-                  “Your thoughts are not separate.
-                  <br />
-                  They are waiting to connect.”
-                </p>
-
-                <div className="mt-6 text-[10px] tracking-[0.3em] uppercase text-[var(--soouls-text-faint)]">
-                  Double click
+              <div className="flex-1 overflow-y-auto p-6 scrollbar-hide custom-scrollbar">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-10">
+                  {folders.map((folder) => (
+                    <div key={folder.id} className="relative">
+                      <motion.div
+                        drag
+                        dragSnapToOrigin
+                        onDoubleClick={() => router.push(`/home/canvas/${folder.id}`)}
+                        onDragStart={() => setIsDraggingOver(true)}
+                        onDragEnd={(event, info) => handleDragEnd(event, info, folder)}
+                        whileDrag={{ scale: 1.1, zIndex: 50, opacity: 0.82 }}
+                        className="flex flex-col items-center group cursor-grab active:cursor-grabbing z-20 relative"
+                      >
+                        <div className="relative w-full aspect-[1.1/1] mb-4 pointer-events-none transition-transform group-hover:scale-105">
+                          <FolderIcon
+                            className="w-full h-full drop-shadow-2xl filter brightness-110"
+                            count={String(folder.entryCount)}
+                          />
+                        </div>
+                        <p className="text-[13px] font-semibold px-1 leading-tight text-center pointer-events-none text-white/70 group-hover:text-white">
+                          {folder.title}
+                        </p>
+                        <p className="text-[10px] px-1 mt-1 text-white/30 uppercase tracking-widest font-bold">
+                          {folder.updatedAtLabel}
+                        </p>
+                      </motion.div>
+                    </div>
+                  ))}
                 </div>
 
-                <p className="mt-2 text-sm text-[var(--soouls-text-muted)]">
-                  Drag folders or double click to begin
-                </p>
+                {folders.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-20 text-white/20">
+                    <Search className="w-12 h-12 mb-4 opacity-10" />
+                    <p className="text-sm font-medium tracking-wide">No spaces found</p>
+                  </div>
+                )}
               </div>
-            )}
+            </motion.div>
 
-            {isDraggingOver && (
+            <motion.div
+              ref={dropZoneRef}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{
+                opacity: 1,
+                x: 0,
+                borderColor: isDraggingOver
+                  ? 'rgba(212,107,78, 0.4)'
+                  : 'rgba(255,255,255,0.08)',
+                backgroundColor: isDraggingOver
+                  ? 'rgba(212,107,78, 0.03)'
+                  : 'transparent',
+              }}
+              className="flex-[2] rounded-[28px] border shadow-2xl relative overflow-hidden flex items-center justify-center transition backdrop-blur-md bg-black/20"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.06),transparent_40%),radial-gradient(circle_at_75%_80%,rgba(255,255,255,0.04),transparent_50%)]" />
               <div
-                className="absolute inset-0 border-2 border-dashed m-4 rounded-[20px] flex items-center justify-center pointer-events-none z-50"
-                style={{ borderColor: 'rgba(var(--soouls-accent-rgb), 0.2)' }}
-              >
-                <span
-                  className="text-xs font-bold tracking-[0.5em] uppercase"
-                  style={{ color: 'rgba(var(--soouls-accent-rgb), 0.45)' }}
+                className="absolute inset-0 backdrop-blur-sm"
+                style={{ backgroundColor: 'rgba(15,15,15,0.86)' }}
+              />
+
+              <AnimatePresence>
+                {droppedItems.map((item) => (
+                  <motion.button
+                    key={item.instanceId}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    drag
+                    dragMomentum={false}
+                    dragConstraints={dropZoneRef}
+                    style={{ left: item.x, top: item.y, position: 'absolute' }}
+                    onDoubleClick={() => router.push(`/home/canvas/${item.id}`)}
+                    className="w-32 flex flex-col items-center cursor-move group z-30"
+                  >
+                    <FolderIcon
+                      className="w-full h-auto drop-shadow-2xl transition-transform group-hover:scale-110"
+                      count={String(item.entryCount)}
+                    />
+                    <p className="mt-2 text-[11px] text-center font-bold tracking-tight truncate w-full px-2 py-1 rounded-md text-white/80 bg-white/5 border border-white/5 backdrop-blur-md">
+                      {item.title}
+                    </p>
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+
+              {droppedItems.length === 0 && (
+                <div className="relative z-10 text-center px-6 max-w-xl pointer-events-none">
+                  <p className="text-[24px] md:text-[32px] leading-relaxed text-white/80 font-light italic serif">
+                    “Your thoughts are not separate.
+                    <br />
+                    They are waiting to connect.”
+                  </p>
+
+                  <div className="mt-8 flex flex-col items-center gap-2">
+                    <div className="px-5 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] tracking-[0.3em] uppercase text-white/50 font-bold">
+                      Double click
+                    </div>
+                    <p className="text-sm text-white/30 font-medium">
+                      Drag folders or double click to begin your journey
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {isDraggingOver && (
+                <div
+                  className="absolute inset-0 border-2 border-dashed m-4 rounded-[20px] flex items-center justify-center pointer-events-none z-50 bg-[#D46B4E]/5"
+                  style={{ borderColor: 'rgba(212,107,78, 0.3)' }}
                 >
-                  Drop Here
-                </span>
-              </div>
-            )}
-          </motion.div>
+                  <div className="flex flex-col items-center gap-3">
+                    <Plus className="w-8 h-8 text-[#D46B4E] opacity-50" />
+                    <span
+                      className="text-xs font-bold tracking-[0.5em] uppercase"
+                      style={{ color: 'rgba(212,107,78, 0.6)' }}
+                    >
+                      Drop to Explore
+                    </span>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
         </div>
       </main>
     </div>

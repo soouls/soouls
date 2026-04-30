@@ -1269,6 +1269,22 @@ function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
   const _streamRef = useRef<MediaStream | null>(null);
   const t0 = useRef(0);
 
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      if (mrRef.current && mrRef.current.state !== 'inactive') {
+        mrRef.current.stop();
+      }
+      if (_streamRef.current) {
+        _streamRef.current.getTracks().forEach((t) => t.stop());
+        _streamRef.current = null;
+      }
+    };
+  }, []);
+
   const start = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
