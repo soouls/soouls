@@ -27,21 +27,23 @@ async function bootstrap() {
     ) => void;
   };
 
-  appWithBodyParser.useBodyParser('json', { limit: '50mb' });
-  appWithBodyParser.useBodyParser('urlencoded', { extended: true, limit: '50mb' });
+  appWithBodyParser.useBodyParser('json', { limit: '10mb' });
+  appWithBodyParser.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
   app.use(helmet());
 
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
   const allowedOrigins = Array.from(
-    new Set([
-      process.env.FRONTEND_URL ?? 'http://localhost:3001',
-      process.env.COMMAND_CENTER_URL ?? 'http://localhost:3002',
-      'http://localhost:3001',
-      'http://localhost:3002',
-      'http://localhost:3000',
-    ]),
+    new Set(
+      [
+        process.env.FRONTEND_URL,
+        process.env.COMMAND_CENTER_URL,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+      ].filter(Boolean) as string[],
+    ),
   );
 
   app.enableCors({
