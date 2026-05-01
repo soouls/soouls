@@ -46,7 +46,7 @@ export class UsersService {
     const onWaitlist = isWaitlistEmail(email);
     const waitlistEntry = onWaitlist ? getWaitlistEntry(email) : null;
 
-    // 4. Create user in DB (with waitlist tag if applicable)
+    // 4. Atomic Upsert in DB (fixes race condition where parallel requests try to create the same user)
     const [newUser] = await db
       .insert(users)
       .values({
@@ -58,6 +58,15 @@ export class UsersService {
         accountStatus: onWaitlist ? 'beta' : 'active',
         transactionalWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
         marketingWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
+      })
+      .onConflictDoUpdate({
+        target: users.clerkId,
+        set: {
+          email,
+          name,
+          phoneNumber: phoneNumber || waitlistEntry?.phoneNumber || null,
+          updatedAt: new Date(),
+        },
       })
       .returning({ id: users.id });
 
