@@ -37,17 +37,23 @@ export class EntriesService {
     return this.getCacheKey('entry', userId, entryId);
   }
 
+  private async getUserVersion(userId: string): Promise<string> {
+    const versionKey = this.getCacheKey('user', userId, 'ns_version');
+    const version = await this.redis.get<string>(versionKey);
+    if (version) return version;
+
+    // Initialize version if not exists
+    const newVersion = '1';
+    await this.redis.set(versionKey, newVersion, 86400 * 30); // 30 day version life
+    return newVersion;
+  }
+
   private async invalidateUserEntryCache(userId: string): Promise<void> {
-    const patterns = [
-      this.getCacheKey('entries:all', userId, '*'),
-      this.getCacheKey('galaxy', userId, '*'),
-    ];
-    for (const pattern of patterns) {
-      await this.redis.invalidatePattern(pattern);
-    }
-    // Invalidate admin entries cache
+    const versionKey = this.getCacheKey('user', userId, 'ns_version');
+    await this.redis.incr(versionKey);
+
+    // Invalidate admin entries cache (still uses pattern as it's global/rare)
     await this.redis.invalidatePattern('admin:entries:*');
-    await this.redis.invalidatePattern(`home:*:${userId}*`);
   }
 
   /**
@@ -252,37 +258,54 @@ export class EntriesService {
   }
 
   async updateEntry(userId: string, id: string, content: string) {
+    // 1. Validate ownership and existence in a single step
     const existing = await db
-      .select({ id: journalEntries.id, type: journalEntries.type })
+      .select({
+        id: journalEntries.id,
+        type: journalEntries.type,
+        updatedAt: journalEntries.updatedAt,
+      })
       .from(journalEntries)
-      .where(sql`${journalEntries.id} = ${id} AND ${journalEntries.userId} = ${userId}`)
+      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)))
       .limit(1);
 
     if (existing.length === 0) {
-      throw new Error('Unauthorized or entry not found.');
+      throw new Error(`Entry ${id} not found or unauthorized for user ${userId}`);
     }
 
-    const derived = this.deriveEntryFields(content, existing[0]?.type ?? 'entry');
+    // 2. Derive metadata (word count, status, etc)
+    const derived = this.deriveEntryFields(content, existing[0].type);
 
-    // Compress if it's a JSON block
+    // 3. Process content (Compression -> Encryption)
     let processedContent = content;
-    if (content.startsWith('{') || content.startsWith('[')) {
-      processedContent = LZString.compressToUTF16(content);
+    try {
+      // Only compress if it looks like a valid JSON structure (block editor)
+      if (content.trim().startsWith('{') || content.trim().startsWith('[')) {
+        processedContent = LZString.compressToUTF16(content);
+      }
+    } catch (e) {
+      console.warn(`Compression failed for entry ${id}, saving raw:`, e);
     }
 
+    const encryptedContent = encryptData(processedContent, userId);
+
+    // 4. Atomic Update
     await db
       .update(journalEntries)
       .set({
-        content: encryptData(processedContent, userId),
+        content: encryptedContent,
         title: derived.title,
         wordCount: derived.wordCount,
         taskStatus: derived.taskStatus,
-        updatedAt: new Date(),
+        updatedAt: new Date(), // Explicitly update timestamp
       })
       .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
 
-    await this.redis.del(this.getEntryCacheKey(userId, id));
-    await this.invalidateUserEntryCache(userId);
+    // 5. Invalidate Cache
+    await Promise.all([
+      this.redis.del(this.getEntryCacheKey(userId, id)),
+      this.invalidateUserEntryCache(userId),
+    ]);
   }
 
   async getUploadPresignedUrl(userId: string, entryId: string, contentType: string) {
@@ -350,7 +373,8 @@ export class EntriesService {
   }
 
   async getGalaxyData(userId: string, limit = 100, cursor = 0) {
-    const cacheKey = this.getCacheKey('galaxy', userId, limit, cursor);
+    const version = await this.getUserVersion(userId);
+    const cacheKey = this.getCacheKey('galaxy', userId, version, limit, cursor);
     const cached = await this.redis.get<{ items: GalaxyEntry[]; nextCursor: number | null }>(
       cacheKey,
     );
@@ -418,7 +442,8 @@ export class EntriesService {
    * Used by the dashboard timeline to show descriptions and media.
    */
   async getAllEntries(userId: string, limit = 50, cursor = 0) {
-    const cacheKey = this.getCacheKey('entries:all', userId, limit, cursor);
+    const version = await this.getUserVersion(userId);
+    const cacheKey = this.getCacheKey('entries:all', userId, version, limit, cursor);
     const cached = await this.redis.get<{ items: UserEntry[]; nextCursor: number | null }>(
       cacheKey,
     );
@@ -528,15 +553,17 @@ export class EntriesService {
     let migratedCount = 0;
 
     for (const entry of entries) {
-      const decrypted = decryptData(entry.content, userId);
-      let contentData;
+      let contentData: any;
       try {
+        const decrypted = decryptData(entry.content, userId);
         const decompressed = LZString.decompressFromUTF16(decrypted) || decrypted;
         contentData = JSON.parse(decompressed);
       } catch (_e) {
-        // Not a JSON block entry, skip
+        // Not a JSON block entry or decryption failed — skip this entry
         continue;
       }
+
+      if (!contentData || typeof contentData !== 'object') continue;
 
       const blocks = contentData.blocks || [];
       let entryChanged = false;
@@ -545,13 +572,14 @@ export class EntriesService {
         if (block.type === 'image' && block.dataUrl?.startsWith('data:image')) {
           try {
             // Convert dataUrl to buffer
-            const base64Data = block.dataUrl.split(',')[1];
+            const parts = block.dataUrl.split(',');
+            const base64Data = parts[1];
             if (!base64Data) continue;
 
             const buffer = Buffer.from(base64Data, 'base64');
-            const mimeType = block.dataUrl.split(':')[1].split(';')[0];
+            const mimeType = parts[0]?.split(':')[1]?.split(';')[0] || 'image/png';
             const extension = mimeType.split('/')[1] || 'png';
-            const fileName = `entries/${userId}/${entry.id}/${Date.now()}.${extension}`;
+            const fileName = `entries/${userId}/${entry.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${extension}`;
 
             const bucketParams = {
               Bucket: process.env.R2_BUCKET_NAME || 'soouls-media',
@@ -568,30 +596,35 @@ export class EntriesService {
               entryChanged = true;
             }
           } catch (error) {
-            console.error(`Failed to migrate media in entry ${entry.id}`, error);
+            console.error(`Failed to migrate media block in entry ${entry.id}`, error);
           }
         }
       }
 
       if (entryChanged) {
-        const updatedContent = JSON.stringify(contentData);
-        const compressed = LZString.compressToUTF16(updatedContent);
-        const encrypted = encryptData(compressed, userId);
+        try {
+          const updatedContent = JSON.stringify(contentData);
+          const compressed = LZString.compressToUTF16(updatedContent);
+          const encrypted = encryptData(compressed, userId);
 
-        await db
-          .update(journalEntries)
-          .set({ content: encrypted, updatedAt: new Date() })
-          .where(eq(journalEntries.id, entry.id));
+          await db
+            .update(journalEntries)
+            .set({ content: encrypted, updatedAt: new Date() })
+            .where(eq(journalEntries.id, entry.id));
 
-        // Invalidate specific entry cache
-        await this.redis.del(this.getEntryCacheKey(userId, entry.id));
-
-        migratedCount++;
+          // Invalidate specific entry cache
+          await this.redis.del(this.getEntryCacheKey(userId, entry.id));
+          migratedCount++;
+        } catch (e) {
+          console.error(`Failed to save migrated entry ${entry.id}:`, e);
+        }
       }
     }
 
-    // Invalidate user cache
-    await this.invalidateUserEntryCache(userId);
+    // Invalidate user cache if anything changed
+    if (migratedCount > 0) {
+      await this.invalidateUserEntryCache(userId);
+    }
 
     return { migratedCount };
   }
