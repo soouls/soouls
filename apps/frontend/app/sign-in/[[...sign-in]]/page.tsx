@@ -4,7 +4,7 @@ import { useSignIn, useUser } from '@clerk/nextjs';
 import { ArrowLeft, Lock, Mail, Apple } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { SymbolLogo } from '../../components/SymbolLogo';
 
@@ -23,8 +23,13 @@ export default function SignInPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      router.replace('/home');
+    }
+  }, [user, router]);
+
   if (user) {
-    router.replace('/home');
     return null;
   }
 

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import type React from 'react';
 import { CanvasLoopIcon, DiamondIcon, NetworkIcon } from './Icons';
 import { SymbolLogo } from './SymbolLogo';
+import { trpc } from '../../src/utils/trpc';
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -28,6 +29,12 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
   const fullName = user?.fullName || `${userName} Lane`;
   const avatarUrl =
     user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id);
+
+  const { data: insights } = trpc.private.home.getInsights.useQuery(undefined, {
+    enabled: isOpen,
+  });
+
+  const streak = insights?.overview.currentStreak ?? 0;
 
   return (
     <AnimatePresence>
@@ -72,7 +79,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 {fullName}
               </h2>
               <p className="text-xl text-white font-playfair italic leading-snug">
-                &quot;You&apos;ve shown up <span className="text-[#D46B4E]">12 days</span>
+                &quot;You&apos;ve shown up <span className="text-[#D46B4E]">{streak} days</span>
                 <br />
                 in a row.&quot;
               </p>
