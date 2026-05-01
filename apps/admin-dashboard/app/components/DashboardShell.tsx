@@ -274,6 +274,8 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
       <main className="ml-[260px] flex-1 overflow-auto p-8">
         <div className="mx-auto max-w-7xl">{renderSection()}</div>
       </main>
+
+      
     </div>
   );
 }

@@ -4,9 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "node --env-file=../../.env scripts/run.mjs next dev --port 3002",
-    "build": "node --env-file=../../.env scripts/run.mjs next build --webpack",
-    "start": "node --env-file=../../.env scripts/run.mjs next start --port 3002",
+    "dev": "node scripts/run.mjs next dev --port 3002",
+    "build": "node scripts/run.mjs next build --webpack",
+    "start": "node scripts/run.mjs next start --port 3002",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "check-types": "tsc --noEmit -p tsconfig.json"

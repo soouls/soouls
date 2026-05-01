@@ -3,6 +3,21 @@ import { realpathSync } from 'node:fs';
 import net from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnv = resolve(currentDir, '..', '..', '..', '.env');
+
+// Load environment variables if the file exists (native in Node 20.6+)
+if (existsSync(rootEnv)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(rootEnv);
+    }
+  } catch (e) {
+    console.warn('Failed to load root .env file:', e.message);
+  }
+}
 
 async function isPortAvailable(port) {
   return new Promise((resolvePort) => {

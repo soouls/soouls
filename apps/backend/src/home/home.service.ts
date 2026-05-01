@@ -1,6 +1,6 @@
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
-import { generateHomeInsightCopy } from '@soouls/ai-engine/home-insights';
+import { generateHomeInsightCopy, generateClusterInsights } from '@soouls/ai-engine/home-insights';
 import type {
   HomeAccount,
   HomeApi,
@@ -128,10 +128,12 @@ export class HomeService implements HomeApi {
   private async enrichAnalyticsWithAiCopy(
     analytics: HomeAnalyticsBundle,
     userName: string,
+    entries: DecodedHomeEntry[]
   ): Promise<HomeAnalyticsBundle> {
     const aiCopy = await generateHomeInsightCopy({
       userName,
       topThemes: analytics.insights.thoughtThemes.map((theme) => theme.label),
+      entriesText: entries.slice(0, 5).map(e => e.text),
       monthlyNarrativeFallback: analytics.insights.monthlyNarrative,
       finalSynthesisFallback: analytics.insights.finalSynthesis,
       writingProfileTitleFallback: analytics.account.writingProfile.title,
@@ -185,7 +187,7 @@ export class HomeService implements HomeApi {
       userName: user.name ?? 'Explorer',
       now: new Date(),
     });
-    const analytics = await this.enrichAnalyticsWithAiCopy(baseAnalytics, user.name ?? 'Explorer');
+    const analytics = await this.enrichAnalyticsWithAiCopy(baseAnalytics, user.name ?? 'Explorer', entries);
 
     const snapshot = {
       user,
@@ -327,14 +329,19 @@ export class HomeService implements HomeApi {
         description: `This idea appears repeatedly inside the ${cluster.name.toLowerCase()} cluster.`,
       }));
 
+    const aiInsights = await generateClusterInsights({
+      clusterName: cluster.name,
+      entriesText: matchingEntries.slice(0, 5).map(e => e.text)
+    });
+
     return {
       cluster,
-      narrative: `Your recent entries in ${cluster.name.toLowerCase()} are becoming more coherent. The signal here is stronger than the noise, and the next step is easier to see.`,
-      keyIdeas,
+      narrative: aiInsights?.narrative || `Your recent entries in ${cluster.name.toLowerCase()} are becoming more coherent. The signal here is stronger than the noise, and the next step is easier to see.`,
+      keyIdeas: (aiInsights?.keyIdeas?.length ? aiInsights.keyIdeas : keyIdeas) as { label: string; description: string }[],
       highlights,
-      observation: `A clear pattern is emerging around ${cluster.name.toLowerCase()}. Your entries are becoming more specific and action-oriented over time.`,
-      nextStep: `Capture one more concrete entry that moves ${cluster.name.toLowerCase()} from reflection into action.`,
-      reflectionPrompt: `If you had to explain why ${cluster.name.toLowerCase()} matters right now, what truth would you be least comfortable saying out loud?`,
+      observation: aiInsights?.observation || `A clear pattern is emerging around ${cluster.name.toLowerCase()}. Your entries are becoming more specific and action-oriented over time.`,
+      nextStep: aiInsights?.nextStep || `Capture one more concrete entry that moves ${cluster.name.toLowerCase()} from reflection into action.`,
+      reflectionPrompt: aiInsights?.reflectionPrompt || `If you had to explain why ${cluster.name.toLowerCase()} matters right now, what truth would you be least comfortable saying out loud?`,
     };
   }
 

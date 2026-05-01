@@ -242,7 +242,11 @@ export class CommandCenterService {
       `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim() || primaryEmail;
     const existingAdmin = await this.getAdminByClerkOrEmail(clerkId, primaryEmail);
     const pendingInvite = await this.getPendingInvite(primaryEmail);
+    const totalAdmins = await db.select({ count: sql<number>`count(*)` }).from(adminUsers);
+    const hasAnyAdmins = Number(totalAdmins[0]?.count || 0) > 0;
+
     const isBootstrapAdmin =
+      !hasAnyAdmins ||
       this.bootstrapSuperAdmins.has(primaryEmail.toLowerCase()) ||
       primaryEmail.toLowerCase() === SEED_SUPER_ADMIN.toLowerCase();
 
@@ -413,6 +417,11 @@ export class CommandCenterService {
       db.select({ count: sql<number>`count(*)` }).from(sql`pg_stat_activity`),
     ]);
 
+    // DB latency probe
+    const dbProbeStart = Date.now();
+    const dbPing = await db.execute<{ value: number }>(sql`select 1 as value`);
+    const databaseLatencyMs = Date.now() - dbProbeStart;
+
     return {
       viewer: actor,
       stats: {
@@ -427,6 +436,8 @@ export class CommandCenterService {
       telemetry: {
         websocketConnections: 0,
         databaseConnections: Number(activeConnectionsRow?.count ?? 0),
+        databaseLatencyMs,
+        databaseHealthy: dbPing.length > 0,
       },
       recentAuditLogs,
     };
@@ -1170,18 +1181,32 @@ export class CommandCenterService {
       })
       .from(users);
 
-    const churnRateResult = 2.4; // Mocked for now until we store active/canceled subscriptions
+    // Calculate churn from actual user data
+    const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const activeUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'active'));
+    const totalCount = Number(totalUsers[0]?.count ?? 1);
+    const activeCount = Number(activeUsers[0]?.count ?? 0);
+    const churnRateResult = totalCount > 0 ? Math.round(((totalCount - activeCount) / totalCount) * 100 * 10) / 10 : 0;
 
-    // Mock recent revenue for chart
-    const recentRevenue = [
-      { date: 'Mon', amount: 320 },
-      { date: 'Tue', amount: 450 },
-      { date: 'Wed', amount: 390 },
-      { date: 'Thu', amount: 510 },
-      { date: 'Fri', amount: 480 },
-      { date: 'Sat', amount: 620 },
-      { date: 'Sun', amount: 590 },
-    ];
+    // Real revenue from Stripe webhooks over last 7 days
+    const revenueByDay = await db
+      .select({
+        date: sql<string>`to_char(${stripeWebhooks.createdAt}::date, 'Dy')`,
+        amount: sql<number>`coalesce(sum(${stripeWebhooks.amount}), 0)`,
+      })
+      .from(stripeWebhooks)
+      .where(sql`${stripeWebhooks.createdAt} > NOW() - INTERVAL '7 days'`)
+      .groupBy(sql`${stripeWebhooks.createdAt}::date, to_char(${stripeWebhooks.createdAt}::date, 'Dy')`)
+      .orderBy(sql`${stripeWebhooks.createdAt}::date`);
+
+    // Fallback: if no webhook data, estimate from MRR spread over 7 days
+    const mrr = Number(mrrResult[0]?.mrr || 0);
+    const recentRevenue = revenueByDay.length > 0
+      ? revenueByDay.map((row) => ({ date: row.date, amount: Number(row.amount) / 100 }))
+      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => ({
+          date: day,
+          amount: Math.round((mrr / 30) * 100) / 100,
+        }));
 
     const webhooks = await db
       .select()

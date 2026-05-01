@@ -17,7 +17,7 @@
     "husky": "^9.1.7",
     "knip": "^5.88.1",
     "peakroute": "^0.6.0",
-    "turbo": "^2.9.6",
+    "turbo": "^2.9.7",
     "typescript": "5.9.2"
   },
   "engines": {
@@ -29,9 +29,9 @@
     "mime": "1.6.0"
   },
   "dependencies": {
-    "@giphy/js-fetch-api": "^5.7.0",
+    "@giphy/js-fetch-api": "^5.8.0",
     "@giphy/react-components": "^10.1.2",
-    "@sentry/nextjs": "^10.50.0",
+    "@sentry/nextjs": "^10.51.0",
     "emoji-picker-react": "^4.19.1",
     "lottie-react": "^2.4.1",
     "lz-string": "^1.5.0",

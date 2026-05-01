@@ -77,14 +77,16 @@ export default function ClientShell({ children }: { children: React.ReactNode })
       setIsUnauthorized(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to load Command Center.';
-      if (
+      const isAuthError =
         message.includes('not been invited') ||
         message.includes('revoked') ||
         message.includes('Unauthorized') ||
         message.includes('Unauthorized Entity') ||
         message.includes('Forbidden') ||
-        message.includes('permission')
-      ) {
+        message.includes('permission') ||
+        message.includes('403') ||
+        message.includes('401');
+      if (isAuthError) {
         setIsUnauthorized(true);
       } else {
         setError(message);
