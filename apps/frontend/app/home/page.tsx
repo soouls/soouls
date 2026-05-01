@@ -268,7 +268,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex flex-1 flex-col items-center">
-        <section className="relative z-10 w-full max-w-[1600px] px-4 pb-44 pt-32 md:px-8 md:pb-64">
+        <section className="relative z-10 flex min-h-screen w-full max-w-[1600px] flex-col justify-center px-4 pb-20 md:px-8">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -279,7 +279,7 @@ export default function HomePage() {
             Clarity comes after you{' '}
             <Link
               href="/home/new-entry"
-              className="font-playfair italic underline underline-offset-4"
+              className="inline-flex items-center gap-1 font-playfair italic underline underline-offset-4"
               style={{ color: 'var(--soouls-accent)' }}
             >
               make entry

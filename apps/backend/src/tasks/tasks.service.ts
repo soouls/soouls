@@ -38,8 +38,8 @@ export class TasksService {
         .where(sql`entry_id IN (
           SELECT id FROM journal_entries 
           WHERE type = 'task' 
-          AND deadline <= ${tomorrow} 
-          AND deadline > ${nextHour}
+          AND deadline <= ${tomorrow.toISOString()} 
+          AND deadline > ${nextHour.toISOString()}
         )`);
 
       // Update tasks due within 1h
@@ -49,7 +49,7 @@ export class TasksService {
         .where(sql`entry_id IN (
           SELECT id FROM journal_entries 
           WHERE type = 'task' 
-          AND deadline <= ${nextHour}
+          AND deadline <= ${nextHour.toISOString()}
         )`);
     } catch (error) {
       console.error('[Scheduler] Failed to update visual mass:', error);

@@ -2,7 +2,8 @@
 
 import { useUser } from '@clerk/nextjs';
 import { AnimatePresence, type PanInfo, motion } from 'framer-motion';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, MousePointer2 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
@@ -25,29 +26,27 @@ const FolderIcon = ({ className, count = '0' }: { className?: string; count?: st
   <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <path
       d="M10 25C10 22.2386 12.2386 20 15 20H38.5C39.6935 20 40.8443 20.4261 41.745 21.2014L50.255 28.5486C51.1557 29.3239 52.3065 29.75 53.5 29.75H85C87.7614 29.75 90 31.9886 90 34.75V70C90 72.7614 87.7614 75 85 75H15C12.2386 75 10 72.7614 10 70V25Z"
-      fill="rgba(212,107,78, 0.18)"
-      stroke="rgba(255,255,255,0.55)"
-      strokeWidth="3.5"
+      fill="#3B2C28"
+      stroke="rgba(255,255,255,0.15)"
+      strokeWidth="2"
       strokeLinejoin="round"
     />
     <rect
       x="18"
-      y="58"
-      width="26"
-      height="9"
-      rx="4"
-      fill="transparent"
-      stroke="#D46B4E"
-      strokeWidth="0.8"
-      opacity="0.7"
+      y="55"
+      width="22"
+      height="10"
+      rx="5"
+      fill="#D46B4E"
     />
     <text
-      x="20"
-      y="64.5"
-      fill="#D46B4E"
+      x="29"
+      y="61.5"
+      fill="white"
       fontSize="4"
-      fontWeight="600"
-      className="font-urbanist"
+      fontWeight="700"
+      textAnchor="middle"
+      className="font-sans"
     >
       {count} Entries
     </text>
@@ -98,6 +97,17 @@ export default function CanvasPage() {
 
   return (
     <div className="min-h-screen bg-[#1F1F1F] text-white flex flex-col relative overflow-hidden font-urbanist select-none">
+      {/* Background Image */}
+      <div className="pointer-events-none absolute inset-0 select-none z-0" aria-hidden="true">
+        <Image
+          src="/images/tree-bg.png"
+          alt=""
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.15 }}
+          priority={false}
+        />
+      </div>
+
       {/* Background Watermark */}
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
@@ -113,12 +123,12 @@ export default function CanvasPage() {
           <button
             type="button"
             onClick={() => router.push('/home')}
-            className="text-white/40 hover:text-white transition-colors"
+            className="text-white/60 hover:text-white transition-colors"
           >
             Home
           </button>
-          <span className="text-[#D46B4E] mx-3 opacity-60">/</span>
-          <span className="text-[#D46B4E]">Canvas</span>
+          <span className="text-[#D46B4E] mx-1 opacity-80">/</span>
+          <span className="text-[#D46B4E] font-medium">Canvas</span>
         </div>
 
         <button
@@ -140,7 +150,7 @@ export default function CanvasPage() {
               className="flex-[1.2] rounded-[28px] border border-white/5 bg-black/20 backdrop-blur-md shadow-inner flex flex-col overflow-hidden"
             >
               <div className="p-5 border-b border-white/[0.06] space-y-4">
-                <h2 className="text-xl font-medium px-2">Your Spaces</h2>
+                <div className="h-4" /> {/* Spacer instead of title */}
                 <div className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 focus-within:ring-[#D46B4E]/50 transition bg-white/5 border border-white/10">
                   <Search className="w-4 h-4 text-white/40" />
                   <input
@@ -238,19 +248,20 @@ export default function CanvasPage() {
               </AnimatePresence>
 
               {droppedItems.length === 0 && (
-                <div className="relative z-10 text-center px-6 max-w-xl pointer-events-none">
-                  <p className="text-[24px] md:text-[32px] leading-relaxed text-white/80 font-light italic serif">
+                <div className="relative z-10 text-center px-6 max-w-2xl pointer-events-none">
+                  <p className="text-[28px] md:text-[42px] leading-relaxed text-white/90 font-playfair italic">
                     “Your thoughts are not separate.
                     <br />
                     They are waiting to connect.”
                   </p>
 
-                  <div className="mt-8 flex flex-col items-center gap-2">
-                    <div className="px-5 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] tracking-[0.3em] uppercase text-white/50 font-bold">
-                      Double click
+                  <div className="mt-12 flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2 text-[11px] tracking-[0.4em] uppercase text-white/40 font-bold">
+                      <MousePointer2 className="w-3 h-3 stroke-[3]" />
+                      DOUBLE CLICK
                     </div>
-                    <p className="text-sm text-white/30 font-medium">
-                      Drag folders or double click to begin your journey
+                    <p className="text-base text-white/30 font-medium">
+                      Drag entries or double click to begin
                     </p>
                   </div>
                 </div>
