@@ -145,6 +145,7 @@ function usePersistedEntry(initialId: string | null) {
     (valOrUpdater: string | ((prev: string) => string)) => {
       setTextContentRaw((prevRaw) => {
         const nextVal = typeof valOrUpdater === 'function' ? valOrUpdater(prevRaw) : valOrUpdater;
+        textContentRef.current = nextVal;
         setBlocksRaw((prevBlocks) => {
           persist(nextVal, prevBlocks);
           return prevBlocks;
@@ -159,11 +160,11 @@ function usePersistedEntry(initialId: string | null) {
     (updater: (prev: Block[]) => Block[]) => {
       setBlocksRaw((prev) => {
         const next = updater(prev);
-        persist(textContent, next);
+        persist(textContentRef.current, next);
         return next;
       });
     },
-    [persist, textContent],
+    [persist],
   );
 
   const clearAll = useCallback(() => {
@@ -1393,17 +1394,18 @@ function NewEntryContent() {
           LZString.decompressFromUTF16(existingEntry.content) || existingEntry.content;
         const parsed = JSON.parse(decompressed);
         if (parsed.textContent !== undefined) {
-          if (!textContent) setTextContent(parsed.textContent || '');
-          if (blocks.length === 0) setBlocks((_prev) => parsed.blocks || []);
+          // Senior note: Using functional check to avoid stale closures in initial load
+          setTextContent((prev) => (!prev ? parsed.textContent || '' : prev));
+          setBlocks((prev) => (prev.length === 0 ? parsed.blocks || [] : prev));
         } else {
-          if (!textContent) setTextContent(existingEntry.content || '');
+          setTextContent((prev) => (!prev ? existingEntry.content || '' : prev));
         }
       } catch {
-        if (!textContent) setTextContent(existingEntry.content || '');
+        setTextContent((prev) => (!prev ? existingEntry.content || '' : prev));
       }
       setEntryId(existingEntry.id);
     }
-  }, [existingEntry]); // eslint-disable-line
+  }, [existingEntry, setTextContent, setBlocks]);
 
   const getUploadUrlMutation = trpc.private.entries.getUploadUrl.useMutation();
   const _updateMediaUrlMutation = trpc.private.entries.updateMediaUrl.useMutation();
@@ -1483,10 +1485,12 @@ function NewEntryContent() {
     if (!textContent.trim() && blocks.length === 0) return;
     setSyncStatus('idle');
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
-    dbDebounce.current = setTimeout(
-      () => performDbSave.current(textContent, blocks, entryIdRef.current),
-      2000,
-    );
+    dbDebounce.current = setTimeout(() => {
+      // Accessing latest state from refs or capturing current values in closure
+      // Senior approach: capture values to ensure the timeout saves what was present AT THE TIME of the call
+      // or use refs to save the ABSOLUTE LATEST. Here we use the latest since it's a debounced "final" save.
+      performDbSave.current(textContent, blocks, entryIdRef.current);
+    }, 2000);
     return () => {
       if (dbDebounce.current) clearTimeout(dbDebounce.current);
     };
