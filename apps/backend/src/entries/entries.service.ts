@@ -37,17 +37,23 @@ export class EntriesService {
     return this.getCacheKey('entry', userId, entryId);
   }
 
+  private async getUserVersion(userId: string): Promise<string> {
+    const versionKey = this.getCacheKey('user', userId, 'ns_version');
+    const version = await this.redis.get<string>(versionKey);
+    if (version) return version;
+
+    // Initialize version if not exists
+    const newVersion = '1';
+    await this.redis.set(versionKey, newVersion, 86400 * 30); // 30 day version life
+    return newVersion;
+  }
+
   private async invalidateUserEntryCache(userId: string): Promise<void> {
-    const patterns = [
-      this.getCacheKey('entries:all', userId, '*'),
-      this.getCacheKey('galaxy', userId, '*'),
-    ];
-    for (const pattern of patterns) {
-      await this.redis.invalidatePattern(pattern);
-    }
-    // Invalidate admin entries cache
+    const versionKey = this.getCacheKey('user', userId, 'ns_version');
+    await this.redis.incr(versionKey);
+
+    // Invalidate admin entries cache (still uses pattern as it's global/rare)
     await this.redis.invalidatePattern('admin:entries:*');
-    await this.redis.invalidatePattern(`home:*:${userId}*`);
   }
 
   /**
@@ -367,7 +373,8 @@ export class EntriesService {
   }
 
   async getGalaxyData(userId: string, limit = 100, cursor = 0) {
-    const cacheKey = this.getCacheKey('galaxy', userId, limit, cursor);
+    const version = await this.getUserVersion(userId);
+    const cacheKey = this.getCacheKey('galaxy', userId, version, limit, cursor);
     const cached = await this.redis.get<{ items: GalaxyEntry[]; nextCursor: number | null }>(
       cacheKey,
     );
@@ -435,7 +442,8 @@ export class EntriesService {
    * Used by the dashboard timeline to show descriptions and media.
    */
   async getAllEntries(userId: string, limit = 50, cursor = 0) {
-    const cacheKey = this.getCacheKey('entries:all', userId, limit, cursor);
+    const version = await this.getUserVersion(userId);
+    const cacheKey = this.getCacheKey('entries:all', userId, version, limit, cursor);
     const cached = await this.redis.get<{ items: UserEntry[]; nextCursor: number | null }>(
       cacheKey,
     );
