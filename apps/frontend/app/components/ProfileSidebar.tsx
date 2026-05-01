@@ -88,7 +88,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             {/* Nav Links */}
             <nav className="flex-1 space-y-2 relative z-10">
               {[
-                { label: 'Dashboard', href: '/home', icon: <DiamondIcon className="w-5 h-5" /> },
+                { label: 'Dashboard', href: '/home/dashboard', icon: <DiamondIcon className="w-5 h-5" /> },
                 {
                   label: 'Insights',
                   href: '/home/insights',
