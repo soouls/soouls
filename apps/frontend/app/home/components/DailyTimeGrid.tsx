@@ -29,7 +29,7 @@ const GCAL_COLORS: Record<string, string> = {
   '10': '#4E342E',
   '11': '#BF360C',
 };
-const GCAL_DEFAULT_COLOR = '#D46B4E';
+const GCAL_DEFAULT_COLOR = 'var(--soouls-accent)';
 
 export function DailyTimeGrid({
   date,
@@ -61,7 +61,7 @@ export function DailyTimeGrid({
       {/* Header */}
       <div className="flex items-center justify-between mb-4 px-2">
         <div>
-          <div className="text-xs font-semibold tracking-widest text-[#e67e65] uppercase mb-1">
+          <div className="text-xs font-semibold tracking-widest text-[var(--soouls-accent)] uppercase mb-1">
             {date.toLocaleDateString('en-US', { weekday: 'long' })}
           </div>
           <h3 className="text-2xl font-bold text-white">
@@ -172,7 +172,7 @@ export function DailyTimeGrid({
                   <button
                     key={entry.id}
                     onClick={() => onOpenEntry(entry.id)}
-                    className="absolute left-4 right-4 rounded-xl px-4 py-3 overflow-hidden text-left bg-[#1a1a1a] border border-[#333] hover:border-[#e67e65] hover:bg-[#222] transition-all z-20 shadow-xl"
+                    className="absolute left-4 right-4 rounded-xl px-4 py-3 overflow-hidden text-left bg-[#1a1a1a] border border-[#333] hover:border-[var(--soouls-accent)] hover:bg-[#222] transition-all z-20 shadow-xl"
                     style={{
                       top: `${top}px`,
                       height: `${height}px`,

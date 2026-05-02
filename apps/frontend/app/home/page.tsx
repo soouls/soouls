@@ -24,7 +24,7 @@ import { SymbolLogo } from '../components/SymbolLogo';
 import { CalendarModal } from './components/CalendarModal';
 
 function avatarFor(seed?: string | null) {
-  return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,e07a5f&radius=50`;
+  return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,var(--soouls-accent)&radius=50`;
 }
 
 function entryTitle(entry: UserEntry) {
@@ -50,7 +50,7 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
         <p className="text-xs text-[#d8d8d8]">
           {entry ? entryTitle(entry) : 'Hey! Today I am feeling great.'}
         </p>
-        <div className="mt-4 h-20 rounded bg-[linear-gradient(135deg,rgba(224,122,95,0.28),rgba(239,235,221,0.08))]" />
+        <div className="mt-4 h-20 rounded bg-[linear-gradient(135deg,rgba(var(--soouls-accent-rgb),0.28),rgba(239,235,221,0.08))]" />
         <p className="mt-2 text-[10px] text-[#b7ff8d]">Entry preview</p>
       </div>
       <div className="rounded-md bg-[#222] p-3">
@@ -58,7 +58,7 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
         <p className="text-center text-xs text-[#7a7a7a]">Add more</p>
         <div className="mt-3 flex items-end gap-1">
           {[16, 24, 14, 28, 20, 12, 26, 18].map((height, index) => (
-            <span key={index} className="w-2 rounded bg-[#e07a5f]" style={{ height }} />
+            <span key={index} className="w-2 rounded bg-[var(--soouls-accent)]" style={{ height }} />
           ))}
         </div>
       </div>
@@ -66,7 +66,7 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
         <div className="mb-3 inline-flex rounded-full border border-[#d8d8d8] px-3 py-1 text-xs text-[#d8d8d8]">
           I will complete the design system task today
         </div>
-        <p className="text-2xl text-[#e07a5f]">
+        <p className="text-2xl text-[var(--soouls-accent)]">
           00:01:48 <span className="text-xs">pm</span>
         </p>
         <p className="mt-2 text-[10px] text-[#b7ff8d]">Goal set</p>
@@ -392,7 +392,7 @@ export default function HomePage() {
                   {thoughtThemes.slice(0, 5).map((theme, index) => (
                     <span
                       key={theme.key}
-                      className="absolute h-3 w-3 rounded-full bg-[#e8c7b4] shadow-[0_0_18px_rgba(224,122,95,0.8)]"
+                      className="absolute h-3 w-3 rounded-full bg-[var(--soouls-accent)] shadow-[0_0_18px_rgba(var(--soouls-accent-rgb),0.8)]"
                       style={{ left: `${20 + index * 14}%`, top: `${25 + (index % 3) * 18}%` }}
                     />
                   ))}

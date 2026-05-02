@@ -2,7 +2,17 @@
 
 import { useUser } from '@clerk/nextjs';
 import type { HomeSettings } from '@soouls/api/router';
-import { Bell, ChevronDown, Clock, Loader2, Moon, Sparkles, Sun, User } from 'lucide-react';
+import {
+  Bell,
+  ChevronDown,
+  Clock,
+  Loader2,
+  Moon,
+  Palette,
+  Sparkles,
+  Sun,
+  User,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -16,6 +26,13 @@ import { clearQueryCache } from '../../../src/providers/trpc-provider';
 import { trpc } from '../../../src/utils/trpc';
 
 const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
+
+const ACCENT_OPTIONS: { value: HomeSettings['accentTheme']; label: string; hex: string }[] = [
+  { value: 'orange', label: 'Orange', hex: '#E07A5F' },
+  { value: 'yellow', label: 'Yellow', hex: '#D9A23D' },
+  { value: 'green', label: 'Green', hex: '#73B27C' },
+  { value: 'purple', label: 'Purple', hex: '#8C72D8' },
+];
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,e07a5f&radius=50`;
@@ -202,34 +219,37 @@ export default function SettingsPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden select-none"
-      style={{ backgroundColor: '#1F1F1F', color: '#EFEDDD', fontFamily: FONT_URBANIST }}
+      className="min-h-screen flex flex-col relative overflow-hidden select-none transition-colors duration-300"
+      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)', fontFamily: FONT_URBANIST }}
     >
+      {/* Giant background "Soouls" watermark */}
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
           className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
           style={{
-            WebkitTextStroke: '1px rgba(255,255,255,0.7)',
+            WebkitTextStroke: '1px var(--soouls-overlay-strong)',
           }}
         >
           Soouls
         </span>
       </div>
 
+      {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
           <Link
             href="/home"
-            className="text-white/40 hover:text-white transition-colors"
+            className="transition-colors hover:opacity-80"
+            style={{ color: 'var(--soouls-text-faint)' }}
           >
             Home
           </Link>
-          <span className="text-[#D46B4E] ml-2">/ Settings</span>
+          <span style={{ color: 'var(--soouls-accent)' }} className="ml-2">/ Settings</span>
         </div>
 
         <div className="flex items-center gap-3">
           {feedback === 'saving' ? (
-            <Loader2 className="h-4 w-4 animate-spin text-[var(--soouls-text-faint)]" />
+            <Loader2 className="h-4 w-4 animate-spin" style={{ color: 'var(--soouls-text-faint)' }} />
           ) : null}
           {feedback === 'saved' ? (
             <span className="text-xs" style={{ color: 'var(--soouls-accent)' }}>
@@ -238,7 +258,8 @@ export default function SettingsPage() {
           ) : null}
           <button
             onClick={() => setIsOpen(true)}
-            className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+            className="w-10 h-10 rounded-full border-2 transition-all cursor-pointer overflow-hidden"
+            style={{ borderColor: 'var(--soouls-overlay-muted)', boxShadow: '0 4px 4px rgba(0,0,0,0.25)' }}
           >
             <img
               src={user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id)}
@@ -249,261 +270,346 @@ export default function SettingsPage() {
         </div>
       </header>
 
+      {/* Main content */}
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
         <section
-          className="flex-1 backdrop-blur-[48px] border-t border-white/10 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
-          style={{ backgroundColor: 'rgba(15, 15, 15, 0.6)' }}
+          className="flex-1 backdrop-blur-[48px] border-t rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-6"
+          style={{ backgroundColor: 'var(--soouls-bg-panel)', borderColor: 'var(--soouls-border)', opacity: 0.96 }}
         >
-          <div className="mb-8">
-            <h1 className="font-playfair text-4xl italic leading-tight sm:text-5xl text-[#E07A5F]">Settings</h1>
-            <p className="mt-2 text-[20px] text-[#7A7A7A]">
+          {/* Title */}
+          <div className="mb-2">
+            <h1
+              className="font-playfair text-4xl italic leading-tight sm:text-5xl"
+              style={{ color: 'var(--soouls-accent)' }}
+            >
+              Settings
+            </h1>
+            <p className="mt-2 text-[20px]" style={{ color: 'var(--soouls-text-faint)' }}>
               Control how Soouls works for you.
             </p>
           </div>
 
-        <SectionCard>
-          <p className="mb-4 text-xs uppercase tracking-[0.22em] text-[var(--soouls-text-faint)]">
-            Preferences
-          </p>
-          <div className="grid gap-5 sm:grid-cols-3">
-            <SettingRow
-              label="Theme"
-              icon={
-                settings.themeMode === 'dark' ? (
-                  <Moon className="h-4 w-4" />
-                ) : (
-                  <Sun className="h-4 w-4" />
-                )
-              }
-              right={
-                <button
-                  type="button"
-                  onClick={() =>
-                    handlePatch({ themeMode: settings.themeMode === 'dark' ? 'light' : 'dark' })
-                  }
-                  style={{ color: 'var(--soouls-accent)' }}
-                >
-                  {settings.themeMode === 'dark' ? 'Dark' : 'Light'}
-                </button>
-              }
-            />
-            <SettingRow
-              label="Default view"
-              icon={<ChevronDown className="h-4 w-4" />}
-              right={
-                <button
-                  type="button"
-                  onClick={() => {
-                    const views: HomeSettings['defaultView'][] = ['canvas', 'list', 'calendar'];
-                    handlePatch({
-                      defaultView:
-                        views[(views.indexOf(settings.defaultView) + 1) % views.length] ?? 'canvas',
-                    });
-                  }}
-                  style={{ color: 'var(--soouls-accent)' }}
-                >
-                  {settings.defaultView}
-                </button>
-              }
-            />
-            <SettingRow
-              label="Writing"
-              right={
-                <button
-                  type="button"
-                  onClick={() =>
-                    handlePatch({
-                      writingMode: settings.writingMode === 'minimal' ? 'guided' : 'minimal',
-                    })
-                  }
-                  style={{ color: 'var(--soouls-accent)' }}
-                >
-                  {settings.writingMode}
-                </button>
-              }
-            />
-          </div>
-        </SectionCard>
+          {/* ─── Appearance + Preferences ─── */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SectionCard>
+              <SectionTitle>Appearance</SectionTitle>
 
-        <SectionCard>
-          <SectionTitle>Notifications</SectionTitle>
-          <SettingRow
-            label="Daily reminder"
-            sublabel="Gentle nudge to reflect on your day"
-            icon={<Bell className="h-4 w-4" />}
-            right={
-              <Toggle
-                on={settings.dailyReminder}
-                onChange={(value) => handlePatch({ dailyReminder: value })}
-              />
-            }
-          />
-          <SettingRow
-            label="Reflection prompts"
-            sublabel="AI-generated questions for deeper thought"
-            icon={<Sparkles className="h-4 w-4" />}
-            right={
-              <Toggle
-                on={settings.reflectionPrompts}
-                onChange={(value) => handlePatch({ reflectionPrompts: value })}
-              />
-            }
-          />
-          <SettingRow
-            label="Reminder time"
-            icon={<Clock className="h-4 w-4" />}
-            right={
-              <>
-                <input
-                  ref={timeInputRef}
-                  type="time"
-                  value={settings.reminderTime}
-                  onChange={(event) => handlePatch({ reminderTime: event.target.value })}
-                  className="sr-only"
-                />
-                <button
-                  type="button"
-                  onClick={() => timeInputRef.current?.showPicker?.()}
-                  className="rounded-full border px-3 py-1 text-xs"
-                  style={{ borderColor: 'var(--soouls-border)', color: 'var(--soouls-accent)' }}
-                >
-                  {formatReminderTime(settings.reminderTime)}
-                </button>
-              </>
-            }
-          />
-        </SectionCard>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SectionCard>
-            <SectionTitle>AI Behavior</SectionTitle>
-            <div
-              className="mb-4 grid grid-cols-3 gap-1 rounded-2xl p-1"
-              style={{ backgroundColor: 'var(--soouls-overlay-subtle)' }}
-            >
-              {(['minimal', 'balanced', 'deep'] as const).map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => handlePatch({ insightDepth: level })}
-                  className="rounded-xl px-3 py-2 text-xs font-medium capitalize"
-                  style={{
-                    backgroundColor:
-                      settings.insightDepth === level
-                        ? 'rgba(var(--soouls-accent-rgb),0.92)'
-                        : 'transparent',
-                    color: settings.insightDepth === level ? '#fff' : 'var(--soouls-text-faint)',
-                  }}
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
-            <SettingRow
-              label="Auto clustering"
-              right={
-                <Toggle
-                  on={settings.autoClustering}
-                  onChange={(value) => handlePatch({ autoClustering: value })}
-                />
-              }
-            />
-            <SettingRow
-              label="Suggestions"
-              right={
-                <Toggle
-                  on={settings.suggestions}
-                  onChange={(value) => handlePatch({ suggestions: value })}
-                />
-              }
-            />
-          </SectionCard>
-
-          <SectionCard>
-            <SectionTitle>App Behavior</SectionTitle>
-            {(['autosave', 'focusMode', 'sessionTracking'] as const).map((key) => (
+              {/* Theme mode toggle */}
               <SettingRow
-                key={key}
-                label={key.replace(/([A-Z])/g, ' $1')}
+                label="Theme"
+                sublabel={`Currently using ${settings.themeMode} mode`}
+                icon={
+                  settings.themeMode === 'dark' ? (
+                    <Moon className="h-4 w-4" />
+                  ) : (
+                    <Sun className="h-4 w-4" />
+                  )
+                }
                 right={
-                  <Toggle on={settings[key]} onChange={(value) => handlePatch({ [key]: value })} />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePatch({ themeMode: settings.themeMode === 'dark' ? 'light' : 'dark' })
+                    }
+                    className="flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-all hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      color: 'var(--soouls-accent)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                    }}
+                  >
+                    {settings.themeMode === 'dark' ? (
+                      <>
+                        <Moon className="h-3 w-3" /> Dark
+                      </>
+                    ) : (
+                      <>
+                        <Sun className="h-3 w-3" /> Light
+                      </>
+                    )}
+                  </button>
                 }
               />
-            ))}
-          </SectionCard>
-        </div>
 
-        <SectionCard>
-          <SectionTitle>Privacy Controls</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <SettingRow
-              label="Data storage"
-              right={
-                <button
-                  type="button"
-                  onClick={() =>
-                    handlePatch({
-                      dataStorage: settings.dataStorage === 'local' ? 'cloud' : 'local',
-                    })
-                  }
-                  style={{ color: 'var(--soouls-accent)' }}
-                >
-                  {settings.dataStorage}
-                </button>
-              }
-            />
-            <SettingRow
-              label="Data usage"
-              right={
-                <button
-                  type="button"
-                  onClick={() =>
-                    handlePatch({
-                      dataUsage: settings.dataUsage === 'anonymous' ? 'full' : 'anonymous',
-                    })
-                  }
-                  style={{ color: 'var(--soouls-accent)' }}
-                >
-                  {settings.dataUsage}
-                </button>
-              }
-            />
-            <SettingRow
-              label="Cache"
-              right={
-                <button
-                  type="button"
-                  onClick={handleClearCache}
-                  style={{ color: 'var(--soouls-accent)' }}
-                >
-                  {cacheMessage ?? 'Clear'}
-                </button>
-              }
-            />
+              {/* Accent color picker */}
+              <SettingRow
+                label="Accent color"
+                sublabel="Personalize the highlight color"
+                icon={<Palette className="h-4 w-4" />}
+                right={
+                  <div className="flex items-center gap-2">
+                    {ACCENT_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handlePatch({ accentTheme: opt.value })}
+                        title={opt.label}
+                        className="relative h-6 w-6 rounded-full transition-all duration-200 hover:scale-110"
+                        style={{
+                          backgroundColor: opt.hex,
+                          boxShadow:
+                            settings.accentTheme === opt.value
+                              ? `0 0 0 2px var(--soouls-bg-surface), 0 0 0 4px ${opt.hex}`
+                              : 'none',
+                          transform: settings.accentTheme === opt.value ? 'scale(1.15)' : undefined,
+                        }}
+                        aria-label={`Set accent color to ${opt.label}`}
+                        aria-pressed={settings.accentTheme === opt.value}
+                      />
+                    ))}
+                  </div>
+                }
+              />
+            </SectionCard>
+
+            <SectionCard>
+              <SectionTitle>Preferences</SectionTitle>
+              <SettingRow
+                label="Default view"
+                icon={<ChevronDown className="h-4 w-4" />}
+                right={
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const views: HomeSettings['defaultView'][] = ['canvas', 'list', 'calendar'];
+                      handlePatch({
+                        defaultView:
+                          views[(views.indexOf(settings.defaultView) + 1) % views.length] ?? 'canvas',
+                      });
+                    }}
+                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      color: 'var(--soouls-accent)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                    }}
+                  >
+                    {settings.defaultView}
+                  </button>
+                }
+              />
+              <SettingRow
+                label="Writing"
+                right={
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePatch({
+                        writingMode: settings.writingMode === 'minimal' ? 'guided' : 'minimal',
+                      })
+                    }
+                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      color: 'var(--soouls-accent)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                    }}
+                  >
+                    {settings.writingMode}
+                  </button>
+                }
+              />
+            </SectionCard>
           </div>
-        </SectionCard>
 
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => handlePatch(HOME_DEFAULT_SETTINGS)}
-            className="rounded-full border px-7 py-3 text-sm font-medium"
-            style={{ borderColor: 'var(--soouls-chip-divider)' }}
-          >
-            Reset App
-          </button>
-          <button
-            type="button"
-            onClick={handleClearCache}
-            className="rounded-full border px-7 py-3 text-sm font-medium"
-            style={{
-              borderColor: 'rgba(var(--soouls-accent-rgb),0.4)',
-              color: 'var(--soouls-accent)',
-            }}
-          >
-            Clear Cache
-          </button>
-        </div>
+          {/* ─── Notifications ─── */}
+          <SectionCard>
+            <SectionTitle>Notifications</SectionTitle>
+            <SettingRow
+              label="Daily reminder"
+              sublabel="Gentle nudge to reflect on your day"
+              icon={<Bell className="h-4 w-4" />}
+              right={
+                <Toggle
+                  on={settings.dailyReminder}
+                  onChange={(value) => handlePatch({ dailyReminder: value })}
+                />
+              }
+            />
+            <SettingRow
+              label="Reflection prompts"
+              sublabel="AI-generated questions for deeper thought"
+              icon={<Sparkles className="h-4 w-4" />}
+              right={
+                <Toggle
+                  on={settings.reflectionPrompts}
+                  onChange={(value) => handlePatch({ reflectionPrompts: value })}
+                />
+              }
+            />
+            <SettingRow
+              label="Reminder time"
+              icon={<Clock className="h-4 w-4" />}
+              right={
+                <>
+                  <input
+                    ref={timeInputRef}
+                    type="time"
+                    value={settings.reminderTime}
+                    onChange={(event) => handlePatch({ reminderTime: event.target.value })}
+                    className="sr-only"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => timeInputRef.current?.showPicker?.()}
+                    className="rounded-full border px-3 py-1 text-xs transition-all hover:opacity-80"
+                    style={{ borderColor: 'var(--soouls-border)', color: 'var(--soouls-accent)' }}
+                  >
+                    {formatReminderTime(settings.reminderTime)}
+                  </button>
+                </>
+              }
+            />
+          </SectionCard>
+
+          {/* ─── AI + App Behavior ─── */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <SectionCard>
+              <SectionTitle>AI Behavior</SectionTitle>
+              <div
+                className="mb-4 grid grid-cols-3 gap-1 rounded-2xl p-1"
+                style={{ backgroundColor: 'var(--soouls-overlay-subtle)' }}
+              >
+                {(['minimal', 'balanced', 'deep'] as const).map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    onClick={() => handlePatch({ insightDepth: level })}
+                    className="rounded-xl px-3 py-2 text-xs font-medium capitalize transition-all duration-200"
+                    style={{
+                      backgroundColor:
+                        settings.insightDepth === level
+                          ? 'rgba(var(--soouls-accent-rgb),0.92)'
+                          : 'transparent',
+                      color: settings.insightDepth === level ? '#fff' : 'var(--soouls-text-faint)',
+                    }}
+                  >
+                    {level}
+                  </button>
+                ))}
+              </div>
+              <SettingRow
+                label="Auto clustering"
+                right={
+                  <Toggle
+                    on={settings.autoClustering}
+                    onChange={(value) => handlePatch({ autoClustering: value })}
+                  />
+                }
+              />
+              <SettingRow
+                label="Suggestions"
+                right={
+                  <Toggle
+                    on={settings.suggestions}
+                    onChange={(value) => handlePatch({ suggestions: value })}
+                  />
+                }
+              />
+            </SectionCard>
+
+            <SectionCard>
+              <SectionTitle>App Behavior</SectionTitle>
+              {(['autosave', 'focusMode', 'sessionTracking'] as const).map((key) => (
+                <SettingRow
+                  key={key}
+                  label={key.replace(/([A-Z])/g, ' $1')}
+                  right={
+                    <Toggle on={settings[key]} onChange={(value) => handlePatch({ [key]: value })} />
+                  }
+                />
+              ))}
+            </SectionCard>
+          </div>
+
+          {/* ─── Privacy ─── */}
+          <SectionCard>
+            <SectionTitle>Privacy Controls</SectionTitle>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <SettingRow
+                label="Data storage"
+                right={
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePatch({
+                        dataStorage: settings.dataStorage === 'local' ? 'cloud' : 'local',
+                      })
+                    }
+                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      color: 'var(--soouls-accent)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                    }}
+                  >
+                    {settings.dataStorage}
+                  </button>
+                }
+              />
+              <SettingRow
+                label="Data usage"
+                right={
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePatch({
+                        dataUsage: settings.dataUsage === 'anonymous' ? 'full' : 'anonymous',
+                      })
+                    }
+                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      color: 'var(--soouls-accent)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                    }}
+                  >
+                    {settings.dataUsage}
+                  </button>
+                }
+              />
+              <SettingRow
+                label="Cache"
+                right={
+                  <button
+                    type="button"
+                    onClick={handleClearCache}
+                    className="rounded-full border px-3 py-1 text-xs font-medium transition-all hover:opacity-80"
+                    style={{
+                      borderColor: 'var(--soouls-border)',
+                      color: 'var(--soouls-accent)',
+                      backgroundColor: 'var(--soouls-overlay-subtle)',
+                    }}
+                  >
+                    {cacheMessage ?? 'Clear'}
+                  </button>
+                }
+              />
+            </div>
+          </SectionCard>
+
+          {/* ─── Footer actions ─── */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => handlePatch(HOME_DEFAULT_SETTINGS)}
+              className="rounded-full border px-7 py-3 text-sm font-medium transition-all hover:opacity-80"
+              style={{ borderColor: 'var(--soouls-chip-divider)', color: 'var(--soouls-text-muted)' }}
+            >
+              Reset App
+            </button>
+            <button
+              type="button"
+              onClick={handleClearCache}
+              className="rounded-full border px-7 py-3 text-sm font-medium transition-all hover:opacity-80"
+              style={{
+                borderColor: 'rgba(var(--soouls-accent-rgb),0.4)',
+                color: 'var(--soouls-accent)',
+              }}
+            >
+              Clear Cache
+            </button>
+          </div>
         </section>
       </main>
     </div>

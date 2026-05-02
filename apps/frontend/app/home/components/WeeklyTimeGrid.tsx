@@ -30,7 +30,7 @@ const GCAL_COLORS: Record<string, string> = {
   '10': '#4E342E',
   '11': '#BF360C',
 };
-const GCAL_DEFAULT_COLOR = '#D46B4E';
+const GCAL_DEFAULT_COLOR = 'var(--soouls-accent)';
 
 export function WeeklyTimeGrid({
   weekDates,
@@ -81,11 +81,11 @@ export function WeeklyTimeGrid({
                   onClick={() => onSelectDay(wd.getDate())}
                   className={`w-9 h-9 rounded-full text-sm font-semibold flex items-center justify-center transition-all ${
                     isToday
-                      ? 'bg-[#e67e65] text-white shadow-lg shadow-[#e67e65]/30'
+                      ? 'bg-[var(--soouls-accent)] text-white shadow-lg shadow-[var(--soouls-accent)]/30'
                       : isSelected
-                        ? 'ring-2 ring-[#e67e65] text-white'
+                        ? 'ring-2 ring-[var(--soouls-accent)] text-white'
                         : 'text-gray-300 hover:bg-white/5'
-                  }`}
+                  } text-sm font-semibold flex items-center justify-center transition-all`}
                 >
                   {wd.getDate()}
                 </button>
