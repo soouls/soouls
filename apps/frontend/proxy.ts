@@ -24,14 +24,9 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId, redirectToSignIn } = await auth();
 
   // Redirect /dashboard to /home for backward compatibility (dashboard is now at /home)
-  if (req.nextUrl.pathname === '/dashboard') {
-    return NextResponse.redirect(new URL('/home', req.url));
-  }
-
-  // Redirect legacy dashboard settings links to the live home settings page.
-  if (req.nextUrl.pathname === '/dashboard/settings') {
-    return NextResponse.redirect(new URL('/home/settings', req.url));
-  }
+  // if (userId && req.nextUrl.pathname === '/dashboard') {
+  //   return NextResponse.redirect(new URL('/home', req.url));
+  // }
 
   // Redirect /home/clusters to /home/canvas (clusters renamed to canvas)
   // if (userId && req.nextUrl.pathname === '/home/clusters') {
@@ -39,9 +34,9 @@ export default clerkMiddleware(async (auth, req) => {
   // }
 
   // Redirect /home/dashboard to /home for backward compatibility (dashboard is now at /home)
-  if (userId && req.nextUrl.pathname === '/home/dashboard') {
-    return NextResponse.redirect(new URL('/home', req.url));
-  }
+  // if (userId && req.nextUrl.pathname === '/home/dashboard') {
+  //   return NextResponse.redirect(new URL('/home', req.url));
+  // }
 
   // If user is logged in and tries to access the landing page, redirect to home (dashboard)
   if (userId && req.nextUrl.pathname === '/') {
