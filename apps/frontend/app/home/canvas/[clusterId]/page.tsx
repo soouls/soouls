@@ -105,7 +105,7 @@ export default function CanvasClusterPage() {
           >
             Home
           </button>
-          <span className="text-[#D46B4E] mx-3 opacity-60">/</span>
+          <span className="text-[var(--soouls-accent)] mx-3 opacity-60">/</span>
           <button
             type="button"
             onClick={() => router.push('/home/canvas')}
@@ -113,8 +113,8 @@ export default function CanvasClusterPage() {
           >
             Canvas
           </button>
-          <span className="text-[#D46B4E] mx-3 opacity-60">/</span>
-          <span className="text-[#D46B4E]">{clusterDetail?.cluster.name ?? 'Cluster'}</span>
+          <span className="text-[var(--soouls-accent)] mx-3 opacity-60">/</span>
+          <span className="text-[var(--soouls-accent)]">{clusterDetail?.cluster.name ?? 'Cluster'}</span>
         </div>
 
         <div className="w-10 h-10 rounded-full border-2 border-white/10 overflow-hidden">
@@ -140,7 +140,7 @@ export default function CanvasClusterPage() {
                     {clusterDetail?.cluster.name ?? 'Cluster'}
                   </h2>
                 </div>
-                <div className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 focus-within:ring-[#D46B4E]/50 transition bg-white/5 border border-white/10">
+                <div className="flex items-center gap-3 px-4 py-2 rounded-full focus-within:ring-1 focus-within:ring-[var(--soouls-accent)]/50 transition bg-white/5 border border-white/10">
                   <Search className="w-4 h-4 text-white/40" />
                   <input
                     value={query}
@@ -156,7 +156,7 @@ export default function CanvasClusterPage() {
                   <div className="animate-in fade-in slide-in-from-left-4 duration-300">
                     <button 
                       onClick={() => setSelectedEntryId(null)}
-                      className="text-[10px] text-[#D46B4E] uppercase tracking-widest font-bold mb-4 hover:opacity-80 flex items-center gap-1"
+                      className="text-[10px] text-[var(--soouls-accent)] uppercase tracking-widest font-bold mb-4 hover:opacity-80 flex items-center gap-1"
                     >
                       <ChevronLeft className="w-3 h-3" />
                       Back to list
@@ -171,7 +171,7 @@ export default function CanvasClusterPage() {
                       <div className="flex items-center gap-3 pt-2">
                         <button 
                           onClick={() => router.push(`/home/new-entry?id=${selectedEntry.id}`)}
-                          className="px-4 py-2 rounded-lg bg-[#D46B4E] text-white text-xs font-bold hover:bg-[#c05a3d] transition-colors"
+                          className="px-4 py-2 rounded-lg bg-[var(--soouls-accent)] text-white text-xs font-bold hover:opacity-90 transition-colors"
                         >
                           EDIT ENTRY
                         </button>
@@ -190,7 +190,7 @@ export default function CanvasClusterPage() {
                         onClick={() => setSelectedEntryId(entry.id)}
                         className={`p-4 rounded-2xl cursor-pointer transition-all border ${
                           selectedEntryId === entry.id 
-                            ? 'bg-[#D46B4E]/10 border-[#D46B4E]/40' 
+                            ? 'bg-[var(--soouls-accent)]/10 border-[var(--soouls-accent)]/40' 
                             : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
                         }`}
                       >
@@ -211,7 +211,7 @@ export default function CanvasClusterPage() {
 
               <div className="p-4 bg-white/[0.02] border-t border-white/5">
                 <button className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-medium flex items-center justify-center gap-2 hover:bg-white/10 hover:text-white transition-all">
-                  <Sparkles className="w-3.5 h-3.5 text-[#D46B4E]" />
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--soouls-accent)]" />
                   Cluster Insights
                 </button>
               </div>
@@ -228,9 +228,9 @@ export default function CanvasClusterPage() {
               <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-0">
                 <defs>
                   <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="rgba(212,107,78, 0)" />
-                    <stop offset="50%" stopColor="rgba(212,107,78, 0.4)" />
-                    <stop offset="100%" stopColor="rgba(212,107,78, 0)" />
+                    <stop offset="0%" stopColor="rgba(var(--soouls-accent-rgb), 0)" />
+                    <stop offset="50%" stopColor="rgba(var(--soouls-accent-rgb), 0.4)" />
+                    <stop offset="100%" stopColor="rgba(var(--soouls-accent-rgb), 0)" />
                   </linearGradient>
                   <filter id="glow">
                     <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -262,7 +262,7 @@ export default function CanvasClusterPage() {
               </svg>
 
               {/* Grid Background */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#D46B4E_1px,transparent_1px)] [background-size:40px_40px]" />
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(var(--soouls-accent)_1px,transparent_1px)] [background-size:40px_40px]" />
 
               <div className="absolute inset-0 p-8">
                 <AnimatePresence>
@@ -286,15 +286,15 @@ export default function CanvasClusterPage() {
                       onDoubleClick={() => router.push(`/home/new-entry?id=${node.id}`)}
                       className={`absolute w-52 p-5 rounded-2xl border backdrop-blur-2xl cursor-move transition-shadow ${
                         selectedEntryId === node.id
-                          ? 'border-[#D46B4E]/60 bg-[#D46B4E]/20 shadow-[0_0_30px_rgba(212,107,78,0.2)]'
+                          ? 'border-[var(--soouls-accent)]/60 bg-[var(--soouls-accent)]/20 shadow-[0_0_30px_rgba(var(--soouls-accent-rgb),0.2)]'
                           : 'border-white/10 bg-white/5 hover:bg-white/10 shadow-xl'
                       }`}
                       style={{ left: node.x, top: node.y }}
                     >
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                          <div className={`w-1.5 h-1.5 rounded-full ${index === 0 ? 'bg-[#D46B4E]' : 'bg-white/40'}`} />
-                          <p className={`text-[10px] font-bold uppercase tracking-wider ${index === 0 ? 'text-[#D46B4E]' : 'text-white/40'}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${index === 0 ? 'bg-[var(--soouls-accent)]' : 'bg-white/40'}`} />
+                          <p className={`text-[10px] font-bold uppercase tracking-wider ${index === 0 ? 'text-[var(--soouls-accent)]' : 'text-white/40'}`}>
                             {index === 0 ? 'Focus point' : 'Linked thought'}
                           </p>
                         </div>

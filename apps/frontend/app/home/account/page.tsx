@@ -207,13 +207,13 @@ export default function AccountPage() {
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden select-none"
-      style={{ backgroundColor: '#1F1F1F', color: '#EFEDDD', fontFamily: FONT_URBANIST }}
+      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)', fontFamily: FONT_URBANIST }}
     >
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
           className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
           style={{
-            WebkitTextStroke: '1px rgba(255,255,255,0.7)',
+            WebkitTextStroke: '1px var(--soouls-text-faint)',
           }}
         >
           Soouls
@@ -224,16 +224,16 @@ export default function AccountPage() {
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
           <Link
             href="/home"
-            className="text-white/40 hover:text-white transition-colors"
+            className="text-[var(--soouls-text-faint)] hover:text-[var(--soouls-text)] transition-colors"
           >
             Home
           </Link>
-          <span className="text-[#D46B4E] ml-2">/ Account</span>
+          <span className="text-[var(--soouls-accent)] ml-2">/ Account</span>
         </div>
 
         <button
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+          className="w-10 h-10 rounded-full border-2 border-[var(--soouls-border)] hover:border-[var(--soouls-text-faint)] transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
         >
           {user?.imageUrl && (
             <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
@@ -243,8 +243,8 @@ export default function AccountPage() {
 
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
         <section
-          className="flex-1 backdrop-blur-[48px] border-t border-white/10 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
-          style={{ backgroundColor: 'rgba(15, 15, 15, 0.6)' }}
+          className="flex-1 backdrop-blur-[48px] border-t border-[var(--soouls-border)] rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
+          style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
         >
           <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
             <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left lg:col-span-6">
@@ -253,9 +253,9 @@ export default function AccountPage() {
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="relative h-28 w-28 rounded-full object-cover ring-4 ring-[#111111] sm:h-32 sm:w-32"
+                  className="relative h-28 w-28 rounded-full object-cover ring-4 ring-[var(--soouls-bg)] sm:h-32 sm:w-32"
                 />
-                <div className="absolute bottom-2 right-2 h-5 w-5 rounded-full bg-emerald-500 ring-4 ring-[#111111]" />
+                <div className="absolute bottom-2 right-2 h-5 w-5 rounded-full bg-emerald-500 ring-4 ring-[var(--soouls-bg)]" />
               </div>
               <div className="min-w-0 space-y-2">
                 <p className="text-sm font-medium uppercase tracking-[0.24em] text-[var(--soouls-text-faint)]">
@@ -314,7 +314,7 @@ export default function AccountPage() {
           <div className="grid gap-4 lg:grid-cols-12 mt-4">
             <div
               className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
-              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
+              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
             >
               <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
                 Your writing patterns
@@ -349,7 +349,7 @@ export default function AccountPage() {
             </div>
             <div
               className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
-              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
+              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
             >
               <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
                 Insight Analysis
@@ -371,7 +371,7 @@ export default function AccountPage() {
           <div className="grid gap-4 lg:grid-cols-12 mt-4">
             <div
               className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
-              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
+              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
             >
               <p className="mb-5 text-base font-medium text-[var(--soouls-text-muted)]">
                 Data &amp; Ownership
@@ -395,7 +395,7 @@ export default function AccountPage() {
             </div>
             <div
               className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
-              style={{ backgroundColor: 'rgba(17,17,17,0.8)', borderColor: 'var(--soouls-border)' }}
+              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
             >
               <div className="mb-4 flex items-center gap-2">
                 <Shield className="h-5 w-5 text-emerald-400" />

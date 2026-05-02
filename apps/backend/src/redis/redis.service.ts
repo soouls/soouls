@@ -18,15 +18,62 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     const redisUrl = process.env.REDIS_URL;
     if (redisUrl) {
+      console.log('[Redis] Initializing Upstash Redis connection (lazy)...');
+      
       this.client = new Redis(redisUrl, {
-        maxRetriesPerRequest: 3,
+        lazyConnect: true,          // Don't block startup
+        maxRetriesPerRequest: 0,    // Don't retry commands on failure in dev
+        connectTimeout: 2000,       // 2s timeout for connection
+        commandTimeout: 2000,       // 2s timeout for commands
         enableReadyCheck: false,
+        enableOfflineQueue: false,  // Fail immediately if disconnected
+        retryStrategy: (times) => {
+          // If we've tried once and failed, wait 60s before next attempt
+          if (times > 0) {
+            const now = Date.now();
+            if (!this.lastRetryLogTime || now - this.lastRetryLogTime > 60000) {
+              console.warn(`[Redis] Connection attempt ${times} failed. Retrying in 60s...`);
+              this.lastRetryLogTime = now;
+            }
+            return 60000; 
+          }
+          return 2000;
+        },
+        reconnectOnError: (err) => {
+          const targetError = 'READONLY';
+          if (err.message.includes(targetError)) {
+            return true;
+          }
+          return false;
+        },
       });
-      console.log('[Redis] Connected to Upstash Redis');
+
+      // Crucial: Handle ALL error events to prevent process crash
+      this.client.on('error', (err) => {
+        // Only log once every 5 minutes to prevent log spam in dev
+        const now = Date.now();
+        if (!this.lastErrorLogTime || now - this.lastErrorLogTime > 300000) {
+          console.warn('[Redis] Connection issue detected. Features using cache may be slow or unavailable.', err.message);
+          this.lastErrorLogTime = now;
+        }
+      });
+
+      // Try an initial background connection but don't await it
+      // Wrap in a try-catch just in case bun/node handles this differently
+      try {
+        this.client.connect().catch((err) => {
+          // Error event listener will handle the logging
+        });
+      } catch (e) {
+        // Ignore synchronous errors during connect call
+      }
     } else {
       console.warn('[Redis] REDIS_URL not set. Falling back to memory cache simulation.');
     }
   }
+
+  private lastErrorLogTime = 0;
+  private lastRetryLogTime = 0;
 
   onModuleDestroy() {
     if (this.client) {

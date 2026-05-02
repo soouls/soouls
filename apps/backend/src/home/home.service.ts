@@ -46,7 +46,7 @@ export class HomeService implements HomeApi {
   constructor(
     @Inject(EntriesService) private readonly entriesService: EntriesService,
     @Inject(RedisService) private readonly redis: RedisService,
-  ) {}
+  ) { }
 
   private getCacheKey(prefix: string, userId: string): string {
     return `${prefix}:${userId}`;

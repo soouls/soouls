@@ -50,7 +50,7 @@ const GCAL_COLORS: Record<string, string> = {
   '10': '#4E342E',
   '11': '#BF360C',
 };
-const GCAL_DEFAULT_COLOR = '#D46B4E';
+const GCAL_DEFAULT_COLOR = 'var(--soouls-accent)';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ function EmptyDay({ onNewEntry }: { onNewEntry: () => void }) {
       </p>
       <button
         onClick={onNewEntry}
-        className="text-xs text-[#e67e65] hover:underline underline-offset-2"
+        className="text-xs text-[var(--soouls-accent)] hover:underline underline-offset-2"
       >
         Write one now →
       </button>
@@ -167,12 +167,12 @@ function GCalModal({
         <div
           className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 relative z-10 ${
             isConnected
-              ? 'bg-[#D46B4E]/10 border border-[#D46B4E]/30'
+              ? 'bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30'
               : 'bg-white/5 border border-white/10'
           }`}
         >
           {isConnected ? (
-            <Check size={28} className="text-[#D46B4E]" />
+            <Check size={28} className="text-[var(--soouls-accent)]" />
           ) : (
             <Calendar size={28} className="text-white/60" />
           )}
@@ -219,7 +219,7 @@ function GCalModal({
                 'Your journal data stays private — read-only access',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-gray-300">
-                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[#D46B4E] shrink-0" />
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-[var(--soouls-accent)] shrink-0" />
                   {item}
                 </li>
               ))}
@@ -238,7 +238,7 @@ function GCalModal({
               <button
                 onClick={onConnect}
                 disabled={connecting || !isConfigured}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#D46B4E] py-3 text-sm font-semibold text-white hover:bg-[#c35b3e] transition-all shadow-lg shadow-[#D46B4E]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-3 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-lg shadow-[var(--soouls-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {connecting ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -523,7 +523,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
           <div className="flex items-center gap-8 w-full justify-center relative">
             <button
               onClick={() => navigate(-1)}
-              className="text-[#e67e65] hover:opacity-80 transition-opacity p-2"
+              className="text-[var(--soouls-accent)] hover:opacity-80 transition-opacity p-2"
             >
               <ChevronLeft size={18} strokeWidth={2.5} />
             </button>
@@ -531,13 +531,13 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
               {periodLabel}
               {isLoading && (
                 <span className="absolute -right-8 top-1/2 -translate-y-1/2">
-                  <Loader2 className="animate-spin text-[#e67e65]" size={16} />
+                  <Loader2 className="animate-spin text-[var(--soouls-accent)]" size={16} />
                 </span>
               )}
             </h2>
             <button
               onClick={() => navigate(1)}
-              className="text-[#e67e65] hover:opacity-80 transition-opacity p-2"
+              className="text-[var(--soouls-accent)] hover:opacity-80 transition-opacity p-2"
             >
               <ChevronRight size={18} strokeWidth={2.5} />
             </button>
@@ -548,12 +548,12 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
               onClick={() => setShowGCalModal(true)}
               className={`hidden sm:inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
                 gcalConnected
-                  ? 'border-[#D46B4E]/40 bg-[#D46B4E]/10 text-[#f4b29f] hover:bg-[#D46B4E]/20'
+                  ? 'border-[var(--soouls-accent)]/40 bg-[var(--soouls-accent)]/10 text-[var(--soouls-text-muted)] hover:bg-[var(--soouls-accent)]/20'
                   : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:border-white/20'
               }`}
             >
               {gcalConnected ? (
-                <Check size={12} className="text-[#D46B4E]" />
+                <Check size={12} className="text-[var(--soouls-accent)]" />
               ) : (
                 <Calendar size={12} />
               )}
@@ -567,7 +567,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                   onClick={() => setView(v)}
                   className={`px-5 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
                     view === v
-                      ? 'bg-[#e67e65] text-neutral-900 shadow-lg shadow-[#e67e65]/20'
+                      ? 'bg-[var(--soouls-accent)] text-neutral-900 shadow-lg shadow-[var(--soouls-accent)]/20'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
@@ -642,7 +642,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                 {/* Sidebar */}
                 <div className="w-full lg:w-[320px] shrink-0 h-full">
                   <div className="bg-black/20 border border-white/15 rounded-3xl p-6 h-full flex flex-col backdrop-blur-md">
-                    <div className="text-[10px] text-[#e67e65] font-bold uppercase tracking-widest mb-1">
+                    <div className="text-[10px] text-[var(--soouls-accent)] font-bold uppercase tracking-widest mb-1">
                       Schedule
                     </div>
                     <div className="text-2xl font-bold mb-1 text-white">
@@ -689,7 +689,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                         <button
                           key={entry.id}
                           onClick={() => openEntry(entry.id)}
-                          className="w-full text-left rounded-2xl border border-white/10 px-4 py-3 bg-white/[0.02] hover:border-[#e67e65]/40 hover:bg-[#e67e65]/10 transition-all shadow-lg group"
+                          className="w-full text-left rounded-2xl border border-white/10 px-4 py-3 bg-white/[0.02] hover:border-[var(--soouls-accent)]/40 hover:bg-[var(--soouls-accent)]/10 transition-all shadow-lg group"
                         >
                           <div className="line-clamp-2 text-sm text-gray-200 group-hover:text-white font-medium">
                             {entry.title}
@@ -712,7 +712,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                         </div>
                         <button
                           onClick={() => setShowGCalModal(true)}
-                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#D46B4E] py-2.5 text-sm font-semibold text-white hover:bg-[#c35b3e] transition-all shadow-lg"
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-lg"
                         >
                           <Calendar size={14} />
                           Connect Calendar

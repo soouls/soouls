@@ -291,7 +291,7 @@ const OrangeBtn = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="px-8 py-2.5 bg-[#D46B4E] hover:bg-[#E58B76] disabled:opacity-40 disabled:hover:translate-y-0 text-white text-[13px] rounded-full transition-all duration-300 font-semibold shadow-[0_8px_20px_rgba(212,107,78,0.3)] hover:shadow-[0_8px_30px_rgba(212,107,78,0.5)] tracking-wide hover:-translate-y-0.5"
+    className="px-8 py-2.5 bg-[var(--soouls-accent)] hover:opacity-90 disabled:opacity-40 disabled:hover:translate-y-0 text-white text-[13px] rounded-full transition-all duration-300 font-semibold shadow-[0_8px_20px_rgba(var(--soouls-accent-rgb),0.3)] hover:shadow-[0_8px_30px_rgba(var(--soouls-accent-rgb),0.5)] tracking-wide hover:-translate-y-0.5"
   >
     {children}
   </button>
@@ -311,7 +311,7 @@ const MInput = ({
     value={value}
     onChange={onChange}
     placeholder={placeholder}
-    className={`bg-black/20 border border-white/5 rounded-2xl px-5 py-3.5 text-white text-[14px] placeholder:text-white/30 outline-none focus:border-[#D46B4E]/50 focus:bg-black/40 transition-all w-full shadow-inner ${className}`}
+    className={`bg-black/20 border border-white/5 rounded-2xl px-5 py-3.5 text-white text-[14px] placeholder:text-white/30 outline-none focus:border-[var(--soouls-accent)]/50 focus:bg-black/40 transition-all w-full shadow-inner ${className}`}
   />
 );
 
@@ -365,7 +365,7 @@ function DoodleModal({
   const drawing = useRef(false);
   const last = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
-  const [color, setColor] = useState('#D46B4E');
+  const [color, setColor] = useState('var(--soouls-accent)');
   const [size, _setSize] = useState(4);
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
 
@@ -477,7 +477,7 @@ function DoodleModal({
                 placeholder={`Search ${tab}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:border-[#D46B4E]/60 focus:bg-black/60 transition-all shadow-inner"
+                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:border-[var(--soouls-accent)]/60 focus:bg-black/60 transition-all shadow-inner"
               />
             </div>
           )}
@@ -542,7 +542,7 @@ function DoodleModal({
             <div className="relative w-full h-[440px] bg-[#0A0A0A] bg-[radial-gradient(#333_1px,transparent_1px)] [background-size:20px_20px]">
               {/* Floating Glass Toolbars */}
               <div className="absolute top-4 left-4 flex gap-3 items-center bg-black/40 backdrop-blur-xl px-4 py-2.5 rounded-full border border-white/10 shadow-2xl z-10">
-                {['#D46B4E', '#60A5FA', '#34D399', '#ffffff'].map((c) => (
+                {['var(--soouls-accent)', '#60A5FA', '#34D399', '#ffffff'].map((c) => (
                   <button
                     key={c}
                     type="button"
@@ -605,7 +605,7 @@ function DoodleModal({
                     onSave(canvasRef.current?.toDataURL() || '');
                     onClose();
                   }}
-                  className="px-10 py-3.5 rounded-full bg-[#D46B4E] hover:bg-[#E58B76] text-white text-[14px] transition-all duration-300 pointer-events-auto shadow-[0_10px_40px_rgba(212,107,78,0.4)] hover:shadow-[0_10px_60px_rgba(212,107,78,0.6)] font-semibold tracking-wide hover:-translate-y-1"
+                  className="px-10 py-3.5 rounded-full bg-[var(--soouls-accent)] hover:opacity-90 text-white text-[14px] transition-all duration-300 pointer-events-auto shadow-[0_10px_40px_rgba(var(--soouls-accent-rgb),0.4)] hover:shadow-[0_10px_60px_rgba(var(--soouls-accent-rgb),0.6)] font-semibold tracking-wide hover:-translate-y-1"
                 >
                   Drop into Entry
                 </button>
@@ -637,7 +637,7 @@ function ImageModal({
     <Overlay>
       <Modal
         title="Add Image"
-        icon={<ImageIcon className="w-3.5 h-3.5 text-[#FF5C35]" />}
+        icon={<ImageIcon className="w-3.5 h-3.5 text-[var(--soouls-accent)]" />}
         onClose={onClose}
         footer={
           <>
@@ -674,11 +674,11 @@ function ImageModal({
               }}
               onDragLeave={() => setDrag(false)}
               onClick={() => ref.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-14 w-full flex flex-col items-center gap-3 cursor-pointer transition-colors ${drag ? 'border-[#FF5C35] bg-[#FF5C35]/5' : 'border-white/10 hover:border-white/20'}`}
+              className={`border-2 border-dashed rounded-2xl p-14 w-full flex flex-col items-center gap-3 cursor-pointer transition-colors ${drag ? 'border-[var(--soouls-accent)] bg-[var(--soouls-accent)]/5' : 'border-white/10 hover:border-white/20'}`}
             >
               <ImageIcon className="w-10 h-10 text-slate-500" />
               <p className="text-slate-400 text-sm text-center">
-                Drop image here or <span className="text-[#FF5C35]">browse</span>
+                Drop image here or <span className="text-[var(--soouls-accent)]">browse</span>
               </p>
               <input
                 ref={ref}
@@ -723,7 +723,7 @@ function GoalModal({
     <Overlay>
       <Modal
         title="Set Goal & Timer"
-        icon={<Clock className="w-3.5 h-3.5 text-[#FF5C35]" />}
+        icon={<Clock className="w-3.5 h-3.5 text-[var(--soouls-accent)]" />}
         onClose={onClose}
         footer={
           <>
@@ -767,7 +767,7 @@ function TasklistModal({
     <Overlay>
       <Modal
         title="Task List"
-        icon={<ListTodo className="w-3.5 h-3.5 text-[#FF5C35]" />}
+        icon={<ListTodo className="w-3.5 h-3.5 text-[var(--soouls-accent)]" />}
         onClose={onClose}
         footer={
           <>
@@ -816,7 +816,7 @@ function TasklistModal({
           <button
             type="button"
             onClick={() => setTasks([...tasks, ''])}
-            className="flex items-center gap-1 text-[#FF5C35] text-xs hover:text-[#ff6b47] transition-colors"
+            className="flex items-center gap-1 text-[var(--soouls-accent)] text-xs hover:text-[#ff6b47] transition-colors"
           >
             <Plus className="w-3.5 h-3.5" /> Add task
           </button>
@@ -846,7 +846,7 @@ function VoiceModal({
         </button>
 
         <p className="text-white text-[16px] font-medium tracking-wide mb-2">Record Voice Note</p>
-        <p className="text-[#D46B4E] text-[32px] font-mono font-light tracking-tight mb-10 h-10">
+        <p className="text-[var(--soouls-accent)] text-[32px] font-mono font-light tracking-tight mb-10 h-10">
           {recording
             ? `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`
             : '00:00'}
@@ -855,10 +855,10 @@ function VoiceModal({
         <button
           type="button"
           onClick={recording ? undefined : start}
-          className={`w-28 h-28 rounded-full flex items-center justify-center transition-all duration-500 mb-12 ${recording ? 'bg-[#D46B4E]/10 ring-2 ring-[#D46B4E]/50 scale-105' : 'bg-black/40 hover:bg-black/60 shadow-inner ring-1 ring-white/5'}`}
+          className={`w-28 h-28 rounded-full flex items-center justify-center transition-all duration-500 mb-12 ${recording ? 'bg-[var(--soouls-accent)]/10 ring-2 ring-[var(--soouls-accent)]/50 scale-105' : 'bg-black/40 hover:bg-black/60 shadow-inner ring-1 ring-white/5'}`}
         >
           <Mic
-            className={`w-10 h-10 ${recording ? 'text-[#D46B4E] animate-pulse drop-shadow-[0_0_15px_rgba(212,107,78,0.8)]' : 'text-white/30'}`}
+            className={`w-10 h-10 ${recording ? 'text-[var(--soouls-accent)] animate-pulse drop-shadow-[0_0_15px_rgba(212,107,78,0.8)]' : 'text-white/30'}`}
             fill="currentColor"
           />
         </button>
@@ -939,7 +939,7 @@ function Card({
       <button
         type="button"
         onClick={onRemove}
-        className="absolute -top-2 -right-2 bg-[#FF5C35] rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg"
+        className="absolute -top-2 -right-2 bg-[var(--soouls-accent)] rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow-lg"
       >
         <X className="w-3 h-3 text-white" />
       </button>
@@ -1043,7 +1043,7 @@ function VoiceCard({
         <button
           type="button"
           onClick={toggle}
-          className="w-8 h-8 rounded-full bg-[#FF5C35] flex items-center justify-center flex-shrink-0 hover:bg-[#ff6b47] transition-colors shadow-lg"
+          className="w-8 h-8 rounded-full bg-[var(--soouls-accent)] flex items-center justify-center flex-shrink-0 hover:bg-[#ff6b47] transition-colors shadow-lg"
         >
           {playing ? (
             <Pause className="w-4 h-4 text-white" fill="white" />
@@ -1060,7 +1060,7 @@ function VoiceCard({
                 style={{
                   height: `${h}%`,
                   backgroundColor:
-                    i / bars.length <= prog / 100 ? '#FF5C35' : 'rgba(255,255,255,0.1)',
+                    i / bars.length <= prog / 100 ? 'var(--soouls-accent)' : 'rgba(255,255,255,0.1)',
                 }}
               />
             );
@@ -1145,10 +1145,10 @@ function GoalCard({
         </div>
 
         <div className="flex items-baseline gap-2 relative">
-          <span className="text-[#FF5C35] text-[32px] font-light tracking-tight tabular-nums">
+          <span className="text-[var(--soouls-accent)] text-[32px] font-light tracking-tight tabular-nums">
             {fmt(b.seconds)}
           </span>
-          <span className="text-[#FF5C35]/60 text-sm">{ampm}</span>
+          <span className="text-[var(--soouls-accent)]/60 text-sm">{ampm}</span>
 
           {/* Floating controls that appear on hover */}
           <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/goal:opacity-100 transition-opacity">
@@ -1205,9 +1205,9 @@ function TasklistCard({
               className="flex items-center gap-3 text-left group/t w-max"
             >
               <div
-                className={`w-[14px] h-[14px] rounded-[3px] flex items-center justify-center flex-shrink-0 border transition-colors ${task.done ? 'bg-transparent border-[#FF5C35]' : 'border-[#FF5C35] bg-transparent'}`}
+                className={`w-[14px] h-[14px] rounded-[3px] flex items-center justify-center flex-shrink-0 border transition-colors ${task.done ? 'bg-transparent border-[var(--soouls-accent)]' : 'border-[var(--soouls-accent)] bg-transparent'}`}
               >
-                {task.done && <Check className="w-3 h-3 text-[#FF5C35]" strokeWidth={4} />}
+                {task.done && <Check className="w-3 h-3 text-[var(--soouls-accent)]" strokeWidth={4} />}
               </div>
               <span
                 className={`text-[13px] font-light transition-colors ${task.done ? 'text-white/30 line-through' : 'text-white/90'}`}
@@ -1247,7 +1247,7 @@ function ToolBtn({
     >
       {icon}
       {!!count && count > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#FF5C35] rounded-full text-[10px] flex items-center justify-center text-white font-bold border-2 border-[#0a0a0a]">
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[var(--soouls-accent)] rounded-full text-[10px] flex items-center justify-center text-white font-bold border-2 border-[#0a0a0a]">
           {count}
         </span>
       )}
@@ -1540,7 +1540,7 @@ function NewEntryContent() {
           >
             Home
           </button>
-          <span className="text-[#D46B4E]">/New Entry</span>
+          <span className="text-[var(--soouls-accent)]">/New Entry</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -1717,13 +1717,13 @@ function NewEntryContent() {
               <button
                 type="button"
                 onClick={() => setModal('image')}
-                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some((b) => b.type === 'image' && !b.isSticker && !b.isGif) ? 'text-[#D46B4E]' : 'text-white/80 hover:text-[#D46B4E]'}`}
+                className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some((b) => b.type === 'image' && !b.isSticker && !b.isGif) ? 'text-[var(--soouls-accent)]' : 'text-white/80 hover:text-[var(--soouls-accent)]'}`}
               >
                 <ImageIcon className="w-5 h-5" />
                 <span className="text-[15px] font-light">Add image</span>
                 {blocks.filter((b) => b.type === 'image' && !b.isSticker && !b.isGif).length >
                   0 && (
-                  <span className="bg-[#D46B4E] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">
+                  <span className="bg-[var(--soouls-accent)] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">
                     {blocks.filter((b) => b.type === 'image' && !b.isSticker && !b.isGif).length}
                   </span>
                 )}
@@ -1737,7 +1737,7 @@ function NewEntryContent() {
                 <Mic className="w-5 h-5" />
                 <span className="text-[15px] font-light">Voice note</span>
                 {blocks.filter((b) => b.type === 'voice').length > 0 && (
-                  <span className="bg-[#D46B4E] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">
+                  <span className="bg-[var(--soouls-accent)] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">
                     {blocks.filter((b) => b.type === 'voice').length}
                   </span>
                 )}
