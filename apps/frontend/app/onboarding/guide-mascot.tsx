@@ -64,13 +64,14 @@ function getMascotMood({
   name,
   firstEntry,
 }: Omit<GuideMascotProps, 'theme' | 'onWake' | 'isWaitlistUser' | 'centered'>) {
-  if (!awake) return { emotion: 'sleepy' as MascotEmotion, line: "Zzz... Tap the signal to wake me." };
+  if (!awake) return { emotion: 'sleepy' as MascotEmotion, line: "The light is gathering. Tap to wake me." };
   
-  if (step <= 5) return { emotion: 'curious' as MascotEmotion, line: "I'm tuning into your frequency. Let's build your space." };
-  if (step === 8) return { emotion: 'happy' as MascotEmotion, line: name ? `Hello, ${name}! It fits you perfectly.` : "There you are! Hello! What should I call you?" };
-  if (step === 10) return { emotion: 'thinking' as MascotEmotion, line: firstEntry ? "Ready to light the first ember?" : "One honest sentence can start it all." };
+  if (step <= 5) return { emotion: 'curious' as MascotEmotion, line: "Tuning into your frequency... Let's align your space." };
+  if (step === 8) return { emotion: 'happy' as MascotEmotion, line: name ? `Welcome, ${name}. Your energy resonance is pure.` : "There you are. A new soul in the ether. How should I call you?" };
+  if (step === 10) return { emotion: 'thinking' as MascotEmotion, line: firstEntry ? "A memory captured. Shall we step into the room?" : "A single honest sentence. That's all it takes to begin." };
+  if (step === 11) return { emotion: 'spectral' as MascotEmotion, line: "The space is live. I will wait for you within the light." };
   
-  return { emotion: 'neutral' as MascotEmotion, line: "I'm here to guide your journey." };
+  return { emotion: 'neutral' as MascotEmotion, line: "I am here to guide your resonance." };
 }
 
 export function GuideMascot({
@@ -83,7 +84,6 @@ export function GuideMascot({
   onWake,
   centered,
 }: GuideMascotProps) {
-  const tone = themeTokens[theme];
   const mood = getMascotMood({ step, awake, name, firstEntry });
   const [blink, setBlink] = useState(false);
 
@@ -106,53 +106,32 @@ export function GuideMascot({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-    mouseX.set(x * 8);
-    mouseY.set(y * 8);
+    mouseX.set(x * 12);
+    mouseY.set(y * 12);
   };
 
   return (
     <motion.div
       layout
-      className="fixed z-50 flex items-end gap-3 pointer-events-none"
+      className="fixed z-[100] pointer-events-none"
       initial={false}
       animate={centered ? {
         left: '50%',
         top: '50%',
         x: '-50%',
         y: '-50%',
-        scale: 1.4,
-        right: 'auto',
-        bottom: 'auto'
+        scale: 1.5,
       } : {
-        right: '24px',
-        bottom: '24px',
         left: 'auto',
         top: 'auto',
+        right: '40px',
+        bottom: '40px',
         x: 0,
         y: 0,
         scale: 1
       }}
-      transition={{ type: 'spring', damping: 30, stiffness: 100 }}
+      transition={{ type: 'spring', damping: 35, stiffness: 80 }}
     >
-      {/* Message Bubble */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, x: 20 }}
-        animate={{ opacity: 1, scale: 1, x: 0 }}
-        className="hidden sm:block max-w-[18rem] rounded-[26px] border p-5 backdrop-blur-2xl"
-        style={{
-          borderColor: tone.border,
-          backgroundColor: tone.bubble,
-          boxShadow: `0 24px 60px ${tone.shadow}`,
-        }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-[10px] uppercase tracking-[0.2em] opacity-50 text-white">ORBI GUIDE</div>
-          {isWaitlistUser && <Star className="w-3 h-3 text-orange-400" />}
-        </div>
-        <p className="text-sm leading-relaxed text-white/90 font-urbanist">{mood.line}</p>
-      </motion.div>
-
-      {/* Mascot Core */}
       <motion.div
         className="relative pointer-events-auto cursor-pointer"
         onClick={!awake ? onWake : undefined}
@@ -166,15 +145,16 @@ export function GuideMascot({
           pupilX={pupilX}
           pupilY={pupilY}
           isHovered={false}
+          message={mood.line}
         />
         
         {!awake && (
           <motion.div
-            animate={{ opacity: [0.3, 0.6, 0.3], y: [-2, 2, -2] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute -top-8 right-0 text-xl pointer-events-none"
+            animate={{ opacity: [0.2, 0.5, 0.2], y: [-5, 5, -5] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute -top-12 right-0 text-xl font-bold text-white/20 pointer-events-none select-none italic"
           >
-            💤
+            Fading...
           </motion.div>
         )}
       </motion.div>

@@ -26,12 +26,12 @@ import {
   Undo2,
   X,
 } from 'lucide-react';
-import LZString from 'lz-string';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
+import { decodeEntryContent } from '../../../src/utils/entries';
 import { getOptimizedImageUrl } from '../../../src/utils/images';
 import { trpc } from '../../../src/utils/trpc';
 
@@ -48,18 +48,42 @@ const fetchStickersTrending = (offset: number) =>
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const uid = () => Math.random().toString(36).slice(2, 9);
 
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(reader.error ?? new Error('Failed to read image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function sha256Hex(blob: Blob): Promise<string> {
+  const hash = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+  return Array.from(new Uint8Array(hash))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+type MediaBlockMetadata = {
+  storageKey?: string;
+  contentType?: string;
+  byteSize?: number;
+  sha256?: string;
+  uploadedAt?: string;
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Block =
-  | {
+  | ({
       id: string;
       type: 'image';
       dataUrl: string;
       name: string;
       isSticker?: boolean;
       isGif?: boolean;
-    }
-  | { id: string; type: 'voice'; dataUrl: string; duration: number }
-  | { id: string; type: 'doodle'; dataUrl: string }
+    } & MediaBlockMetadata)
+  | ({ id: string; type: 'voice'; dataUrl: string; duration: number } & MediaBlockMetadata)
+  | ({ id: string; type: 'doodle'; dataUrl: string } & MediaBlockMetadata)
   | { id: string; type: 'goal'; goal: string; label: string; seconds: number; running: boolean }
   | {
       id: string;
@@ -245,6 +269,7 @@ function Modal({
       className="bg-[#1C1C1C]/90 backdrop-blur-3xl border border-white/10 ring-1 ring-white/5 rounded-[32px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.8)] w-full max-w-[460px] flex flex-col relative"
     >
       <button
+        type="button"
         onClick={onClose}
         className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
       >
@@ -444,24 +469,28 @@ function DoodleModal({
     <Overlay>
       <div className="bg-[#1C1C1C]/90 backdrop-blur-3xl rounded-[32px] w-[460px] shadow-[0_24px_80px_rgba(0,0,0,0.8)] flex flex-col border border-white/10 relative overflow-hidden ring-1 ring-white/5">
         {/* Floating Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
-        >
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
+      >
           <X className="w-4 h-4" />
         </button>
 
         {/* Premium Pill Tabs */}
         <div className="flex p-3 gap-2 border-b border-white/5 bg-black/20 z-10">
-          {[
-            { id: 'stickers', label: 'Stickers' },
-            { id: 'emoji', label: 'Emoji' },
-            { id: 'gif', label: 'GIFs' },
-            { id: 'draw', label: 'Canvas' },
-          ].map((t) => (
+          {(
+            [
+              { id: 'stickers', label: 'Stickers' },
+              { id: 'emoji', label: 'Emoji' },
+              { id: 'gif', label: 'GIFs' },
+              { id: 'draw', label: 'Canvas' },
+            ] as const
+          ).map((t) => (
             <button
+              type="button"
               key={t.id}
-              onClick={() => setTab(t.id as any)}
+              onClick={() => setTab(t.id)}
               className={`flex-1 py-2.5 rounded-[16px] text-[13px] font-medium transition-all duration-300 ${tab === t.id ? 'bg-white/10 text-white shadow-lg scale-100 ring-1 ring-white/10' : 'text-white/40 hover:text-white/80 hover:bg-white/5 scale-95'}`}
             >
               {t.label}
@@ -603,7 +632,7 @@ function DoodleModal({
                 <button
                   type="button"
                   onClick={() => {
-                    onSave(canvasRef.current?.toDataURL() || '');
+                    onSave(canvasRef.current?.toDataURL('image/webp', 0.8) || '');
                     onClose();
                   }}
                   className="px-10 py-3.5 rounded-full bg-[var(--soouls-accent)] hover:opacity-90 text-white text-[14px] transition-all duration-300 pointer-events-auto shadow-[0_10px_40px_rgba(var(--soouls-accent-rgb),0.4)] hover:shadow-[0_10px_60px_rgba(var(--soouls-accent-rgb),0.6)] font-semibold tracking-wide hover:-translate-y-1"
@@ -627,12 +656,23 @@ function ImageModal({
   const [name, setName] = useState('');
   const [drag, setDrag] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  const load = (f: File) => {
+  const load = async (f: File) => {
     if (!f.type.startsWith('image/')) return;
-    setName(f.name);
-    const r = new FileReader();
-    r.onload = (e) => setPreview(e.target?.result as string);
-    r.readAsDataURL(f);
+    try {
+      const compressed = await imageCompression(f, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        initialQuality: 0.82,
+        useWebWorker: true,
+        fileType: 'image/webp',
+      });
+      setName(f.name.replace(/\.[^.]+$/u, '.webp'));
+      setPreview(await readFileAsDataUrl(compressed));
+    } catch (error) {
+      console.warn('Image compression failed; using original file.', error);
+      setName(f.name);
+      setPreview(await readFileAsDataUrl(f));
+    }
   };
   return (
     <Overlay>
@@ -667,7 +707,7 @@ function ImageModal({
               onDrop={(e) => {
                 e.preventDefault();
                 setDrag(false);
-                e.dataTransfer.files[0] && load(e.dataTransfer.files[0]);
+                if (e.dataTransfer.files[0]) void load(e.dataTransfer.files[0]);
               }}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -686,7 +726,9 @@ function ImageModal({
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={(e) => e.target.files?.[0] && load(e.target.files[0])}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) void load(e.target.files[0]);
+                }}
               />
             </button>
           ) : (
@@ -840,6 +882,7 @@ function VoiceModal({
     <Overlay>
       <div className="bg-[#1C1C1C]/90 backdrop-blur-3xl border border-white/10 ring-1 ring-white/5 rounded-[32px] w-[360px] py-14 flex flex-col items-center relative shadow-[0_24px_80px_rgba(0,0,0,0.8)]">
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
         >
@@ -906,7 +949,6 @@ function VoiceModal({
 function Card({
   children,
   onRemove,
-  index,
   onDragStart,
   onDragOver,
   onDrop,
@@ -914,7 +956,6 @@ function Card({
 }: {
   children: React.ReactNode;
   onRemove: () => void;
-  index?: number;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -1092,7 +1133,7 @@ function DoodleCard({
   return (
     <Card className={className} onRemove={onRemove} {...dragProps}>
       <img
-        src={b.dataUrl}
+        src={getOptimizedImageUrl(b.dataUrl, { width: 1200 })}
         alt="doodle"
         className="w-full h-auto max-h-48 object-contain drop-shadow-2xl"
       />
@@ -1248,7 +1289,7 @@ function ToolBtn({
     >
       {icon}
       {!!count && count > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[var(--soouls-accent)] rounded-full text-[10px] flex items-center justify-center text-white font-bold border-2 border-[#0a0a0a]">
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#FF5C35] rounded-full text-[10px] flex items-center justify-center text-white font-bold border-2 border-[#0a0a0a]">
           {count}
         </span>
       )}
@@ -1280,7 +1321,9 @@ function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
         mrRef.current.stop();
       }
       if (_streamRef.current) {
-        _streamRef.current.getTracks().forEach((t) => t.stop());
+        for (const track of _streamRef.current.getTracks()) {
+          track.stop();
+        }
         _streamRef.current = null;
       }
     };
@@ -1390,9 +1433,8 @@ function NewEntryContent() {
   useEffect(() => {
     if (existingEntry) {
       try {
-        const decompressed =
-          LZString.decompressFromUTF16(existingEntry.content) || existingEntry.content;
-        const parsed = JSON.parse(decompressed);
+        const decoded = decodeEntryContent(existingEntry.content);
+        const parsed = JSON.parse(decoded);
         if (parsed.textContent !== undefined) {
           // Senior note: Using functional check to avoid stale closures in initial load
           setTextContent((prev) => (!prev ? parsed.textContent || '' : prev));
@@ -1415,7 +1457,19 @@ function NewEntryContent() {
     isSaving.current = true;
     setSyncStatus('syncing');
     try {
-      // 1. Handle image uploads if needed
+      let targetEntryId = id;
+      if (!targetEntryId) {
+        const initialPayload = JSON.stringify({ textContent: text, blocks: blks });
+        const entry = await createRef.current({ content: initialPayload, type: 'entry' });
+        targetEntryId = entry.id;
+        setEntryId(entry.id);
+        entryIdRef.current = entry.id;
+        migrateKey(entry.id);
+        window.history.replaceState(null, '', `/home/new-entry?id=${entry.id}`);
+      }
+
+      // 1. Handle media uploads if needed. A real DB entry must exist first so
+      // the backend can verify ownership before issuing R2 upload URLs.
       const updatedBlocks = [...blks];
       let blocksChanged = false;
 
@@ -1429,17 +1483,17 @@ function NewEntryContent() {
 
         const blockDataUrl = mediaBlock.dataUrl;
         try {
-          const tempId = id || `temp-${Date.now()}`;
           const mimePart = blockDataUrl.split(';')[0];
           const contentType =
-            mimePart?.split(':')[1] ?? (block.type === 'voice' ? 'audio/webm' : 'image/png');
-          const { uploadUrl, publicUrl } = await getUploadUrlMutation.mutateAsync({
-            entryId: tempId,
+            mimePart?.split(':')[1] ?? (block.type === 'voice' ? 'audio/webm' : 'image/webp');
+          const { uploadUrl, publicUrl, storageKey } = await getUploadUrlMutation.mutateAsync({
+            entryId: targetEntryId,
             contentType,
           });
 
           const response = await fetch(blockDataUrl);
           const blob = await response.blob();
+          const checksum = await sha256Hex(blob);
 
           await fetch(uploadUrl, {
             method: 'PUT',
@@ -1448,7 +1502,15 @@ function NewEntryContent() {
           });
 
           // Update the specific block type carefully while keeping other props (duration, name)
-          updatedBlocks[i] = { ...block, dataUrl: publicUrl } as any;
+          updatedBlocks[i] = {
+            ...block,
+            dataUrl: publicUrl,
+            storageKey,
+            contentType: blob.type || contentType,
+            byteSize: blob.size,
+            sha256: checksum,
+            uploadedAt: new Date().toISOString(),
+          } as Block;
           blocksChanged = true;
         } catch (uploadErr) {
           console.error(`Failed to upload ${block.type}:`, uploadErr);
@@ -1460,17 +1522,7 @@ function NewEntryContent() {
       }
 
       const payloadString = JSON.stringify({ textContent: text, blocks: updatedBlocks });
-
-      if (!id) {
-        const e = await createRef.current({ content: payloadString, type: 'entry' });
-        setEntryId(e.id);
-        entryIdRef.current = e.id;
-        migrateKey(e.id);
-        // Use window.history.replaceState instead of router.replace to avoid Next.js navigation flashes
-        window.history.replaceState(null, '', `/home/new-entry?id=${e.id}`);
-      } else {
-        await updateRef.current({ id, content: payloadString });
-      }
+      await updateRef.current({ id: targetEntryId, content: payloadString });
       setSyncStatus('synced');
     } catch (err) {
       console.error('DB save failed:', err);
@@ -1625,6 +1677,7 @@ function NewEntryContent() {
           )}
 
           <button
+            type="button"
             onClick={() => setIsOpen(true)}
             className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden"
           >
@@ -1753,6 +1806,7 @@ function NewEntryContent() {
                 className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 border-r border-white/10 transition-colors group ${blocks.some((b) => b.type === 'doodle' || (b.type === 'image' && (b.isSticker || b.isGif))) ? 'text-[#A78BFA]' : 'text-white/80 hover:text-[#A78BFA]'}`}
               >
                 <svg
+                  aria-hidden="true"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -1793,6 +1847,7 @@ function NewEntryContent() {
                 className={`flex items-center gap-2.5 px-6 py-4 hover:bg-white/5 transition-colors group ${blocks.some((b) => b.type === 'goal') ? 'text-[#34D399]' : 'text-white/80 hover:text-[#34D399]'}`}
               >
                 <svg
+                  aria-hidden="true"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

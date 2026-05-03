@@ -35,6 +35,7 @@ describe('home analytics', () => {
     const entries: DecodedHomeEntry[] = [
       {
         id: 'entry-1',
+        clusterId: null,
         createdAt: new Date('2026-04-23T21:10:00.000Z'),
         updatedAt: new Date('2026-04-23T21:10:00.000Z'),
         text: 'I feel anxious about my career direction, but I also have hope about the startup roadmap and product strategy.',
@@ -46,6 +47,7 @@ describe('home analytics', () => {
       },
       {
         id: 'entry-2',
+        clusterId: null,
         createdAt: new Date('2026-04-24T22:25:00.000Z'),
         updatedAt: new Date('2026-04-24T22:25:00.000Z'),
         text: 'The side project is becoming clearer. I want to validate the startup idea, build discipline, and ship a focused prototype.',
@@ -66,6 +68,7 @@ describe('home analytics', () => {
       },
       {
         id: 'entry-3',
+        clusterId: null,
         createdAt: new Date('2026-04-25T23:05:00.000Z'),
         updatedAt: new Date('2026-04-25T23:05:00.000Z'),
         text: 'Journaling helps with healing and self reflection. I am calmer when I track progress, complete tasks, and stay grounded.',

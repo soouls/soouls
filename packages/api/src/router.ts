@@ -82,6 +82,7 @@ export type AdminEntry = {
 export type EntriesApi = {
   createEntry: (userId: string, content: string, type?: EntryKind) => Promise<{ id: string }>;
   updateEntry: (userId: string, id: string, content: string) => Promise<void>;
+  deleteEntry: (userId: string, id: string) => Promise<void>;
   getEntry: (userId: string, id: string) => Promise<{ id: string; content: string } | null>;
   getGalaxyData: (
     userId: string,
@@ -92,6 +93,7 @@ export type EntriesApi = {
     userId: string,
     limit?: number,
     cursor?: number,
+    search?: string,
   ) => Promise<{ items: UserEntry[]; nextCursor: number | null }>;
   listAllEntriesAdmin: (
     limit?: number,
@@ -101,9 +103,25 @@ export type EntriesApi = {
     userId: string,
     entryId: string,
     contentType: string,
-  ) => Promise<{ uploadUrl: string; publicUrl: string }>;
+  ) => Promise<{ uploadUrl: string; publicUrl: string; storageKey: string }>;
+  uploadMediaDataUrl: (
+    userId: string,
+    entryId: string,
+    dataUrl: string,
+    contentType: string,
+  ) => Promise<{
+    publicUrl: string;
+    storageKey: string;
+    contentType: string;
+    byteSize: number;
+    sha256: string;
+  }>;
   updateEntryMediaUrl: (userId: string, entryId: string, mediaUrl: string) => Promise<void>;
   migrateMedia: (userId: string) => Promise<{ migratedCount: number }>;
+  upsertSync: (
+    userId: string,
+    input: { id?: string; content: string; type?: EntryKind; finalize?: boolean },
+  ) => Promise<{ id: string }>;
 };
 
 export type TasksApi = {
@@ -338,6 +356,8 @@ export type HomeApi = {
     items: HomeCluster[];
     folders: HomeCanvasFolder[];
   }>;
+  createFolder: (userId: string, input: { name?: string }) => Promise<HomeCanvasFolder>;
+  deleteFolder: (userId: string, folderId: string) => Promise<{ deleted: true }>;
   getClusterDetail: (userId: string, clusterId: string) => Promise<HomeClusterDetail | null>;
   deleteAccount: (userId: string) => Promise<{ deleted: true }>;
 };
@@ -389,6 +409,11 @@ import {
 import { run as updateEntryRun } from './namespaces/private/entries/update/run.js';
 
 import {
+  config as deleteEntryConfig,
+  schema as deleteEntrySchema,
+} from './namespaces/private/entries/delete/constants.js';
+import { run as deleteEntryRun } from './namespaces/private/entries/delete/run.js';
+import {
   config as getOneConfig,
   schema as getOneSchema,
 } from './namespaces/private/entries/getOne/constants.js';
@@ -405,6 +430,12 @@ import {
   schema as getUploadUrlSchema,
 } from './namespaces/private/entries/getUploadUrl/constants.js';
 import { run as getUploadUrlRun } from './namespaces/private/entries/getUploadUrl/run.js';
+
+import {
+  config as uploadMediaConfig,
+  schema as uploadMediaSchema,
+} from './namespaces/private/entries/uploadMedia/constants.js';
+import { run as uploadMediaRun } from './namespaces/private/entries/uploadMedia/run.js';
 
 import {
   config as updateMediaUrlConfig,
@@ -444,6 +475,16 @@ import {
   schema as getHomeClustersSchema,
 } from './namespaces/private/home/getClusters/constants.js';
 import { run as getHomeClustersRun } from './namespaces/private/home/getClusters/run.js';
+import {
+  config as createHomeFolderConfig,
+  schema as createHomeFolderSchema,
+} from './namespaces/private/home/createFolder/constants.js';
+import { run as createHomeFolderRun } from './namespaces/private/home/createFolder/run.js';
+import {
+  config as deleteHomeFolderConfig,
+  schema as deleteHomeFolderSchema,
+} from './namespaces/private/home/deleteFolder/constants.js';
+import { run as deleteHomeFolderRun } from './namespaces/private/home/deleteFolder/run.js';
 import {
   config as getHomeInsightsConfig,
   schema as getHomeInsightsSchema,
@@ -485,6 +526,12 @@ import {
 } from './namespaces/private/users/update/constants.js';
 import { run as updateUserRun } from './namespaces/private/users/update/run.js';
 
+import {
+  config as upsertSyncConfig,
+  schema as upsertSyncSchema,
+} from './namespaces/private/entries/upsertSync/constants.js';
+import { run as upsertSyncRun } from './namespaces/private/entries/upsertSync/run.js';
+
 function buildPrivateRouter(services: Services) {
   /**
    * Protected procedure with ensureUser — resolves Clerk ID → internal DB UUID
@@ -515,6 +562,11 @@ function buildPrivateRouter(services: Services) {
         .input(updateEntrySchema)
         .mutation(({ input, ctx }) => updateEntryRun(input, ctx, services)),
 
+      delete: authedProcedure
+        .use(makeRateLimitMiddleware(deleteEntryConfig.rateLimit))
+        .input(deleteEntrySchema)
+        .mutation(({ input, ctx }) => deleteEntryRun(input, ctx, services)),
+
       getOne: authedProcedure
         .use(makeRateLimitMiddleware(getOneConfig.rateLimit))
         .input(getOneSchema)
@@ -530,6 +582,11 @@ function buildPrivateRouter(services: Services) {
         .input(getUploadUrlSchema)
         .mutation(({ input, ctx }) => getUploadUrlRun(input, ctx, services)),
 
+      uploadMedia: authedProcedure
+        .use(makeRateLimitMiddleware(uploadMediaConfig.rateLimit))
+        .input(uploadMediaSchema)
+        .mutation(({ input, ctx }) => uploadMediaRun(input, ctx, services)),
+
       updateMediaUrl: authedProcedure
         .use(makeRateLimitMiddleware(updateMediaUrlConfig.rateLimit))
         .input(updateMediaUrlSchema)
@@ -544,6 +601,11 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(getAllConfig.rateLimit))
         .input(getAllSchema)
         .query(({ input, ctx }) => getAllRun(input, ctx, services)),
+
+      upsertSync: authedProcedure
+        .use(makeRateLimitMiddleware(upsertSyncConfig.rateLimit))
+        .input(upsertSyncSchema)
+        .mutation(({ input, ctx }) => upsertSyncRun(input, ctx, services)),
     }),
 
     tasks: router({
@@ -602,6 +664,16 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(getHomeClustersConfig.rateLimit))
         .input(getHomeClustersSchema)
         .query(({ input, ctx }) => getHomeClustersRun(input, ctx, services)),
+
+      createFolder: authedProcedure
+        .use(makeRateLimitMiddleware(createHomeFolderConfig.rateLimit))
+        .input(createHomeFolderSchema)
+        .mutation(({ input, ctx }) => createHomeFolderRun(input, ctx, services)),
+
+      deleteFolder: authedProcedure
+        .use(makeRateLimitMiddleware(deleteHomeFolderConfig.rateLimit))
+        .input(deleteHomeFolderSchema)
+        .mutation(({ input, ctx }) => deleteHomeFolderRun(input, ctx, services)),
 
       getClusterDetail: authedProcedure
         .use(makeRateLimitMiddleware(getClusterDetailConfig.rateLimit))

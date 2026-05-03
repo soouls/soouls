@@ -34,6 +34,7 @@ export type DecodedEntryBlock = GoalBlock | TaskListBlock | MediaBlock;
 
 export type DecodedHomeEntry = {
   id: string;
+  clusterId: string | null;
   createdAt: Date;
   updatedAt: Date;
   text: string;
@@ -491,6 +492,25 @@ function buildClusters(
   themeScores: ThemeScore[],
   now: Date,
 ): ClusterCard[] {
+  if (entries.length > 0 && themeScores.length === 0) {
+    const latestDate =
+      [...entries].sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())[0]
+        ?.updatedAt ?? now;
+
+    return [
+      {
+        id: 'recent-entries-1',
+        name: 'Recent Entries',
+        entryCount: entries.length,
+        updatedAtLabel: formatUpdatedAtLabel(latestDate, now),
+        description:
+          'Entries that are saved and ready for the canvas, waiting for a stronger recurring theme to emerge.',
+        strength: 'Emerging',
+        tones: ['Reflective', 'Unsorted'],
+      },
+    ];
+  }
+
   return themeScores.slice(0, 6).map((theme, index) => {
     const themedEntries = entries.filter((entry) => {
       const corpus = getEntryCorpus(entry);

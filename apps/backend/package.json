@@ -6,6 +6,7 @@
     "build": "nest build",
     "start": "bun run src/main.ts",
     "dev": "node scripts/dev.mjs",
+    "r2:inspect": "bun run scripts/r2-inspect.ts",
     "start:debug": "bun run --watch --inspect src/main.ts",
     "start:prod": "bun run dist/main.js",
     "lint": "biome check .",

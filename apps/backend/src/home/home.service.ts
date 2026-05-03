@@ -1,6 +1,6 @@
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
-import { generateHomeInsightCopy, generateClusterInsights } from '@soouls/ai-engine/home-insights';
+import { generateClusterInsights, generateHomeInsightCopy } from '@soouls/ai-engine/home-insights';
 import type {
   HomeAccount,
   HomeApi,
@@ -9,9 +9,10 @@ import type {
   HomeInsights,
   HomeSettings,
 } from '@soouls/api/router';
-import { db, desc, eq, inArray } from '@soouls/database/client';
+import { and, db, desc, eq, inArray } from '@soouls/database/client';
 import {
   canvasNodes,
+  clusters,
   journalEntries,
   messageCampaigns,
   messageDeliveries,
@@ -39,6 +40,17 @@ type UserRow = {
   preferences: Record<string, unknown> | null;
   marketingEmailOptIn: boolean;
   transactionalEmailOptIn: boolean;
+};
+
+const formatRelativeUpdatedAt = (date: Date): string => {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+  if (diffHours < 24) {
+    return diffHours <= 1 ? '1 hour ago' : `${diffHours} hours ago`;
+  }
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
 };
 
 @Injectable()
@@ -92,6 +104,7 @@ export class HomeService implements HomeApi {
     const rows = await db
       .select({
         id: journalEntries.id,
+        clusterId: journalEntries.clusterId,
         title: journalEntries.title,
         content: journalEntries.content,
         type: journalEntries.type,
@@ -110,6 +123,7 @@ export class HomeService implements HomeApi {
 
       return {
         id: row.id,
+        clusterId: row.clusterId,
         title: row.title,
         text: decoded.text,
         createdAt: row.createdAt,
@@ -128,12 +142,12 @@ export class HomeService implements HomeApi {
   private async enrichAnalyticsWithAiCopy(
     analytics: HomeAnalyticsBundle,
     userName: string,
-    entries: DecodedHomeEntry[]
+    entries: DecodedHomeEntry[],
   ): Promise<HomeAnalyticsBundle> {
     const aiCopy = await generateHomeInsightCopy({
       userName,
       topThemes: analytics.insights.thoughtThemes.map((theme) => theme.label),
-      entriesText: entries.slice(0, 5).map(e => e.text),
+      entriesText: entries.slice(0, 5).map((e) => e.text),
       monthlyNarrativeFallback: analytics.insights.monthlyNarrative,
       finalSynthesisFallback: analytics.insights.finalSynthesis,
       writingProfileTitleFallback: analytics.account.writingProfile.title,
@@ -187,7 +201,11 @@ export class HomeService implements HomeApi {
       userName: user.name ?? 'Explorer',
       now: new Date(),
     });
-    const analytics = await this.enrichAnalyticsWithAiCopy(baseAnalytics, user.name ?? 'Explorer', entries);
+    const analytics = await this.enrichAnalyticsWithAiCopy(
+      baseAnalytics,
+      user.name ?? 'Explorer',
+      entries,
+    );
 
     const snapshot = {
       user,
@@ -282,18 +300,215 @@ export class HomeService implements HomeApi {
     folders: Array<{ id: string; title: string; entryCount: number; updatedAtLabel: string }>;
   }> {
     const { analytics } = await this.getSnapshot(userId);
+    const userFolders = await db
+      .select({
+        id: clusters.id,
+        title: clusters.name,
+        description: clusters.description,
+        updatedAt: clusters.updatedAt,
+      })
+      .from(clusters)
+      .where(eq(clusters.userId, userId))
+      .orderBy(desc(clusters.updatedAt));
+
+    const decodedEntries = await this.getDecodedEntries(userId);
+    await this.ensureReliableClusters(userId, analytics.clusters.items, decodedEntries);
+
+    const userFoldersAfterPromotion = await db
+      .select({
+        id: clusters.id,
+        title: clusters.name,
+        description: clusters.description,
+        updatedAt: clusters.updatedAt,
+      })
+      .from(clusters)
+      .where(eq(clusters.userId, userId))
+      .orderBy(desc(clusters.updatedAt));
+
+    const entries = await db
+      .select({
+        clusterId: journalEntries.clusterId,
+      })
+      .from(journalEntries)
+      .where(eq(journalEntries.userId, userId));
+    const entryCounts = new Map<string, number>();
+    for (const row of entries) {
+      if (!row.clusterId) continue;
+      entryCounts.set(row.clusterId, (entryCounts.get(row.clusterId) ?? 0) + 1);
+    }
 
     return {
       headline: analytics.clusters.headline,
-      items: analytics.clusters.items,
-      folders: analytics.canvas.folders,
+      items:
+        userFoldersAfterPromotion.length > 0
+          ? userFoldersAfterPromotion.map((folder, index) => {
+              const analyticsMatch = analytics.clusters.items.find(
+                (item) => item.name.toLowerCase() === folder.title.toLowerCase(),
+              );
+              return {
+                id: folder.id,
+                name: folder.title,
+                entryCount: entryCounts.get(folder.id) ?? analyticsMatch?.entryCount ?? 0,
+                updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
+                description:
+                  folder.description ??
+                  analyticsMatch?.description ??
+                  'A stable space formed from recurring patterns in your entries.',
+                strength: index === 0 ? 'Dominant' : (analyticsMatch?.strength ?? 'Emerging'),
+                tones: analyticsMatch?.tones ?? ['Reflective', 'Focused'],
+              };
+            })
+          : analytics.clusters.items,
+      folders:
+        userFoldersAfterPromotion.length > 0
+          ? userFoldersAfterPromotion.map((folder) => ({
+              id: folder.id,
+              title: folder.title,
+              entryCount: entryCounts.get(folder.id) ?? 0,
+              updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
+            }))
+          : analytics.canvas.folders,
     };
+  }
+
+  /**
+   * Promotes AI-suggested clusters to stable, database-backed folders
+   * and automatically assigns matching entries to them.
+   */
+  private async ensureReliableClusters(
+    userId: string,
+    suggestedClusters: any[],
+    entries: DecodedHomeEntry[],
+  ): Promise<void> {
+    // Promote clusters that have at least 1 entry
+    const robustClusters = suggestedClusters.filter((c) => c.entryCount >= 1);
+
+    for (const cluster of robustClusters) {
+      // Avoid promoting 'Recent Entries' if we already have specific thematic folders
+      // Unless it's the ONLY cluster available
+      if (cluster.name === 'Recent Entries' && robustClusters.length > 1) {
+        continue;
+      }
+
+      // Check if this cluster already exists as a stable folder
+      const [existing] = await db
+        .select()
+        .from(clusters)
+        .where(and(eq(clusters.userId, userId), eq(clusters.name, cluster.name)))
+        .limit(1);
+
+      let clusterId = existing?.id;
+
+      if (!existing) {
+        // Create the folder if it doesn't exist
+        const [created] = await db
+          .insert(clusters)
+          .values({
+            userId,
+            name: cluster.name,
+            description: cluster.description || 'A space for your recent thoughts and explorations.',
+          })
+          .returning({ id: clusters.id });
+        clusterId = created.id;
+      }
+
+      // Assign matching entries to this cluster if they don't have one yet
+      const matchWords = (cluster.name === 'Recent Entries') 
+        ? [] // Match all entries if it's the generic folder
+        : cluster.name
+          .toLowerCase()
+          .split(/[^a-z0-9]+/g)
+          .filter(Boolean);
+
+      for (const entry of entries) {
+        // If entry is already in a different cluster, skip it
+        if (entry.clusterId) continue;
+
+        let matches = false;
+        if (cluster.name === 'Recent Entries') {
+          matches = true; // Generic match
+        } else {
+          const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
+          matches = matchWords.some((word) => corpus.includes(word));
+        }
+
+        if (matches) {
+          await db
+            .update(journalEntries)
+            .set({ clusterId, updatedAt: new Date() })
+            .where(eq(journalEntries.id, entry.id));
+          
+          // Update the local entry object so it doesn't get assigned to multiple clusters in this loop
+          entry.clusterId = clusterId;
+        }
+      }
+    }
+  }
+
+  async createFolder(userId: string, input: { name?: string }) {
+    const { analytics } = await this.getSnapshot(userId);
+    const suggestedName = analytics.clusters.items[0]?.name ?? 'New Space';
+    const folderName = input.name?.trim() || suggestedName;
+    const [created] = await db
+      .insert(clusters)
+      .values({
+        userId,
+        name: folderName,
+        description: 'A custom space created for manual organization.',
+      })
+      .returning({
+        id: clusters.id,
+        title: clusters.name,
+        updatedAt: clusters.updatedAt,
+      });
+
+    await this.redis.invalidatePattern(`home:*:${userId}*`);
+    return {
+      id: created.id,
+      title: created.title,
+      entryCount: 0,
+      updatedAtLabel: formatRelativeUpdatedAt(created.updatedAt),
+    };
+  }
+
+  async deleteFolder(userId: string, folderId: string): Promise<{ deleted: true }> {
+    await db
+      .update(journalEntries)
+      .set({ clusterId: null, updatedAt: new Date() })
+      .where(and(eq(journalEntries.clusterId, folderId), eq(journalEntries.userId, userId)));
+    await db
+      .delete(clusters)
+      .where(and(eq(clusters.id, folderId), eq(clusters.userId, userId)));
+    await this.redis.invalidatePattern(`home:*:${userId}*`);
+    return { deleted: true };
   }
 
   async getClusterDetail(userId: string, clusterId: string): Promise<HomeClusterDetail | null> {
     const { analytics } = await this.getSnapshot(userId);
     const entries = await this.getDecodedEntries(userId);
-    const cluster = analytics.clusters.items.find((item) => item.id === clusterId);
+    const dbCluster = await db
+      .select({
+        id: clusters.id,
+        name: clusters.name,
+        description: clusters.description,
+      })
+      .from(clusters)
+      .where(eq(clusters.id, clusterId))
+      .limit(1);
+
+    const cluster =
+      analytics.clusters.items.find((item) => item.id === clusterId) ??
+      (dbCluster[0]
+        ? ({
+            id: dbCluster[0].id,
+            name: dbCluster[0].name,
+            entryCount: 0,
+            updatedAtLabel: 'Recently',
+            description: dbCluster[0].description ?? 'Your custom folder for related entries.',
+            strength: 'Emerging',
+            tones: ['Reflective'],
+          } as HomeCluster)
+        : null);
 
     if (!cluster) {
       return null;
@@ -305,10 +520,14 @@ export class HomeService implements HomeApi {
       .map((word) => word.trim())
       .filter(Boolean);
 
-    const matchingEntries = entries.filter((entry) => {
-      const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
-      return matchWords.some((word) => corpus.includes(word));
-    });
+    const matchingEntries = dbCluster[0]
+      ? entries.filter((entry) => entry.clusterId === clusterId)
+      : cluster.id.startsWith('recent-entries')
+        ? entries
+        : entries.filter((entry) => {
+            const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
+            return matchWords.some((word) => corpus.includes(word));
+          });
 
     const highlights = matchingEntries.slice(0, 3).map((entry) => ({
       id: entry.id,
@@ -331,17 +550,28 @@ export class HomeService implements HomeApi {
 
     const aiInsights = await generateClusterInsights({
       clusterName: cluster.name,
-      entriesText: matchingEntries.slice(0, 5).map(e => e.text)
+      entriesText: matchingEntries.slice(0, 5).map((e) => e.text),
     });
 
     return {
       cluster,
-      narrative: aiInsights?.narrative || `Your recent entries in ${cluster.name.toLowerCase()} are becoming more coherent. The signal here is stronger than the noise, and the next step is easier to see.`,
-      keyIdeas: (aiInsights?.keyIdeas?.length ? aiInsights.keyIdeas : keyIdeas) as { label: string; description: string }[],
+      narrative:
+        aiInsights?.narrative ||
+        `Your recent entries in ${cluster.name.toLowerCase()} are becoming more coherent. The signal here is stronger than the noise, and the next step is easier to see.`,
+      keyIdeas: (aiInsights?.keyIdeas?.length ? aiInsights.keyIdeas : keyIdeas) as {
+        label: string;
+        description: string;
+      }[],
       highlights,
-      observation: aiInsights?.observation || `A clear pattern is emerging around ${cluster.name.toLowerCase()}. Your entries are becoming more specific and action-oriented over time.`,
-      nextStep: aiInsights?.nextStep || `Capture one more concrete entry that moves ${cluster.name.toLowerCase()} from reflection into action.`,
-      reflectionPrompt: aiInsights?.reflectionPrompt || `If you had to explain why ${cluster.name.toLowerCase()} matters right now, what truth would you be least comfortable saying out loud?`,
+      observation:
+        aiInsights?.observation ||
+        `A clear pattern is emerging around ${cluster.name.toLowerCase()}. Your entries are becoming more specific and action-oriented over time.`,
+      nextStep:
+        aiInsights?.nextStep ||
+        `Capture one more concrete entry that moves ${cluster.name.toLowerCase()} from reflection into action.`,
+      reflectionPrompt:
+        aiInsights?.reflectionPrompt ||
+        `If you had to explain why ${cluster.name.toLowerCase()} matters right now, what truth would you be least comfortable saying out loud?`,
     };
   }
 

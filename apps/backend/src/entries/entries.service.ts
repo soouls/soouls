@@ -1,23 +1,84 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Inject, Injectable } from '@nestjs/common';
+import { generateEmbedding } from '@soouls/ai-engine/embeddings';
+import { analyzeSentiment } from '@soouls/ai-engine/sentiment';
+import type { EntryKind, GalaxyEntry, UserEntry } from '@soouls/api/router';
 import { db } from '@soouls/database/client';
 import { and, desc, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
+import { createHash } from 'node:crypto';
 import LZString from 'lz-string';
 import { RedisService } from '../redis/redis.service';
 import { decryptData, encryptData } from '../utils/encryption';
 
-import type { GalaxyEntry, UserEntry } from '@soouls/api/router';
-
 const s3 = new S3Client({
   region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint:
+    process.env.CLOUDFLARE_R2_ENDPOINT ||
+    (process.env.R2_ACCOUNT_ID
+      ? `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+      : undefined),
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || '',
+    secretAccessKey:
+      process.env.R2_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || '',
   },
 });
+
+const MEDIA_CONTENT_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/svg+xml',
+  'audio/webm',
+  'audio/mpeg',
+  'audio/mp4',
+  'audio/wav',
+  'audio/ogg',
+]);
+
+type EntryAnalysis = {
+  sentiment: { score: number; label: string; color: string } | null;
+  embedding: number[] | null;
+};
+
+type DerivedEntryFields = {
+  title: string | null;
+  wordCount: number;
+  taskStatus: string | null;
+  mediaUrl: string | null;
+  attachments: EntryMediaAttachment[];
+  metadata: EntryMetadata;
+  extractedText: string;
+};
+
+type PersistedEntryContent = {
+  plainContent: string;
+};
+
+type EntryMediaAttachment = {
+  blockId: string | null;
+  type: 'image' | 'voice' | 'doodle';
+  url: string;
+  storageKey: string | null;
+  contentType: string | null;
+  byteSize: number | null;
+  sha256: string | null;
+  name: string | null;
+  duration: number | null;
+  uploadedAt: string | null;
+};
+
+type EntryMetadata = {
+  media: {
+    count: number;
+    sha256: string[];
+    storageKeys: string[];
+    byteSizeTotal: number;
+  };
+};
 
 @Injectable()
 export class EntriesService {
@@ -50,10 +111,15 @@ export class EntriesService {
 
   private async invalidateUserEntryCache(userId: string): Promise<void> {
     const versionKey = this.getCacheKey('user', userId, 'ns_version');
-    await this.redis.incr(versionKey);
+    await this.redis.set(versionKey, Date.now().toString(), 86400 * 30);
 
     // Invalidate admin entries cache (still uses pattern as it's global/rare)
-    await this.redis.invalidatePattern('admin:entries:*');
+    await Promise.all([
+      this.redis.invalidatePattern('admin:entries:*'),
+      this.redis.invalidatePattern(`entries:all:${userId}:*`),
+      this.redis.invalidatePattern(`galaxy:${userId}:*`),
+      this.redis.invalidatePattern(`home:*:${userId}*`),
+    ]);
   }
 
   /**
@@ -69,7 +135,7 @@ export class EntriesService {
     // 2. Try decompression (new standard)
     let processed = decrypted;
     try {
-      const decompressed = LZString.decompressFromUTF16(decrypted);
+      const decompressed = LZString.decompressFromBase64(decrypted) || LZString.decompressFromUTF16(decrypted);
       if (decompressed) {
         processed = decompressed;
       }
@@ -102,8 +168,8 @@ export class EntriesService {
 
     let normalizedContent = rawContent;
     try {
-      const decompressed = LZString.decompressFromUTF16(rawContent);
-      if (decompressed) {
+      const decompressed = LZString.decompressFromBase64(rawContent) || LZString.decompressFromUTF16(rawContent);
+      if (decompressed?.trim().match(/^[{[]/u)) {
         normalizedContent = decompressed;
       }
     } catch {
@@ -135,32 +201,22 @@ export class EntriesService {
   }
 
   private blockToText(block: any): string[] {
-    if (!block || typeof block !== 'object') return [];
-
-    if (block.type === 'goal') {
-      return [block.goal, block.label].filter(
-        (value): value is string => typeof value === 'string' && value.trim().length > 0,
-      );
-    }
-
+    if (!block) return [];
+    if (block.type === 'paragraph') return [block.content || ''];
     if (block.type === 'tasklist') {
-      const title = typeof block.title === 'string' ? [block.title] : [];
-      const tasks = Array.isArray(block.tasks)
-        ? block.tasks
-            .map((task) => (typeof task?.text === 'string' ? task.text : ''))
-            .filter((value) => value.trim().length > 0)
-        : [];
-      return [...title, ...tasks];
+      return [
+        block.title || '',
+        ...(block.tasks || []).map((t: any) => `- [${t.done ? 'x' : ' '}] ${t.text || ''}`),
+      ];
     }
-
-    if (block.type === 'image') {
-      return typeof block.name === 'string' && block.name.trim().length > 0 ? [block.name] : [];
-    }
-
+    if (block.type === 'goal') return [block.goal || '', block.label || ''];
+    if (block.type === 'image') return [block.name || block.alt || ''];
+    if (block.type === 'voice') return [block.title || 'voice note'];
+    if (block.type === 'doodle') return [block.title || 'doodle'];
     return [];
   }
 
-  private deriveEntryFields(rawContent: string, type: 'entry' | 'task') {
+  private deriveEntryFields(rawContent: string, type: 'entry' | 'task'): DerivedEntryFields {
     const { text, full } = this.extractTextFromRawContent(rawContent);
     const normalizedText = text.trim();
     const firstMeaningfulLine =
@@ -174,24 +230,30 @@ export class EntriesService {
     let taskStatus: string | null = null;
     if (type === 'task') {
       const taskLists = Array.isArray(full?.blocks)
-        ? full.blocks.filter((block: unknown) => {
-            return (
-              !!block &&
-              typeof block === 'object' &&
-              'type' in block &&
-              block.type === 'tasklist' &&
-              Array.isArray((block as { tasks?: unknown[] }).tasks)
-            );
-          })
+        ? full.blocks.filter((block: any) => block?.type === 'tasklist')
         : [];
 
       if (taskLists.length > 0) {
-        const tasks = taskLists.flatMap(
-          (block: { tasks: Array<{ done?: boolean }> }) => block.tasks,
-        );
-        taskStatus = tasks.length > 0 && tasks.every((task) => task.done) ? 'completed' : 'pending';
+        const tasks = taskLists.flatMap((block: any) => block.tasks || []);
+        taskStatus =
+          tasks.length > 0 && tasks.every((task: any) => task.done) ? 'completed' : 'pending';
       } else {
         taskStatus = 'pending';
+      }
+    }
+
+    // Extract first image URL for mediaUrl column
+    const attachments = this.extractEntryAttachments(full);
+    let mediaUrl: string | null = null;
+    const firstImageAttachment = attachments.find((attachment) => attachment.type === 'image');
+    if (firstImageAttachment) {
+      mediaUrl = firstImageAttachment.url;
+    } else if (full?.blocks && Array.isArray(full.blocks)) {
+      const imageBlock = full.blocks.find(
+        (b: any) => b.type === 'image' && (b.dataUrl || b.url || b.src),
+      );
+      if (imageBlock) {
+        mediaUrl = imageBlock.dataUrl || imageBlock.url || imageBlock.src;
       }
     }
 
@@ -199,39 +261,236 @@ export class EntriesService {
       title,
       wordCount,
       taskStatus,
+      mediaUrl,
+      attachments,
+      metadata: this.buildEntryMetadata(attachments),
+      extractedText: normalizedText,
     };
   }
 
-  async createEntry(userId: string, content: string, type: 'entry' | 'task' = 'entry') {
-    const derived = this.deriveEntryFields(content, type);
+  private async analyzeEntryText(text: string): Promise<EntryAnalysis> {
+    if (!text) return { sentiment: null, embedding: null };
 
-    // Compress first if it looks like JSON (block editor content)
+    try {
+      const [sentiment, embedding] = await Promise.all([
+        analyzeSentiment(text),
+        generateEmbedding(text),
+      ]);
+      return { sentiment, embedding };
+    } catch (err) {
+      console.warn('AI analysis failed for entry:', err);
+      return { sentiment: null, embedding: null };
+    }
+  }
+
+  private buildCanvasPosition(derived: DerivedEntryFields, sentiment: EntryAnalysis['sentiment']) {
+    const hour = new Date().getHours();
+    return {
+      x: (sentiment?.score ?? 0) * 20 + (Math.random() * 2 - 1),
+      y: (derived.wordCount / 50) * 10 + (Math.random() * 2 - 1),
+      z: ((hour - 12) / 12) * 20 + (Math.random() * 2 - 1),
+      visualMass: Math.max(1.0, derived.wordCount / 100),
+    };
+  }
+
+  private prepareContentForStorage(content: string): PersistedEntryContent {
     let processedContent = content;
-    if (content.startsWith('{') || content.startsWith('[')) {
-      processedContent = LZString.compressToUTF16(content);
+    try {
+      if (content.trim().startsWith('{') || content.trim().startsWith('[')) {
+        processedContent = LZString.compressToBase64(content);
+      }
+    } catch (e) {
+      console.warn('Compression failed for entry payload, saving raw content:', e);
     }
 
-    const encryptedContent = encryptData(processedContent, userId);
+    return {
+      plainContent: processedContent,
+    };
+  }
 
-    const [entry] = await db
-      .insert(journalEntries)
-      .values({
-        userId,
-        content: encryptedContent,
-        type,
-        title: derived.title,
-        wordCount: derived.wordCount,
-        taskStatus: derived.taskStatus,
+  private encryptPreparedContent(prepared: PersistedEntryContent, userId: string) {
+    return encryptData(prepared.plainContent, userId);
+  }
+
+  private async assertEntryOwner(userId: string, entryId: string) {
+    const existing = await db
+      .select({ id: journalEntries.id })
+      .from(journalEntries)
+      .where(and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId)))
+      .limit(1);
+
+    if (existing.length === 0) {
+      throw new Error('Unauthorized or entry not found.');
+    }
+  }
+
+  private normalizeMediaContentType(contentType: string) {
+    const normalized =
+      contentType.split(';')[0]?.trim().toLowerCase() || 'application/octet-stream';
+    if (!MEDIA_CONTENT_TYPES.has(normalized)) {
+      throw new Error(`Unsupported media content type: ${contentType}`);
+    }
+    return normalized;
+  }
+
+  private mediaExtension(contentType: string) {
+    if (contentType === 'image/jpeg') return 'jpg';
+    if (contentType === 'image/svg+xml') return 'svg';
+    return contentType.split('/')[1] || 'bin';
+  }
+
+  private getStorageKeyFromPublicUrl(url: string | null | undefined) {
+    if (!url) return null;
+    const publicBase = process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_R2_PUBLIC_URL;
+    if (publicBase && url.startsWith(publicBase.replace(/\/+$/, ''))) {
+      return url.slice(publicBase.replace(/\/+$/, '').length).replace(/^\/+/, '') || null;
+    }
+
+    try {
+      return new URL(url).pathname.replace(/^\/+/, '') || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private getR2BucketName() {
+    return process.env.R2_BUCKET_NAME || process.env.CLOUDFLARE_R2_BUCKET_NAME || 'soouls-media';
+  }
+
+  private getR2PublicUrl(key: string) {
+    const baseUrl = process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_R2_PUBLIC_URL;
+    if (!baseUrl) {
+      throw new Error('R2_PUBLIC_URL is required to serve uploaded media.');
+    }
+    return `${baseUrl.replace(/\/+$/, '')}/${key}`;
+  }
+
+  private buildMediaKey(userId: string, entryId: string, contentType: string) {
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    return `entries/${userId}/${entryId}/${unique}.${this.mediaExtension(contentType)}`;
+  }
+
+  private extractEntryAttachments(full: any): EntryMediaAttachment[] {
+    if (!Array.isArray(full?.blocks)) return [];
+
+    return full.blocks
+      .filter((block: any) => {
+        return (
+          !!block &&
+          ['image', 'voice', 'doodle'].includes(block.type) &&
+          typeof block.dataUrl === 'string' &&
+          block.dataUrl.startsWith('http')
+        );
       })
-      .returning();
+      .map((block: any) => {
+        const storageKey =
+          typeof block.storageKey === 'string'
+            ? block.storageKey
+            : this.getStorageKeyFromPublicUrl(block.dataUrl);
 
-    await db.insert(canvasNodes).values({
-      entryId: entry.id,
-      x: Math.random() * 10 - 5,
-      y: Math.random() * 10 - 5,
-      z: Math.random() * 10 - 5,
-      visualMass: type === 'task' ? 2.0 : 1.0,
-    });
+        return {
+          blockId: typeof block.id === 'string' ? block.id : null,
+          type: block.type,
+          url: block.dataUrl,
+          storageKey,
+          contentType: typeof block.contentType === 'string' ? block.contentType : null,
+          byteSize: typeof block.byteSize === 'number' ? block.byteSize : null,
+          sha256: typeof block.sha256 === 'string' ? block.sha256 : null,
+          name: typeof block.name === 'string' ? block.name : null,
+          duration: typeof block.duration === 'number' ? block.duration : null,
+          uploadedAt: typeof block.uploadedAt === 'string' ? block.uploadedAt : null,
+        } satisfies EntryMediaAttachment;
+      });
+  }
+
+  private buildEntryMetadata(attachments: EntryMediaAttachment[]): EntryMetadata {
+    return {
+      media: {
+        count: attachments.length,
+        sha256: attachments.flatMap((attachment) => attachment.sha256 ?? []),
+        storageKeys: attachments.flatMap((attachment) => attachment.storageKey ?? []),
+        byteSizeTotal: attachments.reduce((sum, attachment) => sum + (attachment.byteSize ?? 0), 0),
+      },
+    };
+  }
+
+  async createEntry(
+    userId: string,
+    content: string,
+    type: 'entry' | 'task' = 'entry',
+    options: { analyze?: boolean } = {},
+  ) {
+    const derived = this.deriveEntryFields(content, type);
+    const { sentiment, embedding } = options.analyze
+      ? await this.analyzeEntryText(derived.extractedText)
+      : { sentiment: null, embedding: null };
+
+    const preparedContent = this.prepareContentForStorage(content);
+    const encryptedContent = this.encryptPreparedContent(preparedContent, userId);
+
+    let entry: { id: string };
+    try {
+      [entry] = await db
+        .insert(journalEntries)
+        .values({
+          userId,
+          content: encryptedContent,
+          type,
+          title: derived.title,
+          wordCount: derived.wordCount,
+          ...(derived.taskStatus ? { taskStatus: derived.taskStatus } : {}),
+          ...(derived.mediaUrl ? { mediaUrl: derived.mediaUrl } : {}),
+          attachments: derived.attachments,
+          metadata: derived.metadata,
+          ...(options.analyze
+            ? {
+                status: 'published' as const,
+                sentimentScore: sentiment?.score ?? undefined,
+                sentimentLabel: sentiment?.label ?? undefined,
+                sentimentColor: sentiment?.color ?? undefined,
+                embedding: embedding ?? undefined,
+              }
+            : {}),
+        })
+        .returning();
+    } catch (error) {
+      console.warn(
+        'Entry metadata insert failed; retrying encrypted content-only save:',
+        error instanceof Error ? error.message : error,
+      );
+      const result = await db.execute(sql`
+        INSERT INTO "journal_entries" ("id", "user_id", "content", "type", "created_at", "updated_at")
+        VALUES (gen_random_uuid(), ${userId}, ${encryptedContent}, ${type}, now(), now())
+        RETURNING "id"
+      `);
+      entry = { id: (result[0] as any).id };
+      /* Removed old insert */ if (false) [entry] = await db
+        .insert(journalEntries)
+        .values({
+          userId,
+          content: encryptedContent,
+          type,
+        })
+        .returning({ id: journalEntries.id });
+    }
+
+    const position = this.buildCanvasPosition(derived, sentiment);
+
+    try {
+      await db.insert(canvasNodes).values({
+        entryId: entry.id,
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        visualMass: type === 'task' ? 1.8 : position.visualMass,
+        emotion: sentiment?.label,
+      });
+    } catch (error) {
+      console.warn(
+        'Canvas node creation failed; entry content remains saved:',
+        error instanceof Error ? error.message : error,
+      );
+    }
 
     await this.invalidateUserEntryCache(userId);
     return entry;
@@ -257,7 +516,12 @@ export class EntriesService {
     return entry || null;
   }
 
-  async updateEntry(userId: string, id: string, content: string) {
+  async updateEntry(
+    userId: string,
+    id: string,
+    content: string,
+    options: { analyze?: boolean } = {},
+  ) {
     // 1. Validate ownership and existence in a single step
     const existing = await db
       .select({
@@ -276,30 +540,71 @@ export class EntriesService {
     // 2. Derive metadata (word count, status, etc)
     const derived = this.deriveEntryFields(content, existing[0].type);
 
-    // 3. Process content (Compression -> Encryption)
-    let processedContent = content;
+    const { sentiment, embedding } = options.analyze
+      ? await this.analyzeEntryText(derived.extractedText)
+      : { sentiment: null, embedding: null };
+
+    const preparedContent = this.prepareContentForStorage(content);
+    const encryptedContent = this.encryptPreparedContent(preparedContent, userId);
+
     try {
-      // Only compress if it looks like a valid JSON structure (block editor)
-      if (content.trim().startsWith('{') || content.trim().startsWith('[')) {
-        processedContent = LZString.compressToUTF16(content);
-      }
-    } catch (e) {
-      console.warn(`Compression failed for entry ${id}, saving raw:`, e);
+      await db
+        .update(journalEntries)
+        .set({
+          content: encryptedContent,
+          title: derived.title,
+          wordCount: derived.wordCount,
+          ...(derived.taskStatus ? { taskStatus: derived.taskStatus } : {}),
+          ...(derived.mediaUrl ? { mediaUrl: derived.mediaUrl } : {}),
+          attachments: derived.attachments,
+          metadata: derived.metadata,
+          ...(options.analyze
+            ? {
+                status: 'published' as const,
+                sentimentScore: sentiment?.score ?? undefined,
+                sentimentLabel: sentiment?.label ?? undefined,
+                sentimentColor: sentiment?.color ?? undefined,
+                embedding: embedding ?? undefined,
+              }
+            : {}),
+          updatedAt: new Date(), // Explicitly update timestamp
+        })
+        .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
+    } catch (error) {
+      console.warn(
+        'Entry metadata update failed; retrying encrypted content-only save:',
+        error instanceof Error ? error.message : error,
+      );
+      await db
+        .update(journalEntries)
+        .set({
+          content: encryptedContent,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
     }
 
-    const encryptedContent = encryptData(processedContent, userId);
-
-    // 4. Atomic Update
-    await db
-      .update(journalEntries)
-      .set({
-        content: encryptedContent,
-        title: derived.title,
-        wordCount: derived.wordCount,
-        taskStatus: derived.taskStatus,
-        updatedAt: new Date(), // Explicitly update timestamp
-      })
-      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
+    if (options.analyze) {
+      const position = this.buildCanvasPosition(derived, sentiment);
+      try {
+        await db
+          .update(canvasNodes)
+          .set({
+            x: position.x,
+            y: position.y,
+            z: position.z,
+            visualMass: existing[0].type === 'task' ? 1.8 : position.visualMass,
+            emotion: sentiment?.label,
+            updatedAt: new Date(),
+          })
+          .where(eq(canvasNodes.entryId, id));
+      } catch (error) {
+        console.warn(
+          'Canvas node update failed; entry content remains saved:',
+          error instanceof Error ? error.message : error,
+        );
+      }
+    }
 
     // 5. Invalidate Cache
     await Promise.all([
@@ -309,32 +614,63 @@ export class EntriesService {
   }
 
   async getUploadPresignedUrl(userId: string, entryId: string, contentType: string) {
-    // Verify ownership ONLY if it's not a temporary ID for a new entry
-    if (!entryId.startsWith('temp-')) {
-      const existing = await db
-        .select({ id: journalEntries.id })
-        .from(journalEntries)
-        .where(and(eq(journalEntries.id, entryId), eq(journalEntries.userId, userId)))
-        .limit(1);
-
-      if (existing.length === 0) {
-        throw new Error('Unauthorized or entry not found.');
-      }
-    }
+    await this.assertEntryOwner(userId, entryId);
+    const normalizedContentType = this.normalizeMediaContentType(contentType);
+    const key = this.buildMediaKey(userId, entryId, normalizedContentType);
 
     const bucketParams = {
-      Bucket: process.env.R2_BUCKET_NAME || 'soouls-media',
-      Key: `entries/${userId}/${entryId}/${Date.now()}`,
-      ContentType: contentType,
+      Bucket: this.getR2BucketName(),
+      Key: key,
+      ContentType: normalizedContentType,
     };
 
     const command = new PutObjectCommand(bucketParams);
     const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
-    // Construct the final public URL the client will report back
-    const publicUrl = `${process.env.R2_PUBLIC_URL}/${bucketParams.Key}`;
+    return { uploadUrl: signedUrl, publicUrl: this.getR2PublicUrl(key), storageKey: key };
+  }
 
-    return { uploadUrl: signedUrl, publicUrl };
+  async uploadMediaDataUrl(
+    userId: string,
+    entryId: string,
+    dataUrl: string,
+    contentType: string,
+  ): Promise<{
+    publicUrl: string;
+    storageKey: string;
+    contentType: string;
+    byteSize: number;
+    sha256: string;
+  }> {
+    await this.assertEntryOwner(userId, entryId);
+    const normalizedContentType = this.normalizeMediaContentType(contentType);
+    const match = /^data:([^;,]+)(?:;[^,]*)?;base64,(.+)$/u.exec(dataUrl);
+    if (!match) {
+      throw new Error('Media payload must be a base64 data URL.');
+    }
+
+    const dataUrlContentType = this.normalizeMediaContentType(match[1]);
+    const effectiveContentType =
+      dataUrlContentType === normalizedContentType ? normalizedContentType : dataUrlContentType;
+    const key = this.buildMediaKey(userId, entryId, effectiveContentType);
+    const body = Buffer.from(match[2], 'base64');
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: this.getR2BucketName(),
+        Key: key,
+        Body: body,
+        ContentType: effectiveContentType,
+      }),
+    );
+
+    return {
+      publicUrl: this.getR2PublicUrl(key),
+      storageKey: key,
+      contentType: effectiveContentType,
+      byteSize: body.byteLength,
+      sha256: createHash('sha256').update(body).digest('hex'),
+    };
   }
 
   async updateEntryMediaUrl(userId: string, entryId: string, mediaUrl: string) {
@@ -355,6 +691,28 @@ export class EntriesService {
 
     await this.redis.del(this.getEntryCacheKey(userId, entryId));
     await this.invalidateUserEntryCache(userId);
+  }
+
+  async deleteEntry(userId: string, id: string) {
+    const existing = await db
+      .select({ id: journalEntries.id })
+      .from(journalEntries)
+      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)))
+      .limit(1);
+
+    if (existing.length === 0) {
+      throw new Error(`Entry ${id} not found or unauthorized for user ${userId}`);
+    }
+
+    await db.delete(canvasNodes).where(eq(canvasNodes.entryId, id));
+    await db
+      .delete(journalEntries)
+      .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, userId)));
+
+    await Promise.all([
+      this.redis.del(this.getEntryCacheKey(userId, id)),
+      this.invalidateUserEntryCache(userId),
+    ]);
   }
 
   async findSimilarEntries(
@@ -394,7 +752,7 @@ export class EntriesService {
         visualMass: canvasNodes.visualMass,
       })
       .from(journalEntries)
-      .innerJoin(canvasNodes, eq(journalEntries.id, canvasNodes.entryId))
+      .leftJoin(canvasNodes, eq(journalEntries.id, canvasNodes.entryId))
       .where(eq(journalEntries.userId, userId))
       .orderBy(desc(journalEntries.createdAt))
       .limit(limit + 1)
@@ -441,13 +799,25 @@ export class EntriesService {
    * Get all entries for a user with FULL content (not stripped).
    * Used by the dashboard timeline to show descriptions and media.
    */
-  async getAllEntries(userId: string, limit = 50, cursor = 0) {
+  async getAllEntries(userId: string, limit = 50, cursor = 0, search?: string) {
     const version = await this.getUserVersion(userId);
-    const cacheKey = this.getCacheKey('entries:all', userId, version, limit, cursor);
-    const cached = await this.redis.get<{ items: UserEntry[]; nextCursor: number | null }>(
-      cacheKey,
+    const normalizedSearch = search?.trim().toLowerCase() ?? '';
+    const cacheKey = this.getCacheKey(
+      'entries:all',
+      userId,
+      version,
+      limit,
+      cursor,
+      normalizedSearch,
     );
-    if (cached) return cached;
+
+    // Skip cache if searching
+    if (!search) {
+      const cached = await this.redis.get<{ items: UserEntry[]; nextCursor: number | null }>(
+        cacheKey,
+      );
+      if (cached) return cached;
+    }
 
     const rawData = await db
       .select({
@@ -464,28 +834,37 @@ export class EntriesService {
       .from(journalEntries)
       .where(eq(journalEntries.userId, userId))
       .orderBy(desc(journalEntries.createdAt))
-      .limit(limit + 1)
-      .offset(cursor);
-
-    let nextCursor: number | null = null;
-    let itemsToReturn = rawData;
-
-    if (rawData.length > limit) {
-      itemsToReturn = rawData.slice(0, limit);
-      nextCursor = cursor + limit;
-    }
+      .limit(normalizedSearch ? 200 : limit + 1)
+      .offset(normalizedSearch ? 0 : cursor);
 
     // Decrypt full content on the way out
-    const items = itemsToReturn.map((entry) => {
-      const { text } = this.processEntryContent(entry.content, userId);
+    const decodedItems = rawData.map((entry) => {
+      const { text, full } = this.processEntryContent(entry.content, userId);
       return {
         ...entry,
-        content: text,
+        content: full ? JSON.stringify(full) : text,
+        searchText: [entry.title ?? '', text, entry.sentimentLabel ?? ''].join(' ').toLowerCase(),
       };
     });
 
+    const filteredItems = normalizedSearch
+      ? decodedItems.filter((entry) => entry.searchText.includes(normalizedSearch))
+      : decodedItems;
+
+    let nextCursor: number | null = null;
+    let itemsToReturn = filteredItems;
+
+    if (filteredItems.length > limit) {
+      itemsToReturn = filteredItems.slice(0, limit);
+      nextCursor = cursor + limit;
+    }
+
+    const items = itemsToReturn.map(({ searchText: _searchText, ...entry }) => entry);
+
     const result = { items, nextCursor };
-    await this.redis.set(cacheKey, result, this.CACHE_TTL.ENTRIES_ALL);
+    if (!normalizedSearch) {
+      await this.redis.set(cacheKey, result, this.CACHE_TTL.ENTRIES_ALL);
+    }
     return result;
   }
 
@@ -627,5 +1006,22 @@ export class EntriesService {
     }
 
     return { migratedCount };
+  }
+
+  async upsertSync(
+    userId: string,
+    input: { id?: string; content: string; type?: EntryKind; finalize?: boolean },
+  ) {
+    if (input.id && !input.id.startsWith('temp-')) {
+      // Existing entry, update it
+      await this.updateEntry(userId, input.id, input.content, { analyze: input.finalize === true });
+      return { id: input.id };
+    }
+
+    // New entry, create it
+    const entry = await this.createEntry(userId, input.content, input.type || 'entry', {
+      analyze: input.finalize === true,
+    });
+    return { id: entry.id };
   }
 }

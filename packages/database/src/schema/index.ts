@@ -125,6 +125,23 @@ export const clusters = pgTable('clusters', {
 });
 
 // ────────────────────────────────────────
+// Folders table
+// ────────────────────────────────────────
+export const folders = pgTable('folders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  color: text('color').default('#3B82F6'),
+  icon: text('icon').default('folder'),
+  parentId: uuid('parent_id'), // For nested folders
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ────────────────────────────────────────
 // Journal entries table
 // ────────────────────────────────────────
 export const journalEntries = pgTable('journal_entries', {
@@ -149,6 +166,7 @@ export const journalEntries = pgTable('journal_entries', {
 
   // Columns that exist in the live DB
   clusterId: uuid('cluster_id').references(() => clusters.id, { onDelete: 'set null' }),
+  folderId: uuid('folder_id').references(() => folders.id, { onDelete: 'set null' }),
   title: text('title'),
   isPinned: boolean('is_pinned').default(false).notNull(),
   wordCount: integer('word_count').default(0),

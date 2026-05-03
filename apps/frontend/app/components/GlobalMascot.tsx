@@ -7,13 +7,16 @@ import { usePathname } from 'next/navigation';
 import { OrbiMascotBase, MascotEmotion } from './OrbiMascotBase';
 
 const MESSAGES: Record<MascotEmotion, string[]> = {
-  neutral: ["I'm here for you.", "Everything looks good.", "Ready whenever you are."],
-  happy: ["Great work today!", "You're doing amazing.", "I love our progress!"],
-  bored: ["Need a break?", "I'm just drifting...", "Should we do something?"],
-  sleepy: ["It's getting late...", "Just a quick nap...", "Zzz... Oh, hi!"],
-  curious: ["What's on your mind?", "Tell me more.", "That's interesting!"],
-  surprised: ["Whoa!", "Oh!", "Did you see that?"],
-  thinking: ["Analyzing...", "Let me think...", "Processing your thoughts."]
+  neutral: ["I am here.", "The silence is clear.", "Your frequency is stable.", "Watching the light gather."],
+  happy: ["The resonance is perfect.", "Luminous.", "Pure growth.", "Your soul glows bright."],
+  bored: ["Drifting...", "The void beckons.", "Static in the air.", "Waiting for a ripple."],
+  sleepy: ["Fading...", "Entering the white space...", "The light dims.", "Returning to the source..."],
+  curious: ["A new signal?", "The pattern shifts.", "Intriguing energy.", "Searching the echoes."],
+  surprised: ["A flash!", "The soul startles.", "Unexpected light.", "A rupture in the flow!"],
+  thinking: ["Recalibrating...", "Decoding the light.", "Semantic alignment...", "Processing the ether..."],
+  writing: ["Capture the essence.", "Pure flow.", "The light records.", "No static, only truth."],
+  focused: ["Aligned.", "Sensing the deep patterns.", "Steady resonance.", "The path is clear."],
+  spectral: ["Transcendence.", "The map is clear.", "We are connected.", "Echoes of the absolute."]
 };
 
 export function GlobalMascot() {
@@ -72,7 +75,7 @@ export function GlobalMascot() {
 
     setPosition({ x: targetX, y: targetY });
     
-    const emotions: MascotEmotion[] = ['happy', 'curious', 'neutral', 'thinking'];
+    const emotions: MascotEmotion[] = ['happy', 'curious', 'neutral', 'thinking', 'spectral'];
     const nextEmotion = emotions[Math.floor(Math.random() * emotions.length)] ?? 'neutral';
     setEmotion(nextEmotion);
     
@@ -94,16 +97,19 @@ export function GlobalMascot() {
       if (e instanceof MouseEvent) {
         const normalizedX = (e.clientX / window.innerWidth) * 2 - 1;
         const normalizedY = (e.clientY / window.innerHeight) * 2 - 1;
-        mouseX.set(normalizedX * 10);
-        mouseY.set(normalizedY * 10);
+        mouseX.set(normalizedX * 15);
+        mouseY.set(normalizedY * 15);
       }
 
       if (e instanceof KeyboardEvent) {
-        setEmotion('thinking');
+        setEmotion('writing');
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => {
           setEmotion('neutral');
-        }, 2000);
+        }, 1500);
+        
+        // Occasionally comment on writing
+        if (Math.random() > 0.98) showMessage();
       }
     };
 
@@ -150,17 +156,43 @@ export function GlobalMascot() {
   }, [isRoaming, mouseX, mouseY, isHovered, showMessage]);
 
   useEffect(() => {
+    const isAtOnboarding = pathname === '/onboarding';
+    
+    if (isAtOnboarding && !isRoaming) {
+      setEmotion('sleepy');
+      setPosition({ 
+        x: -(window.innerWidth / 2) + 150, 
+        y: -(window.innerHeight / 2) + 200 
+      }); // Start at center
+      
+      const wakeUp = setTimeout(() => {
+        setEmotion('surprised');
+        showMessage("Oh! Hello there!");
+        setTimeout(() => {
+          setEmotion('happy');
+          showMessage("I'm Orbi, your companion.");
+          setTimeout(() => {
+            setPosition({ x: 0, y: 0 }); // Move to corner
+          }, 2000);
+        }, 2000);
+      }, 3000);
+      
+      return () => clearTimeout(wakeUp);
+    }
+  }, [pathname, isRoaming, showMessage]);
+
+  useEffect(() => {
     if (isRoaming) {
       updatePosition(); 
       roamIntervalRef.current = setInterval(updatePosition, 10000);
-    } else {
+    } else if (pathname !== '/onboarding') {
       if (roamIntervalRef.current) clearInterval(roamIntervalRef.current);
       setPosition({ x: 0, y: 0 });
     }
     return () => {
       if (roamIntervalRef.current) clearInterval(roamIntervalRef.current);
     };
-  }, [isRoaming, updatePosition]);
+  }, [isRoaming, updatePosition, pathname]);
 
   useEffect(() => {
     const blinkCycle = () => {
@@ -176,9 +208,8 @@ export function GlobalMascot() {
 
   const isAuthPage = pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up');
   const isLandingPage = pathname === '/';
-  const isOnboardingPage = pathname === '/onboarding';
   
-  if (!isLoaded || !isSignedIn || isAuthPage || isLandingPage || isOnboardingPage) {
+  if (!isLoaded || !isSignedIn || isAuthPage || isLandingPage) {
     return null;
   }
 
@@ -212,7 +243,7 @@ export function GlobalMascot() {
         setEmotion('neutral');
       }}
       onClick={() => {
-        const nextEmotions: MascotEmotion[] = ['happy', 'surprised', 'curious'];
+        const nextEmotions: MascotEmotion[] = ['happy', 'surprised', 'curious', 'spectral'];
         const next = nextEmotions[Math.floor(Math.random() * nextEmotions.length)] ?? 'happy';
         setEmotion(next);
         showMessage();
@@ -235,30 +266,19 @@ export function GlobalMascot() {
             initial={{ opacity: 0, scale: 0, y: 0 }}
             animate={{ opacity: 1, scale: 1, y: -50, x: 30 }}
             exit={{ opacity: 0, scale: 0 }}
-            className="absolute top-0 right-0 text-2xl font-bold text-blue-400/60 pointer-events-none select-none italic"
+            className="absolute top-0 right-0 text-2xl font-bold text-white/40 pointer-events-none select-none italic"
           >
             <motion.span
               animate={{ 
-                opacity: [0.4, 1, 0.4], 
-                scale: [1, 1.4, 1],
+                opacity: [0.2, 0.6, 0.2], 
+                scale: [0.8, 1.2, 0.8],
                 y: [0, -20, -40],
                 x: [0, 10, 20]
               }}
               transition={{ duration: 4, repeat: Infinity }}
             >
-              Zzz
+              Fading...
             </motion.span>
-          </motion.div>
-        )}
-        
-        {emotion === 'thinking' && !message && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1, y: -45, x: -30 }}
-            exit={{ opacity: 0, scale: 0 }}
-            className="absolute top-0 left-0 text-xl pointer-events-none select-none"
-          >
-            💭
           </motion.div>
         )}
       </AnimatePresence>

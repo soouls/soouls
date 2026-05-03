@@ -34,9 +34,6 @@ export default function SignUpPage() {
     return null;
   }
 
-  if (pathname?.includes('sso-callback')) {
-    return <AuthenticateWithRedirectCallback />;
-  }
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +75,7 @@ export default function SignUpPage() {
     if (!isLoaded || !signUp) return;
     signUp.authenticateWithRedirect({
       strategy,
-      redirectUrl: '/sign-up/sso-callback',
+      redirectUrl: '/sso-callback',
       redirectUrlComplete: '/home',
     });
   };

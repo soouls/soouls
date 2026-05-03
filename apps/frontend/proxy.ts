@@ -2,6 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { publicInfoPaths } from './src/config/publicInfoRoutes';
 
+// Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
@@ -9,49 +10,24 @@ const isPublicRoute = createRouteMatcher([
   '/sso-callback(.*)',
   '/forgot-password(.*)',
   '/onboarding(.*)',
-  '/api/trpc/(.*)',
-  ...publicInfoPaths,
-]);
-const isDashboardRoute = createRouteMatcher([
-  '/home(.*)',
-  '/home/dashboard(.*)',
-  '/home/canvas(.*)',
-  '/home/new-entry(.*)',
-  '/home/clusters(.*)',
+  ...publicInfoPaths.map(path => `${path}(.*)`),
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, redirectToSignIn } = await auth();
+export default clerkMiddleware(async (auth, request) => {
+  const { userId } = await auth();
+  const { pathname } = request.nextUrl;
 
-  // Redirect /dashboard to /home for backward compatibility (dashboard is now at /home)
-  // if (userId && req.nextUrl.pathname === '/dashboard') {
-  //   return NextResponse.redirect(new URL('/home', req.url));
-  // }
-
-  // Redirect /home/clusters to /home/canvas (clusters renamed to canvas)
-  // if (userId && req.nextUrl.pathname === '/home/clusters') {
-  //   return NextResponse.redirect(new URL('/home/canvas', req.url));
-  // }
-
-  // Redirect /home/dashboard to /home for backward compatibility (dashboard is now at /home)
-  // if (userId && req.nextUrl.pathname === '/home/dashboard') {
-  //   return NextResponse.redirect(new URL('/home', req.url));
-  // }
-
-  // If user is logged in and tries to access the landing page, redirect to home (dashboard)
-  if (userId && req.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/home', req.url));
+  // 1. If user is authenticated and tries to access the landing page, redirect to /home
+  if (userId && pathname === '/') {
+    return NextResponse.redirect(new URL('/home', request.url));
   }
 
-  // If user is not logged in and tries to access dashboard, redirect to sign-in
-  if (!userId && isDashboardRoute(req)) {
-    return redirectToSignIn();
-  }
-
-  // Protect all routes except public ones
-  if (!isPublicRoute(req)) {
+  // 2. If the route is not public, protect it
+  if (!isPublicRoute(request)) {
     await auth.protect();
   }
+
+  return NextResponse.next();
 });
 
 export const config = {
