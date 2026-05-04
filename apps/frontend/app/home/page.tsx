@@ -462,7 +462,7 @@ export default function HomePage() {
               </p>
               <p className="mt-6 max-w-5xl text-sm leading-relaxed text-[var(--soouls-text-muted)]">
                 {insights
-                  ? `You have ${insights.overview.entryCount} entries in your archive, ${insights.overview.weeklyEntryCount} entries this week, and a ${insights.overview.currentStreak}-day reflective streak.`
+                  ? `You have ${insights.overview?.entryCount ?? 0} entries in your archive, ${insights.overview?.weeklyEntryCount ?? 0} entries this week, and a ${insights.overview?.currentStreak ?? 0}-day reflective streak.`
                   : 'Your home summary evolves from your real writing as soon as you start capturing entries.'}
               </p>
             </div>
@@ -507,7 +507,7 @@ export default function HomePage() {
                 <h2 className="mb-5 text-base font-medium">Reflection Patterns</h2>
                 <p className="mb-8 text-sm leading-relaxed text-[var(--soouls-text-muted)]">
                   You tend to reflect most during{' '}
-                  {insights?.overview.mostActivePeriod ?? 'late evenings'}, when your thoughts
+                  {insights?.overview?.mostActivePeriod ?? 'late evenings'}, when your thoughts
                   become more structured.
                 </p>
                 <div className="flex h-28 items-end justify-center gap-2 border-b border-white/10">

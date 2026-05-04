@@ -125,10 +125,30 @@ export type HomeAnalyticsBundle = {
     completedTaskCount: number;
     weeklyEntryCount: number;
   };
+  peakTimeEntries: string[];
   insights: {
-    monthlyNarrative: string;
-    thoughtThemes: ThemeScore[];
-    finalSynthesis: string;
+    monthlyQuote: string;
+    monthlyAnalysis: string;
+    statLine: string;
+    statNote: string;
+    dominantTheme: string;
+    previousTheme: string;
+    highlighted_phrases: string[];
+    thoughtThemes: Array<{ key: string; label: string; count: number; progress: number }>;
+    finalSynthesis: {
+      headline: string;
+      body: string;
+    };
+    reflectionToneDescription: string;
+    relationshipMap: {
+      nodes: Array<{ id: string; label: string; size: number }>;
+      links: Array<{ source: string; target: string; strength: number }>;
+    };
+    thinkingShifts: Array<{
+      label: string;
+      status: 'increasing' | 'decreasing' | 'emerging' | 'resolved';
+      note: string | null;
+    }>;
   };
   account: {
     writingProfile: WritingProfile;
@@ -354,6 +374,13 @@ function getMostActivePeriod(entries: DecodedHomeEntry[]): string {
   return [...counts.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ?? 'Evenings';
 }
 
+function getEntriesAtPeakTime(entries: DecodedHomeEntry[], peakSlot: string): string[] {
+  return entries
+    .filter((e) => getActivityBucketLabel(e.createdAt.getUTCHours()) === peakSlot)
+    .slice(0, 5)
+    .map((e) => e.text);
+}
+
 function getWeeklyEntryCount(entries: DecodedHomeEntry[], now: Date): number {
   const weekAgo = new Date(now);
   weekAgo.setUTCDate(now.getUTCDate() - 6);
@@ -427,21 +454,117 @@ function extractTopKeywords(entries: DecodedHomeEntry[]): string[] {
     .map(([word]) => word);
 }
 
-function buildMonthlyNarrative(topTheme: ThemeScore | undefined, keywords: string[]): string {
+function buildMonthlyQuote(topTheme: ThemeScore | undefined, keywords: string[]): string {
   if (!topTheme) {
     return 'Your recent entries show a steady desire to make sense of what matters, even when the pattern is still forming.';
   }
 
   const keywordText = keywords.slice(0, 2).join(' and ');
-  return `This month, your writing keeps circling ${topTheme.label.toLowerCase()}${keywordText ? ` through ${keywordText}` : ''}. The overall signal suggests movement from scattered thoughts toward clearer action.`;
+  return `This month, your writing keeps circling {ts1}${topTheme.label.toLowerCase()}{/ts1}${keywordText ? ` through {ts1}${keywordText}{/ts1}` : ''}.`;
 }
 
-function buildFinalSynthesis(topTheme: ThemeScore | undefined): string {
+function buildMonthlyAnalysis(topTheme: ThemeScore | undefined, weeklyCount: number, streak: number): string {
   if (!topTheme) {
-    return 'Your entries suggest a reflective phase where clarity is still gathering around a few recurring thoughts.';
+    return `Your activity reflects a {ts2}${weeklyCount} entry{/ts2} rhythm this week. Start journaling more to unlock deeper thematic insights.`;
   }
 
-  return `Right now, your mental landscape is consolidating around ${topTheme.label.toLowerCase()}. The more you write, the more your direction becomes visible.`;
+  return `Your activity reflects a {ts2}${weeklyCount} entry{/ts2} rhythm this week, maintaining a {ts2}${streak} day streak{/ts2}. The recurring theme of "${topTheme.label}" suggests you are beginning to define your direction with confidence.`;
+}
+
+function buildStatLine(weeklyCount: number, previousWeeklyCount: number): { line: string; note: string } {
+  const diff = weeklyCount - previousWeeklyCount;
+  const pct = previousWeeklyCount > 0 ? Math.round((diff / previousWeeklyCount) * 100) : 0;
+  
+  if (pct > 0) {
+    return {
+      line: `${pct}% increase in reflection volume`,
+      note: 'You are writing significantly more this week compared to last, deepening your self-awareness.'
+    };
+  } else if (pct < 0) {
+    return {
+      line: `${Math.abs(pct)}% decrease in reflection volume`,
+      note: 'Your writing pace has slowed. This might indicate a period of external focus or a need for rest.'
+    };
+  }
+  
+  return {
+    line: 'Steady reflection rhythm maintained',
+    note: 'You are maintaining a consistent writing habit, which is key for long-term emotional clarity.'
+  };
+}
+
+function buildFinalSynthesis(topTheme: ThemeScore | undefined): { headline: string; body: string } {
+  if (!topTheme) {
+    return {
+      headline: 'You are in a period of significant cognitive transition',
+      body: 'Your entries suggest a reflective phase where clarity is still gathering around a few recurring thoughts.',
+    };
+  }
+
+  return {
+    headline: `Consolidating around ${topTheme.label.toLowerCase()}`,
+    body: `Right now, your mental landscape is shifting towards deeper focus on ${topTheme.label.toLowerCase()}. The more you write, the more your direction becomes visible.`,
+  };
+}
+
+function buildThinkingShifts(entries: DecodedHomeEntry[], themeScores: ThemeScore[], now: Date): Array<{ label: string; status: 'increasing' | 'decreasing' | 'emerging' | 'resolved'; note: string | null }> {
+  if (entries.length < 2) {
+    return themeScores.slice(0, 4).map(t => ({ label: t.label, status: 'emerging', note: 'Initial pattern detected' }));
+  }
+
+  const mid = new Date(now);
+  mid.setUTCDate(15); // Split at the 15th for monthly comparison
+
+  const firstHalf = entries.filter(e => e.createdAt < mid);
+  const secondHalf = entries.filter(e => e.createdAt >= mid);
+
+  if (firstHalf.length === 0) {
+    return themeScores.slice(0, 5).map(t => ({ label: t.label, status: 'emerging', note: 'New this month' }));
+  }
+
+  return themeScores.slice(0, 5).map(theme => {
+    const firstCount = firstHalf.filter(e => getEntryCorpus(e).includes(theme.keywords[0])).length;
+    const secondCount = secondHalf.filter(e => getEntryCorpus(e).includes(theme.keywords[0])).length;
+
+    let status: 'increasing' | 'decreasing' | 'emerging' | 'resolved' = 'increasing';
+    if (firstCount === 0 && secondCount > 0) status = 'emerging';
+    else if (firstCount > 0 && secondCount === 0) status = 'resolved';
+    else if (secondCount > firstCount) status = 'increasing';
+    else status = 'decreasing';
+
+    return { label: theme.label, status, note: null };
+  });
+}
+
+function buildRelationshipMap(entries: DecodedHomeEntry[], themeScores: ThemeScore[]) {
+  const nodes = themeScores.slice(0, 6).map(t => ({ 
+    id: t.key, 
+    label: t.label.toUpperCase(), 
+    size: Math.max(10, Math.min(28, t.count * 4)) 
+  }));
+
+  const links: Array<{ source: string; target: string; strength: number }> = [];
+
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const themeA = THEME_DEFINITIONS.find(d => d.key === nodes[i].id);
+      const themeB = THEME_DEFINITIONS.find(d => d.key === nodes[j].id);
+      if (!themeA || !themeB) continue;
+
+      const coOccurrences = entries.filter(e => {
+        const corpus = getEntryCorpus(e);
+        return themeA.keywords.some(k => corpus.includes(k)) && 
+               themeB.keywords.some(k => corpus.includes(k));
+      }).length;
+
+      const strength = coOccurrences / Math.max(entries.length, 1);
+      if (strength > 0.1) { // Threshold for showing a connection
+        links.push({ source: nodes[i].id, target: nodes[j].id, strength });
+      }
+    }
+  }
+
+  return { nodes, links };
 }
 
 function buildWritingProfile(entries: DecodedHomeEntry[]): WritingProfile {
@@ -557,6 +680,9 @@ export function buildHomeAnalytics(input: {
   const keywords = extractTopKeywords(entries);
   const topTheme = themeScores.length > 0 ? themeScores[0] : undefined;
   const clusters = buildClusters(entries, themeScores, input.now);
+  const weeklyCount = getWeeklyEntryCount(entries, input.now);
+  const previousWeeklyCount = getWeeklyEntryCount(entries, new Date(input.now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const stat = buildStatLine(weeklyCount, previousWeeklyCount);
 
   return {
     overview: {
@@ -564,12 +690,21 @@ export function buildHomeAnalytics(input: {
       currentStreak: getCurrentStreak(entries),
       mostActivePeriod: getMostActivePeriod(entries),
       completedTaskCount: getCompletedTaskCount(entries),
-      weeklyEntryCount: getWeeklyEntryCount(entries, input.now),
+      weeklyEntryCount: weeklyCount,
     },
     insights: {
-      monthlyNarrative: buildMonthlyNarrative(topTheme, keywords),
+      monthlyQuote: buildMonthlyQuote(topTheme, keywords) || '',
+      monthlyAnalysis: buildMonthlyAnalysis(topTheme, weeklyCount, getCurrentStreak(entries)) || '',
+      statLine: stat.line || '',
+      statNote: stat.note || '',
+      dominantTheme: topTheme?.label || '',
+      previousTheme: themeScores[1]?.label || '',
+      highlighted_phrases: keywords.slice(0, 2),
       thoughtThemes: themeScores,
-      finalSynthesis: buildFinalSynthesis(topTheme),
+      finalSynthesis: buildFinalSynthesis(topTheme) || { headline: '', body: '' },
+      reflectionToneDescription: '',
+      relationshipMap: buildRelationshipMap(entries, themeScores),
+      thinkingShifts: buildThinkingShifts(entries, themeScores, input.now),
     },
     account: {
       writingProfile: buildWritingProfile(entries),
@@ -584,5 +719,6 @@ export function buildHomeAnalytics(input: {
     canvas: {
       folders: buildCanvasFolders(clusters),
     },
+    peakTimeEntries: getEntriesAtPeakTime(entries, getMostActivePeriod(entries)),
   };
 }

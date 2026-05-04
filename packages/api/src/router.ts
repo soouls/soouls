@@ -304,13 +304,33 @@ export type HomeInsights = {
     completedTaskCount: number;
     weeklyEntryCount: number;
   };
-  monthlyNarrative: string;
+  peakTimeEntries: string[];
+  monthlyQuote: string;
+  monthlyAnalysis: string;
+  statLine: string;
+  statNote: string;
+  dominantTheme: string;
+  previousTheme: string;
+  highlighted_phrases: string[];
   thoughtThemes: HomeThoughtTheme[];
-  finalSynthesis: string;
+  finalSynthesis: {
+    headline: string;
+    body: string;
+  };
   clustersHeadline: string;
   clusters: HomeCluster[];
   canvasFolders: HomeCanvasFolder[];
   coreThemes: Array<{ label: string; percent: number }>;
+  reflectionToneDescription: string;
+  relationshipMap: {
+    nodes: Array<{ id: string; label: string; size: number }>;
+    links: Array<{ source: string; target: string; strength: number }>;
+  };
+  thinkingShifts: Array<{
+    label: string;
+    status: 'increasing' | 'decreasing' | 'emerging' | 'resolved';
+    note: string | null;
+  }>;
   writingProfile: {
     title: string;
     description: string;

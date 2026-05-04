@@ -267,23 +267,25 @@ const DashboardPage = () => {
                     
                     {/* Real Graph Nodes from Cluster Entries */}
                     {clusterEntries.map((entry, i) => {
-                      const pos = [
+                      const positions = [
                         { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 30, width: '160px', bg: '#E07A5F/5', border: '#E07A5F/20' },
                         { top: '10%', left: '10%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
                         { top: '12%', right: '10%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
                         { bottom: '15%', left: '12%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
                         { bottom: '18%', right: '12%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
-                      ][i];
+                      ];
+                      
+                      const pos = positions[i] || positions[0];
 
                       return (
                         <div 
                           key={entry.id} 
                           className="absolute p-3 rounded-xl backdrop-blur-sm transition-all hover:scale-105 hover:opacity-100"
                           style={{
-                            top: pos.top,
-                            left: pos.left,
-                            right: pos.right,
-                            bottom: pos.bottom,
+                            top: pos.top || 'auto',
+                            left: pos.left || 'auto',
+                            right: pos.right || 'auto',
+                            bottom: pos.bottom || 'auto',
                             transform: pos.transform,
                             zIndex: pos.zIndex,
                             width: pos.width,

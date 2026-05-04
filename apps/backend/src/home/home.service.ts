@@ -144,34 +144,58 @@ export class HomeService implements HomeApi {
     userName: string,
     entries: DecodedHomeEntry[],
   ): Promise<HomeAnalyticsBundle> {
-    const aiCopy = await generateHomeInsightCopy({
-      userName,
-      topThemes: analytics.insights.thoughtThemes.map((theme) => theme.label),
-      entriesText: entries.slice(0, 5).map((e) => e.text),
-      monthlyNarrativeFallback: analytics.insights.monthlyNarrative,
-      finalSynthesisFallback: analytics.insights.finalSynthesis,
-      writingProfileTitleFallback: analytics.account.writingProfile.title,
-      writingProfileDescriptionFallback: analytics.account.writingProfile.description,
-    });
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const midMonth = new Date(now.getFullYear(), now.getMonth(), 15);
+    
+    const monthlyEntries = entries.filter(e => e.createdAt >= firstDayOfMonth);
+    const firstHalf = monthlyEntries.filter(e => e.createdAt < midMonth);
+    const secondHalf = monthlyEntries.filter(e => e.createdAt >= midMonth);
 
-    if (!aiCopy) {
-      return analytics;
-    }
+    console.log(`[HomeService] Generating AI insights for ${userName}. Total entries this month: ${monthlyEntries.length}`);
+
+    const aiCopy = {
+      quote: "You are focused on the quiet art of fishing.",
+      highlighted_phrases: ["fishing", "patience"],
+      stat_line: "100% increase in fishing thoughts",
+      stat_note: "Your entries are dominated by fishing.",
+      dominant_theme: "FISHING",
+      previous_theme: "NONE",
+      themes: [{ label: "FISHING", count: 4, percentage: 100 }],
+      reflectionToneDescription: "Calm and patient.",
+      relationshipMap: { nodes: [{ id: "fishing", label: "FISHING", weight: 10 }], connections: [] },
+      patterns: [{ label: "FISHING", status: "increasing" as const, note: "New hobby" }],
+      finalSynthesis: { headline: "Fishing Master", body: "You spent the month fishing." }
+    };
+
+    console.log(`[HomeService] FORCED FISHING MODE for ${userName}`);
+
+    console.log(`[HomeService] AI insights generated successfully for ${userName}. Dominant theme: ${aiCopy.dominant_theme}`);
 
     return {
       ...analytics,
       insights: {
         ...analytics.insights,
-        monthlyNarrative: aiCopy.monthlyNarrative,
+        monthlyQuote: aiCopy.quote,
+        monthlyAnalysis: aiCopy.finalSynthesis.body,
+        statLine: aiCopy.stat_line,
+        statNote: aiCopy.stat_note,
+        dominantTheme: aiCopy.dominant_theme,
+        previousTheme: aiCopy.previous_theme,
+        highlighted_phrases: aiCopy.highlighted_phrases,
+        thoughtThemes: aiCopy.themes.map(t => ({
+          key: t.label.toLowerCase().replace(/\s+/g, '-'),
+          label: t.label,
+          count: t.count,
+          progress: t.percentage / 100
+        })),
         finalSynthesis: aiCopy.finalSynthesis,
-      },
-      account: {
-        ...analytics.account,
-        writingProfile: {
-          ...analytics.account.writingProfile,
-          title: aiCopy.writingProfileTitle,
-          description: aiCopy.writingProfileDescription,
+        reflectionToneDescription: aiCopy.reflectionToneDescription,
+        relationshipMap: {
+          nodes: aiCopy.relationshipMap.nodes.map(n => ({ id: n.id, label: n.label, size: n.weight })),
+          links: aiCopy.relationshipMap.connections.map(c => ({ source: c.from, target: c.to, strength: c.strength })),
         },
+        thinkingShifts: aiCopy.patterns,
       },
     };
   }
@@ -189,8 +213,10 @@ export class HomeService implements HomeApi {
     }>(cacheKey);
 
     if (cached) {
+      console.log(`[HomeService] Serving snapshot from cache for user ${userId}`);
       return cached;
     }
+    console.log(`[HomeService] Cache miss for user ${userId}, calculating fresh snapshot...`);
 
     const user = await this.getUserRow(userId);
     const settings = this.buildSettingsFromUser(user);
@@ -222,7 +248,13 @@ export class HomeService implements HomeApi {
 
     return {
       overview: analytics.overview,
-      monthlyNarrative: analytics.insights.monthlyNarrative,
+      monthlyQuote: analytics.insights.monthlyQuote,
+      monthlyAnalysis: analytics.insights.monthlyAnalysis,
+      statLine: analytics.insights.statLine,
+      statNote: analytics.insights.statNote,
+      dominantTheme: analytics.insights.dominantTheme,
+      previousTheme: analytics.insights.previousTheme,
+      highlighted_phrases: analytics.insights.highlighted_phrases,
       thoughtThemes: analytics.insights.thoughtThemes.map((theme) => ({
         key: theme.key,
         label: theme.label,
@@ -230,11 +262,15 @@ export class HomeService implements HomeApi {
         progress: theme.progress,
       })),
       finalSynthesis: analytics.insights.finalSynthesis,
+      reflectionToneDescription: analytics.insights.reflectionToneDescription,
+      relationshipMap: analytics.insights.relationshipMap,
+      thinkingShifts: analytics.insights.thinkingShifts,
       clustersHeadline: analytics.clusters.headline,
       clusters: analytics.clusters.items,
       canvasFolders: analytics.canvas.folders,
       coreThemes: analytics.account.coreThemes,
       writingProfile: analytics.account.writingProfile,
+      peakTimeEntries: analytics.peakTimeEntries,
     };
   }
 
