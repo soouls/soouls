@@ -1403,6 +1403,7 @@ function NewEntryContent() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
   // ── tRPC auto-save (syncs to DB in addition to localStorage) ──────────────
+  const utils = trpc.useContext();
   const createMutation = trpc.private.entries.create.useMutation();
   const updateMutation = trpc.private.entries.update.useMutation();
   const createRef = useRef(createMutation.mutateAsync);
@@ -1523,6 +1524,7 @@ function NewEntryContent() {
 
       const payloadString = JSON.stringify({ textContent: text, blocks: updatedBlocks });
       await updateRef.current({ id: targetEntryId, content: payloadString });
+      utils.private.home.getClusters.invalidate();
       setSyncStatus('synced');
     } catch (err) {
       console.error('DB save failed:', err);

@@ -374,23 +374,59 @@ export class HomeService implements HomeApi {
   /**
    * Promotes AI-suggested clusters to stable, database-backed folders
    * and automatically assigns matching entries to them.
+   * Implements the logic: 2+ entries trigger a new thematic folder.
    */
   private async ensureReliableClusters(
     userId: string,
     suggestedClusters: any[],
     entries: DecodedHomeEntry[],
   ): Promise<void> {
-    // Promote clusters that have at least 1 entry
-    const robustClusters = suggestedClusters.filter((c) => c.entryCount >= 1);
+    // 1. Identify entries that aren't assigned to any cluster yet
+    const unassignedEntries = entries.filter((e) => !e.clusterId);
+
+    // 2. If we have 2+ unassigned entries, try to form a new dynamic cluster
+    if (unassignedEntries.length >= 2) {
+      const topKeywords = this.extractTopKeywordsFromEntries(unassignedEntries);
+      if (topKeywords.length > 0) {
+        const dynamicName = `Discovery: ${topKeywords[0].charAt(0).toUpperCase() + topKeywords[0].slice(1)}`;
+        
+        // Check if this dynamic folder already exists
+        const [existing] = await db
+          .select()
+          .from(clusters)
+          .where(and(eq(clusters.userId, userId), eq(clusters.name, dynamicName)))
+          .limit(1);
+
+        if (!existing) {
+          const [created] = await db
+            .insert(clusters)
+            .values({
+              userId,
+              name: dynamicName,
+              description: `A space automatically formed from your recent thoughts on ${topKeywords.join(', ')}.`,
+            })
+            .returning({ id: clusters.id });
+          
+          // Assign these unassigned entries to the new folder
+          for (const entry of unassignedEntries) {
+            await db
+              .update(journalEntries)
+              .set({ clusterId: created.id, updatedAt: new Date() })
+              .where(eq(journalEntries.id, entry.id));
+            entry.clusterId = created.id;
+          }
+        }
+      }
+    }
+
+    // 3. Promote suggested clusters that have at least 2 entries (per design request)
+    const robustClusters = suggestedClusters.filter((c) => c.entryCount >= 2);
 
     for (const cluster of robustClusters) {
-      // Avoid promoting 'Recent Entries' if we already have specific thematic folders
-      // Unless it's the ONLY cluster available
       if (cluster.name === 'Recent Entries' && robustClusters.length > 1) {
         continue;
       }
 
-      // Check if this cluster already exists as a stable folder
       const [existing] = await db
         .select()
         .from(clusters)
@@ -400,7 +436,6 @@ export class HomeService implements HomeApi {
       let clusterId = existing?.id;
 
       if (!existing) {
-        // Create the folder if it doesn't exist
         const [created] = await db
           .insert(clusters)
           .values({
@@ -412,21 +447,16 @@ export class HomeService implements HomeApi {
         clusterId = created.id;
       }
 
-      // Assign matching entries to this cluster if they don't have one yet
       const matchWords = (cluster.name === 'Recent Entries') 
-        ? [] // Match all entries if it's the generic folder
-        : cluster.name
-          .toLowerCase()
-          .split(/[^a-z0-9]+/g)
-          .filter(Boolean);
+        ? [] 
+        : cluster.name.toLowerCase().split(/[^a-z0-9]+/g).filter(Boolean);
 
       for (const entry of entries) {
-        // If entry is already in a different cluster, skip it
         if (entry.clusterId) continue;
 
         let matches = false;
         if (cluster.name === 'Recent Entries') {
-          matches = true; // Generic match
+          matches = true;
         } else {
           const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
           matches = matchWords.some((word) => corpus.includes(word));
@@ -437,12 +467,30 @@ export class HomeService implements HomeApi {
             .update(journalEntries)
             .set({ clusterId, updatedAt: new Date() })
             .where(eq(journalEntries.id, entry.id));
-          
-          // Update the local entry object so it doesn't get assigned to multiple clusters in this loop
           entry.clusterId = clusterId;
         }
       }
     }
+  }
+
+  private extractTopKeywordsFromEntries(entries: DecodedHomeEntry[]): string[] {
+    const counts = new Map<string, number>();
+    const STOP_WORDS = new Set(['about', 'after', 'again', 'also', 'because', 'been', 'being', 'feel', 'from', 'have', 'into', 'just', 'more', 'only', 'that', 'them', 'they', 'this', 'through', 'want', 'when', 'with', 'your', 'the', 'and', 'for', 'are', 'but', 'not', 'was', 'you', 'too', 'will', 'has', 'had']);
+
+    for (const entry of entries) {
+      const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
+      const words = corpus.split(/[^a-z0-9]+/g)
+        .filter((word) => word.length > 3 && !STOP_WORDS.has(word));
+      
+      for (const word of words) {
+        counts.set(word, (counts.get(word) ?? 0) + 1);
+      }
+    }
+
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([word]) => word);
   }
 
   async createFolder(userId: string, input: { name?: string }) {

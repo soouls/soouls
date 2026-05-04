@@ -828,6 +828,8 @@ export class EntriesService {
         mediaUrl: journalEntries.mediaUrl,
         sentimentColor: journalEntries.sentimentColor,
         sentimentLabel: journalEntries.sentimentLabel,
+        clusterId: journalEntries.clusterId,
+        taskStatus: journalEntries.taskStatus,
         createdAt: journalEntries.createdAt,
         updatedAt: journalEntries.updatedAt,
       })
@@ -887,6 +889,8 @@ export class EntriesService {
         mediaUrl: journalEntries.mediaUrl,
         sentimentColor: journalEntries.sentimentColor,
         sentimentLabel: journalEntries.sentimentLabel,
+        clusterId: journalEntries.clusterId,
+        taskStatus: journalEntries.taskStatus,
         createdAt: journalEntries.createdAt,
         updatedAt: journalEntries.updatedAt,
         userEmail: users.email,
@@ -912,6 +916,8 @@ export class EntriesService {
         mediaUrl: entry.mediaUrl,
         sentimentColor: entry.sentimentColor,
         sentimentLabel: entry.sentimentLabel,
+        clusterId: entry.clusterId,
+        taskStatus: entry.taskStatus,
         createdAt: entry.createdAt,
         updatedAt: entry.updatedAt,
       };

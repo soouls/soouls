@@ -60,6 +60,8 @@ export type UserEntry = {
   mediaUrl: string | null;
   sentimentColor: string | null;
   sentimentLabel: string | null;
+  clusterId: string | null;
+  taskStatus: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
@@ -75,6 +77,8 @@ export type AdminEntry = {
   mediaUrl: string | null;
   sentimentColor: string | null;
   sentimentLabel: string | null;
+  clusterId: string | null;
+  taskStatus: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
