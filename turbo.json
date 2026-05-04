@@ -22,6 +22,7 @@
         "TWILIO_WHATSAPP_FROM",
         "COMMAND_CENTER_BOOTSTRAP_SUPER_ADMINS",
         "SENTRY_DSN",
+        "SENTRY_AUTH_TOKEN",
         "R2_BUCKET_NAME",
         "LOG_LEVEL",
         "NODE_ENV"

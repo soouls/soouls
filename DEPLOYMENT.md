@@ -1,104 +1,102 @@
 # 🚀 Soouls Deployment Guide
 
-This guide covers everything you need to deploy the **Soouls** full-stack application to **Vercel** (or any other cloud provider).
+This guide provides a **step-by-step** walkthrough to deploy the **Soouls** full-stack application to production.
 
-## 🛠 Prerequisites
+## 📋 Prerequisites
 
-Before starting, ensure you have the following accounts ready:
-- **Vercel**: For hosting the Frontend and Backend.
-- **Neon**: For the PostgreSQL database.
-- **Upstash**: For Redis (notifications/tasks).
-- **Clerk**: For Authentication.
-- **Cloudflare**: For R2 Object Storage (media).
-- **Sentry**: For error tracking.
-- **Resend**: For transactional emails.
+Before you begin, ensure you have accounts for the following:
+- **Vercel**: Hosting (Frontend, Backend, Admin).
+- **Neon**: PostgreSQL Database.
+- **Clerk**: User Authentication.
+- **Upstash**: Redis for background tasks.
+- **Cloudflare**: R2 Object Storage for media.
+- **Sentry**: Error monitoring.
+- **Resend**: Transactional emails.
+- **Google Cloud**: Google Calendar OAuth (optional).
 
 ---
 
-## 📦 1. Backend Deployment
+## 🛠️ Step 1: Database Setup (Neon)
 
-### Vercel Configuration
+1.  Create a new project on [Neon.tech](https://neon.tech).
+2.  In the **Dashboard**, copy your **Connection String**.
+3.  Ensure it looks like: `postgresql://user:password@host/neondb?sslmode=require`.
+4.  Keep this ready as your `DATABASE_URL`.
+
+## 🛠️ Step 2: Authentication (Clerk)
+
+1.  Create a new application in the [Clerk Dashboard](https://dashboard.clerk.com).
+2.  Go to **API Keys** and copy:
+    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+    - `CLERK_SECRET_KEY`
+3.  Go to **Paths**:
+    - Set Sign-in URL to `/sign-in`
+    - Set Sign-up URL to `/sign-up`
+4.  **Important**: In production, add your Vercel domains to **Allowed Redirect Origins**.
+
+## 🛠️ Step 3: Storage (Cloudflare R2)
+
+1.  Go to **R2** in your [Cloudflare Dashboard](https://dash.cloudflare.com).
+2.  Create a bucket named `soouls-media`.
+3.  Go to **Settings** and enable a **Public Domain** or use the `.r2.dev` URL.
+4.  Create an **API Token** with `Object Read & Write` permissions.
+5.  Copy the `Access Key ID`, `Secret Access Key`, and `Account ID`.
+
+---
+
+## 📦 Step 4: Vercel Deployment
+
+We recommend deploying the **Backend** first, then the **Frontend**.
+
+### 1. Backend (@soouls/backend)
+- **Framework Preset**: `Other`
 - **Build Command**: `turbo run build --filter=@soouls/backend`
-- **Install Command**: `bun install`
 - **Output Directory**: `dist`
+- **Root Directory**: `./` (Root of monorepo)
+- **Environment Variables**:
+  - `DATABASE_URL`
+  - `CLERK_SECRET_KEY`
+  - `REDIS_URL` (From Upstash)
+  - `ENCRYPTION_SECRET` (A long random string)
+  - `OPENAI_API_KEY`
+  - `GEMINI_API_KEY`
+  - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
+  - `BACKEND_URL` (Your backend's Vercel URL)
+  - `FRONTEND_URL` (Your frontend's Vercel URL)
 
-### 🔑 Backend Environment Variables
-
-| Variable | Description | Example Value |
-| :--- | :--- | :--- |
-| `DATABASE_URL` | Neon Postgres Connection String | `postgresql://...` |
-| `CLERK_SECRET_KEY` | Clerk Private Key | `sk_test_...` |
-| `FRONTEND_URL` | **Production Frontend URL** | `https://soouls.vercel.app` |
-| `BACKEND_URL` | **Production Backend URL** | `https://soouls-backend.vercel.app` |
-| `REDIS_URL` | Upstash Redis URL | `rediss://...` |
-| `ENCRYPTION_SECRET` | Secret for data encryption | `your-long-random-string` |
-| `OPENAI_API_KEY` | OpenAI Key for AI features | `sk-...` |
-| `GEMINI_API_KEY` | Google Gemini Key | `AIza...` |
-| `R2_ACCOUNT_ID` | Cloudflare Account ID | `...` |
-| `R2_ACCESS_KEY_ID` | Cloudflare R2 Access Key | `...` |
-| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 Secret Key | `...` |
-| `R2_BUCKET_NAME` | Cloudflare Bucket Name | `soouls-media` |
-| `R2_PUBLIC_URL` | Public URL for R2 assets | `https://pub-....r2.dev` |
-| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | `...` |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | `...` |
-| `GOOGLE_CALENDAR_REDIRECT_URI` | **Backend Callback URL** | `https://api.soouls.com/google-calendar/callback` |
-
----
-
-## 🎨 2. Frontend Deployment
-
-### Vercel Configuration
-- **Build Command**: `turbo run build --filter=@soouls/frontend`
-- **Install Command**: `bun install`
+### 2. Frontend (@soouls/frontend)
 - **Framework Preset**: `Next.js`
-
-### 🔑 Frontend Environment Variables
-
-| Variable | Description | Example Value |
-| :--- | :--- | :--- |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk Public Key | `pk_test_...` |
-| `NEXT_PUBLIC_BACKEND_URL` | **Production Backend URL** | `https://soouls-backend.vercel.app` |
-| `NEXT_PUBLIC_FRONTEND_URL` | **Production Frontend URL** | `https://soouls.vercel.app` |
-| `NEXT_PUBLIC_APP_URL` | Same as Frontend URL | `https://soouls.vercel.app` |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN | `https://...@sentry.io/...` |
-| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog API Key | `phc_...` |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog Host | `https://us.posthog.com` |
-
-> [!IMPORTANT]
-> **Link Synchronization**: Ensure the `NEXT_PUBLIC_BACKEND_URL` in the frontend matches the `BACKEND_URL` in the backend. If they don't match, tRPC requests and rewrites will fail.
+- **Build Command**: `turbo run build --filter=@soouls/frontend`
+- **Output Directory**: `.next`
+- **Root Directory**: `./`
+- **Environment Variables**:
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+  - `NEXT_PUBLIC_BACKEND_URL` (Must match Backend URL above)
+  - `NEXT_PUBLIC_FRONTEND_URL`
+  - `NEXT_PUBLIC_APP_URL`
+  - `NEXT_PUBLIC_SENTRY_DSN`
 
 ---
 
-## 🔗 3. Critical Links to Update
+## 🔗 Step 5: Final Synchronization
 
-When moving from Local to Production, you **MUST** update these URLs in your provider dashboards:
+Once both are deployed, you **MUST** ensure the URLs match:
+1.  **CORS**: Your Backend must allow requests from your Frontend URL.
+2.  **Clerk**: Your Production URL must be authorized in Clerk settings.
+3.  **Google OAuth**: If using Calendar, add `https://your-backend.vercel.app/google-calendar/callback` to Authorized Redirect URIs in Google Cloud Console.
 
-### Clerk Dashboard
-1.  **Allowed Redirect Origins**: Add your production frontend URL.
-2.  **Social Login Callbacks**: Ensure they point to your production frontend.
+## 🛡️ Security Checklist
+- [ ] Change `ENCRYPTION_SECRET` to a unique production value.
+- [ ] Set `NODE_ENV=production`.
+- [ ] Ensure `DATABASE_URL` uses the `pooler` endpoint for serverless efficiency.
+- [ ] Verify Sentry is receiving errors from both apps.
 
-### Google Cloud Console
-1.  **Authorized Redirect URIs**: 
-    - `https://your-backend-url.vercel.app/google-calendar/callback`
-2.  **Authorized JavaScript Origins**: 
-    - `https://your-frontend-url.vercel.app`
-
-### Cloudflare R2
-1.  **CORS Policy**: Allow your production frontend and backend domains.
+## 🚀 Troubleshooting
+- **CORS Errors**: Check `NEXT_PUBLIC_BACKEND_URL` in Frontend. It must match the domain of your Backend.
+- **Auth Redirects**: Ensure Clerk paths are correctly set in both the dashboard and `.env`.
+- **Media Uploads Fail**: Verify Cloudflare R2 CORS policy allows your frontend domain.
 
 ---
 
-## 🛠 Fixed Build Errors
-
-We have resolved the following issues in the latest commit:
-1.  **TypeScript Error**: Fixed a crash in `app/home/dashboard/page.tsx` where the `pos` variable was possibly undefined during the cluster node mapping.
-2.  **Sentry Warnings**: Added `SENTRY_AUTH_TOKEN` to `turbo.json`'s `globalPassThroughEnv` to allow Sentry source map uploads during Turborepo builds.
-
-## 🚀 How to Re-Deploy
-
-1.  **Push the latest changes** to your `dev` or `main` branch.
-2.  Go to **Vercel Dashboard**.
-3.  Ensure all Environment Variables listed above are added to the respective projects.
-4.  Trigger a **New Deployment**.
-
-If you see any more build errors, check the logs for "Type error" or "Module not found". The latest fix ensures the dashboard compiles correctly.
+> [!TIP]
+> Use the provided `.env.example` file in the root directory as a template for your Vercel Environment Variables.

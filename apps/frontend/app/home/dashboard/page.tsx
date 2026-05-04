@@ -271,8 +271,8 @@ const DashboardPage = () => {
                         { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 30, width: '160px', bg: '#E07A5F/5', border: '#E07A5F/20' },
                         { top: '10%', left: '10%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
                         { top: '12%', right: '10%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
-                        { bottom: '15%', left: '12%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
-                        { bottom: '18%', right: '12%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
+                        { top: '15%', left: '12%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
+                        { top: '18%', right: '12%', zIndex: 10, width: '110px', bg: 'white/0.02', border: 'white/5', opacity: 0.4 },
                       ];
                       
                       const pos = positions[i] || positions[0];
@@ -282,13 +282,13 @@ const DashboardPage = () => {
                           key={entry.id} 
                           className="absolute p-3 rounded-xl backdrop-blur-sm transition-all hover:scale-105 hover:opacity-100"
                           style={{
-                            top: pos.top || 'auto',
-                            left: pos.left || 'auto',
-                            right: pos.right || 'auto',
-                            bottom: pos.bottom || 'auto',
-                            transform: pos.transform,
-                            zIndex: pos.zIndex,
-                            width: pos.width,
+                            top: (pos as any).top || 'auto',
+                            left: (pos as any).left || 'auto',
+                            right: (pos as any).right || 'auto',
+                            bottom: (pos as any).bottom || 'auto',
+                            transform: (pos as any).transform,
+                            zIndex: (pos as any).zIndex,
+                            width: (pos as any).width,
                             backgroundColor: i === 0 ? 'rgba(224, 122, 95, 0.08)' : 'rgba(255, 255, 255, 0.02)',
                             border: i === 0 ? '1px solid rgba(224, 122, 95, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
                             opacity: i === 0 ? 1 : 0.4
@@ -408,7 +408,7 @@ const DashboardPage = () => {
                   
                   <div className="relative z-10 p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-sm">
                     <p className="text-[18px] text-white/50 font-light leading-relaxed italic">
-                      {insights?.monthlyNarrative || `You've shown strong alignment with "${topTheme.toLowerCase()}" lately. Your entries suggest a ${growthPercent > 0 ? 'growing' : 'stable'} focus on this area, with an increase of ${Math.abs(growthPercent)}% in recurring patterns compared to last month.`}
+                      {insights?.monthlyAnalysis || `You've shown strong alignment with "${topTheme.toLowerCase()}" lately. Your entries suggest a ${growthPercent > 0 ? 'growing' : 'stable'} focus on this area, with an increase of ${Math.abs(growthPercent)}% in recurring patterns compared to last month.`}
                     </p>
                   </div>
                 </div>
