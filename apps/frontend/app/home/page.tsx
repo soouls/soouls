@@ -456,7 +456,7 @@ export default function HomePage() {
               <LeafIcon className="mb-6 h-5 w-5 text-[#86A861]" />
               <p className="font-playfair text-2xl italic leading-[1.25] text-[var(--soouls-text-strong)] md:text-5xl">
                 "
-                {insights?.monthlyNarrative ??
+                {insights?.monthlyQuote ??
                   'Your entries are beginning to show a more coherent direction.'}
                 "
               </p>
@@ -582,7 +582,7 @@ export default function HomePage() {
               </p>
               <p className="font-playfair text-2xl italic md:text-4xl">
                 "
-                {insights?.finalSynthesis ??
+                {insights?.finalSynthesis?.headline ??
                   'Your writing suggests a meaningful transition is underway.'}
                 "
               </p>

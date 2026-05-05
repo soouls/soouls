@@ -1,6 +1,6 @@
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
-import { generateClusterInsights, generateHomeInsightCopy } from '@soouls/ai-engine/home-insights';
+import { generateClusterInsights, generateHomeInsightCopy, type InsightEntryMeta } from '@soouls/ai-engine/home-insights';
 import type {
   HomeAccount,
   HomeApi,
@@ -144,58 +144,77 @@ export class HomeService implements HomeApi {
     userName: string,
     entries: DecodedHomeEntry[],
   ): Promise<HomeAnalyticsBundle> {
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const midMonth = new Date(now.getFullYear(), now.getMonth(), 15);
-    
-    const monthlyEntries = entries.filter(e => e.createdAt >= firstDayOfMonth);
-    const firstHalf = monthlyEntries.filter(e => e.createdAt < midMonth);
-    const secondHalf = monthlyEntries.filter(e => e.createdAt >= midMonth);
+    // Don't call AI if there are zero entries
+    if (entries.length === 0) {
+      return analytics;
+    }
 
-    console.log(`[HomeService] Generating AI insights for ${userName}. Total entries this month: ${monthlyEntries.length}`);
+    // Build full entry metadata for the AI — up to 50 entries with timestamps and word counts
+    const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const entryMetas: InsightEntryMeta[] = entries.slice(0, 50).map((e) => ({
+      text: e.text,
+      timestamp: e.createdAt.toISOString(),
+      wordCount: e.text.split(/\s+/).filter(Boolean).length,
+      dayOfWeek: DAYS[e.createdAt.getUTCDay()] ?? 'Unknown',
+      hourOfDay: e.createdAt.getUTCHours(),
+    }));
 
-    const aiCopy = {
-      quote: "You are focused on the quiet art of fishing.",
-      highlighted_phrases: ["fishing", "patience"],
-      stat_line: "100% increase in fishing thoughts",
-      stat_note: "Your entries are dominated by fishing.",
-      dominant_theme: "FISHING",
-      previous_theme: "NONE",
-      themes: [{ label: "FISHING", count: 4, percentage: 100 }],
-      reflectionToneDescription: "Calm and patient.",
-      relationshipMap: { nodes: [{ id: "fishing", label: "FISHING", weight: 10 }], connections: [] },
-      patterns: [{ label: "FISHING", status: "increasing" as const, note: "New hobby" }],
-      finalSynthesis: { headline: "Fishing Master", body: "You spent the month fishing." }
-    };
+    // Calculate date range from actual entries
+    const sorted = [...entries].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const dateRangeStart = sorted[0]?.createdAt.toISOString().slice(0, 10) ?? '';
+    const dateRangeEnd = sorted[sorted.length - 1]?.createdAt.toISOString().slice(0, 10) ?? '';
 
-    console.log(`[HomeService] FORCED FISHING MODE for ${userName}`);
+    const aiCopy = await generateHomeInsightCopy({
+      userName,
+      topThemes: analytics.insights.thoughtThemes.map((theme) => theme.label),
+      entries: entryMetas,
+      totalEntryCount: entries.length,
+      dateRangeStart,
+      dateRangeEnd,
+      peakWritingTime: analytics.overview.mostActivePeriod,
+      weeklyEntryCount: analytics.overview.weeklyEntryCount,
+      previousWeeklyEntryCount: Math.max(0, analytics.overview.weeklyEntryCount - 1),
+      currentStreak: analytics.overview.currentStreak,
+      monthlyQuoteFallback: analytics.insights.monthlyQuote,
+      monthlyAnalysisFallback: analytics.insights.monthlyAnalysis,
+      finalSynthesisFallback: analytics.insights.finalSynthesis.headline,
+      writingProfileTitleFallback: analytics.account.writingProfile.title,
+      writingProfileDescriptionFallback: analytics.account.writingProfile.description,
+    });
 
-    console.log(`[HomeService] AI insights generated successfully for ${userName}. Dominant theme: ${aiCopy.dominant_theme}`);
+    if (!aiCopy) {
+      return analytics;
+    }
 
     return {
       ...analytics,
       insights: {
         ...analytics.insights,
-        monthlyQuote: aiCopy.quote,
-        monthlyAnalysis: aiCopy.finalSynthesis.body,
-        statLine: aiCopy.stat_line,
-        statNote: aiCopy.stat_note,
-        dominantTheme: aiCopy.dominant_theme,
-        previousTheme: aiCopy.previous_theme,
-        highlighted_phrases: aiCopy.highlighted_phrases,
-        thoughtThemes: aiCopy.themes.map(t => ({
-          key: t.label.toLowerCase().replace(/\s+/g, '-'),
-          label: t.label,
-          count: t.count,
-          progress: t.percentage / 100
-        })),
-        finalSynthesis: aiCopy.finalSynthesis,
-        reflectionToneDescription: aiCopy.reflectionToneDescription,
-        relationshipMap: {
-          nodes: aiCopy.relationshipMap.nodes.map(n => ({ id: n.id, label: n.label, size: n.weight })),
-          links: aiCopy.relationshipMap.connections.map(c => ({ source: c.from, target: c.to, strength: c.strength })),
+        monthlyQuote: aiCopy.monthlyQuote,
+        monthlyAnalysis: aiCopy.monthlyAnalysis,
+        statLine: aiCopy.statLine || analytics.insights.statLine,
+        statNote: aiCopy.statNote || analytics.insights.statNote,
+        dominantTheme: aiCopy.dominantTheme || analytics.insights.dominantTheme,
+        previousTheme: aiCopy.previousTheme || analytics.insights.previousTheme,
+        finalSynthesis: {
+          headline: aiCopy.finalSynthesis.headline || analytics.insights.finalSynthesis.headline,
+          body: aiCopy.finalSynthesis.body || analytics.insights.finalSynthesis.body,
         },
-        thinkingShifts: aiCopy.patterns,
+        reflectionToneDescription: aiCopy.reflectionToneDescription || analytics.insights.reflectionToneDescription,
+        relationshipMap: (aiCopy.relationshipMap?.nodes?.length)
+          ? aiCopy.relationshipMap as { nodes: { id: string; label: string; size: number }[]; links: { source: string; target: string; strength: number }[] }
+          : analytics.insights.relationshipMap,
+        thinkingShifts: (aiCopy.thinkingShifts?.length)
+          ? aiCopy.thinkingShifts as { label: string; trend: "up" | "down" | "circle" | null; tag: string | null }[]
+          : analytics.insights.thinkingShifts,
+      },
+      account: {
+        ...analytics.account,
+        writingProfile: {
+          ...analytics.account.writingProfile,
+          title: aiCopy.writingProfileTitle || analytics.account.writingProfile.title,
+          description: aiCopy.writingProfileDescription || analytics.account.writingProfile.description,
+        },
       },
     };
   }
@@ -213,10 +232,8 @@ export class HomeService implements HomeApi {
     }>(cacheKey);
 
     if (cached) {
-      console.log(`[HomeService] Serving snapshot from cache for user ${userId}`);
       return cached;
     }
-    console.log(`[HomeService] Cache miss for user ${userId}, calculating fresh snapshot...`);
 
     const user = await this.getUserRow(userId);
     const settings = this.buildSettingsFromUser(user);
@@ -254,7 +271,6 @@ export class HomeService implements HomeApi {
       statNote: analytics.insights.statNote,
       dominantTheme: analytics.insights.dominantTheme,
       previousTheme: analytics.insights.previousTheme,
-      highlighted_phrases: analytics.insights.highlighted_phrases,
       thoughtThemes: analytics.insights.thoughtThemes.map((theme) => ({
         key: theme.key,
         label: theme.label,
@@ -270,7 +286,6 @@ export class HomeService implements HomeApi {
       canvasFolders: analytics.canvas.folders,
       coreThemes: analytics.account.coreThemes,
       writingProfile: analytics.account.writingProfile,
-      peakTimeEntries: analytics.peakTimeEntries,
     };
   }
 

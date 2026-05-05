@@ -3,61 +3,57 @@ import { z } from 'zod';
 import { getOpenAiProvider } from '../env.js';
 
 const homeInsightSchema = z.object({
-  // Box 1
-  quote: z.string(),
-  highlighted_phrases: z.array(z.string()),
-  stat_line: z.string(),
-  stat_note: z.string(),
-  dominant_theme: z.string(),
-  previous_theme: z.string(),
-  
-  // Box 2
-  themes: z.array(z.object({
-    label: z.string(),
-    count: z.number(),
-    percentage: z.number(),
-  })).max(6),
-
-  // Box 3
-  reflectionToneDescription: z.string(),
-  
-  // Box 4
-  relationshipMap: z.object({
-    nodes: z.array(z.object({ 
-      id: z.string(), 
-      label: z.string(), 
-      weight: z.number()
-    })),
-    connections: z.array(z.object({ 
-      from: z.string(), 
-      to: z.string(), 
-      strength: z.number()
-    })),
-  }),
-
-  // Box 5
-  patterns: z.array(z.object({
-    label: z.string(),
-    status: z.enum(['increasing', 'decreasing', 'emerging', 'resolved']),
-    note: z.string().nullable(),
-  })).max(5),
-
-  // Box 6
+  monthlyQuote: z.string(),
+  monthlyAnalysis: z.string(),
+  statLine: z.string(),
+  statNote: z.string(),
+  dominantTheme: z.string(),
+  previousTheme: z.string(),
   finalSynthesis: z.object({
     headline: z.string(),
     body: z.string(),
   }),
+  reflectionPrompt: z.string(),
+  writingProfileTitle: z.string(),
+  writingProfileDescription: z.string(),
+  reflectionToneDescription: z.string(),
+  relationshipMap: z.object({
+    nodes: z.array(z.object({ id: z.string(), label: z.string(), size: z.number() })),
+    links: z.array(z.object({ source: z.string(), target: z.string(), strength: z.number() })),
+  }),
+  thinkingShifts: z.array(z.object({
+    label: z.string(),
+    trend: z.enum(['up', 'down', 'circle']).nullable(),
+    tag: z.string().nullable(),
+  })).max(5),
 });
 
 export type HomeInsightCopy = z.infer<typeof homeInsightSchema>;
 
+export type InsightEntryMeta = {
+  text: string;
+  timestamp: string;
+  wordCount: number;
+  dayOfWeek: string;
+  hourOfDay: number;
+};
+
 export async function generateHomeInsightCopy(input: {
   userName: string;
-  entries: { text: string; date: string; wordCount: number }[];
-  firstHalf: string[];
-  secondHalf: string[];
-  peakTimeSlot: string;
-  peakTimeEntries: string[];
+  topThemes: string[];
+  entries: InsightEntryMeta[];
+  totalEntryCount: number;
+  dateRangeStart: string;
+  dateRangeEnd: string;
+  peakWritingTime: string;
+  weeklyEntryCount: number;
+  previousWeeklyEntryCount: number;
+  currentStreak: number;
+  monthlyQuoteFallback: string;
+  monthlyAnalysisFallback: string;
+  finalSynthesisFallback: string;
+  writingProfileTitleFallback: string;
+  writingProfileDescriptionFallback: string;
 }): Promise<HomeInsightCopy | null> {
   const openai = getOpenAiProvider();
 
@@ -65,42 +61,83 @@ export async function generateHomeInsightCopy(input: {
     return null;
   }
 
+  const entryCount = input.totalEntryCount;
+
+  // Build entry context — send up to 50 entries with metadata
+  const entryLines = input.entries.slice(0, 50).map((e, i) =>
+    `Entry ${i + 1} [${e.timestamp}, ${e.dayOfWeek}, ${e.hourOfDay}:00, ${e.wordCount} words]: ${e.text.substring(0, 250)}`
+  );
+
+  // Determine edge-case instructions
+  let edgeCaseNote = '';
+  if (entryCount === 0) {
+    edgeCaseNote = 'The user has ZERO entries. Return generic encouraging copy. statLine should be empty. All themes should be empty arrays.';
+  } else if (entryCount === 1) {
+    edgeCaseNote = 'The user has only 1 entry. Base everything on that single entry. Omit statLine (set to empty string). Cannot calculate percentage changes. All thinkingShifts should have trend null and tag "EMERGING". relationshipMap should have max 1-2 nodes.';
+  } else if (entryCount <= 4) {
+    edgeCaseNote = `The user has only ${entryCount} entries. Provide insights but keep them tentative. statLine can reference raw counts instead of percentages.`;
+  }
+
   try {
     const { object } = await generateObject({
       model: openai('gpt-4o-mini'),
       schema: homeInsightSchema,
       prompt: [
-        'System: You are an introspective journal analyst. Analyse the user\'s journal entries and return ONLY valid JSON, no markdown, no extra text.',
-        `User: Here are all the journal entries for this month: ${JSON.stringify(input.entries)}`,
-        `Comparison Context:`,
-        `First half of month: ${JSON.stringify(input.firstHalf)}`,
-        `Second half of month: ${JSON.stringify(input.secondHalf)}`,
-        `Date range: ${new Date().toLocaleString('en-US', { month: 'long' })} 1st to ${new Date().toLocaleDateString()}`,
-        `Total entries: ${input.entries.length}`,
-        `The user writes most during: ${input.peakTimeSlot}`,
-        `Sample entries from peak time: ${JSON.stringify(input.peakTimeEntries)}`,
-        'Return this exact JSON structure:',
-        '{',
-        '  "quote": "One sentence (max 20 words) summarising the month\'s dominant mental theme, written in second person",',
-        '  "highlighted_phrases": ["phrase1", "phrase2"],',
-        '  "stat_line": "One concrete stat derived from entries, e.g. \'35% increase in goal-oriented thinking\'",',
-        '  "stat_note": "One supporting sentence explaining the stat in plain language",',
-        '  "dominant_theme": "single word label, e.g. Clarity",',
-        '  "previous_theme": "single word label for what it evolved from, e.g. Exploration",',
-        '  "themes": [{ "label": "CAREER", "count": 16, "percentage": 80 }], // Max 6, ALL CAPS labels',
-        '  "reflectionToneDescription": "Write ONE sentence (max 20 words) describing the quality or tone of their peak-time writing based on the peak time samples provided.",',
-        '  "relationshipMap": { "nodes": [{ "id": "career", "label": "CAREER", "weight": 16 }], "connections": [{ "from": "career", "to": "anxiety", "strength": 0.8 }] },',
-        '  "patterns": [{ "label": "CAREER ANXIETY", "status": "decreasing", "note": "optional 5 word explanation" }],',
-        '  "finalSynthesis": { "headline": "A 3-5 word headline", "body": "A 2-sentence synthesis of the entire month" }',
-        '}',
-        'Rules for Box 4 (Relationship Map): weight = frequency (1-20), strength = co-occurrence (0.0-1.0). Max 6 nodes.',
-        'Rules for Box 5 (Evolution Cycle): Split entries early-month vs late-month. Status: increasing | decreasing | emerging | resolved.',
+        'You are an introspective journal analyst for a journaling app named Soouls.',
+        `User name: ${input.userName}`,
+        `Date range: ${input.dateRangeStart} to ${input.dateRangeEnd}`,
+        `Total entries this period: ${entryCount}`,
+        `Entries this week: ${input.weeklyEntryCount}`,
+        `Entries last week: ${input.previousWeeklyEntryCount}`,
+        `Current streak: ${input.currentStreak} days`,
+        `Peak writing time: ${input.peakWritingTime}`,
+        `Detected themes from keyword analysis: ${input.topThemes.join(', ') || 'none detected yet'}`,
+        '',
+        '=== JOURNAL ENTRIES ===',
+        ...entryLines,
+        '',
+        edgeCaseNote ? `=== EDGE CASE ===\n${edgeCaseNote}\n` : '',
+        '=== INSTRUCTIONS ===',
+        '',
+        'BOX 1 — MONTHLY SUMMARY QUOTE:',
+        '- monthlyQuote: One sentence (max 25 words) summarising the dominant mental theme this period. Written in second person. MUST reference specific topics/words from the actual entries above.',
+        '- Wrap 2-3 key phrases in {ts1}phrase{/ts1} to highlight them in orange.',
+        '- monthlyAnalysis: One sentence providing context. Wrap the key stat/number in {ts2}stat{/ts2}.',
+        '- statLine: One concrete stat derived from the entries (e.g. "35% increase in goal-oriented thinking"). Empty string if only 1 entry.',
+        '- statNote: One supporting sentence explaining the stat. Empty string if statLine is empty.',
+        '- dominantTheme: Single word label for the current dominant theme (e.g. "Clarity", "Discipline").',
+        '- previousTheme: Single word label for what the theme evolved from (e.g. "Exploration", "Anxiety").',
+        '',
+        'BOX 4 — RELATIONSHIP MAP:',
+        '- relationshipMap.nodes: Top concepts/themes as nodes. Max 6 nodes. id: lowercase slug, label: ALL CAPS, size: 1-10 based on frequency.',
+        '- relationshipMap.links: Connections between nodes. source/target match node ids. strength: 0.0-1.0 based on how often they appear together in the same entry. Only include connections with strength > 0.3.',
+        '',
+        'BOX 5 — EVOLUTION CYCLE:',
+        '- thinkingShifts: Compare patterns from earlier entries vs later entries. Max 5 patterns.',
+        '- status: "up" (increasing), "down" (decreasing), "circle" (resolved/steady).',
+        '- tag: "EMERGING" only if pattern appeared only in recent entries. null otherwise.',
+        '- label: ALL CAPS, 2-3 words max.',
+        '',
+        'BOX 6 — FINAL SYNTHESIS:',
+        '- finalSynthesis.headline: Max 12 words. The single most important insight from ALL the analysis above. Must be genuinely derived from entries, not generic.',
+        '- finalSynthesis.body: Max 30 words. Supporting context derived from the entries.',
+        '',
+        'OTHER FIELDS:',
+        '- reflectionToneDescription: One sentence (max 15 words) describing the emotional vibe of their entries.',
+        '- reflectionPrompt: A thoughtful question to prompt deeper reflection.',
+        '- writingProfileTitle: 2-4 word title for their writing style.',
+        '- writingProfileDescription: One sentence describing their writing approach.',
+        '',
+        'CRITICAL RULES:',
+        '- Every quote, theme, label, and stat MUST be grounded in the actual journal entries provided above.',
+        '- If entries are about cooking, insights must be about cooking — never generic "growth" language.',
+        '- Do NOT invent topics not present in the entries.',
+        '- Keep language calm, specific, and emotionally intelligent.',
       ].join('\n'),
     });
 
     return object;
-  } catch (err) {
-    console.error('[AI Engine] Failed to generate home insight copy:', err);
+  } catch {
     return null;
   }
 }
@@ -138,8 +175,7 @@ export async function generateClusterInsights(input: {
       ].join('\n'),
     });
     return object;
-  } catch (err) {
-    console.error('[AI Engine] Failed to generate cluster insights:', err);
+  } catch {
     return null;
   }
 }

@@ -3,8 +3,8 @@
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useMemo } from 'react';
-import { Calendar } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { Calendar, RefreshCw } from 'lucide-react';
 import { trpc } from '../../../src/utils/trpc';
 import { buildActivityBars, formatCurrentMonthRange } from '../../../src/utils/home';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
@@ -45,40 +45,13 @@ const TrendDownIcon = () => (
 );
 
 const CheckCircleIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(240,236,230,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8704A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
     <polyline points="22 4 12 14.01 9 11.01" />
   </svg>
 );
 
-/* ─────────── fallback data ─────────── */
-const fallbackThoughtThemes = [
-  { label: "CAREER DIRECTION", entries: 16, pct: 100, color: "#E8704A" },
-  { label: "SIDE PROJECTS", entries: 13, pct: 81, color: "#D4A017" },
-  { label: "SELF DEVELOPMENT", entries: 10, pct: 62, color: "#E8704A" },
-  { label: "CREATIVE EXPLORATION", entries: 7, pct: 44, color: "#E8704A" },
-];
-
-const fallbackThinkingShifts = [
-  { label: "CAREER ANXIETY", trend: "down", tag: null },
-  { label: "GROWTH MINDSET", trend: "up", tag: null },
-  { label: "DISCIPLINE", trend: null, tag: "EMERGING" },
-  { label: "SOCIAL FEAR", trend: "circle", tag: null },
-];
-
-const fallbackReflectionBars = [2, 3, 4, 5, 7, 8, 6, 5, 4, 3];
-
-function getTrendSymbol(index: number) {
-  if (index === 0) return "down";
-  if (index === 1) return "up";
-  if (index === 2) return null;
-  return "circle";
-}
-
-function getTag(index: number) {
-  if (index === 2) return "EMERGING";
-  return null;
-}
+/* All data comes from API — no fallback constants */
 
 function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
@@ -97,20 +70,22 @@ export default function InsightsPage() {
   const { setIsOpen } = useSidebar();
 
   const utils = trpc.useUtils();
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const { data: insights, refetch } = trpc.private.home.getInsights.useQuery(undefined);
-  const { data: entries } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
+  const { data: insights, isLoading: insightsLoading } = trpc.private.home.getInsights.useQuery(undefined);
+  const { data: entries, isLoading: entriesLoading } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
 
-  const refreshInsights = async () => {
-    setIsRefreshing(true);
+  const isLoading = insightsLoading || entriesLoading;
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
     try {
       await utils.private.home.getInsights.invalidate();
-      await refetch();
+      await utils.private.entries.getAll.invalidate();
     } finally {
-      setIsRefreshing(false);
+      setRefreshing(false);
     }
-  };
+  }, [utils]);
 
   const peakTimeData = useMemo(() => {
     const timeSlots = [
@@ -133,8 +108,10 @@ export default function InsightsPage() {
     return { slot: peak.label, note: peak.note };
   }, [entries]);
 
+  const entryCount = insights?.overview?.entryCount ?? 0;
+
   const thoughtThemes = useMemo(() => {
-    if (!insights?.thoughtThemes) return [];
+    if (!insights?.thoughtThemes?.length) return [];
     return insights.thoughtThemes.map(t => ({
       label: t.label,
       entries: t.count,
@@ -142,81 +119,33 @@ export default function InsightsPage() {
     })).slice(0, 6);
   }, [insights]);
 
-  const thinkingShifts = useMemo(() => {
-    return insights?.thinkingShifts || [];
-  }, [insights]);
-
-  const lastUpdated = useMemo(() => {
-    if (!insights) return "Calculating...";
-    return "Just now";
-  }, [insights]);
+  const thinkingShifts = insights?.thinkingShifts ?? [];
 
   const reflectionBars = useMemo(() => {
-    if (!entries?.items?.length) return [20, 25, 35, 50, 70, 90, 70, 50, 35];
-    
-    // 9 buckets of 2.66 hours each (24 / 9)
-    const buckets = new Array(9).fill(0);
-    entries.items.forEach(e => {
-      const hour = new Date(e.createdAt).getHours();
-      const idx = Math.min(8, Math.floor((hour / 24) * 9));
-      buckets[idx]++;
-    });
-
-    const max = Math.max(...buckets, 1);
-    return buckets.map(count => Math.max(12, Math.round((count / max) * 100)));
+    if (entries?.items && entries.items.length > 0) {
+      const rawBars = buildActivityBars(entries.items, 10);
+      return rawBars.map(h => Math.max(5, h));
+    }
+    return [];
   }, [entries]);
 
   const avatarUrl = user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id);
 
-  function formatStatLine(text: string | undefined | null) {
-    if (!text) return null;
-    const parts = text.split(/(\d+%?)/g);
-    return parts.map((part, i) => 
-      /\d+%?/.test(part) ? <strong key={i} className="font-semibold text-[#f0ece6]">{part}</strong> : part
-    );
-  }
-
-  function parseHighlightedText(text: string | undefined | null, fallback: string, phrases: string[] = []) {
+  function parseHighlightedText(text: string | undefined | null, fallback: string) {
     if (!text) return fallback;
+    const parts = text.split(/(\{ts[12]\}.*?\{\/ts[12]\})/g);
     
-    if (!phrases.length) {
-      // Fallback to {ts1} parsing if no phrases provided (backwards compat)
-      const parts = text.split(/(\{ts[12]\}.*?\{\/ts[12]\})/g);
-      return parts.map((part, i) => {
-        if (part.startsWith('{ts1}')) {
-          const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
-          return <span key={i} style={{ color: '#E8704A' }}>{innerText}</span>;
-        }
-        if (part.startsWith('{ts2}')) {
-          const innerText = part.replace(/\{ts2\}/g, '').replace(/\{\/ts2\}/g, '');
-          return <strong key={i} className="text-[#f0ece6] font-semibold">{innerText}</strong>;
-        }
-        return part;
-      });
-    }
-
-    // New logic: find and wrap phrases
-    let result: (string | React.ReactNode)[] = [text];
-    phrases.forEach((phrase, phraseIdx) => {
-      const newResult: (string | React.ReactNode)[] = [];
-      result.forEach((item) => {
-        if (typeof item === 'string') {
-          const parts = item.split(new RegExp(`(${phrase})`, 'gi'));
-          parts.forEach((part, i) => {
-            if (part.toLowerCase() === phrase.toLowerCase()) {
-              newResult.push(<span key={`${phraseIdx}-${i}`} style={{ color: '#E8704A' }}>{part}</span>);
-            } else if (part !== '') {
-              newResult.push(part);
-            }
-          });
-        } else {
-          newResult.push(item);
-        }
-      });
-      result = newResult;
+    return parts.map((part, i) => {
+      if (part.startsWith('{ts1}')) {
+        const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
+        return <span key={i} style={{ color: '#E8704A' }}>{innerText}</span>;
+      }
+      if (part.startsWith('{ts2}')) {
+        const innerText = part.replace(/\{ts2\}/g, '').replace(/\{\/ts2\}/g, '');
+        return <strong key={i} className="text-[#f0ece6] font-semibold">{innerText}</strong>;
+      }
+      return part;
     });
-
-    return result;
   }
 
   return (
@@ -276,102 +205,111 @@ export default function InsightsPage() {
             <h1 className="text-[26px] font-light tracking-[-0.01em] text-[#f0ece6] font-sans">
               Soulcanvas Insights
             </h1>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-[12px]">
               <span className="flex items-center gap-[8px] text-[13px] font-light tracking-[0.02em] text-[rgba(240,236,230,0.6)]">
                 <Calendar className="w-4 h-4 text-[#E8704A]" strokeWidth={1.5} />
                 {formatCurrentMonthRange()}
               </span>
-              <button 
-                onClick={refreshInsights}
-                disabled={isRefreshing}
-                className={`text-[10px] uppercase tracking-widest text-[#E8704A] hover:opacity-70 transition-opacity flex items-center gap-2 ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing || isLoading}
+                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-[0_0_16px_rgba(232,112,74,0.3)]"
+                style={{
+                  borderColor: '#E8704A',
+                  color: '#E8704A',
+                  backgroundColor: 'rgba(232,112,74,0.06)',
+                }}
               >
-                {isRefreshing ? 'Refreshing...' : 'Refresh Insights'}
-                {isRefreshing && <div className="w-2 h-2 rounded-full bg-[#E8704A] animate-pulse" />}
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`}
+                  strokeWidth={2}
+                />
+                {refreshing ? 'Refreshing…' : 'Refresh'}
               </button>
             </div>
           </div>
 
-          {insights?.overview?.entryCount === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-32 text-center">
-              <LeafIcon />
-              <p className="mt-8 text-[20px] font-light text-[rgba(240,236,230,0.6)]">
-                No entries yet this month.
-              </p>
-              <p className="mt-2 text-[14px] text-[rgba(240,236,230,0.3)]">
-                Start journaling to see your AI-powered insights.
-              </p>
-              <Link 
-                href="/home" 
-                className="mt-12 px-8 py-3 rounded-full border border-[rgba(240,236,230,0.1)] text-[#f0ece6] text-[14px] hover:bg-[rgba(240,236,230,0.05)] transition-colors"
-              >
-                Go to Journal
-              </Link>
-            </div>
+          {entryCount === 0 ? (
+            <SectionCard>
+              <div className="flex flex-col items-center justify-center text-center py-[48px] gap-4">
+                <LeafIcon />
+                <p className="text-[18px] font-light text-[rgba(240,236,230,0.5)] max-w-[400px]">
+                  No entries yet this month. Start journaling to see your insights.
+                </p>
+              </div>
+            </SectionCard>
           ) : (
-            <>
-          <SectionCard>
-            <div className="flex justify-between items-start mb-[24px]">
-              <LeafIcon />
-              {insights?.previousTheme && insights?.dominantTheme && (
-                <div className="text-[10px] tracking-[0.1em] text-[rgba(240,236,230,0.4)] uppercase font-medium">
-                  {insights.previousTheme} <span className="mx-1">→</span> <span className="text-[#E8704A]">{insights.dominantTheme}</span>
+            <SectionCard>
+              <div className="flex justify-between items-start mb-[24px]">
+                <LeafIcon />
+                {insights?.previousTheme && insights?.dominantTheme && (
+                  <div className="text-[10px] tracking-[0.1em] text-[rgba(240,236,230,0.4)] uppercase font-medium">
+                    {insights.previousTheme} <span className="mx-1">→</span> <span className="text-[#E8704A]">{insights.dominantTheme}</span>
+                  </div>
+                )}
+              </div>
+              
+              <p className="font-playfair text-[32px] font-semibold italic leading-[1.2] mb-[24px] text-[#f0ece6] tracking-[-0.01em]">
+                &ldquo;{parseHighlightedText(insights?.monthlyQuote, '')}&rdquo;
+              </p>
+              
+              <div className="space-y-4">
+                {insights?.monthlyAnalysis && (
+                  <p className="text-[14px] leading-[1.65] font-light text-[rgba(240,236,230,0.55)] max-w-[95%] tracking-wide">
+                    {parseHighlightedText(insights.monthlyAnalysis, '')}
+                  </p>
+                )}
+                
+                {insights?.statLine && (
+                  <div className="pt-2">
+                    <p className="text-[14px] font-medium text-[#f0ece6] mb-1">{insights.statLine}</p>
+                    <p className="text-[13px] font-light text-[rgba(240,236,230,0.4)] italic">
+                      {insights.statNote}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {entryCount > 0 && entryCount < 5 && (
+                <div className="mt-8 pt-6 border-t border-[rgba(240,236,230,0.05)]">
+                  <p className="text-[10px] tracking-[0.05em] text-[rgba(240,236,230,0.3)] uppercase">
+                    Based on {entryCount} {entryCount === 1 ? 'entry' : 'entries'} — insights will deepen as you write more.
+                  </p>
                 </div>
               )}
-            </div>
-            
-            <p className="font-playfair text-[32px] font-semibold italic leading-[1.2] mb-[24px] text-[#f0ece6] tracking-[-0.01em]">
-              &ldquo;{parseHighlightedText(
-                insights?.monthlyQuote,
-                "Analyzing your latest entries...",
-                insights?.highlighted_phrases
-              )}&rdquo;
-            </p>
-            
-            <div className="space-y-[6px]">
-              <p className="text-[15px] text-[rgba(240,236,230,0.85)] font-light">
-                {formatStatLine(insights?.statLine)}
-              </p>
-              <p className="text-[13px] text-[rgba(240,236,230,0.4)] font-light">
-                {insights?.statNote}
-              </p>
-            </div>
-
-            {insights?.overview?.entryCount !== undefined && insights.overview.entryCount > 0 && insights.overview.entryCount < 5 && (
-              <p className="mt-8 text-[10px] text-[rgba(240,236,230,0.25)] tracking-wider uppercase font-medium">
-                {insights.overview.entryCount === 1 
-                  ? "Based on your first entry this month" 
-                  : `Based on ${insights.overview.entryCount} entries — insights will deepen as you write more`}
-              </p>
-            )}
-          </SectionCard>
+            </SectionCard>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
             <SectionCard>
               <h2 className="text-[24px] font-light tracking-[-0.01em] text-[#f0ece6] mb-[36px] font-sans">Thought Themes</h2>
-              <div className="space-y-[26px] flex-1 flex flex-col justify-end">
-                {thoughtThemes.map((t, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex justify-between text-[11px] font-medium tracking-wider text-[rgba(240,236,230,0.45)]">
-                      <span>{t.label.toUpperCase()}</span>
-                      <span className="text-[#E8704A]">{t.entries} ENTRIES</span>
+              {thoughtThemes.length === 0 ? (
+                <p className="text-[13px] font-light text-[rgba(240,236,230,0.35)] italic">Write more entries to reveal your thought themes.</p>
+              ) : (
+                <div className="space-y-[26px] flex-1 flex flex-col justify-end">
+                  {thoughtThemes.map((t, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between text-[11px] font-medium tracking-wider text-[rgba(240,236,230,0.45)]">
+                        <span>{t.label.toUpperCase()}</span>
+                        <span>{t.pct}%</span>
+                      </div>
+                      <div className="h-[10px] rounded-full overflow-hidden bg-[#3c241a]">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000"
+                          style={{ 
+                            width: `${t.pct}%`, 
+                            background: i === 0 
+                              ? 'linear-gradient(90deg, #E8704A, #fbc343)' 
+                              : i === 1 
+                                ? '#8b5e34' 
+                                : '#5c3d2e' 
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-[10px] rounded-full overflow-hidden bg-[#3c241a]">
-                      <div
-                        className="h-full rounded-full transition-all duration-1000"
-                        style={{ 
-                          width: `${t.pct}%`, 
-                          background: i === 0 
-                            ? 'linear-gradient(90deg, #E8704A, #fbc343)' 
-                            : i === 1 
-                              ? '#8b5e34' 
-                              : '#5c3d2e' 
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </SectionCard>
 
             <SectionCard className="justify-between">
@@ -380,39 +318,41 @@ export default function InsightsPage() {
                 <div className="flex items-start gap-[16px]">
                   <div className="mt-[2px] shrink-0 opacity-90"><MoonZzzIcon /></div>
                   <p className="text-[15px] leading-[1.5] font-light text-[rgba(240,236,230,0.65)]">
-                    You tend to reflect most during {peakTimeData.slot.toLowerCase()}
+                    You tend to reflect most during {peakTimeData.slot.toLowerCase()}s<br/>
+                    <span className="font-normal text-[#f0ece6]">({peakTimeData.note})</span>
                   </p>
                 </div>
-              </div>
 
+                <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[rgba(232,112,74,0.4)] to-transparent my-[24px]" />
+
+                {insights?.reflectionToneDescription ? (
+                  <p className="text-[12px] italic leading-[1.65] text-[rgba(240,236,230,0.35)] text-center max-w-[95%] mx-auto">
+                    &ldquo;{insights.reflectionToneDescription}&rdquo;
+                  </p>
+                ) : (
+                  <p className="text-[12px] italic leading-[1.65] text-[rgba(240,236,230,0.25)] text-center">
+                    Write more entries to see patterns.
+                  </p>
+                )}
+              </div>
+              
               {/* Histogram */}
-              <div className="flex items-end justify-center h-[90px] w-full mt-[36px] mb-[24px] gap-[4px] px-4">
+              <div className="flex items-end justify-center h-[80px] w-full mt-[36px] gap-1">
                 {reflectionBars.map((height, i) => {
-                  const isPeak = height === Math.max(...reflectionBars);
-                  const opacity = 0.3 + (height / 100) * 0.7;
-                  
+                  const colors = ['#2a1610', '#3c1d14', '#7a3b2b', '#b85840', '#E8704A', '#b85840', '#7a3b2b', '#3c1d14', '#2a1610'];
                   return (
-                    <div key={i} className="flex-1 flex flex-col items-center">
-                      <div
-                        className="w-full rounded-t-[3px] transition-all duration-1000"
-                        style={{ 
-                          height: `${height}%`, 
-                          backgroundColor: isPeak ? '#E8704A' : height > 50 ? '#b85840' : height > 30 ? '#7a3b2b' : '#3c1d14',
-                          opacity,
-                          boxShadow: isPeak ? '0 0 20px rgba(232,112,74,0.3)' : 'none'
-                        }}
-                      />
-                    </div>
+                    <div
+                      key={i}
+                      className="flex-1 max-w-[32px] transition-all duration-700 cursor-pointer"
+                      style={{ 
+                        height: `${height}%`, 
+                        backgroundColor: colors[i % colors.length],
+                        opacity: 0.4 + (height / 100) * 0.6
+                      }}
+                    />
                   );
                 })}
               </div>
-
-              {/* Glowing separator line */}
-              <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[rgba(232,112,74,0.4)] to-transparent my-[24px]" />
-
-              <p className="text-[12px] italic leading-[1.65] text-[rgba(240,236,230,0.35)] text-center max-w-[95%] mx-auto pb-4">
-                &ldquo;{insights?.reflectionToneDescription || "Analyzing your writing patterns..."}&rdquo;
-              </p>
             </SectionCard>
           </div>
 
@@ -444,10 +384,10 @@ export default function InsightsPage() {
                     const sIdx = nodes.indexOf(sourceNode);
                     const tIdx = nodes.indexOf(targetNode);
                     
-                    const x1 = 50 + (sIdx % 3) * 100 + (sIdx % 2 === 0 ? 10 : -10);
-                    const y1 = 50 + Math.floor(sIdx / 3) * 80 + (sIdx % 3 === 0 ? 5 : -5);
-                    const x2 = 50 + (tIdx % 3) * 100 + (tIdx % 2 === 0 ? 10 : -10);
-                    const y2 = 50 + Math.floor(tIdx / 3) * 80 + (tIdx % 3 === 0 ? 5 : -5);
+                    const x1 = 50 + (sIdx % 3) * 100;
+                    const y1 = 50 + Math.floor(sIdx / 3) * 80;
+                    const x2 = 50 + (tIdx % 3) * 100;
+                    const y2 = 50 + Math.floor(tIdx / 3) * 80;
 
                     return (
                       <line 
@@ -461,8 +401,8 @@ export default function InsightsPage() {
                   
                   {/* Dynamic Nodes */}
                   {(insights?.relationshipMap?.nodes || []).map((node, i) => {
-                    const x = 50 + (i % 3) * 100 + (i % 2 === 0 ? 10 : -10);
-                    const y = 50 + Math.floor(i / 3) * 80 + (i % 3 === 0 ? 5 : -5);
+                    const x = 50 + (i % 3) * 100;
+                    const y = 50 + Math.floor(i / 3) * 80;
                     const radius = Math.max(5, node.size);
                     const color = i % 2 === 0 ? "#E8704A" : "#fbc343";
 
@@ -494,29 +434,24 @@ export default function InsightsPage() {
               <p className="text-[11px] font-light tracking-[0.06em] text-[rgba(240,236,230,0.6)] uppercase mb-[36px]">Evolution Cycle</p>
 
               <div className="space-y-[24px] flex-1 flex flex-col justify-center px-2 pb-2">
-                {thinkingShifts.length > 0 ? thinkingShifts.map((item, i) => (
+                {thinkingShifts.length === 0 ? (
+                  <p className="text-[13px] font-light text-[rgba(240,236,230,0.35)] italic">More entries needed for trend analysis.</p>
+                ) : thinkingShifts.map((item, i) => (
                   <div key={i} className="flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-[13px] font-light text-[rgba(240,236,230,0.6)] uppercase tracking-[0.02em]">{item.label}</span>
-                      {item.note && <span className="text-[10px] text-[rgba(240,236,230,0.3)] italic">{item.note}</span>}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {item.status === "increasing" && <TrendUpIcon />}
-                      {item.status === "decreasing" && <TrendDownIcon />}
-                      {item.status === "emerging" && (
-                        <div 
-                          className="px-[12px] py-[4px] rounded-full border border-[#E8704A] text-[#E8704A] text-[10px] font-light tracking-[0.04em]"
-                          style={{ boxShadow: '0 0 12px rgba(232,112,74,0.25), inset 0 0 4px rgba(232,112,74,0.1)' }}
-                        >
-                          EMERGING
-                        </div>
-                      )}
-                      {item.status === "resolved" && <CheckCircleIcon />}
-                    </div>
+                    <span className="text-[13px] font-light text-[rgba(240,236,230,0.6)] uppercase tracking-[0.02em]">{item.label}</span>
+                    {item.trend === "up" && <TrendUpIcon />}
+                    {item.trend === "down" && <TrendDownIcon />}
+                    {item.tag === "EMERGING" && (
+                      <div 
+                        className="px-[12px] py-[4px] rounded-full border border-[#E8704A] text-[#E8704A] text-[10px] font-light tracking-[0.04em]"
+                        style={{ boxShadow: '0 0 12px rgba(232,112,74,0.25), inset 0 0 4px rgba(232,112,74,0.1)' }}
+                      >
+                        EMERGING
+                      </div>
+                    )}
+                    {item.trend === "circle" && <CheckCircleIcon />}
                   </div>
-                )) : (
-                  <p className="text-[12px] text-[rgba(240,236,230,0.3)] italic text-center">Your thinking shifts will appear here as you write more.</p>
-                )}
+                ))}
               </div>
             </SectionCard>
           </div>
@@ -526,20 +461,13 @@ export default function InsightsPage() {
             <div className="absolute top-[32px] left-[32px]"><LeafIcon /></div>
             <p className="text-[28px] md:text-[32px] font-semibold tracking-[-0.035em] mb-[32px] uppercase text-[#E8704A] font-sans">FINAL SYNTHESIS</p>
             <p className="font-playfair text-[38px] md:text-[48px] font-semibold italic leading-[1.1] mb-[32px] text-[#f0ece6] tracking-[-0.035em] max-w-[95%]">
-              &ldquo;{insights?.finalSynthesis?.headline || "You are in a period of significant cognitive transition"}&rdquo;
+              &ldquo;{insights?.finalSynthesis?.headline || ''}&rdquo;
             </p>
             <p className="text-[18px] md:text-[20px] leading-[1.6] font-light text-[rgba(240,236,230,0.55)] max-w-[800px] tracking-wide">
-              {insights?.finalSynthesis?.body || "The data suggests your mental architecture is shifting towards long term legacy rather than short term gains. This synthesis marks the end of your Exploration phase."}
+              {insights?.finalSynthesis?.body || ''}
             </p>
           </SectionCard>
-            </>
-          )}
 
-          <div className="mt-auto pt-12 pb-8 flex justify-center">
-            <p className="text-[10px] tracking-[0.1em] text-[rgba(240,236,230,0.2)] uppercase">
-              Last updated: {lastUpdated}
-            </p>
-          </div>
         </section>
       </main>
     </div>

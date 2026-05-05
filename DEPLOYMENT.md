@@ -46,6 +46,7 @@ Before you begin, ensure you have accounts for the following:
 
 ## 📦 Step 4: Vercel Deployment
 
+<<<<<<< Updated upstream
 We recommend deploying the **Backend** first, then the **Frontend**.
 
 ### 1. Backend (@soouls/backend)
@@ -75,6 +76,45 @@ We recommend deploying the **Backend** first, then the **Frontend**.
   - `NEXT_PUBLIC_FRONTEND_URL`
   - `NEXT_PUBLIC_APP_URL`
   - `NEXT_PUBLIC_SENTRY_DSN`
+=======
+### Option A: Multi-App Single Project (Modern)
+Use this if you want to manage all services in one Vercel project and use a single domain with path-based routing.
+
+1.  **Configure `vercel.json`**: Ensure the `vercel.json` file in the root matches your desired routing:
+    ```json
+    {
+      "version": 2,
+      "experimentalServices": {
+        "frontend": { "entrypoint": "apps/frontend", "routePrefix": "/", "framework": "nextjs" },
+        "backend": { "entrypoint": "apps/backend", "routePrefix": "/_/backend" },
+        "admin": { "entrypoint": "apps/admin-dashboard", "routePrefix": "/_/admin" }
+      }
+    }
+    ```
+2.  **Deploy**: Import the repository root as a single Vercel project. Vercel will automatically detect the services.
+
+---
+
+### Option B: Separate Vercel Projects (Industry Standard)
+Recommended for scaling and independent deployment pipelines.
+
+#### 1. Backend (@soouls/backend)
+- **Root Directory**: `apps/backend`
+- **Build Command**: `cd ../.. && turbo run build --filter=@soouls/backend`
+- **Output Directory**: `dist`
+- **Environment Variables**:
+  - `DATABASE_URL`, `REDIS_URL`, `CLERK_SECRET_KEY`, `ENCRYPTION_SECRET`
+  - `OPENAI_API_KEY`, `GEMINI_API_KEY`, `R2_ACCOUNT_ID`, etc.
+
+#### 2. Frontend (@soouls/frontend)
+- **Root Directory**: `apps/frontend`
+- **Build Command**: `cd ../.. && turbo run build --filter=@soouls/frontend`
+- **Output Directory**: `.next`
+- **Environment Variables**:
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+  - `NEXT_PUBLIC_BACKEND_URL` (Points to Backend URL)
+  - `NEXT_PUBLIC_FRONTEND_URL`
+>>>>>>> Stashed changes
 
 ---
 

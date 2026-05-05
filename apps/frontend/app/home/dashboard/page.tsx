@@ -32,7 +32,7 @@ import {
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { trpc } from '../../../src/utils/trpc';
 import { CanvasLoopIcon, LeafIcon } from '../../components/Icons';
-import { getEntryPlainText, getEntryTitle } from '../../../src/utils/entries';
+import { getEntryPlainText, getEntryTitle, parseEntryData } from '../../../src/utils/entries';
 import { buildWeeklyActivityBars } from '../../../src/utils/home';
 
 function avatarFor(seed?: string | null) {
@@ -85,21 +85,59 @@ const DashboardPage = () => {
   const bestCluster = clusterData?.items?.sort((a, b) => b.entryCount - a.entryCount)[0];
   const clusterEntries = entries.filter(e => e.clusterId === bestCluster?.id).slice(0, 5);
 
-  // Real Task Filtering
-  const filteredTasks = entries.filter(e => {
-    if (!e.taskStatus) return false;
-    const date = new Date(e.createdAt);
+  // Real Task Filtering - Extracting tasks from inside entries
+  const processedTasks = useMemo(() => {
+    const allTasks: Array<{ id: string; entryId: string; text: string; done: boolean; date: Date }> = [];
+    
+    for (const entry of entries) {
+      const entryDate = new Date(entry.createdAt);
+      
+      // 1. Check if the entry itself is a task
+      if (entry.type === 'task') {
+        allTasks.push({
+          id: entry.id,
+          entryId: entry.id,
+          text: getEntryTitle(entry),
+          done: entry.taskStatus === 'completed',
+          date: entryDate
+        });
+      }
+      
+      // 2. Extract nested tasks from content blocks
+      const parsed = parseEntryData(entry.content, entry.title);
+      if (parsed.tasklists && parsed.tasklists.length > 0) {
+        for (const tasklist of parsed.tasklists) {
+          if (tasklist.tasks) {
+            for (const t of tasklist.tasks) {
+              if (t.text) {
+                allTasks.push({
+                  id: `${entry.id}-${allTasks.length}`,
+                  entryId: entry.id,
+                  text: t.text,
+                  done: !!t.done,
+                  date: entryDate
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Filter by tab
     const today = new Date();
-    if (activeTaskTab === 'today') {
-      return date.toDateString() === today.toDateString();
-    }
-    if (activeTaskTab === 'yesterday') {
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      return date.toDateString() === yesterday.toDateString();
-    }
-    return true; // Search days
-  });
+    return allTasks.filter(task => {
+      if (activeTaskTab === 'today') {
+        return task.date.toDateString() === today.toDateString();
+      }
+      if (activeTaskTab === 'yesterday') {
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        return task.date.toDateString() === yesterday.toDateString();
+      }
+      return true; // Search/All
+    });
+  }, [entries, activeTaskTab]);
 
   // Calculate Real Growth (Simulated based on entries count)
   const currentMonthEntries = entries.filter(e => new Date(e.createdAt).getMonth() === now.getMonth()).length;
@@ -209,22 +247,23 @@ const DashboardPage = () => {
                 {/* 1. MEDITATION STREAK */}
                 <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[18px] font-medium text-white/90">60 Day Meditation Streak</h3>
-                    <Clock className="w-5 h-5 text-white/40" />
+                    <h3 className="text-[18px] font-medium text-white/90">60 Reflection Challenge</h3>
+                    <Target className="w-5 h-5 text-[#E07A5F]" />
                   </div>
                   <div className="space-y-4">
                     <div className="text-[16px] text-[#E07A5F] font-medium">
-                      {Math.max(0, 60 - (insights?.overview?.currentStreak || 0))} days left
+                      {Math.max(0, 60 - entries.length)} entries left
                     </div>
                     <div className="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(100, ((insights?.overview?.currentStreak || 0) / 60) * 100)}%` }}
-                        className="h-full bg-[#E07A5F]" 
+                        animate={{ width: `${Math.min(100, (entries.length / 60) * 100)}%` }}
+                        className="h-full bg-gradient-to-r from-[#E07A5F] to-[#D46B4E]" 
                       />
                     </div>
-                    <div className="flex justify-end text-[14px] text-white/40">
-                      {Math.round(Math.min(100, ((insights?.overview?.currentStreak || 0) / 60) * 100))}% completed
+                    <div className="flex justify-between text-[14px] text-white/40 font-medium">
+                      <span>{entries.length} written</span>
+                      <span>60 goal</span>
                     </div>
                   </div>
                 </div>
@@ -232,20 +271,23 @@ const DashboardPage = () => {
                 {/* 2. JOURNAL GOAL */}
                 <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[18px] font-medium text-white/90">Write 30 Journal Entries</h3>
-                    <Clock className="w-5 h-5 text-white/40" />
+                    <h3 className="text-[18px] font-medium text-white/90">30 Reflection Challenge</h3>
+                    <Target className="w-5 h-5 text-[#E07A5F]" />
                   </div>
                   <div className="space-y-4">
-                    <div className="text-[16px] text-[#E07A5F] font-medium">Ends {new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                    <div className="text-[16px] text-[#E07A5F] font-medium">
+                      {entries.length >= 30 ? 'Challenge Completed!' : `${Math.max(0, 30 - entries.length)} entries left`}
+                    </div>
                     <div className="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(100, (entries.length / 30) * 100)}%` }}
-                        className="h-full bg-[#E07A5F]" 
+                        className="h-full bg-gradient-to-r from-[#E07A5F] to-[#D46B4E]" 
                       />
                     </div>
-                    <div className="flex justify-end text-[14px] text-white/40">
-                      {entries.length} of 30 written
+                    <div className="flex justify-between text-[14px] text-white/40 font-medium">
+                      <span>{entries.length} written</span>
+                      <span>30 goal</span>
                     </div>
                   </div>
                 </div>
@@ -343,23 +385,27 @@ const DashboardPage = () => {
 
                   <div className="flex gap-6 mb-8 min-h-[350px]">
                     <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
-                      {filteredTasks.length > 0 ? filteredTasks.map((task, i) => (
-                        <div key={task.id} className="flex items-center gap-4 group cursor-pointer p-3 rounded-xl bg-white/[0.01] border border-white/[0.03]">
-                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.taskStatus === 'completed' ? 'bg-[#E07A5F] border-[#E07A5F]' : 'border-white/20'}`}>
-                            {task.taskStatus === 'completed' && <CheckSquare className="w-3.5 h-3.5 text-white" />}
+                      {processedTasks.length > 0 ? processedTasks.map((task, i) => (
+                        <div 
+                          key={task.id} 
+                          className="flex items-center gap-4 group cursor-pointer p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:border-white/10 transition-all"
+                          onClick={() => router.push(`/home/new-entry?id=${task.entryId}`)}
+                        >
+                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.done ? 'bg-[#E07A5F] border-[#E07A5F]' : 'border-white/20'}`}>
+                            {task.done && <CheckSquare className="w-3.5 h-3.5 text-white" />}
                           </div>
                           <div className="flex-1">
-                            <p className={`text-[14px] font-medium transition-all ${task.taskStatus === 'completed' ? 'text-white/40 line-through' : 'text-white/80'}`}>
-                              {getEntryTitle(task)}
+                            <p className={`text-[14px] font-medium transition-all ${task.done ? 'text-white/40 line-through' : 'text-white/80'}`}>
+                              {task.text}
                             </p>
                           </div>
                           <div className="text-[11px] text-white/20 font-medium whitespace-nowrap">
-                            {new Date(task.createdAt).toDateString() === new Date().toDateString() ? 'Today' : 'Recently'}
+                            {task.date.toDateString() === new Date().toDateString() ? 'Today' : 'Recently'}
                           </div>
                         </div>
                       )) : (
-                        <div className="flex flex-col items-center justify-center h-full text-white/20 text-[14px]">
-                          No tasks for this period
+                        <div className="flex flex-col items-center justify-center h-full text-white/10 text-[14px] italic border-2 border-dashed border-white/5 rounded-2xl">
+                          No tasks found for this period
                         </div>
                       )}
                     </div>

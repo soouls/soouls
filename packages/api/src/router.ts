@@ -304,14 +304,12 @@ export type HomeInsights = {
     completedTaskCount: number;
     weeklyEntryCount: number;
   };
-  peakTimeEntries: string[];
   monthlyQuote: string;
   monthlyAnalysis: string;
   statLine: string;
   statNote: string;
   dominantTheme: string;
   previousTheme: string;
-  highlighted_phrases: string[];
   thoughtThemes: HomeThoughtTheme[];
   finalSynthesis: {
     headline: string;
@@ -328,8 +326,8 @@ export type HomeInsights = {
   };
   thinkingShifts: Array<{
     label: string;
-    status: 'increasing' | 'decreasing' | 'emerging' | 'resolved';
-    note: string | null;
+    trend: 'up' | 'down' | 'circle' | null;
+    tag: string | null;
   }>;
   writingProfile: {
     title: string;
