@@ -1,8 +1,9 @@
+import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const backendUrl =
   process.env.NEXT_PUBLIC_BACKEND_URL ?? process.env.BACKEND_URL ?? 'http://localhost:3000';
-const monorepoRoot = fileURLToPath(new URL('../../', import.meta.url));
+const monorepoRoot = realpathSync.native(fileURLToPath(new URL('../../', import.meta.url)));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,14 +12,34 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   outputFileTracingRoot: monorepoRoot,
+  transpilePackages: ['@soouls/ui-kit', '@soouls/api', '@soouls/logic'],
   turbopack: {
     root: monorepoRoot,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
   },
   async rewrites() {
     return [
       {
         source: '/trpc/:path*',
         destination: `${backendUrl}/trpc/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/videos/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          { key: 'Accept-Ranges', value: 'bytes' },
+        ],
       },
     ];
   },

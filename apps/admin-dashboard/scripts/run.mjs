@@ -1,13 +1,35 @@
 import { spawn } from 'node:child_process';
-import { existsSync, symlinkSync } from 'node:fs';
+import { existsSync, realpathSync, symlinkSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnv = resolve(currentDir, '..', '..', '..', '.env');
+
+// Load environment variables if the file exists (native in Node 20.6+)
+if (existsSync(rootEnv)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(rootEnv);
+    }
+  } catch (e) {
+    console.warn('Failed to load root .env file:', e.message);
+  }
+}
+
+const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const localNodeModules = resolve(appRoot, 'node_modules');
 const frontendNodeModules = resolve(appRoot, '..', 'frontend', 'node_modules');
 const nextCli = resolve(localNodeModules, 'next', 'dist', 'bin', 'next');
 const devServerScript = resolve(appRoot, 'scripts', 'server.mjs');
+
+function resolveExecutable(command) {
+  if (process.platform !== 'win32' || command.endsWith('.cmd') || command.endsWith('.exe')) {
+    return command;
+  }
+
+  return command === 'npx' ? 'npx.cmd' : `${command}.cmd`;
+}
 
 function ensureNodeModules() {
   if (existsSync(localNodeModules)) {
@@ -31,10 +53,20 @@ if (!command) {
   throw new Error('No command provided to apps/admin-dashboard/scripts/run.mjs');
 }
 
+const nextSubcommand = command === 'next' ? args[0] : undefined;
+const _env =
+  nextSubcommand === 'build' || nextSubcommand === 'start'
+    ? {
+        ...process.env,
+        NODE_ENV: 'production',
+      }
+    : process.env;
+
 const spawnOptions = {
   cwd: appRoot,
   stdio: 'inherit',
-  env: process.env,
+  env: _env,
+  shell: false,
 };
 
 const child =
@@ -42,9 +74,9 @@ const child =
     ? spawn('node', [devServerScript, ...(args.slice(1) || [])], spawnOptions)
     : command === 'next'
       ? spawn('node', [nextCli, ...args], spawnOptions)
-      : command === 'bunx'
-        ? spawn('npx', args, spawnOptions)
-        : spawn(command, args, spawnOptions);
+      : command === 'bunx' || command === 'npx'
+        ? spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', args, spawnOptions)
+        : spawn(resolveExecutable(command), args, spawnOptions);
 
 function stopChild(signal = 'SIGTERM') {
   if (!child.killed && child.exitCode === null) {

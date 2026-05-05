@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, db, desc, eq, sql } from '@soouls/database/client';
 import { messageCampaigns, messageDeliveries, users } from '@soouls/database/schema';
 import { Resend } from 'resend';
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import {
   countValue,
   normalizePhoneNumber,
@@ -117,10 +118,10 @@ export class MessagingService {
   };
 
   constructor(
-    @Inject(NotificationQueueService)
-    private readonly notificationQueue: NotificationQueueService,
-    @Inject(RedisService)
-    private readonly redis: RedisService,
+    @Inject(NotificationQueueService) private readonly notificationQueue: NotificationQueueService,
+    @Inject(NotificationDispatchService)
+    private readonly notificationDispatch: NotificationDispatchService,
+    @Inject(RedisService) private readonly redis: RedisService,
   ) {}
 
   private isAdmin(user: Pick<UserMessagingProfile, 'email' | 'clerkId'>) {
@@ -317,7 +318,15 @@ export class MessagingService {
         conditions.push(sql`${users.createdAt} < now() - interval '30 days'`);
       }
 
-      // We don't have lastLoginAt on Users yet, so mock or skip it for now.
+      // Billing tier / waitlist targeting
+      if ((input.targeting as any).billingTier === 'waitlist') {
+        conditions.push(eq(users.isWaitlistUser, true));
+      } else if (
+        (input.targeting as any).billingTier &&
+        (input.targeting as any).billingTier !== 'all'
+      ) {
+        conditions.push(sql`${users.billingTier} = ${(input.targeting as any).billingTier}`);
+      }
     }
 
     const baseQuery = db.select({ count: sql<number>`count(*)` }).from(users);
@@ -362,10 +371,16 @@ export class MessagingService {
   }
 
   async sendWelcomeSequence(userId: string) {
+    if (!this.notificationQueue.isConfigured()) {
+      await this.notificationDispatch.processWelcomeSequence(userId);
+      return;
+    }
+
     try {
       await this.notificationQueue.enqueueWelcomeSequence(userId);
     } catch (error) {
       console.error('[Messaging] Failed to enqueue welcome sequence', { userId, error });
+      await this.notificationDispatch.processWelcomeSequence(userId);
     }
   }
 

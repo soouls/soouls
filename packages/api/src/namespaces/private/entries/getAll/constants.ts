@@ -16,6 +16,7 @@ import type { RateLimitConfig } from '../../../../rate-limit.js';
 export const schema = z.object({
   cursor: z.number().nullish(), // offset
   limit: z.number().min(1).max(200).default(50),
+  search: z.string().optional(),
 });
 
 export type Input = z.infer<typeof schema>;

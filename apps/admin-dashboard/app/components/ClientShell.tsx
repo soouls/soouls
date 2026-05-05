@@ -67,7 +67,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
 
-  const isSignInPage = pathname.startsWith('/sign-in');
+  const isAuthPage = pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up');
 
   const loadViewer = useCallback(async () => {
     try {
@@ -77,14 +77,16 @@ export default function ClientShell({ children }: { children: React.ReactNode })
       setIsUnauthorized(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to load Command Center.';
-      if (
+      const isAuthError =
         message.includes('not been invited') ||
         message.includes('revoked') ||
         message.includes('Unauthorized') ||
         message.includes('Unauthorized Entity') ||
         message.includes('Forbidden') ||
-        message.includes('permission')
-      ) {
+        message.includes('permission') ||
+        message.includes('403') ||
+        message.includes('401');
+      if (isAuthError) {
         setIsUnauthorized(true);
       } else {
         setError(message);
@@ -93,7 +95,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    if (!authLoaded || isSignInPage) return;
+    if (!authLoaded || isAuthPage) return;
 
     if (!isSignedIn) {
       router.replace('/sign-in');
@@ -110,7 +112,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     return () => {
       cancelled = true;
     };
-  }, [authLoaded, isSignedIn, isSignInPage, loadViewer, router]);
+  }, [authLoaded, isAuthPage, isSignedIn, loadViewer, router]);
 
   useEffect(() => {
     if (!flash) return;
@@ -118,7 +120,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
     return () => clearTimeout(timeout);
   }, [flash]);
 
-  if (isSignInPage) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
 

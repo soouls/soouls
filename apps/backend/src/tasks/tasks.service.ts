@@ -1,11 +1,27 @@
 import { createClerkClient } from '@clerk/backend';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { and, db, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class TasksService {
+  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
+
+  private getCacheKey(prefix: string, ...parts: (string | number)[]): string {
+    return `${prefix}:${parts.join(':')}`;
+  }
+
+  private async invalidateUserCache(userId: string): Promise<void> {
+    const patterns = [
+      this.getCacheKey('entries:all', userId, '*'),
+      this.getCacheKey('galaxy', userId, '*'),
+    ];
+    for (const pattern of patterns) {
+      await this.redis.invalidatePattern(pattern);
+    }
+  }
   @Cron(CronExpression.EVERY_HOUR)
   async updateVisualMass() {
     try {
@@ -22,8 +38,8 @@ export class TasksService {
         .where(sql`entry_id IN (
           SELECT id FROM journal_entries 
           WHERE type = 'task' 
-          AND deadline <= ${tomorrow} 
-          AND deadline > ${nextHour}
+          AND deadline <= ${tomorrow.toISOString()} 
+          AND deadline > ${nextHour.toISOString()}
         )`);
 
       // Update tasks due within 1h
@@ -33,7 +49,7 @@ export class TasksService {
         .where(sql`entry_id IN (
           SELECT id FROM journal_entries 
           WHERE type = 'task' 
-          AND deadline <= ${nextHour}
+          AND deadline <= ${nextHour.toISOString()}
         )`);
     } catch (error) {
       console.error('[Scheduler] Failed to update visual mass:', error);
@@ -52,6 +68,9 @@ export class TasksService {
     }
 
     await db.update(canvasNodes).set({ visualMass: 2.0 }).where(eq(canvasNodes.entryId, entryId));
+
+    await this.redis.del(this.getCacheKey('entry', entryId));
+    await this.invalidateUserCache(userId);
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

@@ -77,7 +77,9 @@ export const users = pgTable('users', {
   accountStatus: userAccountStatusEnum('account_status').default('active').notNull(),
   billingTier: billingTierEnum('billing_tier').default('free').notNull(),
   themePreference: text('theme_preference').default('aurora'),
+  preferences: jsonb('preferences').$type<Record<string, unknown> | null>(),
   mascot: text('mascot').default('Lumi'),
+  isWaitlistUser: boolean('is_waitlist_user').default(false).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
   walletAddress: text('wallet_address'),
   marketingEmailOptIn: boolean('marketing_email_opt_in').default(true).notNull(),
@@ -93,6 +95,19 @@ export const users = pgTable('users', {
 });
 
 // ────────────────────────────────────────
+// Waitlist users reference table (pre-launch survey respondents)
+// ────────────────────────────────────────
+export const waitlistUsers = pgTable('waitlist_users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  phoneNumber: text('phone_number'),
+  source: text('source').default('survey').notNull(),
+  claimedAt: timestamp('claimed_at'), // Set when user actually signs up
+  claimedByUserId: uuid('claimed_by_user_id').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// ────────────────────────────────────────
 // Clusters table (user-created groupings)
 // ────────────────────────────────────────
 export const clusters = pgTable('clusters', {
@@ -105,6 +120,23 @@ export const clusters = pgTable('clusters', {
   color: text('color').default('#F59E0B'),
   icon: text('icon').default('sparkles'),
   isPinned: boolean('is_pinned').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ────────────────────────────────────────
+// Folders table
+// ────────────────────────────────────────
+export const folders = pgTable('folders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  color: text('color').default('#3B82F6'),
+  icon: text('icon').default('folder'),
+  parentId: uuid('parent_id'), // For nested folders
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -134,6 +166,7 @@ export const journalEntries = pgTable('journal_entries', {
 
   // Columns that exist in the live DB
   clusterId: uuid('cluster_id').references(() => clusters.id, { onDelete: 'set null' }),
+  folderId: uuid('folder_id').references(() => folders.id, { onDelete: 'set null' }),
   title: text('title'),
   isPinned: boolean('is_pinned').default(false).notNull(),
   wordCount: integer('word_count').default(0),
@@ -221,7 +254,7 @@ export const permissionRequests = pgTable('permission_requests', {
   reviewedAt: timestamp('reviewed_at'),
   responseNote: text('response_note'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  expiresAt: timestamp('expires_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
 });
 
 export const featureFlags = pgTable('feature_flags', {

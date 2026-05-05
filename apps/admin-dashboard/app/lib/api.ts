@@ -104,6 +104,7 @@ export type Messaging = {
     title: string;
     subject: string;
     status: string;
+    createdAt: string;
   }>;
   recentDeliveries: Array<{
     id: string;
@@ -247,27 +248,25 @@ const CACHE_CONFIGS: Record<string, CacheConfig> = {
   '/api/admin/entries': { revalidate: 60, staleWhileRevalidate: 300 },
 };
 
+const WHITELISTED_CACHE_URLS = new Set(Object.keys(CACHE_CONFIGS));
+
 export async function api<T>(
   url: string,
   init?: RequestInit & { cache?: RequestCache },
 ): Promise<T> {
-  const cacheConfig = CACHE_CONFIGS[url] || { revalidate: 60 };
-
   const response = await fetch(url, {
     ...init,
-    cache: init?.cache || (cacheConfig.staleWhileRevalidate ? 'force-cache' : 'no-store'),
-    next: {
-      revalidate: cacheConfig.revalidate,
-    },
+    cache: init?.cache ?? 'no-store',
   });
 
-  const payload = (await response.json().catch(() => null)) as T | { message?: string } | null;
+  const payload = (await response.json().catch(() => null)) as T | { message?: string; statusCode?: number; error?: string } | null;
   if (!response.ok) {
-    throw new Error(
+    // NestJS returns { statusCode, message, error } format
+    const msg =
       payload && typeof payload === 'object' && 'message' in payload && payload.message
-        ? payload.message
-        : `Request failed: ${url}`,
-    );
+        ? String(payload.message)
+        : `Request failed: ${url} (${response.status})`;
+    throw new Error(msg);
   }
   return payload as T;
 }

@@ -1,7 +1,8 @@
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
 import { db, eq } from '@soouls/database/client';
-import { users } from '@soouls/database/schema';
+import { users, waitlistUsers } from '@soouls/database/schema';
+import { getWaitlistEntry, isWaitlistEmail } from '@soouls/database/waitlist-data';
 import { MessagingService } from '../services/messaging.service';
 
 @Injectable()
@@ -41,21 +42,87 @@ export class UsersService {
       throw new Error(`User ${clerkId} has no primary email address.`);
     }
 
-    // 3. Create user in DB
+    // 3. Check if this user is on the waitlist
+    const onWaitlist = isWaitlistEmail(email);
+    const waitlistEntry = onWaitlist ? getWaitlistEntry(email) : null;
+
+    // 4. Atomic Upsert in DB (fixes race condition where parallel requests try to create the same user)
     const [newUser] = await db
       .insert(users)
       .values({
         clerkId,
         email,
         name,
-        phoneNumber,
-        transactionalWhatsappOptIn: Boolean(phoneNumber),
-        marketingWhatsappOptIn: Boolean(phoneNumber),
+        phoneNumber: phoneNumber || waitlistEntry?.phoneNumber || null,
+        isWaitlistUser: onWaitlist,
+        accountStatus: onWaitlist ? 'beta' : 'active',
+        transactionalWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
+        marketingWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
+      })
+      .onConflictDoUpdate({
+        target: users.clerkId,
+        set: {
+          email,
+          name,
+          phoneNumber: phoneNumber || waitlistEntry?.phoneNumber || null,
+          updatedAt: new Date(),
+        },
       })
       .returning({ id: users.id });
+
+    // 5. If on waitlist, update Clerk user metadata to reflect waitlist status
+    if (onWaitlist) {
+      // Mark the waitlist entry as claimed
+      try {
+        await db
+          .update(waitlistUsers)
+          .set({
+            claimedAt: new Date(),
+            claimedByUserId: newUser.id,
+          })
+          .where(eq(waitlistUsers.email, email.trim().toLowerCase()));
+      } catch {
+        // Waitlist entry might not exist in DB yet — that's OK
+        console.warn(`[Users] Waitlist claim failed for ${email} — entry may not exist in DB yet`);
+      }
+
+      // Sync waitlist status to Clerk publicMetadata so frontend can read it
+      try {
+        await clerk.users.updateUser(clerkId, {
+          publicMetadata: {
+            isWaitlistUser: true,
+            waitlistClaimedAt: new Date().toISOString(),
+          },
+        });
+      } catch (err) {
+        console.error('[Users] Failed to sync waitlist metadata to Clerk:', err);
+      }
+    }
 
     await this.messagingService.sendWelcomeSequence(newUser.id);
 
     return newUser.id;
+  }
+
+  async updateUser(
+    userId: string,
+    data: {
+      name?: string;
+      themePreference?: string;
+      preferences?: Record<string, unknown>;
+      mascot?: string;
+      marketingEmailOptIn?: boolean;
+      marketingWhatsappOptIn?: boolean;
+      transactionalEmailOptIn?: boolean;
+      transactionalWhatsappOptIn?: boolean;
+    },
+  ): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
   }
 }

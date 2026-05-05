@@ -10,6 +10,7 @@ import {
   Library,
   Settings,
   Sparkles,
+  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: FolderOpen, label: 'Projects', href: '/dashboard/projects' },
   { icon: Library, label: 'Library', href: '/dashboard/library' },
   { icon: Calendar, label: 'Calendar', href: '/dashboard/calendar' },
+  { icon: User, label: 'Account', href: '/dashboard/account' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 

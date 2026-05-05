@@ -31,13 +31,9 @@ export default function SpatialCanvasSection() {
       className="relative overflow-hidden bg-[#1B242D] min-h-[100svh] px-6 py-20 md:px-[60px] md:py-[120px]"
     >
       {/* Heading Block */}
-      <div
-        className="reveal mb-12 md:mb-[60px] max-w-[1239px] mx-auto text-center"
-      >
+      <div className="reveal mb-12 md:mb-[60px] max-w-[1239px] mx-auto text-center">
         <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap font-playfair text-[40px] md:text-[64px] leading-[1em] tracking-tight">
-          <span className="text-[#EFEBDD]">
-            Your
-          </span>
+          <span className="text-[#EFEBDD]">Your</span>
           <span
             className="text-[#E07A5F] italic"
             style={{
@@ -46,15 +42,11 @@ export default function SpatialCanvasSection() {
           >
             thoughts
           </span>
-          <span className="text-[#EFEBDD]">
-            don't belong in boxes
-          </span>
+          <span className="text-[#EFEBDD]">don't belong in boxes</span>
         </div>
-        <p
-          className="font-urbanist reveal mt-4 md:mt-6 text-[#D9D9D9] opacity-85 text-[16px] md:text-[22px] leading-[1.4em] tracking-tight max-w-[900px] mx-auto"
-        >
-          Soouls gives you a spatial entry field where ideas, emotions, voice, notes, sketches,
-          and tasks can coexist naturally arranged the way your mind works
+        <p className="font-urbanist reveal mt-4 md:mt-6 text-[#D9D9D9] opacity-85 text-[16px] md:text-[22px] leading-[1.4em] tracking-tight max-w-[900px] mx-auto">
+          Soouls gives you a spatial entry field where ideas, emotions, voice, notes, sketches, and
+          tasks can coexist naturally arranged the way your mind works
         </p>
       </div>
 
@@ -88,7 +80,7 @@ export default function SpatialCanvasSection() {
               letterSpacing: '0.01em',
             }}
           >
-            Hey! Today I am feeling great.
+            A thought can start anywhere.
           </p>
         </motion.div>
 
@@ -239,7 +231,7 @@ export default function SpatialCanvasSection() {
               fontWeight: 500,
             }}
           >
-            I will complete the design system task today
+            Capture the priority that matters most right now
           </p>
           <div className="flex items-center gap-2">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none">

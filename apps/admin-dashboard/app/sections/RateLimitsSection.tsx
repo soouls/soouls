@@ -49,7 +49,7 @@ export function RateLimitsSection() {
 
   const totalTrackedIPs = new Set(data?.entries.map((d) => d.ip)).size;
   const activeWindows = data?.entries.length || 0;
-  const highestTraffic = data?.entries.length
+  const _highestTraffic = data?.entries.length
     ? [...data.entries].sort((a, b) => b.count - a.count)[0]
     : null;
   const recentViolations =
@@ -144,6 +144,7 @@ export function RateLimitsSection() {
       <div className="flex gap-2">
         {(['overview', 'violations', 'endpoints'] as const).map((tab) => (
           <button
+            type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`rounded-xl border px-4 py-2 text-sm capitalize transition-colors ${

@@ -23,10 +23,17 @@ export class CommandCenterAuthGuard implements CanActivate {
     let clerkId: string | null = null;
 
     if (token) {
-      const session = await verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY || '',
-      });
-      clerkId = session.sub;
+      try {
+        const clockSkewInMs = Number(process.env.CLERK_CLOCK_SKEW) || 60_000;
+        const session = await verifyToken(token, {
+          secretKey: process.env.CLERK_SECRET_KEY || '',
+          clockSkewInMs,
+        });
+        clerkId = session.sub;
+      } catch (err) {
+        console.error('[CommandCenterAuth] Token verification failed:', (err as Error).message);
+        return false;
+      }
     } else if (forwardedUserId) {
       clerkId = forwardedUserId;
     }

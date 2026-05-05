@@ -1,7 +1,23 @@
 import { spawn } from 'node:child_process';
+import { realpathSync } from 'node:fs';
 import net from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnv = resolve(currentDir, '..', '..', '..', '.env');
+
+// Load environment variables if the file exists (native in Node 20.6+)
+if (existsSync(rootEnv)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(rootEnv);
+    }
+  } catch (e) {
+    console.warn('Failed to load root .env file:', e.message);
+  }
+}
 
 async function isPortAvailable(port) {
   return new Promise((resolvePort) => {
@@ -26,7 +42,7 @@ async function findAvailablePort(startPort, attempts = 20) {
   throw new Error(`No available port found starting at ${startPort}`);
 }
 
-const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const devServerScript = resolve(appRoot, 'scripts', 'server.mjs');
 
 const requestedPort = Number.parseInt(process.env.PORT ?? '3001', 10);
@@ -46,6 +62,7 @@ const child = spawn('node', [devServerScript, String(port)], {
     ...process.env,
     PORT: String(port),
   },
+  shell: false,
 });
 
 function stopChild(signal = 'SIGTERM') {

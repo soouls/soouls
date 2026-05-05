@@ -1,14 +1,17 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+// @ts-ignore
+import { and, eq } from 'drizzle-orm';
+// @ts-ignore
 import { drizzle } from 'drizzle-orm/postgres-js';
+// @ts-ignore
 import postgres from 'postgres';
-import * as schema from '../packages/database/src/schema/index';
-import { eq, and } from 'drizzle-orm';
+import * as schema from '../../../packages/database/src/schema/index';
 
 const connectionString = process.env.DATABASE_URL || '';
 const client = postgres(connectionString);
 const db = drizzle(client, { schema });
 
-const s3 = new S3Client({
+const _s3 = new S3Client({
   region: 'auto',
   endpoint: process.env.CLOUDFLARE_R2_ENDPOINT || '',
   credentials: {
@@ -17,7 +20,7 @@ const s3 = new S3Client({
   },
 });
 
-async function migrate() {
+export async function migrate() {
   const userId = process.argv[2];
   if (!userId) {
     console.error('Please provide a user ID');
@@ -32,11 +35,8 @@ async function migrate() {
     .where(eq(schema.journalEntries.userId, userId));
 
   for (const entry of entries) {
-    let contentChanged = false;
-    let contentData;
-
     try {
-      // In a real scenario, we'd need the encryption key. 
+      // In a real scenario, we'd need the encryption key.
       // For this script, we assume the user might have provided it or it's accessible.
       // But actually, we can't easily decrypt here without the user's clerk token/context.
       // ALTERNATIVE: Use a tRPC procedure so it runs in the backend context with auth.

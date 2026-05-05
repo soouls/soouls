@@ -92,15 +92,19 @@ async function checkRateLimitRedis(
   routeKey: string,
 ): Promise<RateLimitResult> {
   try {
+    const client = redisClient;
+    if (!client) {
+      return checkRateLimitInMemory(key, now, windowStart, config, ip, routeKey);
+    }
+
     const member = `${now}`;
 
-    const pipeline = redisClient!.pipeline();
+    const pipeline = client.pipeline();
     pipeline.zadd(key, now, member);
     pipeline.zremrangebyscore(key, '-inf', windowStart);
     pipeline.expire(key, Math.ceil(config.windowMs / 1000) + 1);
     await pipeline.exec();
-
-    const count = await redisClient!.zcount(key, windowStart, now);
+    const count = await client.zcount(key, windowStart, now);
 
     if (count > config.maxRequests) {
       addViolation(ip, routeKey, count);
@@ -170,7 +174,8 @@ async function getRedisStats(): Promise<{
   }>;
   totalKeys: number;
 }> {
-  if (!redisClient) return { entries: [], totalKeys: 0 };
+  const client = redisClient;
+  if (!client) return { entries: [], totalKeys: 0 };
 
   const entries: Array<{
     ip: string;
@@ -183,7 +188,7 @@ async function getRedisStats(): Promise<{
   let totalKeys = 0;
 
   do {
-    const [nextCursor, keys] = await redisClient.scan(cursor, 'ratelimit:*', 100);
+    const [nextCursor, keys] = await client.scan(cursor, 'ratelimit:*', 100);
     cursor = nextCursor;
     totalKeys += keys.length;
 
@@ -192,7 +197,7 @@ async function getRedisStats(): Promise<{
       if (parts.length >= 2) {
         const ip = parts[0] ?? 'unknown';
         const route = parts.slice(1).join(':');
-        const members = await redisClient!.zrange(key, 0, -1);
+        const members = await client.zrange(key, 0, -1);
         const now = Date.now();
         const windowStart = now - 60_000;
         const validMembers = members.filter((m) => Number(m) > windowStart);

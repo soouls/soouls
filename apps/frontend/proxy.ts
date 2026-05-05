@@ -2,32 +2,32 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { publicInfoPaths } from './src/config/publicInfoRoutes';
 
+// Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/trpc/(.*)',
-  ...publicInfoPaths,
+  '/sso-callback(.*)',
+  '/forgot-password(.*)',
+  '/onboarding(.*)',
+  ...publicInfoPaths.map(path => `${path}(.*)`),
 ]);
-const isDashboardRoute = createRouteMatcher(['/dashboard(.*)']);
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, redirectToSignIn } = await auth();
+export default clerkMiddleware(async (auth, request) => {
+  const { userId } = await auth();
+  const { pathname } = request.nextUrl;
 
-  // If user is logged in and tries to access the landing page, redirect to dashboard
-  if (userId && req.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+  // 1. If user is authenticated and tries to access the landing page, redirect to /home
+  if (userId && pathname === '/') {
+    return NextResponse.redirect(new URL('/home', request.url));
   }
 
-  // If user is not logged in and tries to access dashboard, redirect to sign-in
-  if (!userId && isDashboardRoute(req)) {
-    return redirectToSignIn();
-  }
-
-  // Protect all routes except public ones
-  if (!isPublicRoute(req)) {
+  // 2. If the route is not public, protect it
+  if (!isPublicRoute(request)) {
     await auth.protect();
   }
+
+  return NextResponse.next();
 });
 
 export const config = {

@@ -2,7 +2,7 @@
   "name": "soouls",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
+    "build": "turbo run build --concurrency=1",
     "dev": "turbo run dev --continue --filter=@soouls/backend --filter=@soouls/frontend --filter=@soouls/admin-dashboard",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
@@ -17,7 +17,7 @@
     "husky": "^9.1.7",
     "knip": "^5.88.1",
     "peakroute": "^0.6.0",
-    "turbo": "^2.9.4",
+    "turbo": "^2.9.7",
     "typescript": "5.9.2"
   },
   "engines": {
@@ -29,9 +29,13 @@
     "mime": "1.6.0"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.47.0",
+    "@giphy/js-fetch-api": "^5.8.0",
+    "@giphy/react-components": "^10.1.2",
+    "@sentry/nextjs": "^10.51.0",
+    "emoji-picker-react": "^4.19.1",
+    "lottie-react": "^2.4.1",
     "lz-string": "^1.5.0",
-    "next": "^16.2.2",
+    "next": "^16.2.4",
     "react-icons": "^5.6.0"
   }
 }

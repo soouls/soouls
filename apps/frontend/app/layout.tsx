@@ -6,7 +6,9 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { CSPostHogProvider } from '../src/providers/posthog-provider';
-import { TRPCProvider } from '../src/providers/trpc-provider';
+import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
+import { UiThemeProvider } from '../src/providers/ui-theme-provider';
+import { GlobalMascot } from './components/GlobalMascot';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -32,6 +34,11 @@ export const metadata: Metadata = {
   title: 'Soouls — A quieter way to think',
   description:
     'Non-linear journaling designed for depth. Capture your thoughts as they happen. Build a map of your mind.',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
@@ -47,7 +54,10 @@ export default function RootLayout({
           suppressHydrationWarning
         >
           <CSPostHogProvider>
-            <TRPCProvider>{children}</TRPCProvider>
+            <PersistedTRPCProvider>
+              <UiThemeProvider>{children}</UiThemeProvider>
+            </PersistedTRPCProvider>
+            <GlobalMascot />
             <Analytics />
             <SpeedInsights />
           </CSPostHogProvider>

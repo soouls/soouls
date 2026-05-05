@@ -60,6 +60,8 @@ export type UserEntry = {
   mediaUrl: string | null;
   sentimentColor: string | null;
   sentimentLabel: string | null;
+  clusterId: string | null;
+  taskStatus: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
@@ -75,6 +77,8 @@ export type AdminEntry = {
   mediaUrl: string | null;
   sentimentColor: string | null;
   sentimentLabel: string | null;
+  clusterId: string | null;
+  taskStatus: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
 };
@@ -82,6 +86,7 @@ export type AdminEntry = {
 export type EntriesApi = {
   createEntry: (userId: string, content: string, type?: EntryKind) => Promise<{ id: string }>;
   updateEntry: (userId: string, id: string, content: string) => Promise<void>;
+  deleteEntry: (userId: string, id: string) => Promise<void>;
   getEntry: (userId: string, id: string) => Promise<{ id: string; content: string } | null>;
   getGalaxyData: (
     userId: string,
@@ -92,6 +97,7 @@ export type EntriesApi = {
     userId: string,
     limit?: number,
     cursor?: number,
+    search?: string,
   ) => Promise<{ items: UserEntry[]; nextCursor: number | null }>;
   listAllEntriesAdmin: (
     limit?: number,
@@ -101,9 +107,25 @@ export type EntriesApi = {
     userId: string,
     entryId: string,
     contentType: string,
-  ) => Promise<{ uploadUrl: string; publicUrl: string }>;
+  ) => Promise<{ uploadUrl: string; publicUrl: string; storageKey: string }>;
+  uploadMediaDataUrl: (
+    userId: string,
+    entryId: string,
+    dataUrl: string,
+    contentType: string,
+  ) => Promise<{
+    publicUrl: string;
+    storageKey: string;
+    contentType: string;
+    byteSize: number;
+    sha256: string;
+  }>;
   updateEntryMediaUrl: (userId: string, entryId: string, mediaUrl: string) => Promise<void>;
   migrateMedia: (userId: string) => Promise<{ migratedCount: number }>;
+  upsertSync: (
+    userId: string,
+    input: { id?: string; content: string; type?: EntryKind; finalize?: boolean },
+  ) => Promise<{ id: string }>;
 };
 
 export type TasksApi = {
@@ -217,6 +239,149 @@ export type MessagingApi = {
 
 export type UsersApi = {
   ensureUser: (clerkId: string) => Promise<string>;
+  updateUser: (
+    userId: string,
+    data: {
+      name?: string;
+      themePreference?: string;
+      preferences?: Record<string, unknown>;
+      mascot?: string;
+      marketingEmailOptIn?: boolean;
+      marketingWhatsappOptIn?: boolean;
+      transactionalEmailOptIn?: boolean;
+      transactionalWhatsappOptIn?: boolean;
+    },
+  ) => Promise<void>;
+};
+
+export type HomeSettings = {
+  themeMode: 'dark' | 'light';
+  accentTheme: 'orange' | 'yellow' | 'green' | 'purple';
+  defaultView: 'canvas' | 'list' | 'calendar';
+  writingMode: 'minimal' | 'guided';
+  insightDepth: 'minimal' | 'balanced' | 'deep';
+  autoClustering: boolean;
+  suggestions: boolean;
+  autosave: boolean;
+  focusMode: boolean;
+  sessionTracking: boolean;
+  dataStorage: 'local' | 'cloud';
+  dataUsage: 'anonymous' | 'full';
+  dailyReminder: boolean;
+  reflectionPrompts: boolean;
+  reminderTime: string;
+};
+
+export type HomeThoughtTheme = {
+  key: string;
+  label: string;
+  count: number;
+  progress: number;
+};
+
+export type HomeCluster = {
+  id: string;
+  name: string;
+  entryCount: number;
+  updatedAtLabel: string;
+  description: string;
+  strength: 'Dominant' | 'Emerging';
+  tones: string[];
+};
+
+export type HomeCanvasFolder = {
+  id: string;
+  title: string;
+  entryCount: number;
+  updatedAtLabel: string;
+};
+
+export type HomeInsights = {
+  overview: {
+    entryCount: number;
+    currentStreak: number;
+    mostActivePeriod: string;
+    completedTaskCount: number;
+    weeklyEntryCount: number;
+  };
+  monthlyQuote: string;
+  monthlyAnalysis: string;
+  statLine: string;
+  statNote: string;
+  dominantTheme: string;
+  previousTheme: string;
+  thoughtThemes: HomeThoughtTheme[];
+  finalSynthesis: {
+    headline: string;
+    body: string;
+  };
+  clustersHeadline: string;
+  clusters: HomeCluster[];
+  canvasFolders: HomeCanvasFolder[];
+  coreThemes: Array<{ label: string; percent: number }>;
+  reflectionToneDescription: string;
+  relationshipMap: {
+    nodes: Array<{ id: string; label: string; size: number }>;
+    links: Array<{ source: string; target: string; strength: number }>;
+  };
+  thinkingShifts: Array<{
+    label: string;
+    trend: 'up' | 'down' | 'circle' | null;
+    tag: string | null;
+  }>;
+  writingProfile: {
+    title: string;
+    description: string;
+    tags: string[];
+  };
+};
+
+export type HomeAccount = {
+  stats: {
+    daysJoined: number;
+    entries: number;
+    streak: number;
+    mostActivePeriod: string;
+  };
+  writingProfile: {
+    title: string;
+    description: string;
+    tags: string[];
+  };
+  coreThemes: Array<{ label: string; percent: number }>;
+  consistencyMessage: string;
+  bio: string;
+};
+
+export type HomeClusterDetail = {
+  cluster: HomeCluster;
+  narrative: string;
+  keyIdeas: Array<{ label: string; description: string }>;
+  highlights: Array<{
+    id: string;
+    title: string;
+    type: EntryKind;
+    createdAt: string;
+  }>;
+  observation: string;
+  nextStep: string;
+  reflectionPrompt: string;
+};
+
+export type HomeApi = {
+  getInsights: (userId: string) => Promise<HomeInsights>;
+  getAccount: (userId: string) => Promise<HomeAccount>;
+  getSettings: (userId: string) => Promise<HomeSettings>;
+  updateSettings: (userId: string, input: Partial<HomeSettings>) => Promise<HomeSettings>;
+  getClusters: (userId: string) => Promise<{
+    headline: string;
+    items: HomeCluster[];
+    folders: HomeCanvasFolder[];
+  }>;
+  createFolder: (userId: string, input: { name?: string }) => Promise<HomeCanvasFolder>;
+  deleteFolder: (userId: string, folderId: string) => Promise<{ deleted: true }>;
+  getClusterDetail: (userId: string, clusterId: string) => Promise<HomeClusterDetail | null>;
+  deleteAccount: (userId: string) => Promise<{ deleted: true }>;
 };
 
 // ---------------------------------------------------------------------------
@@ -266,6 +431,11 @@ import {
 import { run as updateEntryRun } from './namespaces/private/entries/update/run.js';
 
 import {
+  config as deleteEntryConfig,
+  schema as deleteEntrySchema,
+} from './namespaces/private/entries/delete/constants.js';
+import { run as deleteEntryRun } from './namespaces/private/entries/delete/run.js';
+import {
   config as getOneConfig,
   schema as getOneSchema,
 } from './namespaces/private/entries/getOne/constants.js';
@@ -282,6 +452,12 @@ import {
   schema as getUploadUrlSchema,
 } from './namespaces/private/entries/getUploadUrl/constants.js';
 import { run as getUploadUrlRun } from './namespaces/private/entries/getUploadUrl/run.js';
+
+import {
+  config as uploadMediaConfig,
+  schema as uploadMediaSchema,
+} from './namespaces/private/entries/uploadMedia/constants.js';
+import { run as uploadMediaRun } from './namespaces/private/entries/uploadMedia/run.js';
 
 import {
   config as updateMediaUrlConfig,
@@ -302,6 +478,51 @@ import {
 import { run as getAllRun } from './namespaces/private/entries/getAll/run.js';
 
 import {
+  config as deleteHomeAccountConfig,
+  schema as deleteHomeAccountSchema,
+} from './namespaces/private/home/deleteAccount/constants.js';
+import { run as deleteHomeAccountRun } from './namespaces/private/home/deleteAccount/run.js';
+import {
+  config as getHomeAccountConfig,
+  schema as getHomeAccountSchema,
+} from './namespaces/private/home/getAccount/constants.js';
+import { run as getHomeAccountRun } from './namespaces/private/home/getAccount/run.js';
+import {
+  config as getClusterDetailConfig,
+  schema as getClusterDetailSchema,
+} from './namespaces/private/home/getClusterDetail/constants.js';
+import { run as getClusterDetailRun } from './namespaces/private/home/getClusterDetail/run.js';
+import {
+  config as getHomeClustersConfig,
+  schema as getHomeClustersSchema,
+} from './namespaces/private/home/getClusters/constants.js';
+import { run as getHomeClustersRun } from './namespaces/private/home/getClusters/run.js';
+import {
+  config as createHomeFolderConfig,
+  schema as createHomeFolderSchema,
+} from './namespaces/private/home/createFolder/constants.js';
+import { run as createHomeFolderRun } from './namespaces/private/home/createFolder/run.js';
+import {
+  config as deleteHomeFolderConfig,
+  schema as deleteHomeFolderSchema,
+} from './namespaces/private/home/deleteFolder/constants.js';
+import { run as deleteHomeFolderRun } from './namespaces/private/home/deleteFolder/run.js';
+import {
+  config as getHomeInsightsConfig,
+  schema as getHomeInsightsSchema,
+} from './namespaces/private/home/getInsights/constants.js';
+import { run as getHomeInsightsRun } from './namespaces/private/home/getInsights/run.js';
+import {
+  config as getHomeSettingsConfig,
+  schema as getHomeSettingsSchema,
+} from './namespaces/private/home/getSettings/constants.js';
+import { run as getHomeSettingsRun } from './namespaces/private/home/getSettings/run.js';
+import {
+  config as updateHomeSettingsConfig,
+  schema as updateHomeSettingsSchema,
+} from './namespaces/private/home/updateSettings/constants.js';
+import { run as updateHomeSettingsRun } from './namespaces/private/home/updateSettings/run.js';
+import {
   config as getCenterConfig,
   schema as getCenterSchema,
 } from './namespaces/private/messaging/getCenter/constants.js';
@@ -321,6 +542,17 @@ import {
   schema as convertToTaskSchema,
 } from './namespaces/private/tasks/convertToTask/constants.js';
 import { run as convertToTaskRun } from './namespaces/private/tasks/convertToTask/run.js';
+import {
+  config as updateUserConfig,
+  schema as updateUserSchema,
+} from './namespaces/private/users/update/constants.js';
+import { run as updateUserRun } from './namespaces/private/users/update/run.js';
+
+import {
+  config as upsertSyncConfig,
+  schema as upsertSyncSchema,
+} from './namespaces/private/entries/upsertSync/constants.js';
+import { run as upsertSyncRun } from './namespaces/private/entries/upsertSync/run.js';
 
 function buildPrivateRouter(services: Services) {
   /**
@@ -352,6 +584,11 @@ function buildPrivateRouter(services: Services) {
         .input(updateEntrySchema)
         .mutation(({ input, ctx }) => updateEntryRun(input, ctx, services)),
 
+      delete: authedProcedure
+        .use(makeRateLimitMiddleware(deleteEntryConfig.rateLimit))
+        .input(deleteEntrySchema)
+        .mutation(({ input, ctx }) => deleteEntryRun(input, ctx, services)),
+
       getOne: authedProcedure
         .use(makeRateLimitMiddleware(getOneConfig.rateLimit))
         .input(getOneSchema)
@@ -367,6 +604,11 @@ function buildPrivateRouter(services: Services) {
         .input(getUploadUrlSchema)
         .mutation(({ input, ctx }) => getUploadUrlRun(input, ctx, services)),
 
+      uploadMedia: authedProcedure
+        .use(makeRateLimitMiddleware(uploadMediaConfig.rateLimit))
+        .input(uploadMediaSchema)
+        .mutation(({ input, ctx }) => uploadMediaRun(input, ctx, services)),
+
       updateMediaUrl: authedProcedure
         .use(makeRateLimitMiddleware(updateMediaUrlConfig.rateLimit))
         .input(updateMediaUrlSchema)
@@ -381,6 +623,11 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(getAllConfig.rateLimit))
         .input(getAllSchema)
         .query(({ input, ctx }) => getAllRun(input, ctx, services)),
+
+      upsertSync: authedProcedure
+        .use(makeRateLimitMiddleware(upsertSyncConfig.rateLimit))
+        .input(upsertSyncSchema)
+        .mutation(({ input, ctx }) => upsertSyncRun(input, ctx, services)),
     }),
 
     tasks: router({
@@ -405,6 +652,60 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(sendCampaignConfig.rateLimit))
         .input(sendCampaignSchema)
         .mutation(({ input, ctx }) => sendCampaignRun(input, ctx, services)),
+    }),
+
+    users: router({
+      update: authedProcedure
+        .use(makeRateLimitMiddleware(updateUserConfig.rateLimit))
+        .input(updateUserSchema)
+        .mutation(({ input, ctx }) => updateUserRun(input, ctx, services)),
+    }),
+
+    home: router({
+      getInsights: authedProcedure
+        .use(makeRateLimitMiddleware(getHomeInsightsConfig.rateLimit))
+        .input(getHomeInsightsSchema)
+        .query(({ input, ctx }) => getHomeInsightsRun(input, ctx, services)),
+
+      getAccount: authedProcedure
+        .use(makeRateLimitMiddleware(getHomeAccountConfig.rateLimit))
+        .input(getHomeAccountSchema)
+        .query(({ input, ctx }) => getHomeAccountRun(input, ctx, services)),
+
+      getSettings: authedProcedure
+        .use(makeRateLimitMiddleware(getHomeSettingsConfig.rateLimit))
+        .input(getHomeSettingsSchema)
+        .query(({ input, ctx }) => getHomeSettingsRun(input, ctx, services)),
+
+      updateSettings: authedProcedure
+        .use(makeRateLimitMiddleware(updateHomeSettingsConfig.rateLimit))
+        .input(updateHomeSettingsSchema)
+        .mutation(({ input, ctx }) => updateHomeSettingsRun(input, ctx, services)),
+
+      getClusters: authedProcedure
+        .use(makeRateLimitMiddleware(getHomeClustersConfig.rateLimit))
+        .input(getHomeClustersSchema)
+        .query(({ input, ctx }) => getHomeClustersRun(input, ctx, services)),
+
+      createFolder: authedProcedure
+        .use(makeRateLimitMiddleware(createHomeFolderConfig.rateLimit))
+        .input(createHomeFolderSchema)
+        .mutation(({ input, ctx }) => createHomeFolderRun(input, ctx, services)),
+
+      deleteFolder: authedProcedure
+        .use(makeRateLimitMiddleware(deleteHomeFolderConfig.rateLimit))
+        .input(deleteHomeFolderSchema)
+        .mutation(({ input, ctx }) => deleteHomeFolderRun(input, ctx, services)),
+
+      getClusterDetail: authedProcedure
+        .use(makeRateLimitMiddleware(getClusterDetailConfig.rateLimit))
+        .input(getClusterDetailSchema)
+        .query(({ input, ctx }) => getClusterDetailRun(input, ctx, services)),
+
+      deleteAccount: authedProcedure
+        .use(makeRateLimitMiddleware(deleteHomeAccountConfig.rateLimit))
+        .input(deleteHomeAccountSchema)
+        .mutation(({ input, ctx }) => deleteHomeAccountRun(input, ctx, services)),
     }),
   });
 }

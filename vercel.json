@@ -1,13 +1,18 @@
 {
-    "experimentalServices": {
-        "frontend": {
-            "entrypoint": "frontend",
-            "routePrefix": "/",
-            "framework": "nextjs"
-        },
-        "backend": {
-            "entrypoint": "backend",
-            "routePrefix": "/_/backend"
-        }
+  "version": 2,
+  "experimentalServices": {
+    "frontend": {
+      "entrypoint": "apps/frontend",
+      "routePrefix": "/",
+      "framework": "nextjs"
+    },
+    "backend": {
+      "entrypoint": "apps/backend",
+      "routePrefix": "/_/backend"
+    },
+    "admin": {
+      "entrypoint": "apps/admin-dashboard",
+      "routePrefix": "/_/admin"
     }
+  }
 }
