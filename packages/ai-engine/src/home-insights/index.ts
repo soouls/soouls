@@ -16,16 +16,29 @@ const homeInsightSchema = z.object({
   reflectionPrompt: z.string(),
   writingProfileTitle: z.string(),
   writingProfileDescription: z.string(),
+  writingProfileTags: z.array(z.string()).max(3),
+  coreThemes: z
+    .array(
+      z.object({
+        label: z.string(),
+        percent: z.number(),
+      }),
+    )
+    .max(3),
   reflectionToneDescription: z.string(),
   relationshipMap: z.object({
     nodes: z.array(z.object({ id: z.string(), label: z.string(), size: z.number() })),
     links: z.array(z.object({ source: z.string(), target: z.string(), strength: z.number() })),
   }),
-  thinkingShifts: z.array(z.object({
-    label: z.string(),
-    trend: z.enum(['up', 'down', 'circle']).nullable(),
-    tag: z.string().nullable(),
-  })).max(5),
+  thinkingShifts: z
+    .array(
+      z.object({
+        label: z.string(),
+        trend: z.enum(['up', 'down', 'circle']).nullable(),
+        tag: z.string().nullable(),
+      }),
+    )
+    .max(5),
 });
 
 export type HomeInsightCopy = z.infer<typeof homeInsightSchema>;
@@ -64,16 +77,21 @@ export async function generateHomeInsightCopy(input: {
   const entryCount = input.totalEntryCount;
 
   // Build entry context — send up to 50 entries with metadata
-  const entryLines = input.entries.slice(0, 50).map((e, i) =>
-    `Entry ${i + 1} [${e.timestamp}, ${e.dayOfWeek}, ${e.hourOfDay}:00, ${e.wordCount} words]: ${e.text.substring(0, 250)}`
-  );
+  const entryLines = input.entries
+    .slice(0, 50)
+    .map(
+      (e, i) =>
+        `Entry ${i + 1} [${e.timestamp}, ${e.dayOfWeek}, ${e.hourOfDay}:00, ${e.wordCount} words]: ${e.text.substring(0, 250)}`,
+    );
 
   // Determine edge-case instructions
   let edgeCaseNote = '';
   if (entryCount === 0) {
-    edgeCaseNote = 'The user has ZERO entries. Return generic encouraging copy. statLine should be empty. All themes should be empty arrays.';
+    edgeCaseNote =
+      'The user has ZERO entries. Return generic encouraging copy. statLine should be empty. All themes should be empty arrays.';
   } else if (entryCount === 1) {
-    edgeCaseNote = 'The user has only 1 entry. Base everything on that single entry. Omit statLine (set to empty string). Cannot calculate percentage changes. All thinkingShifts should have trend null and tag "EMERGING". relationshipMap should have max 1-2 nodes.';
+    edgeCaseNote =
+      'The user has only 1 entry. Base everything on that single entry. Omit statLine (set to empty string). Cannot calculate percentage changes. All thinkingShifts should have trend null and tag "EMERGING". relationshipMap should have max 1-2 nodes.';
   } else if (entryCount <= 4) {
     edgeCaseNote = `The user has only ${entryCount} entries. Provide insights but keep them tentative. statLine can reference raw counts instead of percentages.`;
   }
@@ -127,6 +145,8 @@ export async function generateHomeInsightCopy(input: {
         '- reflectionPrompt: A thoughtful question to prompt deeper reflection.',
         '- writingProfileTitle: 2-4 word title for their writing style.',
         '- writingProfileDescription: One sentence describing their writing approach.',
+        '- writingProfileTags: Array of 1-3 word strings describing their style (max 3).',
+        '- coreThemes: Array of max 3 objects { label: string, percent: number }. Label must be a theme derived from entries. Percentages should roughly add up to 100.',
         '',
         'CRITICAL RULES:',
         '- Every quote, theme, label, and stat MUST be grounded in the actual journal entries provided above.',
@@ -147,10 +167,14 @@ const clusterInsightSchema = z.object({
   observation: z.string(),
   nextStep: z.string(),
   reflectionPrompt: z.string(),
-  keyIdeas: z.array(z.object({
-    label: z.string(),
-    description: z.string()
-  })).max(3),
+  keyIdeas: z
+    .array(
+      z.object({
+        label: z.string(),
+        description: z.string(),
+      }),
+    )
+    .max(3),
 });
 
 export type ClusterInsightCopy = z.infer<typeof clusterInsightSchema>;
@@ -170,7 +194,7 @@ export async function generateClusterInsights(input: {
         'You are an AI therapist/companion analyzing journal entries for a cluster.',
         `Cluster Theme: ${input.clusterName}`,
         'Recent relevant journal entries:',
-        ...input.entriesText.map(t => `- ${t.substring(0, 300)}`),
+        ...input.entriesText.map((t) => `- ${t.substring(0, 300)}`),
         'Generate an emotionally intelligent narrative, observation, next step, and reflection prompt based on their real writings. Keep it empathetic and insightful.',
       ].join('\n'),
     });
