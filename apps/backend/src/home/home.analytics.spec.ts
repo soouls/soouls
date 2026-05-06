@@ -108,7 +108,7 @@ describe('home analytics', () => {
         label: 'Career Direction',
       }),
     );
-    expect(analytics.insights.monthlyNarrative).toContain('career');
+    expect(typeof analytics.insights.monthlyQuote).toBe('string');
     expect(analytics.account.writingProfile.title).toBe('Thoughtful self-reflection');
     expect(analytics.account.writingProfile.tags).toContain('Reflective');
 

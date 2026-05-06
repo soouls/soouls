@@ -1,6 +1,10 @@
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
-import { generateClusterInsights, generateHomeInsightCopy, type InsightEntryMeta } from '@soouls/ai-engine/home-insights';
+import {
+  type InsightEntryMeta,
+  generateClusterInsights,
+  generateHomeInsightCopy,
+} from '@soouls/ai-engine/home-insights';
 import type {
   HomeAccount,
   HomeApi,
@@ -58,7 +62,7 @@ export class HomeService implements HomeApi {
   constructor(
     @Inject(EntriesService) private readonly entriesService: EntriesService,
     @Inject(RedisService) private readonly redis: RedisService,
-  ) { }
+  ) {}
 
   private getCacheKey(prefix: string, userId: string): string {
     return `${prefix}:${userId}`;
@@ -200,20 +204,35 @@ export class HomeService implements HomeApi {
           headline: aiCopy.finalSynthesis.headline || analytics.insights.finalSynthesis.headline,
           body: aiCopy.finalSynthesis.body || analytics.insights.finalSynthesis.body,
         },
-        reflectionToneDescription: aiCopy.reflectionToneDescription || analytics.insights.reflectionToneDescription,
-        relationshipMap: (aiCopy.relationshipMap?.nodes?.length)
-          ? aiCopy.relationshipMap as { nodes: { id: string; label: string; size: number }[]; links: { source: string; target: string; strength: number }[] }
+        reflectionToneDescription:
+          aiCopy.reflectionToneDescription || analytics.insights.reflectionToneDescription,
+        relationshipMap: aiCopy.relationshipMap?.nodes?.length
+          ? (aiCopy.relationshipMap as {
+              nodes: { id: string; label: string; size: number }[];
+              links: { source: string; target: string; strength: number }[];
+            })
           : analytics.insights.relationshipMap,
-        thinkingShifts: (aiCopy.thinkingShifts?.length)
-          ? aiCopy.thinkingShifts as { label: string; trend: "up" | "down" | "circle" | null; tag: string | null }[]
+        thinkingShifts: aiCopy.thinkingShifts?.length
+          ? (aiCopy.thinkingShifts as {
+              label: string;
+              trend: 'up' | 'down' | 'circle' | null;
+              tag: string | null;
+            }[])
           : analytics.insights.thinkingShifts,
       },
       account: {
         ...analytics.account,
+        coreThemes: aiCopy.coreThemes?.length
+          ? (aiCopy.coreThemes as { label: string; percent: number }[])
+          : analytics.account.coreThemes,
         writingProfile: {
           ...analytics.account.writingProfile,
           title: aiCopy.writingProfileTitle || analytics.account.writingProfile.title,
-          description: aiCopy.writingProfileDescription || analytics.account.writingProfile.description,
+          description:
+            aiCopy.writingProfileDescription || analytics.account.writingProfile.description,
+          tags: aiCopy.writingProfileTags?.length
+            ? aiCopy.writingProfileTags
+            : analytics.account.writingProfile.tags,
         },
       },
     };
@@ -224,7 +243,7 @@ export class HomeService implements HomeApi {
     settings: NormalizedUserPreferences;
     analytics: ReturnType<typeof buildHomeAnalytics>;
   }> {
-    const cacheKey = this.getCacheKey('home:snapshot', userId);
+    const cacheKey = this.getCacheKey('home:snapshot:v3', userId);
     const cached = await this.redis.get<{
       user: UserRow;
       settings: NormalizedUserPreferences;
@@ -244,11 +263,19 @@ export class HomeService implements HomeApi {
       userName: user.name ?? 'Explorer',
       now: new Date(),
     });
-    const analytics = await this.enrichAnalyticsWithAiCopy(
-      baseAnalytics,
-      user.name ?? 'Explorer',
-      entries,
-    );
+
+    let analytics: HomeAnalyticsBundle;
+    try {
+      analytics = await Promise.race([
+        this.enrichAnalyticsWithAiCopy(baseAnalytics, user.name ?? 'Explorer', entries),
+        new Promise<HomeAnalyticsBundle>((_, reject) =>
+          setTimeout(() => reject(new Error('AI enrichment timeout')), 10000),
+        ),
+      ]);
+    } catch (err) {
+      console.error('[HomeService] AI enrichment failed, using base analytics:', err);
+      analytics = baseAnalytics;
+    }
 
     const snapshot = {
       user,
@@ -264,23 +291,23 @@ export class HomeService implements HomeApi {
     const { analytics } = await this.getSnapshot(userId);
 
     return {
-      overview: analytics.overview,
-      monthlyQuote: analytics.insights.monthlyQuote,
-      monthlyAnalysis: analytics.insights.monthlyAnalysis,
-      statLine: analytics.insights.statLine,
-      statNote: analytics.insights.statNote,
-      dominantTheme: analytics.insights.dominantTheme,
-      previousTheme: analytics.insights.previousTheme,
-      thoughtThemes: analytics.insights.thoughtThemes.map((theme) => ({
+      overview: analytics?.overview,
+      monthlyQuote: analytics?.insights?.monthlyQuote ?? 'You are building your reflection rhythm.',
+      monthlyAnalysis: analytics?.insights?.monthlyAnalysis ?? 'Not enough data yet.',
+      statLine: analytics?.insights?.statLine ?? 'Keep writing.',
+      statNote: analytics?.insights?.statNote ?? '',
+      dominantTheme: analytics?.insights?.dominantTheme ?? 'Reflective',
+      previousTheme: analytics?.insights?.previousTheme ?? '',
+      thoughtThemes: (analytics?.insights?.thoughtThemes ?? []).map((theme) => ({
         key: theme.key,
         label: theme.label,
         count: theme.count,
         progress: theme.progress,
       })),
-      finalSynthesis: analytics.insights.finalSynthesis,
-      reflectionToneDescription: analytics.insights.reflectionToneDescription,
-      relationshipMap: analytics.insights.relationshipMap,
-      thinkingShifts: analytics.insights.thinkingShifts,
+      finalSynthesis: analytics?.insights?.finalSynthesis ?? { headline: 'Just started', body: 'Keep writing.' },
+      reflectionToneDescription: analytics?.insights?.reflectionToneDescription ?? '',
+      relationshipMap: analytics?.insights?.relationshipMap ?? { nodes: [], links: [] },
+      thinkingShifts: analytics?.insights?.thinkingShifts ?? [],
       clustersHeadline: analytics.clusters.headline,
       clusters: analytics.clusters.items,
       canvasFolders: analytics.canvas.folders,
@@ -291,22 +318,36 @@ export class HomeService implements HomeApi {
 
   async getAccount(userId: string): Promise<HomeAccount> {
     const { analytics, user } = await this.getSnapshot(userId);
+    
+    // Always compute numerical stats completely fresh, bypassing any cache
     const daysJoined = Math.max(
       1,
       Math.ceil((Date.now() - new Date(user.createdAt).getTime()) / (24 * 60 * 60 * 1000)),
     );
 
+    const freshEntries = await this.getDecodedEntries(userId);
+    const freshAnalytics = buildHomeAnalytics({
+      entries: freshEntries,
+      preferences: this.buildSettingsFromUser(user),
+      userName: user.name ?? 'Explorer',
+      now: new Date(),
+    });
+
     return {
       stats: {
         daysJoined,
-        entries: analytics.overview.entryCount,
-        streak: analytics.overview.currentStreak,
-        mostActivePeriod: analytics.overview.mostActivePeriod,
+        entries: freshAnalytics.overview.entryCount,
+        streak: freshAnalytics.overview.currentStreak,
+        mostActivePeriod: freshAnalytics.overview.mostActivePeriod,
       },
-      writingProfile: analytics.account.writingProfile,
-      coreThemes: analytics.account.coreThemes,
+      writingProfile: analytics?.account?.writingProfile ?? {
+        title: 'Thoughtful self-reflection',
+        description: 'Your entries are grounding emotion in language.',
+        tags: ['Reflective']
+      },
+      coreThemes: analytics?.account?.coreThemes ?? [],
       consistencyMessage:
-        analytics.overview.currentStreak >= 3
+        freshAnalytics.overview.currentStreak >= 3
           ? "You've been staying consistent."
           : 'Your reflective rhythm is starting to form.',
       bio: user.bio ?? 'Trying to make sense of my thoughts.',
@@ -440,7 +481,7 @@ export class HomeService implements HomeApi {
       const topKeywords = this.extractTopKeywordsFromEntries(unassignedEntries);
       if (topKeywords.length > 0) {
         const dynamicName = `Discovery: ${topKeywords[0].charAt(0).toUpperCase() + topKeywords[0].slice(1)}`;
-        
+
         // Check if this dynamic folder already exists
         const [existing] = await db
           .select()
@@ -457,7 +498,7 @@ export class HomeService implements HomeApi {
               description: `A space automatically formed from your recent thoughts on ${topKeywords.join(', ')}.`,
             })
             .returning({ id: clusters.id });
-          
+
           // Assign these unassigned entries to the new folder
           for (const entry of unassignedEntries) {
             await db
@@ -492,15 +533,20 @@ export class HomeService implements HomeApi {
           .values({
             userId,
             name: cluster.name,
-            description: cluster.description || 'A space for your recent thoughts and explorations.',
+            description:
+              cluster.description || 'A space for your recent thoughts and explorations.',
           })
           .returning({ id: clusters.id });
         clusterId = created.id;
       }
 
-      const matchWords = (cluster.name === 'Recent Entries') 
-        ? [] 
-        : cluster.name.toLowerCase().split(/[^a-z0-9]+/g).filter(Boolean);
+      const matchWords =
+        cluster.name === 'Recent Entries'
+          ? []
+          : cluster.name
+              .toLowerCase()
+              .split(/[^a-z0-9]+/g)
+              .filter(Boolean);
 
       for (const entry of entries) {
         if (entry.clusterId) continue;
@@ -526,13 +572,50 @@ export class HomeService implements HomeApi {
 
   private extractTopKeywordsFromEntries(entries: DecodedHomeEntry[]): string[] {
     const counts = new Map<string, number>();
-    const STOP_WORDS = new Set(['about', 'after', 'again', 'also', 'because', 'been', 'being', 'feel', 'from', 'have', 'into', 'just', 'more', 'only', 'that', 'them', 'they', 'this', 'through', 'want', 'when', 'with', 'your', 'the', 'and', 'for', 'are', 'but', 'not', 'was', 'you', 'too', 'will', 'has', 'had']);
+    const STOP_WORDS = new Set([
+      'about',
+      'after',
+      'again',
+      'also',
+      'because',
+      'been',
+      'being',
+      'feel',
+      'from',
+      'have',
+      'into',
+      'just',
+      'more',
+      'only',
+      'that',
+      'them',
+      'they',
+      'this',
+      'through',
+      'want',
+      'when',
+      'with',
+      'your',
+      'the',
+      'and',
+      'for',
+      'are',
+      'but',
+      'not',
+      'was',
+      'you',
+      'too',
+      'will',
+      'has',
+      'had',
+    ]);
 
     for (const entry of entries) {
       const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
-      const words = corpus.split(/[^a-z0-9]+/g)
+      const words = corpus
+        .split(/[^a-z0-9]+/g)
         .filter((word) => word.length > 3 && !STOP_WORDS.has(word));
-      
+
       for (const word of words) {
         counts.set(word, (counts.get(word) ?? 0) + 1);
       }
@@ -575,9 +658,7 @@ export class HomeService implements HomeApi {
       .update(journalEntries)
       .set({ clusterId: null, updatedAt: new Date() })
       .where(and(eq(journalEntries.clusterId, folderId), eq(journalEntries.userId, userId)));
-    await db
-      .delete(clusters)
-      .where(and(eq(clusters.id, folderId), eq(clusters.userId, userId)));
+    await db.delete(clusters).where(and(eq(clusters.id, folderId), eq(clusters.userId, userId)));
     await this.redis.invalidatePattern(`home:*:${userId}*`);
     return { deleted: true };
   }

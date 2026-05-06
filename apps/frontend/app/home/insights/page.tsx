@@ -75,11 +75,16 @@ export default function InsightsPage() {
   const { data: insights, isLoading: insightsLoading } = trpc.private.home.getInsights.useQuery(undefined);
   const { data: entries, isLoading: entriesLoading } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
 
+  const updateSettings = trpc.private.home.updateSettings.useMutation();
   const isLoading = insightsLoading || entriesLoading;
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      // 1. Force clear backend Redis cache by "updating" settings with empty payload
+      await updateSettings.mutateAsync({});
+      
+      // 2. Invalidate TRPC queries to re-fetch from the backend (which now has no cache)
       await utils.private.home.getInsights.invalidate();
       await utils.private.entries.getAll.invalidate();
     } finally {

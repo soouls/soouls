@@ -17,7 +17,7 @@
     "husky": "^9.1.7",
     "knip": "^5.88.1",
     "peakroute": "^0.6.0",
-    "turbo": "^2.9.7",
+    "turbo": "^2.9.9",
     "typescript": "5.9.2"
   },
   "engines": {

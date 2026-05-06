@@ -14,6 +14,7 @@ import {
   User,
 } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   HOME_DEFAULT_SETTINGS,
@@ -43,28 +44,36 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (value: boolean) => v
     <button
       type="button"
       onClick={() => onChange(!on)}
-      className="relative h-6 w-11 rounded-full transition-colors duration-200"
+      className={`relative flex h-6 w-11 cursor-pointer items-center rounded-full p-[3px] transition-colors duration-300 ${
+        on ? 'justify-end' : 'justify-start'
+      }`}
       style={{
         backgroundColor: on ? 'rgba(var(--soouls-accent-rgb),0.92)' : 'var(--soouls-overlay-muted)',
       }}
       aria-checked={on}
       role="switch"
     >
-      <span
-        className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${on ? 'translate-x-5' : ''}`}
+      <motion.div
+        layout
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        className="h-4 w-4 rounded-full bg-white shadow-sm"
+        whileTap={{ width: 22 }}
       />
     </button>
   );
 }
 
-function SectionCard({ children }: { children: React.ReactNode }) {
+function SectionCard({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
-    <section
+    <motion.section
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, type: 'spring', stiffness: 300, damping: 24 }}
       className="rounded-[24px] border p-6"
       style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}
     >
       {children}
-    </section>
+    </motion.section>
   );
 }
 
@@ -289,47 +298,72 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* ─── Appearance + Preferences ─── */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <SectionCard>
-              <SectionTitle>Appearance</SectionTitle>
-
-              {/* Theme mode toggle */}
-              <SettingRow
-                label="Theme"
-                sublabel={`Currently using ${settings.themeMode} mode`}
-                icon={
-                  settings.themeMode === 'dark' ? (
-                    <Moon className="h-4 w-4" />
-                  ) : (
-                    <Sun className="h-4 w-4" />
-                  )
-                }
-                right={
+          {/* ─── Top Row (Theme, View, Writing) ─── */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <SectionCard delay={0.1}>
+              <div className="flex h-full flex-col justify-between">
+                <p className="text-sm font-medium text-[var(--soouls-text-strong)]">Theme</p>
+                <div className="mt-8 flex items-end justify-between">
                   <button
                     type="button"
-                    onClick={() =>
-                      handlePatch({ themeMode: settings.themeMode === 'dark' ? 'light' : 'dark' })
-                    }
-                    className="flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-all hover:opacity-80"
-                    style={{
-                      borderColor: 'var(--soouls-border)',
-                      color: 'var(--soouls-accent)',
-                      backgroundColor: 'var(--soouls-overlay-subtle)',
-                    }}
+                    onClick={() => handlePatch({ themeMode: settings.themeMode === 'dark' ? 'light' : 'dark' })}
+                    className="text-2xl capitalize transition-opacity hover:opacity-80"
+                    style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: 'var(--soouls-accent)' }}
                   >
-                    {settings.themeMode === 'dark' ? (
-                      <>
-                        <Moon className="h-3 w-3" /> Dark
-                      </>
-                    ) : (
-                      <>
-                        <Sun className="h-3 w-3" /> Light
-                      </>
-                    )}
+                    {settings.themeMode}
                   </button>
-                }
-              />
+                  {settings.themeMode === 'dark' ? (
+                    <Moon className="h-5 w-5" style={{ color: 'var(--soouls-accent)' }} />
+                  ) : (
+                    <Sun className="h-5 w-5" style={{ color: 'var(--soouls-accent)' }} />
+                  )}
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard delay={0.15}>
+              <div className="flex h-full flex-col justify-between">
+                <p className="text-sm font-medium text-[var(--soouls-text-strong)]">Default view</p>
+                <div className="mt-8 flex items-end justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const views: HomeSettings['defaultView'][] = ['canvas', 'list', 'calendar'];
+                      handlePatch({
+                        defaultView: views[(views.indexOf(settings.defaultView) + 1) % views.length] ?? 'canvas',
+                      });
+                    }}
+                    className="text-2xl capitalize transition-opacity hover:opacity-80"
+                    style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: 'var(--soouls-accent)' }}
+                  >
+                    {settings.defaultView}
+                  </button>
+                  <ChevronDown className="h-5 w-5" style={{ color: 'var(--soouls-accent)' }} />
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard delay={0.2}>
+              <div className="flex h-full flex-col justify-between">
+                <p className="text-sm font-medium text-[var(--soouls-text-strong)]">Writing mode</p>
+                <div className="mt-8 flex items-end justify-between">
+                  <button
+                    type="button"
+                    onClick={() => handlePatch({ writingMode: settings.writingMode === 'minimal' ? 'guided' : 'minimal' })}
+                    className="text-2xl capitalize transition-opacity hover:opacity-80"
+                    style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: 'var(--soouls-accent)' }}
+                  >
+                    {settings.writingMode}
+                  </button>
+                  <span style={{ color: 'var(--soouls-accent)' }} className="text-xl font-light">✍</span>
+                </div>
+              </div>
+            </SectionCard>
+          </div>
+
+          {/* ─── Accent Color ─── */}
+          <SectionCard delay={0.25}>
+            <SectionTitle>Personalization</SectionTitle>
 
               {/* Accent color picker */}
               <SettingRow
@@ -362,58 +396,8 @@ export default function SettingsPage() {
               />
             </SectionCard>
 
-            <SectionCard>
-              <SectionTitle>Preferences</SectionTitle>
-              <SettingRow
-                label="Default view"
-                icon={<ChevronDown className="h-4 w-4" />}
-                right={
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const views: HomeSettings['defaultView'][] = ['canvas', 'list', 'calendar'];
-                      handlePatch({
-                        defaultView:
-                          views[(views.indexOf(settings.defaultView) + 1) % views.length] ?? 'canvas',
-                      });
-                    }}
-                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
-                    style={{
-                      borderColor: 'var(--soouls-border)',
-                      color: 'var(--soouls-accent)',
-                      backgroundColor: 'var(--soouls-overlay-subtle)',
-                    }}
-                  >
-                    {settings.defaultView}
-                  </button>
-                }
-              />
-              <SettingRow
-                label="Writing"
-                right={
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handlePatch({
-                        writingMode: settings.writingMode === 'minimal' ? 'guided' : 'minimal',
-                      })
-                    }
-                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
-                    style={{
-                      borderColor: 'var(--soouls-border)',
-                      color: 'var(--soouls-accent)',
-                      backgroundColor: 'var(--soouls-overlay-subtle)',
-                    }}
-                  >
-                    {settings.writingMode}
-                  </button>
-                }
-              />
-            </SectionCard>
-          </div>
-
           {/* ─── Notifications ─── */}
-          <SectionCard>
+          <SectionCard delay={0.3}>
             <SectionTitle>Notifications</SectionTitle>
             <SettingRow
               label="Daily reminder"
@@ -464,7 +448,7 @@ export default function SettingsPage() {
 
           {/* ─── AI + App Behavior ─── */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <SectionCard>
+            <SectionCard delay={0.4}>
               <SectionTitle>AI Behavior</SectionTitle>
               <div
                 className="mb-4 grid grid-cols-3 gap-1 rounded-2xl p-1"
@@ -508,7 +492,7 @@ export default function SettingsPage() {
               />
             </SectionCard>
 
-            <SectionCard>
+            <SectionCard delay={0.5}>
               <SectionTitle>App Behavior</SectionTitle>
               {(['autosave', 'focusMode', 'sessionTracking'] as const).map((key) => (
                 <SettingRow
@@ -523,7 +507,7 @@ export default function SettingsPage() {
           </div>
 
           {/* ─── Privacy ─── */}
-          <SectionCard>
+          <SectionCard delay={0.6}>
             <SectionTitle>Privacy Controls</SectionTitle>
             <div className="grid gap-4 sm:grid-cols-3">
               <SettingRow
@@ -568,46 +552,29 @@ export default function SettingsPage() {
                   </button>
                 }
               />
-              <SettingRow
-                label="Cache"
-                right={
-                  <button
-                    type="button"
-                    onClick={handleClearCache}
-                    className="rounded-full border px-3 py-1 text-xs font-medium transition-all hover:opacity-80"
-                    style={{
-                      borderColor: 'var(--soouls-border)',
-                      color: 'var(--soouls-accent)',
-                      backgroundColor: 'var(--soouls-overlay-subtle)',
-                    }}
-                  >
-                    {cacheMessage ?? 'Clear'}
-                  </button>
-                }
-              />
             </div>
           </SectionCard>
 
           {/* ─── Footer actions ─── */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 mt-4">
             <button
               type="button"
               onClick={() => handlePatch(HOME_DEFAULT_SETTINGS)}
-              className="rounded-full border px-7 py-3 text-sm font-medium transition-all hover:opacity-80"
-              style={{ borderColor: 'var(--soouls-chip-divider)', color: 'var(--soouls-text-muted)' }}
+              className="rounded-full border px-6 py-2.5 text-sm font-medium transition-all hover:opacity-80"
+              style={{ borderColor: 'var(--soouls-border)', color: 'var(--soouls-text-muted)' }}
             >
               Reset App
             </button>
             <button
               type="button"
               onClick={handleClearCache}
-              className="rounded-full border px-7 py-3 text-sm font-medium transition-all hover:opacity-80"
+              className="rounded-full border px-6 py-2.5 text-sm font-medium transition-all hover:opacity-80"
               style={{
                 borderColor: 'rgba(var(--soouls-accent-rgb),0.4)',
                 color: 'var(--soouls-accent)',
               }}
             >
-              Clear Cache
+              {cacheMessage ?? 'Clear Cache'}
             </button>
           </div>
         </section>
