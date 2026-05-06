@@ -58,6 +58,12 @@ async function bootstrap() {
         return;
       }
 
+      // Allow all Vercel domains (production & previews)
+      if (origin.endsWith('.vercel.app')) {
+        callback(null, true);
+        return;
+      }
+
       if (isDevelopment && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
         callback(null, true);
         return;

@@ -8,9 +8,9 @@ import { createIDBPersister, shouldPersistQuery } from '../utils/cache/persisten
 import { getTRPCClient, trpc } from '../utils/trpc';
 
 const QUERY_OPTIONS = {
-  staleTime: 5 * 60 * 1000,
-  gcTime: 30 * 60 * 1000,
-  refetchOnWindowFocus: false,
+  staleTime: 10 * 1000, // 10 seconds
+  gcTime: 5 * 60 * 1000, // 5 minutes
+  refetchOnWindowFocus: true,
   retry: 1,
   networkMode: 'offlineFirst' as NetworkMode,
 };
