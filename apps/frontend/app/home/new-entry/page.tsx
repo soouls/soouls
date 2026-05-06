@@ -1524,7 +1524,12 @@ function NewEntryContent() {
 
       const payloadString = JSON.stringify({ textContent: text, blocks: updatedBlocks });
       await updateRef.current({ id: targetEntryId, content: payloadString });
-      utils.private.home.getClusters.invalidate();
+      
+      // Invalidate multiple queries to ensure consistency
+      void utils.private.home.getClusters.invalidate();
+      void utils.private.entries.getAll.invalidate();
+      void utils.private.entries.getGalaxy.invalidate();
+      
       setSyncStatus('synced');
     } catch (err) {
       console.error('DB save failed:', err);

@@ -96,7 +96,10 @@ const MONTHS = [
   'December',
 ];
 const SHORT_DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3000';
+const BACKEND_URL = 
+  process.env.NEXT_PUBLIC_BACKEND_URL ?? 
+  process.env.BACKEND_URL ?? 
+  'http://localhost:3000';
 
 // ─── Empty State ─────────────────────────────────────────────────────────────
 

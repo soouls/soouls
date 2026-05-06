@@ -25,10 +25,18 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    const isVercel = process.env.VERCEL === '1';
+    
+    // In local dev, we proxy to the absolute backendUrl (usually localhost:3000)
+    // In Vercel, we use the internal service route /_/backend defined in vercel.json
+    const destination = isVercel 
+      ? '/_/backend/trpc/:path*'
+      : `${backendUrl.replace(/\/$/, '')}/trpc/:path*`;
+
     return [
       {
         source: '/trpc/:path*',
-        destination: `${backendUrl}/trpc/:path*`,
+        destination,
       },
     ];
   },
