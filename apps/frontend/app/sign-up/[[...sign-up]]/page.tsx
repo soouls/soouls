@@ -1,30 +1,34 @@
 'use client';
 
 import { AuthenticateWithRedirectCallback, useSignUp, useUser } from '@clerk/nextjs';
-import { ArrowLeft, Mail, Lock, User, Apple } from 'lucide-react';
+import { Apple, ArrowLeft, Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { SymbolLogo } from '../../components/SymbolLogo';
 
-type AuthMethod = 'email' | 'phone';
 type Step = 'form' | 'verify' | 'phone-password';
+
+function getClerkErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error && 'errors' in error) {
+    const clerkError = error as { errors?: Array<{ message?: string }> };
+    return clerkError.errors?.[0]?.message || fallback;
+  }
+  return fallback;
+}
 
 export default function SignUpPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const { isLoaded, signUp, setActive } = useSignUp();
   const { user } = useUser();
 
   const [step, setStep] = useState<Step>('form');
-  const [authMethod, setAuthMethod] = useState<AuthMethod>('email');
 
   // Form State
   const [username, setUsername] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +37,6 @@ export default function SignUpPage() {
     router.replace('/home');
     return null;
   }
-
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +48,8 @@ export default function SignUpPage() {
       await signUp.create({ username, emailAddress, password });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setStep('verify');
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'Something went wrong.');
+    } catch (err) {
+      setError(getClerkErrorMessage(err, 'Something went wrong.'));
     } finally {
       setIsLoading(false);
     }
@@ -62,10 +65,10 @@ export default function SignUpPage() {
       const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
-        router.push('/home');
+        router.push('/onboarding');
       }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || 'Invalid code.');
+    } catch (err) {
+      setError(getClerkErrorMessage(err, 'Invalid code.'));
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +79,7 @@ export default function SignUpPage() {
     signUp.authenticateWithRedirect({
       strategy,
       redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/home',
+      redirectUrlComplete: '/onboarding',
     });
   };
 
@@ -85,7 +88,11 @@ export default function SignUpPage() {
       <div className="min-h-screen bg-[#050505] flex items-center justify-center font-sans p-4 overflow-hidden relative">
         <StarBackground />
         <div className="z-10 w-full max-w-[440px] bg-[#1A1110]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] p-10 shadow-[0_40px_80px_rgba(0,0,0,0.8)]">
-          <button onClick={() => setStep('form')} className="mb-8 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase">
+          <button
+            type="button"
+            onClick={() => setStep('form')}
+            className="mb-8 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
+          >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           <h2 className="text-3xl font-medium text-white mb-2">Verify Email</h2>
@@ -99,7 +106,11 @@ export default function SignUpPage() {
               className="w-full bg-white/[0.03] border border-white/5 focus:border-[#E07A5F]/50 rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-all"
               required
             />
-            <button type="submit" disabled={isLoading} className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(224,122,95,0.3)]">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(224,122,95,0.3)]"
+            >
               {isLoading ? 'Verifying...' : 'Complete Registration'}
             </button>
           </form>
@@ -111,7 +122,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center font-sans p-4 overflow-hidden relative">
       <StarBackground />
-      
+
       <div className="absolute top-12 left-12 z-20">
         <h1 className="text-4xl font-medium tracking-tight text-white/90">Soouls</h1>
       </div>
@@ -122,7 +133,11 @@ export default function SignUpPage() {
         </div>
 
         <div className="mb-10">
-          <h2 className="text-3xl font-medium text-white leading-tight">Begin Your<br />Journey</h2>
+          <h2 className="text-3xl font-medium text-white leading-tight">
+            Begin Your
+            <br />
+            Journey
+          </h2>
         </div>
 
         {error && (
@@ -134,10 +149,16 @@ export default function SignUpPage() {
         <form onSubmit={handleEmailSignUp} className="space-y-6">
           <div className="space-y-5">
             <div>
-              <label className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1">Username</label>
+              <label
+                htmlFor="signup-username"
+                className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1"
+              >
+                Username
+              </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                 <input
+                  id="signup-username"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -148,10 +169,16 @@ export default function SignUpPage() {
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1">Email</label>
+              <label
+                htmlFor="signup-email"
+                className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1"
+              >
+                Email
+              </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                 <input
+                  id="signup-email"
                   type="email"
                   value={emailAddress}
                   onChange={(e) => setEmailAddress(e.target.value)}
@@ -162,10 +189,16 @@ export default function SignUpPage() {
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1">Password</label>
+              <label
+                htmlFor="signup-password"
+                className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1"
+              >
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                 <input
+                  id="signup-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -177,20 +210,35 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <Link href="/sign-in" className="block text-[10px] font-bold tracking-widest text-[#E07A5F] uppercase hover:opacity-80 ml-1">
+          <Link
+            href="/sign-in"
+            className="block text-[10px] font-bold tracking-widest text-[#E07A5F] uppercase hover:opacity-80 ml-1"
+          >
             Forgot Password?
           </Link>
 
-          <button type="submit" disabled={isLoading} className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(224,122,95,0.3)] text-xs tracking-widest uppercase">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(224,122,95,0.3)] text-xs tracking-widest uppercase"
+          >
             {isLoading ? 'Processing...' : 'Signup'}
           </button>
         </form>
 
         <div className="mt-8 flex gap-4">
-          <button onClick={() => handleSocialSignUp('oauth_google')} className="flex-1 bg-white/[0.03] border border-white/10 py-4 rounded-2xl flex items-center justify-center hover:bg-white/[0.06] transition-all">
+          <button
+            type="button"
+            onClick={() => handleSocialSignUp('oauth_google')}
+            className="flex-1 bg-white/[0.03] border border-white/10 py-4 rounded-2xl flex items-center justify-center hover:bg-white/[0.06] transition-all"
+          >
             <FcGoogle className="w-6 h-6" />
           </button>
-          <button onClick={() => handleSocialSignUp('oauth_apple')} className="flex-1 bg-white/[0.03] border border-white/10 py-4 rounded-2xl flex items-center justify-center hover:bg-white/[0.06] transition-all">
+          <button
+            type="button"
+            onClick={() => handleSocialSignUp('oauth_apple')}
+            className="flex-1 bg-white/[0.03] border border-white/10 py-4 rounded-2xl flex items-center justify-center hover:bg-white/[0.06] transition-all"
+          >
             <Apple className="w-6 h-6 text-white" />
           </button>
         </div>
@@ -200,6 +248,14 @@ export default function SignUpPage() {
 }
 
 function StarBackground() {
+  const stars = Array.from({ length: 50 }, (_, i) => ({
+    width: 0.6 + ((i * 37) % 14) / 10,
+    top: (i * 23) % 100,
+    left: (i * 41) % 100,
+    duration: 2 + ((i * 17) % 30) / 10,
+    delay: ((i * 11) % 50) / 10,
+  }));
+
   return (
     <div className="absolute inset-0 z-0">
       <div className="absolute top-[20%] left-[10%] w-1 h-1 bg-white rounded-full animate-pulse opacity-40 shadow-[0_0_8px_white]" />
@@ -207,24 +263,27 @@ function StarBackground() {
       <div className="absolute bottom-[30%] left-[25%] w-1 h-1 bg-white rounded-full animate-pulse opacity-30 delay-1000" />
       <div className="absolute top-[10%] right-[40%] w-1 h-1 bg-[#E07A5F] rounded-full animate-pulse opacity-40 delay-300 shadow-[0_0_12px_#E07A5F]" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.05)_0%,transparent_70%)]" />
-      
+
       {/* Tiny stars */}
-      {Array.from({ length: 50 }).map((_, i) => (
+      {stars.map((star, i) => (
         <div
           key={i}
           className="absolute bg-white rounded-full opacity-20"
           style={{
-            width: Math.random() * 2 + 'px',
-            height: Math.random() * 2 + 'px',
-            top: Math.random() * 100 + '%',
-            left: Math.random() * 100 + '%',
-            animation: `pulse ${Math.random() * 3 + 2}s infinite ${Math.random() * 5}s`,
+            width: `${star.width}px`,
+            height: `${star.width}px`,
+            top: `${star.top}%`,
+            left: `${star.left}%`,
+            animation: `pulse ${star.duration}s infinite ${star.delay}s`,
           }}
         />
       ))}
 
       {/* Constellation lines - simplified */}
-      <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none">
+      <svg
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full opacity-10 pointer-events-none"
+      >
         <line x1="20%" y1="20%" x2="40%" y2="40%" stroke="white" strokeWidth="0.5" />
         <line x1="40%" y1="40%" x2="35%" y2="60%" stroke="white" strokeWidth="0.5" />
         <line x1="80%" y1="10%" x2="70%" y2="30%" stroke="white" strokeWidth="0.5" />

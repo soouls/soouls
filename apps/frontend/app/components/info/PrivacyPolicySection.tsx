@@ -38,6 +38,7 @@ export default function PrivacyPolicySection() {
           <div className="p-10 rounded-[48px] bg-[#1D2122] border border-[#E07A5F]/10 h-full relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <svg
+                aria-hidden="true"
                 width="100"
                 height="100"
                 viewBox="0 0 100 100"

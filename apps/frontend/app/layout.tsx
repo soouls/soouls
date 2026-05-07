@@ -1,6 +1,5 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
-import { Playfair_Display, Urbanist } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/react';
@@ -19,15 +18,14 @@ const geistMono = localFont({
   variable: '--font-geist-mono',
 });
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
+const playfair = localFont({
+  src: './fonts/GeistVF.woff',
   variable: '--font-playfair',
 });
 
-const urbanist = Urbanist({
-  subsets: ['latin'],
+const urbanist = localFont({
+  src: './fonts/GeistVF.woff',
   variable: '--font-urbanist',
-  weight: ['300', '400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {

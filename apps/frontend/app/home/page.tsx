@@ -65,7 +65,9 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
         </div>
         <div className="max-w-[200px]">
           <p className="text-sm font-medium text-white/40 italic">Select an entry to reflect</p>
-          <p className="mt-2 text-[10px] uppercase tracking-widest text-white/20">The preview will appear here</p>
+          <p className="mt-2 text-[10px] uppercase tracking-widest text-white/20">
+            The preview will appear here
+          </p>
         </div>
       </div>
     );
@@ -82,8 +84,14 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
   }
 
   // Define components for the bento grid preview
-  const BentoBlock = ({ children, className = '', title }: { children: React.ReactNode; className?: string; title?: string }) => (
-    <div className={`relative overflow-hidden rounded-[16px] bg-[#222222] border border-white/[0.05] p-3 flex flex-col gap-2 ${className}`}>
+  const BentoBlock = ({
+    children,
+    className = '',
+    title,
+  }: { children: React.ReactNode; className?: string; title?: string }) => (
+    <div
+      className={`relative overflow-hidden rounded-[16px] bg-[#222222] border border-white/[0.05] p-3 flex flex-col gap-2 ${className}`}
+    >
       {title && (
         <span className="text-[8px] font-medium uppercase tracking-widest text-[#D8D8D8]/40 mb-1">
           {title}
@@ -98,7 +106,7 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
       {/* 1. Main Text Block */}
       <BentoBlock className="col-span-1 row-span-1" title="Reflection">
         <p className="text-[10px] leading-relaxed text-[#D8D8D8] font-urbanist line-clamp-4">
-          {text || "Silence is the space where your thoughts find their true voice..."}
+          {text || 'Silence is the space where your thoughts find their true voice...'}
         </p>
         <div className="mt-4 h-20 rounded bg-[linear-gradient(135deg,rgba(224,122,95,0.28),rgba(239,235,221,0.08))]" />
         <p className="mt-2 text-[10px] text-[#b7ff8d]">Entry preview</p>
@@ -116,16 +124,25 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
       {/* 4. Tasklist/Goals Block */}
       <BentoBlock className="col-span-1 row-span-1" title="Intentions">
         <div className="space-y-2">
-          {blocks.find(b => b.type === 'tasklist')?.tasks?.slice(0, 3).map((t, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-[2px] border ${t.done ? 'bg-[#E07A5F] border-[#E07A5F]' : 'border-white/20'}`}>
-                {t.done && <Check className="w-2.5 h-2.5 text-white" />}
+          {blocks
+            .find((b) => b.type === 'tasklist')
+            ?.tasks?.slice(0, 3)
+            .map((t, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-[2px] border ${t.done ? 'bg-[#E07A5F] border-[#E07A5F]' : 'border-white/20'}`}
+                >
+                  {t.done && <Check className="w-2.5 h-2.5 text-white" />}
+                </div>
+                <span
+                  className={`text-[8px] ${t.done ? 'text-white/20 line-through' : 'text-[#D8D8D8]/80'}`}
+                >
+                  {t.text}
+                </span>
               </div>
-              <span className={`text-[8px] ${t.done ? 'text-white/20 line-through' : 'text-[#D8D8D8]/80'}`}>{t.text}</span>
-            </div>
-          )) || (
+            )) || (
             <div className="py-4 text-center opacity-20">
-               <span className="text-[8px] uppercase tracking-widest">No Tasks set</span>
+              <span className="text-[8px] uppercase tracking-widest">No Tasks set</span>
             </div>
           )}
         </div>
@@ -169,6 +186,28 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
   const items = searchResults?.items ?? [];
   const active = items[selected] ?? items[0];
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setSelected((current) => Math.min(items.length - 1, current + 1));
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setSelected((current) => Math.max(0, current - 1));
+      }
+      if (event.key === 'Enter' && active) {
+        handleEntryClick(active.id);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [active, items.length, onClose]);
+
   const handleEntryClick = (id: string) => {
     onClose();
     router.push(`/home/new-entry?id=${id}`);
@@ -193,19 +232,26 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <motion.div
-        className="relative flex h-[562px] w-[986px] overflow-hidden rounded-[16px] bg-[#0E0E0E]/50 shadow-[0_60px_120px_-20px_rgba(0,0,0,0.8)] backdrop-blur-[60px]"
+        className="relative flex overflow-hidden rounded-[16px] bg-[#0E0E0E]/70 shadow-[0_60px_120px_-20px_rgba(0,0,0,0.8)] backdrop-blur-[30px]"
+        style={{
+          width: 'min(986px, calc(100vw - 32px))',
+          height: 'min(562px, calc(100vh - 32px))',
+        }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 20, opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex h-full w-full">
+        <div className="flex h-full w-full flex-col md:flex-row">
           {/* Left: Search & Navigation */}
-          <div className="flex w-[550px] flex-col p-10 border-r border-[#A8A8A8]/10">
+          <div className="flex h-[58%] w-full flex-col border-b border-[#A8A8A8]/10 p-5 sm:p-7 md:h-full md:w-[550px] md:border-b-0 md:border-r md:p-10">
             {/* Search Input Area */}
             <div className="relative mb-12">
-              <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-8 text-[#D8D8D8]" strokeWidth={1.5} />
+              <Search
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-8 text-[#D8D8D8]"
+                strokeWidth={1.5}
+              />
               <input
                 value={query}
                 onChange={(e) => {
@@ -213,33 +259,40 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
                   setSelected(0);
                 }}
                 placeholder="Search or find entries"
-                className="w-full bg-transparent py-4 pl-12 text-2xl font-medium text-[#D8D8D8] outline-none placeholder:text-[#D8D8D8]/30 font-urbanist"
+                className="w-full bg-transparent py-4 pl-12 text-xl font-medium text-[#D8D8D8] outline-none placeholder:text-[#D8D8D8]/30 font-urbanist sm:text-2xl"
               />
               <div className="absolute bottom-0 left-12 right-0 h-[1px] bg-[#A8A8A8]/30" />
             </div>
 
-            <h3 className="text-[26px] font-urbanist text-[#D8D8D8] mb-6">Recent Entries</h3>
+            <h3 className="mb-5 text-[22px] font-urbanist text-[#D8D8D8] sm:mb-6 sm:text-[26px]">
+              Recent Entries
+            </h3>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
               {items.map((entry, index) => (
                 <button
                   key={entry.id}
+                  type="button"
                   onMouseEnter={() => setSelected(index)}
                   onClick={() => handleEntryClick(entry.id)}
-                  className={`group relative flex w-full items-center justify-between rounded-[16px] bg-[#0F0F0F]/50 px-6 py-4 border border-[#222222] transition-all ${
-                    selected === index ? 'bg-[#222222] border-white/10 shadow-2xl' : 'hover:bg-[#151515]'
+                  className={`group relative flex w-full items-center justify-between gap-4 rounded-[16px] bg-[#0F0F0F]/50 px-4 py-3 border border-[#222222] transition-all sm:px-6 sm:py-4 ${
+                    selected === index
+                      ? 'bg-[#222222] border-white/10 shadow-2xl'
+                      : 'hover:bg-[#151515]'
                   }`}
                 >
-                  <span className="font-playfair text-[28px] text-[#EFEBDD] transition-colors">
+                  <span className="min-w-0 truncate font-playfair text-[21px] text-[#EFEBDD] transition-colors sm:text-[28px]">
                     {entryTitle(entry)}
                   </span>
-                  <div className="flex items-center gap-4">
-                    <span className="font-playfair text-base text-[#7A7A7A]">
-                      {new Date(entry.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: '2-digit',
-                        year: 'numeric'
-                      }).toUpperCase()}
+                  <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+                    <span className="font-playfair text-xs text-[#7A7A7A] sm:text-base">
+                      {new Date(entry.createdAt)
+                        .toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                        .toUpperCase()}
                     </span>
                     <button
                       type="button"
@@ -257,34 +310,36 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
 
               {!isLoading && items.length === 0 && (
                 <div className="py-12 text-center">
-                  <p className="text-sm text-white/20 italic">No entries found matching your search.</p>
+                  <p className="text-sm text-white/20 italic">
+                    No entries found matching your search.
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Right: Hover Preview */}
-          <div className="flex-1 bg-[#0F0F0F]/30 p-10">
-             <div className="h-full relative">
-                <AnimatePresence mode="wait">
-                  {active ? (
-                    <motion.div
-                      key={active.id}
-                      className="h-full"
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -10 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <SearchPreview entry={active} />
-                    </motion.div>
-                  ) : (
-                    <div className="flex h-full items-center justify-center opacity-10">
-                      <SymbolLogo className="h-32 w-32" />
-                    </div>
-                  )}
-                </AnimatePresence>
-             </div>
+          <div className="min-h-0 flex-1 bg-[#0F0F0F]/30 p-5 sm:p-7 md:p-10">
+            <div className="h-full relative">
+              <AnimatePresence mode="wait">
+                {active ? (
+                  <motion.div
+                    key={active.id}
+                    className="h-full"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <SearchPreview entry={active} />
+                  </motion.div>
+                ) : (
+                  <div className="flex h-full items-center justify-center opacity-10">
+                    <SymbolLogo className="h-32 w-32" />
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
@@ -292,7 +347,7 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-8 top-8 z-[110] rounded-2xl bg-white/[0.03] p-4 text-white/20 transition-all hover:bg-white/[0.08] hover:text-white/60 active:scale-95 border border-white/5"
+          className="absolute right-4 top-4 z-[110] rounded-2xl bg-white/[0.03] p-3 text-white/30 transition-all hover:bg-white/[0.08] hover:text-white/70 active:scale-95 border border-white/5 sm:right-8 sm:top-8 sm:p-4"
         >
           <X className="h-5 w-5" />
         </button>

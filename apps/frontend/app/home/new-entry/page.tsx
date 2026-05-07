@@ -29,7 +29,7 @@ import {
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { decodeEntryContent } from '../../../src/utils/entries';
 import { getOptimizedImageUrl } from '../../../src/utils/images';
@@ -73,6 +73,73 @@ type MediaBlockMetadata = {
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+type SentenceBentoBlock = {
+  id: string;
+  text: string;
+  order: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type ComposerLayoutItem = {
+  id: string;
+  kind: 'sentence' | 'block';
+  order: number;
+  width: number;
+  height: number;
+};
+
+type EntryMetadata = {
+  sentenceBentoLayout?: SentenceBentoBlock[];
+  composerLayout?: ComposerLayoutItem[];
+};
+
+function splitIntoThoughtUnits(text: string) {
+  return text
+    .split(/(?<=[.!?])\s+|\n+/g)
+    .map((unit) => unit.trim())
+    .filter(Boolean);
+}
+
+function buildSentenceBentoLayout(text: string): SentenceBentoBlock[] {
+  const units = splitIntoThoughtUnits(text);
+  const occupied = new Set<string>();
+  const fits = (x: number, y: number, width: number, height: number) => {
+    for (let yy = y; yy < y + height; yy++) {
+      for (let xx = x; xx < x + width; xx++) {
+        if (xx >= 6 || occupied.has(`${xx}:${yy}`)) return false;
+      }
+    }
+    return true;
+  };
+  const occupy = (x: number, y: number, width: number, height: number) => {
+    for (let yy = y; yy < y + height; yy++) {
+      for (let xx = x; xx < x + width; xx++) {
+        occupied.add(`${xx}:${yy}`);
+      }
+    }
+  };
+
+  return units.map((unit, order) => {
+    const words = unit.split(/\s+/).filter(Boolean).length;
+    const width = Math.min(6, words > 28 || order === 0 ? 2 : words > 14 ? 2 : 1);
+    const height = words > 26 ? 2 : 1;
+    let placed = { x: 0, y: 0 };
+    outer: for (let y = 0; y < 64; y++) {
+      for (let x = 0; x <= 6 - width; x++) {
+        if (fits(x, y, width, height)) {
+          placed = { x, y };
+          break outer;
+        }
+      }
+    }
+    occupy(placed.x, placed.y, width, height);
+    return { id: `sentence_${order + 1}`, text: unit, order, ...placed, width, height };
+  });
+}
+
 type Block =
   | ({
       id: string;
@@ -95,6 +162,7 @@ type Block =
 interface PersistedState {
   textContent: string;
   blocks: Block[];
+  metadata?: EntryMetadata;
 }
 
 // ─── useLocalStorage hook ─────────────────────────────────────────────────────
@@ -105,6 +173,8 @@ function usePersistedEntry(initialId: string | null) {
   const [textContent, setTextContentRaw] = useState('');
   const textContentRef = useRef(textContent);
   const [blocks, setBlocksRaw] = useState<Block[]>([]);
+  const [metadata, setMetadataRaw] = useState<EntryMetadata>({});
+  const metadataRef = useRef<EntryMetadata>({});
   const [hydrated, setHydrated] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
@@ -129,22 +199,31 @@ function usePersistedEntry(initialId: string | null) {
         setTextContentRaw(parsed.textContent ?? '');
         textContentRef.current = parsed.textContent ?? '';
         setBlocksRaw(restored);
+        setMetadataRaw(parsed.metadata ?? {});
+        metadataRef.current = parsed.metadata ?? {};
       }
     } catch {
-      /* corrupt data — ignore */
+      /* corrupt data - ignore */
     }
     setHydrated(true);
   }, [initialId]);
 
   // Persist to localStorage whenever text or blocks change
   const persist = useCallback(
-    (text: string, blks: Block[]) => {
+    (text: string, blks: Block[], nextMetadata = metadataRef.current) => {
       if (!hydrated) return;
       setSaveStatus('saving');
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         try {
-          const state: PersistedState = { textContent: text, blocks: blks };
+          const state: PersistedState = {
+            textContent: text,
+            blocks: blks,
+            metadata: {
+              ...nextMetadata,
+              sentenceBentoLayout: buildSentenceBentoLayout(text),
+            },
+          };
           localStorage.setItem(lsKeyRef.current, JSON.stringify(state));
           setSaveStatus('saved');
         } catch {
@@ -171,7 +250,7 @@ function usePersistedEntry(initialId: string | null) {
         const nextVal = typeof valOrUpdater === 'function' ? valOrUpdater(prevRaw) : valOrUpdater;
         textContentRef.current = nextVal;
         setBlocksRaw((prevBlocks) => {
-          persist(nextVal, prevBlocks);
+          persist(nextVal, prevBlocks, metadataRef.current);
           return prevBlocks;
         });
         return nextVal;
@@ -184,7 +263,22 @@ function usePersistedEntry(initialId: string | null) {
     (updater: (prev: Block[]) => Block[]) => {
       setBlocksRaw((prev) => {
         const next = updater(prev);
-        persist(textContentRef.current, next);
+        persist(textContentRef.current, next, metadataRef.current);
+        return next;
+      });
+    },
+    [persist],
+  );
+
+  const setMetadata = useCallback(
+    (updater: EntryMetadata | ((prev: EntryMetadata) => EntryMetadata)) => {
+      setMetadataRaw((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        metadataRef.current = next;
+        setBlocksRaw((prevBlocks) => {
+          persist(textContentRef.current, prevBlocks, next);
+          return prevBlocks;
+        });
         return next;
       });
     },
@@ -197,6 +291,8 @@ function usePersistedEntry(initialId: string | null) {
     setTextContentRaw('');
     textContentRef.current = '';
     setBlocksRaw([]);
+    setMetadataRaw({});
+    metadataRef.current = {};
     setSaveStatus('idle');
   }, []);
 
@@ -222,6 +318,8 @@ function usePersistedEntry(initialId: string | null) {
     setTextContent,
     blocks,
     setBlocks,
+    metadata,
+    setMetadata,
     hydrated,
     saveStatus,
     clearAll,
@@ -230,6 +328,98 @@ function usePersistedEntry(initialId: string | null) {
 }
 
 type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+
+function getDefaultSentenceTile(unit: string, index: number): ComposerLayoutItem {
+  const words = unit.split(/\s+/).filter(Boolean).length;
+  const width = words > 28 || index === 0 ? 2 : words > 14 ? 2 : 1;
+  const height = words > 26 ? 2 : 1;
+  return {
+    id: `sentence_${index + 1}`,
+    kind: 'sentence',
+    order: index,
+    width,
+    height,
+  };
+}
+
+function getDefaultBlockTile(block: Block, index: number): ComposerLayoutItem {
+  if (block.type === 'image') {
+    return {
+      id: block.id,
+      kind: 'block',
+      order: index,
+      width: block.isSticker || block.isGif ? 1 : 2,
+      height: block.isSticker || block.isGif ? 2 : 2,
+    };
+  }
+  if (block.type === 'voice') {
+    return { id: block.id, kind: 'block', order: index, width: 2, height: 1 };
+  }
+  if (block.type === 'doodle') {
+    return { id: block.id, kind: 'block', order: index, width: 2, height: 2 };
+  }
+  if (block.type === 'goal') {
+    return { id: block.id, kind: 'block', order: index, width: 2, height: 2 };
+  }
+  return { id: block.id, kind: 'block', order: index, width: 2, height: 2 };
+}
+
+function reconcileComposerLayout(
+  textUnits: string[],
+  blocks: Block[],
+  savedLayout: ComposerLayoutItem[] | undefined,
+) {
+  const defaults = [
+    ...textUnits.map((unit, index) => getDefaultSentenceTile(unit, index)),
+    ...blocks.map((block, index) => getDefaultBlockTile(block, textUnits.length + index)),
+  ];
+  const defaultsById = new Map(defaults.map((item) => [item.id, item]));
+  const orderedIds = new Set(defaults.map((item) => item.id));
+
+  const hydrated = (savedLayout ?? [])
+    .filter((item) => orderedIds.has(item.id))
+    .map((item, order) => {
+      const fallback = defaultsById.get(item.id);
+      if (!fallback) {
+        return null;
+      }
+      return {
+        ...fallback,
+        ...item,
+        order,
+      };
+    })
+    .filter((item): item is ComposerLayoutItem => item !== null);
+
+  const seen = new Set(hydrated.map((item) => item.id));
+  const missing = defaults
+    .filter((item) => !seen.has(item.id))
+    .map((item, index) => ({
+      ...item,
+      order: hydrated.length + index,
+    }));
+
+  return [...hydrated, ...missing];
+}
+
+function getTileSpanClass(item: ComposerLayoutItem) {
+  const widthClass = item.width >= 2 ? 'sm:col-span-2' : '';
+  const desktopWidthClass = item.width >= 2 ? 'xl:col-span-2' : '';
+  const heightClass = item.height >= 2 ? 'min-h-[220px]' : 'min-h-[128px]';
+  return [widthClass, desktopWidthClass, heightClass].filter(Boolean).join(' ');
+}
+
+function reorderComposerLayout(layout: ComposerLayoutItem[], draggedId: string, targetId: string) {
+  if (!draggedId || !targetId || draggedId === targetId) return layout;
+  const fromIndex = layout.findIndex((item) => item.id === draggedId);
+  const toIndex = layout.findIndex((item) => item.id === targetId);
+  if (fromIndex < 0 || toIndex < 0) return layout;
+  const next = [...layout];
+  const [moved] = next.splice(fromIndex, 1);
+  if (!moved) return layout;
+  next.splice(toIndex, 0, moved);
+  return next.map((item, index) => ({ ...item, order: index }));
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MODAL PRIMITIVES
@@ -469,11 +659,11 @@ function DoodleModal({
     <Overlay>
       <div className="bg-[#1C1C1C]/90 backdrop-blur-3xl rounded-[32px] w-[460px] shadow-[0_24px_80px_rgba(0,0,0,0.8)] flex flex-col border border-white/10 relative overflow-hidden ring-1 ring-white/5">
         {/* Floating Close Button */}
-      <button
-        type="button"
-        onClick={onClose}
-        className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
-      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white/50 hover:text-white transition-colors backdrop-blur-md"
+        >
           <X className="w-4 h-4" />
         </button>
 
@@ -535,7 +725,7 @@ function DoodleModal({
           {tab === 'emoji' && (
             <div className="h-[480px] bg-[#151515]">
               <EmojiPicker
-                theme={'dark' as any}
+                theme={'dark' as import('emoji-picker-react').Theme}
                 width="100%"
                 height="100%"
                 skinTonesDisabled
@@ -952,6 +1142,7 @@ function Card({
   onDragStart,
   onDragOver,
   onDrop,
+  onDragEnd,
   className = '',
 }: {
   children: React.ReactNode;
@@ -959,17 +1150,16 @@ function Card({
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
   className?: string;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
+    <div
       draggable={!!onDragStart}
       onDragStart={onDragStart as any}
       onDragOver={onDragOver}
       onDrop={onDrop}
+      onDragEnd={onDragEnd}
       className={`relative bg-[#1e1e1e] border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-3 group cursor-grab active:cursor-grabbing ${className}`}
     >
       {onDragStart && (
@@ -985,7 +1175,7 @@ function Card({
       >
         <X className="w-3 h-3 text-white" />
       </button>
-    </motion.div>
+    </div>
   );
 }
 
@@ -1010,6 +1200,7 @@ function ImageCard({
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }) {
   const isSticker = b.isSticker || b.isGif;
 
@@ -1046,6 +1237,7 @@ function VoiceCard({
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }) {
   const [playing, setPlaying] = useState(false);
   const [prog, setProg] = useState(0);
@@ -1102,7 +1294,9 @@ function VoiceCard({
                 style={{
                   height: `${h}%`,
                   backgroundColor:
-                    i / bars.length <= prog / 100 ? 'var(--soouls-accent)' : 'rgba(255,255,255,0.1)',
+                    i / bars.length <= prog / 100
+                      ? 'var(--soouls-accent)'
+                      : 'rgba(255,255,255,0.1)',
                 }}
               />
             );
@@ -1129,6 +1323,7 @@ function DoodleCard({
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }) {
   return (
     <Card className={className} onRemove={onRemove} {...dragProps}>
@@ -1158,6 +1353,7 @@ function GoalCard({
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -1231,6 +1427,7 @@ function TasklistCard({
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
+  onDragEnd?: (e: React.DragEvent) => void;
 }) {
   const toggle = (tid: string) =>
     onUpdate({ ...b, tasks: b.tasks.map((t) => (t.id === tid ? { ...t, done: !t.done } : t)) });
@@ -1249,7 +1446,9 @@ function TasklistCard({
               <div
                 className={`w-[14px] h-[14px] rounded-[3px] flex items-center justify-center flex-shrink-0 border transition-colors ${task.done ? 'bg-transparent border-[var(--soouls-accent)]' : 'border-[var(--soouls-accent)] bg-transparent'}`}
               >
-                {task.done && <Check className="w-3 h-3 text-[var(--soouls-accent)]" strokeWidth={4} />}
+                {task.done && (
+                  <Check className="w-3 h-3 text-[var(--soouls-accent)]" strokeWidth={4} />
+                )}
               </div>
               <span
                 className={`text-[13px] font-light transition-colors ${task.done ? 'text-white/30 line-through' : 'text-white/90'}`}
@@ -1268,39 +1467,6 @@ function TasklistCard({
 }
 
 // ─── Toolbar button ───────────────────────────────────────────────────────────
-function ToolBtn({
-  icon,
-  label,
-  count,
-  onClick,
-  active,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  count?: number;
-  onClick: () => void;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`relative flex items-center justify-center w-14 h-14 rounded-2xl transition-all shadow-xl border border-white/[0.08] group ${active ? 'bg-red-500/10 border-red-500/30' : 'bg-[#1a1a1a] hover:bg-[#222] hover:scale-105'}`}
-    >
-      {icon}
-      {!!count && count > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#FF5C35] rounded-full text-[10px] flex items-center justify-center text-white font-bold border-2 border-[#0a0a0a]">
-          {count}
-        </span>
-      )}
-      <div className="absolute right-full mr-4 bg-[#222] text-white text-xs px-3 py-1.5 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl border border-white/10 flex items-center">
-        {label}
-        <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-[#222] rotate-45 border-t border-r border-white/10" />
-      </div>
-    </button>
-  );
-}
-
 // ─── Voice recorder hook ──────────────────────────────────────────────────────
 function useVoiceRecorder(onDone: (dataUrl: string, duration: number) => void) {
   const [recording, setRecording] = useState(false);
@@ -1392,9 +1558,10 @@ function NewEntryContent() {
     setTextContent,
     blocks,
     setBlocks,
+    metadata,
+    setMetadata,
     hydrated,
     saveStatus,
-    clearAll,
     migrateKey,
   } = usePersistedEntry(initialId);
   const [modal, setModal] = useState<null | 'image' | 'doodle' | 'goal' | 'tasklist' | 'voice'>(
@@ -1417,12 +1584,16 @@ function NewEntryContent() {
 
   const [entryId, setEntryId] = useState<string | null>(initialId);
   const entryIdRef = useRef<string | null>(initialId);
+  const metadataRef = useRef<EntryMetadata>(metadata);
   const isSaving = useRef(false);
   const dbDebounce = useRef<NodeJS.Timeout | null>(null);
   const userIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     entryIdRef.current = entryId;
   }, [entryId]);
+  useEffect(() => {
+    metadataRef.current = metadata;
+  }, [metadata]);
   useEffect(() => {
     userIdRef.current = user?.id;
   }, [user?.id]);
@@ -1440,6 +1611,11 @@ function NewEntryContent() {
           // Senior note: Using functional check to avoid stale closures in initial load
           setTextContent((prev) => (!prev ? parsed.textContent || '' : prev));
           setBlocks((prev) => (prev.length === 0 ? parsed.blocks || [] : prev));
+          if (parsed.metadata) {
+            setMetadata((prev) =>
+              Object.keys(prev).length === 0 ? (parsed.metadata as EntryMetadata) : prev,
+            );
+          }
         } else {
           setTextContent((prev) => (!prev ? existingEntry.content || '' : prev));
         }
@@ -1460,7 +1636,14 @@ function NewEntryContent() {
     try {
       let targetEntryId = id;
       if (!targetEntryId) {
-        const initialPayload = JSON.stringify({ textContent: text, blocks: blks });
+        const initialPayload = JSON.stringify({
+          textContent: text,
+          blocks: blks,
+          metadata: {
+            ...metadataRef.current,
+            sentenceBentoLayout: buildSentenceBentoLayout(text),
+          },
+        });
         const entry = await createRef.current({ content: initialPayload, type: 'entry' });
         targetEntryId = entry.id;
         setEntryId(entry.id);
@@ -1522,14 +1705,21 @@ function NewEntryContent() {
         setBlocks((_prev) => updatedBlocks);
       }
 
-      const payloadString = JSON.stringify({ textContent: text, blocks: updatedBlocks });
+      const payloadString = JSON.stringify({
+        textContent: text,
+        blocks: updatedBlocks,
+        metadata: {
+          ...metadataRef.current,
+          sentenceBentoLayout: buildSentenceBentoLayout(text),
+        },
+      });
       await updateRef.current({ id: targetEntryId, content: payloadString });
-      
+
       // Invalidate multiple queries to ensure consistency
       void utils.private.home.getClusters.invalidate();
       void utils.private.entries.getAll.invalidate();
       void utils.private.entries.getGalaxy.invalidate();
-      
+
       setSyncStatus('synced');
     } catch (err) {
       console.error('DB save failed:', err);
@@ -1567,7 +1757,7 @@ function NewEntryContent() {
   const removeBlock = (id: string) => setBlocks((prev) => prev.filter((b) => b.id !== id));
   const updateBlock = (upd: Block) =>
     setBlocks((prev) => prev.map((b) => (b.id === upd.id ? upd : b)));
-  const moveBlock = (fromIdx: number, toIdx: number) => {
+  const _moveBlock = (fromIdx: number, toIdx: number) => {
     setBlocks((prev) => {
       const next = [...prev];
       const [moved] = next.splice(fromIdx, 1);
@@ -1575,6 +1765,60 @@ function NewEntryContent() {
       return next;
     });
   };
+  const textUnits = useMemo(() => {
+    return splitIntoThoughtUnits(textContent);
+  }, [textContent]);
+  const [draggedTileId, setDraggedTileId] = useState<string | null>(null);
+  const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+  const [newThoughtDraft, setNewThoughtDraft] = useState('');
+  const composerLayout = useMemo(
+    () => reconcileComposerLayout(textUnits, blocks, metadata.composerLayout),
+    [blocks, metadata.composerLayout, textUnits],
+  );
+  const blockMap = useMemo(() => new Map(blocks.map((block) => [block.id, block])), [blocks]);
+
+  const updateTextUnit = useCallback(
+    (index: number, nextValue: string) => {
+      const nextUnits = [...textUnits];
+      if (index < 0 || index >= nextUnits.length) return;
+      const trimmed = nextValue.trim();
+      if (!trimmed) {
+        nextUnits.splice(index, 1);
+      } else {
+        nextUnits[index] = trimmed;
+      }
+      setTextContent(nextUnits.join('\n'));
+    },
+    [setTextContent, textUnits],
+  );
+
+  const commitDraftThoughts = useCallback(() => {
+    const incoming = splitIntoThoughtUnits(newThoughtDraft);
+    if (incoming.length === 0) return;
+    const nextUnits = [...textUnits, ...incoming];
+    setTextContent(nextUnits.join('\n'));
+    setNewThoughtDraft('');
+  }, [newThoughtDraft, setTextContent, textUnits]);
+
+  useEffect(() => {
+    const current = metadata.composerLayout ?? [];
+    const matches =
+      current.length === composerLayout.length &&
+      current.every((item, index) => {
+        const next = composerLayout[index];
+        return (
+          next &&
+          item.id === next.id &&
+          item.kind === next.kind &&
+          item.order === next.order &&
+          item.width === next.width &&
+          item.height === next.height
+        );
+      });
+    if (!matches) {
+      setMetadata((prev) => ({ ...prev, composerLayout }));
+    }
+  }, [composerLayout, metadata.composerLayout, setMetadata]);
 
   // Don't render blocks until localStorage is hydrated (avoids flash)
   if (!hydrated) return <div className="min-h-screen bg-[#0a0a0a]" />;
@@ -1669,20 +1913,6 @@ function NewEntryContent() {
             </AnimatePresence>
           </div>
 
-          {/* Clear all button */}
-          {(blocks.length > 0 || textContent) && (
-            <button
-              type="button"
-              onClick={() => {
-                if (confirm('Clear everything?')) clearAll();
-              }}
-              className="flex items-center gap-1.5 text-white/50 hover:text-red-400 transition-colors text-xs border border-white/10 hover:border-red-400/30 px-3 py-1.5 rounded-full"
-            >
-              <Trash2 className="w-3 h-3" />
-              Clear
-            </button>
-          )}
-
           <button
             type="button"
             onClick={() => setIsOpen(true)}
@@ -1698,74 +1928,182 @@ function NewEntryContent() {
       {/* ── THE CANVAS PANEL ─────────────────────────────────────────────────── */}
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-24 pb-0 items-stretch h-full">
         <div className="flex-1 rounded-t-[32px] bg-[#0F0F0F]/60 backdrop-blur-[48px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden relative border-t border-white/10">
-          {/* Scrollable writing + blocks — everything lives here */}
+          {/* Scrollable writing + blocks - everything lives here */}
           <div className="flex-1 overflow-y-auto pt-6 px-10 pb-40 flex flex-col gap-5">
-            <textarea
-              value={textContent}
-              onChange={(e) => setTextContent(e.target.value)}
-              placeholder="Drop new entry..."
-              className="w-full bg-transparent border-none outline-none resize-none text-[28px] text-white/80 placeholder:text-white/30 focus:outline-none focus:ring-0 focus:border-transparent focus:ring-offset-0 leading-relaxed font-light shadow-none"
-              style={{ minHeight: blocks.length ? 56 : 300, boxShadow: 'none' }}
-            />
+            {composerLayout.length === 0 && blocks.length === 0 ? (
+              <div className="grid w-full auto-rows-[minmax(160px,auto)] grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="sm:col-span-2 xl:col-span-4 min-h-[320px] rounded-[32px] border border-white/[0.04] bg-[#1d1d1d]/82 p-7 shadow-[0_26px_60px_rgba(0,0,0,0.24)] backdrop-blur-2xl">
+                  <textarea
+                    value={newThoughtDraft}
+                    onChange={(e) => setNewThoughtDraft(e.target.value)}
+                    onBlur={commitDraftThoughts}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        commitDraftThoughts();
+                      }
+                    }}
+                    placeholder="Drop new entry..."
+                    className="w-full bg-transparent border-none outline-none resize-none text-[28px] text-white/80 placeholder:text-white/30 focus:outline-none focus:ring-0 focus:border-transparent focus:ring-offset-0 leading-relaxed font-light shadow-none"
+                    style={{ minHeight: 260, boxShadow: 'none' }}
+                  />
+                </div>
+              </div>
+            ) : null}
 
-            {/* All blocks */}
-            {blocks.length > 0 &&
-              (() => {
-                const dragIdx = { current: -1 };
-                const makeDragHandlers = (i: number) => ({
-                  onDragStart: (e: React.DragEvent) => {
-                    dragIdx.current = i;
-                    e.dataTransfer.effectAllowed = 'move';
-                  },
-                  onDragOver: (e: React.DragEvent) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                  },
-                  onDrop: (e: React.DragEvent) => {
-                    e.preventDefault();
-                    if (dragIdx.current !== i) moveBlock(dragIdx.current, i);
-                  },
-                });
-                return (
-                  <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 w-full [column-fill:_balance]">
-                    <AnimatePresence>
-                      {blocks.map((b, i) => {
-                        const dh = makeDragHandlers(i);
+            {(composerLayout.length > 0 || blocks.length > 0 || textUnits.length > 0) && (
+              <div className="relative">
+                <div className="grid w-full auto-rows-[minmax(118px,auto)] grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                  <AnimatePresence initial={false}>
+                    {composerLayout.map((item, _index) => {
+                      const dragHandlers = {
+                        onDragStart: (event: React.DragEvent) => {
+                          setDraggedTileId(item.id);
+                          setDropTargetId(item.id);
+                          event.dataTransfer.effectAllowed = 'move';
+                        },
+                        onDragOver: (event: React.DragEvent) => {
+                          event.preventDefault();
+                          event.dataTransfer.dropEffect = 'move';
+                          if (dropTargetId !== item.id) {
+                            setDropTargetId(item.id);
+                          }
+                        },
+                        onDrop: (event: React.DragEvent) => {
+                          event.preventDefault();
+                          if (!draggedTileId || draggedTileId === item.id) return;
+                          setMetadata((prev) => ({
+                            ...prev,
+                            composerLayout: reorderComposerLayout(
+                              reconcileComposerLayout(
+                                textUnits,
+                                blocks,
+                                prev.composerLayout ?? composerLayout,
+                              ),
+                              draggedTileId,
+                              item.id,
+                            ),
+                          }));
+                          setDraggedTileId(null);
+                          setDropTargetId(null);
+                        },
+                        onDragEnd: () => {
+                          setDraggedTileId(null);
+                          setDropTargetId(null);
+                        },
+                      };
+                      const spanClass = getTileSpanClass(item);
+                      const isDropTarget = dropTargetId === item.id && draggedTileId !== item.id;
+
+                      if (item.kind === 'sentence') {
+                        const sentenceIndex = Number(item.id.replace('sentence_', '')) - 1;
+                        const unit = textUnits[sentenceIndex];
+                        if (!unit) return null;
 
                         return (
-                          <div key={b.id} className="break-inside-avoid mb-6 group/masonry-item">
-                            {b.type === 'image' && (
-                              <ImageCard b={b} onRemove={() => removeBlock(b.id)} {...dh} />
-                            )}
-                            {b.type === 'voice' && (
-                              <VoiceCard b={b} onRemove={() => removeBlock(b.id)} {...dh} />
-                            )}
-                            {b.type === 'doodle' && (
-                              <DoodleCard b={b} onRemove={() => removeBlock(b.id)} {...dh} />
-                            )}
-                            {b.type === 'goal' && (
-                              <GoalCard
-                                b={b}
-                                onUpdate={updateBlock}
-                                onRemove={() => removeBlock(b.id)}
-                                {...dh}
+                          <button
+                            key={item.id}
+                            type="button"
+                            draggable
+                            {...dragHandlers}
+                            className={`group/thought relative flex break-words rounded-[28px] border bg-[#232323]/94 p-6 text-left text-[17px] leading-relaxed text-white/82 shadow-[0_18px_40px_rgba(0,0,0,0.22)] backdrop-blur-2xl transition ${spanClass} ${
+                              isDropTarget
+                                ? 'border-white/[0.08]'
+                                : 'border-white/[0.04] hover:border-white/[0.1]'
+                            }`}
+                          >
+                            <span className="absolute right-4 top-4 opacity-0 transition-opacity group-hover/thought:opacity-40">
+                              <GripVertical className="h-4 w-4 text-white/70" />
+                            </span>
+                            <span className="flex h-full flex-col justify-start gap-4">
+                              <textarea
+                                value={unit}
+                                onChange={(event) =>
+                                  updateTextUnit(sentenceIndex, event.target.value)
+                                }
+                                onBlur={(event) =>
+                                  updateTextUnit(sentenceIndex, event.target.value)
+                                }
+                                className="min-h-[72px] w-full resize-none bg-transparent text-[17px] leading-relaxed text-white/84 outline-none ring-0 focus:outline-none focus:ring-0 placeholder:text-white/30"
                               />
-                            )}
-                            {b.type === 'tasklist' && (
-                              <TasklistCard
-                                b={b}
-                                onUpdate={updateBlock}
-                                onRemove={() => removeBlock(b.id)}
-                                {...dh}
-                              />
-                            )}
-                          </div>
+                            </span>
+                          </button>
                         );
-                      })}
-                    </AnimatePresence>
+                      }
+
+                      const block = blockMap.get(item.id);
+                      if (!block) return null;
+                      const blockClassName = `${spanClass} ${
+                        isDropTarget ? 'border-white/[0.08]' : ''
+                      }`;
+
+                      return (
+                        <motion.div key={item.id} layout className={spanClass}>
+                          {block.type === 'image' && (
+                            <ImageCard
+                              b={block}
+                              className={blockClassName}
+                              onRemove={() => removeBlock(block.id)}
+                              {...dragHandlers}
+                            />
+                          )}
+                          {block.type === 'voice' && (
+                            <VoiceCard
+                              b={block}
+                              className={blockClassName}
+                              onRemove={() => removeBlock(block.id)}
+                              {...dragHandlers}
+                            />
+                          )}
+                          {block.type === 'doodle' && (
+                            <DoodleCard
+                              b={block}
+                              className={blockClassName}
+                              onRemove={() => removeBlock(block.id)}
+                              {...dragHandlers}
+                            />
+                          )}
+                          {block.type === 'goal' && (
+                            <GoalCard
+                              b={block}
+                              className={blockClassName}
+                              onUpdate={updateBlock}
+                              onRemove={() => removeBlock(block.id)}
+                              {...dragHandlers}
+                            />
+                          )}
+                          {block.type === 'tasklist' && (
+                            <TasklistCard
+                              b={block}
+                              className={blockClassName}
+                              onUpdate={updateBlock}
+                              onRemove={() => removeBlock(block.id)}
+                              {...dragHandlers}
+                            />
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+
+                  <div className="sm:col-span-2 xl:col-span-2 min-h-[128px] rounded-[28px] border border-white/[0.04] bg-[#232323]/94 p-6 shadow-[0_18px_40px_rgba(0,0,0,0.22)] backdrop-blur-2xl">
+                    <textarea
+                      value={newThoughtDraft}
+                      onChange={(event) => setNewThoughtDraft(event.target.value)}
+                      onBlur={commitDraftThoughts}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' && !event.shiftKey) {
+                          event.preventDefault();
+                          commitDraftThoughts();
+                        }
+                      }}
+                      placeholder="Add more"
+                      className="min-h-[72px] w-full resize-none bg-transparent text-center text-[18px] leading-relaxed text-white/76 outline-none ring-0 focus:outline-none focus:ring-0 placeholder:text-white/38"
+                    />
                   </div>
-                );
-              })()}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Floating Horizontal Toolbar fixed to the bottom right of the main panel */}

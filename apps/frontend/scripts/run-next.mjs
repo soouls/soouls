@@ -1,8 +1,8 @@
 import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
 
 const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const rootEnv = resolve(appRoot, '..', '..', '.env');

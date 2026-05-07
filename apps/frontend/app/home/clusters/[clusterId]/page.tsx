@@ -100,18 +100,20 @@ export default function ClusterDetailPage() {
       <header className="px-8 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)]">
           <button
+            type="button"
             onClick={() => router.push('/home/clusters')}
             className="transition duration-300 hover:text-[var(--soouls-accent)]"
           >
             Home
           </button>
           <span>/</span>
-          <span
-            className="hover:text-[var(--soouls-accent)] cursor-pointer"
+          <button
+            type="button"
+            className="hover:text-[var(--soouls-accent)]"
             onClick={() => router.push('/home/clusters')}
           >
             Clusters
-          </span>
+          </button>
           <span>/</span>
           <span style={{ color: 'var(--soouls-accent)' }}>{cluster.name}</span>
         </div>

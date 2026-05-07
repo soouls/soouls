@@ -2,6 +2,7 @@
 
 import { useAuth, useClerk, useUser } from '@clerk/nextjs';
 import type { UserEntry } from '@soouls/api/router';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
   Calendar,
@@ -17,7 +18,6 @@ import {
   TrendingUp,
   Upload,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -153,7 +153,7 @@ export default function AccountPage() {
 
   const { data: account } = trpc.private.home.getAccount.useQuery(undefined);
   const { data: insights } = trpc.private.home.getInsights.useQuery(undefined);
-  const { data: settings } = trpc.private.home.getSettings.useQuery(undefined);
+  const { data: onboardingStatus } = trpc.private.home.getOnboardingStatus.useQuery(undefined);
   const deleteAccount = trpc.private.home.deleteAccount.useMutation({
     onSuccess: async () => signOut({ redirectUrl: '/' }),
   });
@@ -177,20 +177,10 @@ export default function AccountPage() {
   const handleExportAll = async () => {
     try {
       setExporting('all');
-      const allEntries = await loadAllEntries();
-      
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const recentEntries = allEntries.filter(
-        (e) => new Date(e.createdAt).getTime() >= thirtyDaysAgo.getTime()
-      );
-
+      const exportData = await trpcClient.private.home.exportAccountData.query();
       downloadJson(`soouls-data-${new Date().toISOString().slice(0, 10)}.json`, {
-        exportedAt: new Date().toISOString(),
+        ...exportData,
         account,
-        insights,
-        settings,
-        entries: recentEntries,
       });
     } finally {
       setExporting(null);
@@ -224,7 +214,11 @@ export default function AccountPage() {
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden select-none"
-      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)', fontFamily: FONT_URBANIST }}
+      style={{
+        backgroundColor: 'var(--soouls-bg)',
+        color: 'var(--soouls-text)',
+        fontFamily: FONT_URBANIST,
+      }}
     >
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
@@ -249,6 +243,7 @@ export default function AccountPage() {
         </div>
 
         <button
+          type="button"
           onClick={() => setIsOpen(true)}
           className="w-10 h-10 rounded-full border-2 border-[var(--soouls-border)] hover:border-[var(--soouls-text-faint)] transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
         >
@@ -263,15 +258,18 @@ export default function AccountPage() {
           className="flex-1 backdrop-blur-[48px] border-t border-[var(--soouls-border)] rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
           style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
         >
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 24 }}
             className="grid gap-8 lg:grid-cols-12 lg:items-center"
           >
-            <div 
+            <div
               className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left lg:col-span-6 rounded-[32px] border p-6 lg:p-8"
-              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
+              style={{
+                backgroundColor: 'var(--soouls-bg-elevated)',
+                borderColor: 'var(--soouls-border)',
+              }}
             >
               <div className="relative shrink-0">
                 <div className="absolute -inset-1 rounded-full bg-[rgba(var(--soouls-accent-rgb),0.35)] blur" />
@@ -295,6 +293,11 @@ export default function AccountPage() {
                 <p className="text-lg font-medium" style={{ color: 'var(--soouls-accent)' }}>
                   {email}
                 </p>
+                {onboardingStatus?.isWaitlistUser ? (
+                  <div className="inline-flex w-fit items-center rounded-full border border-[#E07A5F]/40 bg-[#E07A5F]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#E07A5F]">
+                    Waitlist member
+                  </div>
+                ) : null}
                 <p className="max-w-sm text-base text-[var(--soouls-text-muted)]">
                   {account?.bio ?? 'Trying to make sense of my thoughts.'}
                 </p>
@@ -346,7 +349,10 @@ export default function AccountPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, type: 'spring', stiffness: 300, damping: 24 }}
               className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
-              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
+              style={{
+                backgroundColor: 'var(--soouls-bg-elevated)',
+                borderColor: 'var(--soouls-border)',
+              }}
             >
               <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
                 Your writing patterns
@@ -384,7 +390,10 @@ export default function AccountPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45, type: 'spring', stiffness: 300, damping: 24 }}
               className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
-              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
+              style={{
+                backgroundColor: 'var(--soouls-bg-elevated)',
+                borderColor: 'var(--soouls-border)',
+              }}
             >
               <p className="mb-1 text-base font-medium text-[var(--soouls-text-muted)]">
                 Insight Analysis
@@ -409,7 +418,10 @@ export default function AccountPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, type: 'spring', stiffness: 300, damping: 24 }}
               className="rounded-[32px] border p-6 lg:col-span-8 lg:p-8"
-              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
+              style={{
+                backgroundColor: 'var(--soouls-bg-elevated)',
+                borderColor: 'var(--soouls-border)',
+              }}
             >
               <p className="mb-5 text-base font-medium text-[var(--soouls-text-muted)]">
                 Data &amp; Ownership
@@ -458,7 +470,10 @@ export default function AccountPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, type: 'spring', stiffness: 300, damping: 24 }}
               className="rounded-[32px] border p-6 lg:col-span-4 lg:p-8"
-              style={{ backgroundColor: 'var(--soouls-bg-elevated)', borderColor: 'var(--soouls-border)' }}
+              style={{
+                backgroundColor: 'var(--soouls-bg-elevated)',
+                borderColor: 'var(--soouls-border)',
+              }}
             >
               <div className="mb-4 flex items-center gap-2">
                 <Shield className="h-5 w-5 text-emerald-400" />
@@ -499,7 +514,10 @@ export default function AccountPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               className="w-full max-w-md rounded-[32px] border p-8 shadow-2xl"
-              style={{ backgroundColor: 'var(--soouls-bg-surface)', borderColor: 'var(--soouls-border)' }}
+              style={{
+                backgroundColor: 'var(--soouls-bg-surface)',
+                borderColor: 'var(--soouls-border)',
+              }}
             >
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 text-red-500">
@@ -509,7 +527,9 @@ export default function AccountPage() {
                   <h3 className="text-xl font-bold" style={{ color: 'var(--soouls-accent)' }}>
                     Delete Account
                   </h3>
-                  <p className="text-sm text-[var(--soouls-text-muted)]">This action is permanent.</p>
+                  <p className="text-sm text-[var(--soouls-text-muted)]">
+                    This action is permanent.
+                  </p>
                 </div>
               </div>
 
@@ -518,9 +538,17 @@ export default function AccountPage() {
                   You are about to permanently delete your Soouls account and all journal data. This
                   cannot be undone.
                 </p>
-                <div className="rounded-xl border p-4" style={{ backgroundColor: 'var(--soouls-bg)', borderColor: 'var(--soouls-border)' }}>
+                <div
+                  className="rounded-xl border p-4"
+                  style={{
+                    backgroundColor: 'var(--soouls-bg)',
+                    borderColor: 'var(--soouls-border)',
+                  }}
+                >
                   <p className="mb-2 text-sm text-[var(--soouls-text-muted)]">
-                    Please type <strong className="text-[var(--soouls-text-strong)]">{displayName}</strong> to confirm.
+                    Please type{' '}
+                    <strong className="text-[var(--soouls-text-strong)]">{displayName}</strong> to
+                    confirm.
                   </p>
                   <input
                     type="text"
@@ -545,7 +573,9 @@ export default function AccountPage() {
                 <button
                   type="button"
                   onClick={confirmDeleteAccount}
-                  disabled={deleteConfirmationText.trim() !== displayName.trim() || deleteAccount.isPending}
+                  disabled={
+                    deleteConfirmationText.trim() !== displayName.trim() || deleteAccount.isPending
+                  }
                   className="flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold text-white transition-opacity disabled:opacity-50"
                   style={{ backgroundColor: '#ef4444' }}
                 >

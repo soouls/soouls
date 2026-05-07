@@ -22,8 +22,7 @@ function requiredEnv(): EnvReport {
       : '');
   const bucket = process.env.R2_BUCKET_NAME || process.env.CLOUDFLARE_R2_BUCKET_NAME || '';
   const publicUrl = process.env.R2_PUBLIC_URL || process.env.CLOUDFLARE_R2_PUBLIC_URL || '';
-  const accessKeyId =
-    process.env.R2_ACCESS_KEY_ID || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || '';
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID || process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || '';
   const secretAccessKey =
     process.env.R2_SECRET_ACCESS_KEY || process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || '';
 
@@ -168,9 +167,9 @@ async function main() {
     [
       'Run this SQL on your app DB to detect stale/mismatched media refs:',
       '',
-      "select id, media_url, created_at",
-      "from journal_entries",
-      "where media_url is not null",
+      'select id, media_url, created_at',
+      'from journal_entries',
+      'where media_url is not null',
       "  and (media_url not like 'https://%'",
       "       or media_url not like (coalesce(current_setting('app.r2_public_url', true), '%')))",
       'order by created_at desc',

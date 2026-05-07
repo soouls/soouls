@@ -58,6 +58,7 @@ export default function SecuritySection() {
           <div className="relative z-10 max-w-2xl">
             <span className="inline-block p-4 rounded-full bg-white/5 mb-8 text-[#E07A5F]">
               <svg
+                aria-hidden="true"
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"

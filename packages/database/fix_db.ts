@@ -1,5 +1,5 @@
-import { db } from './src/client';
 import { sql } from 'drizzle-orm';
+import { db } from './src/client';
 
 async function main() {
   try {
@@ -33,7 +33,7 @@ async function main() {
       ALTER TABLE "journal_entries" 
       ADD COLUMN IF NOT EXISTS "folder_id" uuid REFERENCES "folders"("id") ON DELETE SET NULL
     `);
-    
+
     console.log('Database sync complete.');
   } catch (err) {
     console.error('Database sync failed:', err);

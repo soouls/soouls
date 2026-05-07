@@ -1,5 +1,5 @@
-import { db } from './src/client';
 import { sql } from 'drizzle-orm';
+import { db } from './src/client';
 
 async function main() {
   try {
@@ -8,7 +8,10 @@ async function main() {
       FROM information_schema.columns 
       WHERE table_name = 'journal_entries'
     `);
-    console.log('Columns in DB:', result.map(r => r.column_name));
+    console.log(
+      'Columns in DB:',
+      result.map((r) => r.column_name),
+    );
   } catch (err) {
     console.error('Error:', err);
   }

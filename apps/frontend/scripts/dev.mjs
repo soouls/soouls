@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
 import { realpathSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import net from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const rootEnv = resolve(currentDir, '..', '..', '..', '.env');

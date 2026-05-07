@@ -20,6 +20,12 @@ async function bootstrap() {
     }),
   );
   const isDevelopment = process.env.NODE_ENV !== 'production';
+  const isVercel = process.env.VERCEL === '1';
+
+  if (isVercel || !isDevelopment) {
+    app.setGlobalPrefix('/_/backend');
+  }
+
   const appWithBodyParser = app as typeof app & {
     useBodyParser: (
       type: 'json' | 'urlencoded',

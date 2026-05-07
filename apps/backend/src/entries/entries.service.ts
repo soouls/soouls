@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Inject, Injectable } from '@nestjs/common';
@@ -7,7 +8,6 @@ import type { EntryKind, GalaxyEntry, UserEntry } from '@soouls/api/router';
 import { db } from '@soouls/database/client';
 import { and, desc, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
-import { createHash } from 'node:crypto';
 import LZString from 'lz-string';
 import { RedisService } from '../redis/redis.service';
 import { decryptData, encryptData } from '../utils/encryption';
@@ -135,7 +135,8 @@ export class EntriesService {
     // 2. Try decompression (new standard)
     let processed = decrypted;
     try {
-      const decompressed = LZString.decompressFromBase64(decrypted) || LZString.decompressFromUTF16(decrypted);
+      const decompressed =
+        LZString.decompressFromBase64(decrypted) || LZString.decompressFromUTF16(decrypted);
       if (decompressed) {
         processed = decompressed;
       }
@@ -168,7 +169,8 @@ export class EntriesService {
 
     let normalizedContent = rawContent;
     try {
-      const decompressed = LZString.decompressFromBase64(rawContent) || LZString.decompressFromUTF16(rawContent);
+      const decompressed =
+        LZString.decompressFromBase64(rawContent) || LZString.decompressFromUTF16(rawContent);
       if (decompressed?.trim().match(/^[{[]/u)) {
         normalizedContent = decompressed;
       }
@@ -464,14 +466,6 @@ export class EntriesService {
         RETURNING "id"
       `);
       entry = { id: (result[0] as any).id };
-      /* Removed old insert */ if (false) [entry] = await db
-        .insert(journalEntries)
-        .values({
-          userId,
-          content: encryptedContent,
-          type,
-        })
-        .returning({ id: journalEntries.id });
     }
 
     const position = this.buildCanvasPosition(derived, sentiment);

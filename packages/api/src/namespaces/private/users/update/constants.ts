@@ -4,6 +4,7 @@ import type { RateLimitConfig } from '../../../../rate-limit.js';
 export const schema = z.object({
   name: z.string().min(1).max(100).optional(),
   themePreference: z.string().max(50).optional(),
+  preferences: z.record(z.unknown()).optional(),
   mascot: z.string().max(50).optional(),
   marketingEmailOptIn: z.boolean().optional(),
   marketingWhatsappOptIn: z.boolean().optional(),
