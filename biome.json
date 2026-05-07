@@ -9,6 +9,7 @@
     "ignoreUnknown": false,
     "ignore": [
       "**/.agent/**",
+      "**/.agents/**",
       "**/node_modules/**",
       "**/dist/**",
       "**/.next/**",

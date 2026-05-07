@@ -55,7 +55,10 @@ export default function FeaturesSection() {
             </div>
 
             <div className="pt-8 border-t border-white/5">
-              <button className="px-10 py-5 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors shadow-lg shadow-[#E07A5F]/10">
+              <button
+                type="button"
+                className="px-10 py-5 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors shadow-lg shadow-[#E07A5F]/10"
+              >
                 Start Writing on Web
               </button>
             </div>

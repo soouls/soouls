@@ -1,5 +1,5 @@
-import { db } from './packages/database/src/client';
 import { sql } from 'drizzle-orm';
+import { db } from './packages/database/src/client';
 
 async function main() {
   try {

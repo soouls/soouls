@@ -2,6 +2,7 @@
 
 import { useUser } from '@clerk/nextjs';
 import type { HomeSettings } from '@soouls/api/router';
+import { motion } from 'framer-motion';
 import {
   Bell,
   ChevronDown,
@@ -14,7 +15,6 @@ import {
   User,
 } from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   HOME_DEFAULT_SETTINGS,
@@ -229,7 +229,11 @@ export default function SettingsPage() {
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden select-none transition-colors duration-300"
-      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)', fontFamily: FONT_URBANIST }}
+      style={{
+        backgroundColor: 'var(--soouls-bg)',
+        color: 'var(--soouls-text)',
+        fontFamily: FONT_URBANIST,
+      }}
     >
       {/* Giant background "Soouls" watermark */}
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
@@ -253,12 +257,17 @@ export default function SettingsPage() {
           >
             Home
           </Link>
-          <span style={{ color: 'var(--soouls-accent)' }} className="ml-2">/ Settings</span>
+          <span style={{ color: 'var(--soouls-accent)' }} className="ml-2">
+            / Settings
+          </span>
         </div>
 
         <div className="flex items-center gap-3">
           {feedback === 'saving' ? (
-            <Loader2 className="h-4 w-4 animate-spin" style={{ color: 'var(--soouls-text-faint)' }} />
+            <Loader2
+              className="h-4 w-4 animate-spin"
+              style={{ color: 'var(--soouls-text-faint)' }}
+            />
           ) : null}
           {feedback === 'saved' ? (
             <span className="text-xs" style={{ color: 'var(--soouls-accent)' }}>
@@ -266,9 +275,13 @@ export default function SettingsPage() {
             </span>
           ) : null}
           <button
+            type="button"
             onClick={() => setIsOpen(true)}
             className="w-10 h-10 rounded-full border-2 transition-all cursor-pointer overflow-hidden"
-            style={{ borderColor: 'var(--soouls-overlay-muted)', boxShadow: '0 4px 4px rgba(0,0,0,0.25)' }}
+            style={{
+              borderColor: 'var(--soouls-overlay-muted)',
+              boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+            }}
           >
             <img
               src={user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id)}
@@ -283,7 +296,11 @@ export default function SettingsPage() {
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
         <section
           className="flex-1 backdrop-blur-[48px] border-t rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-6"
-          style={{ backgroundColor: 'var(--soouls-bg-panel)', borderColor: 'var(--soouls-border)', opacity: 0.96 }}
+          style={{
+            backgroundColor: 'var(--soouls-bg-panel)',
+            borderColor: 'var(--soouls-border)',
+            opacity: 0.96,
+          }}
         >
           {/* Title */}
           <div className="mb-2">
@@ -306,9 +323,15 @@ export default function SettingsPage() {
                 <div className="mt-8 flex items-end justify-between">
                   <button
                     type="button"
-                    onClick={() => handlePatch({ themeMode: settings.themeMode === 'dark' ? 'light' : 'dark' })}
+                    onClick={() =>
+                      handlePatch({ themeMode: settings.themeMode === 'dark' ? 'light' : 'dark' })
+                    }
                     className="text-2xl capitalize transition-opacity hover:opacity-80"
-                    style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: 'var(--soouls-accent)' }}
+                    style={{
+                      fontFamily: 'var(--font-playfair)',
+                      fontStyle: 'italic',
+                      color: 'var(--soouls-accent)',
+                    }}
                   >
                     {settings.themeMode}
                   </button>
@@ -330,11 +353,17 @@ export default function SettingsPage() {
                     onClick={() => {
                       const views: HomeSettings['defaultView'][] = ['canvas', 'list', 'calendar'];
                       handlePatch({
-                        defaultView: views[(views.indexOf(settings.defaultView) + 1) % views.length] ?? 'canvas',
+                        defaultView:
+                          views[(views.indexOf(settings.defaultView) + 1) % views.length] ??
+                          'canvas',
                       });
                     }}
                     className="text-2xl capitalize transition-opacity hover:opacity-80"
-                    style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: 'var(--soouls-accent)' }}
+                    style={{
+                      fontFamily: 'var(--font-playfair)',
+                      fontStyle: 'italic',
+                      color: 'var(--soouls-accent)',
+                    }}
                   >
                     {settings.defaultView}
                   </button>
@@ -349,13 +378,23 @@ export default function SettingsPage() {
                 <div className="mt-8 flex items-end justify-between">
                   <button
                     type="button"
-                    onClick={() => handlePatch({ writingMode: settings.writingMode === 'minimal' ? 'guided' : 'minimal' })}
+                    onClick={() =>
+                      handlePatch({
+                        writingMode: settings.writingMode === 'minimal' ? 'guided' : 'minimal',
+                      })
+                    }
                     className="text-2xl capitalize transition-opacity hover:opacity-80"
-                    style={{ fontFamily: 'var(--font-playfair)', fontStyle: 'italic', color: 'var(--soouls-accent)' }}
+                    style={{
+                      fontFamily: 'var(--font-playfair)',
+                      fontStyle: 'italic',
+                      color: 'var(--soouls-accent)',
+                    }}
                   >
                     {settings.writingMode}
                   </button>
-                  <span style={{ color: 'var(--soouls-accent)' }} className="text-xl font-light">✍</span>
+                  <span style={{ color: 'var(--soouls-accent)' }} className="text-xl font-light">
+                    ✍
+                  </span>
                 </div>
               </div>
             </SectionCard>
@@ -365,36 +404,36 @@ export default function SettingsPage() {
           <SectionCard delay={0.25}>
             <SectionTitle>Personalization</SectionTitle>
 
-              {/* Accent color picker */}
-              <SettingRow
-                label="Accent color"
-                sublabel="Personalize the highlight color"
-                icon={<Palette className="h-4 w-4" />}
-                right={
-                  <div className="flex items-center gap-2">
-                    {ACCENT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => handlePatch({ accentTheme: opt.value })}
-                        title={opt.label}
-                        className="relative h-6 w-6 rounded-full transition-all duration-200 hover:scale-110"
-                        style={{
-                          backgroundColor: opt.hex,
-                          boxShadow:
-                            settings.accentTheme === opt.value
-                              ? `0 0 0 2px var(--soouls-bg-surface), 0 0 0 4px ${opt.hex}`
-                              : 'none',
-                          transform: settings.accentTheme === opt.value ? 'scale(1.15)' : undefined,
-                        }}
-                        aria-label={`Set accent color to ${opt.label}`}
-                        aria-pressed={settings.accentTheme === opt.value}
-                      />
-                    ))}
-                  </div>
-                }
-              />
-            </SectionCard>
+            {/* Accent color picker */}
+            <SettingRow
+              label="Accent color"
+              sublabel="Personalize the highlight color"
+              icon={<Palette className="h-4 w-4" />}
+              right={
+                <div className="flex items-center gap-2">
+                  {ACCENT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handlePatch({ accentTheme: opt.value })}
+                      title={opt.label}
+                      className="relative h-6 w-6 rounded-full transition-all duration-200 hover:scale-110"
+                      style={{
+                        backgroundColor: opt.hex,
+                        boxShadow:
+                          settings.accentTheme === opt.value
+                            ? `0 0 0 2px var(--soouls-bg-surface), 0 0 0 4px ${opt.hex}`
+                            : 'none',
+                        transform: settings.accentTheme === opt.value ? 'scale(1.15)' : undefined,
+                      }}
+                      aria-label={`Set accent color to ${opt.label}`}
+                      aria-pressed={settings.accentTheme === opt.value}
+                    />
+                  ))}
+                </div>
+              }
+            />
+          </SectionCard>
 
           {/* ─── Notifications ─── */}
           <SectionCard delay={0.3}>
@@ -499,7 +538,10 @@ export default function SettingsPage() {
                   key={key}
                   label={key.replace(/([A-Z])/g, ' $1')}
                   right={
-                    <Toggle on={settings[key]} onChange={(value) => handlePatch({ [key]: value })} />
+                    <Toggle
+                      on={settings[key]}
+                      onChange={(value) => handlePatch({ [key]: value })}
+                    />
                   }
                 />
               ))}

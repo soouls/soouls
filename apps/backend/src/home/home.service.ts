@@ -3,9 +3,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   type InsightEntryMeta,
   generateClusterInsights,
+  generateEntryCanvas,
+  generateEntryClusters,
   generateHomeInsightCopy,
 } from '@soouls/ai-engine/home-insights';
 import type {
+  AccountExport,
+  EntryCanvas,
+  EntryCanvasCard,
+  EntryCanvasConnection,
   HomeAccount,
   HomeApi,
   HomeCluster,
@@ -17,6 +23,7 @@ import { and, db, desc, eq, inArray } from '@soouls/database/client';
 import {
   canvasNodes,
   clusters,
+  entryCanvases,
   journalEntries,
   messageCampaigns,
   messageDeliveries,
@@ -44,6 +51,7 @@ type UserRow = {
   preferences: Record<string, unknown> | null;
   marketingEmailOptIn: boolean;
   transactionalEmailOptIn: boolean;
+  isWaitlistUser: boolean;
 };
 
 const formatRelativeUpdatedAt = (date: Date): string => {
@@ -56,6 +64,12 @@ const formatRelativeUpdatedAt = (date: Date): string => {
   const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
   return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
 };
+
+const normalizeRouteSegment = (value: string): string =>
+  decodeURIComponent(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
 @Injectable()
 export class HomeService implements HomeApi {
@@ -80,6 +94,7 @@ export class HomeService implements HomeApi {
         preferences: users.preferences,
         marketingEmailOptIn: users.marketingEmailOptIn,
         transactionalEmailOptIn: users.transactionalEmailOptIn,
+        isWaitlistUser: users.isWaitlistUser,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -200,6 +215,19 @@ export class HomeService implements HomeApi {
         statNote: aiCopy.statNote || analytics.insights.statNote,
         dominantTheme: aiCopy.dominantTheme || analytics.insights.dominantTheme,
         previousTheme: aiCopy.previousTheme || analytics.insights.previousTheme,
+        thoughtThemes: aiCopy.thoughtThemes?.length
+          ? aiCopy.thoughtThemes.map((theme) => ({
+              key: theme.label
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, ''),
+              label: theme.label,
+              clusterDescription: `Entries connected to ${theme.label.toLowerCase()}.`,
+              keywords: [],
+              count: Math.max(1, Math.round(theme.count)),
+              progress: Math.max(1, Math.min(100, Math.round(theme.percentage))),
+            }))
+          : analytics.insights.thoughtThemes,
         finalSynthesis: {
           headline: aiCopy.finalSynthesis.headline || analytics.insights.finalSynthesis.headline,
           body: aiCopy.finalSynthesis.body || analytics.insights.finalSynthesis.body,
@@ -242,12 +270,15 @@ export class HomeService implements HomeApi {
     user: UserRow;
     settings: NormalizedUserPreferences;
     analytics: ReturnType<typeof buildHomeAnalytics>;
+    lastUpdated: string;
   }> {
-    const cacheKey = this.getCacheKey('home:snapshot:v3', userId);
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const cacheKey = `${this.getCacheKey('home:snapshot:v5', userId)}:${monthKey}`;
     const cached = await this.redis.get<{
       user: UserRow;
       settings: NormalizedUserPreferences;
       analytics: ReturnType<typeof buildHomeAnalytics>;
+      lastUpdated: string;
     }>(cacheKey);
 
     if (cached) {
@@ -281,6 +312,7 @@ export class HomeService implements HomeApi {
       user,
       settings,
       analytics,
+      lastUpdated: new Date().toISOString(),
     };
 
     await this.redis.set(cacheKey, snapshot, 300);
@@ -288,9 +320,13 @@ export class HomeService implements HomeApi {
   }
 
   async getInsights(userId: string): Promise<HomeInsights> {
-    const { analytics } = await this.getSnapshot(userId);
+    const { analytics, lastUpdated } = await this.getSnapshot(userId);
+    const entries = await this.getDecodedEntries(userId);
+    const reflectionHistogram = this.buildReflectionHistogram(entries);
 
     return {
+      lastUpdated,
+      isStale: entries.some((entry) => entry.updatedAt.getTime() > Date.parse(lastUpdated)),
       overview: analytics?.overview,
       monthlyQuote: analytics?.insights?.monthlyQuote ?? 'You are building your reflection rhythm.',
       monthlyAnalysis: analytics?.insights?.monthlyAnalysis ?? 'Not enough data yet.',
@@ -304,7 +340,10 @@ export class HomeService implements HomeApi {
         count: theme.count,
         progress: theme.progress,
       })),
-      finalSynthesis: analytics?.insights?.finalSynthesis ?? { headline: 'Just started', body: 'Keep writing.' },
+      finalSynthesis: analytics?.insights?.finalSynthesis ?? {
+        headline: 'Just started',
+        body: 'Keep writing.',
+      },
       reflectionToneDescription: analytics?.insights?.reflectionToneDescription ?? '',
       relationshipMap: analytics?.insights?.relationshipMap ?? { nodes: [], links: [] },
       thinkingShifts: analytics?.insights?.thinkingShifts ?? [],
@@ -313,12 +352,32 @@ export class HomeService implements HomeApi {
       canvasFolders: analytics.canvas.folders,
       coreThemes: analytics.account.coreThemes,
       writingProfile: analytics.account.writingProfile,
+      reflectionHistogram,
     };
+  }
+
+  private buildReflectionHistogram(entries: DecodedHomeEntry[]) {
+    const counts = Array.from({ length: 24 }, (_value, hour) => ({
+      hour,
+      count: 0,
+      percentage: 0,
+    }));
+
+    for (const entry of entries) {
+      const hour = entry.createdAt.getHours();
+      counts[hour].count += 1;
+    }
+
+    const max = Math.max(...counts.map((slot) => slot.count), 1);
+    return counts.map((slot) => ({
+      ...slot,
+      percentage: Math.round((slot.count / max) * 100),
+    }));
   }
 
   async getAccount(userId: string): Promise<HomeAccount> {
     const { analytics, user } = await this.getSnapshot(userId);
-    
+
     // Always compute numerical stats completely fresh, bypassing any cache
     const daysJoined = Math.max(
       1,
@@ -343,7 +402,7 @@ export class HomeService implements HomeApi {
       writingProfile: analytics?.account?.writingProfile ?? {
         title: 'Thoughtful self-reflection',
         description: 'Your entries are grounding emotion in language.',
-        tags: ['Reflective']
+        tags: ['Reflective'],
       },
       coreThemes: analytics?.account?.coreThemes ?? [],
       consistencyMessage:
@@ -386,31 +445,60 @@ export class HomeService implements HomeApi {
     return next;
   }
 
+  async getOnboardingStatus(userId: string) {
+    const user = await this.getUserRow(userId);
+    const preferences = (user.preferences ?? {}) as Record<string, unknown>;
+    const completed = preferences.onboardingCompleted === true;
+
+    return {
+      completed,
+      isWaitlistUser: user.isWaitlistUser,
+      message: user.isWaitlistUser
+        ? 'You are always special to us. You are a waitlist member. Thank you.'
+        : null,
+    };
+  }
+
+  async exportAccountData(userId: string): Promise<AccountExport> {
+    const user = await this.getUserRow(userId);
+    const entries = await this.entriesService.getAllEntries(userId, 1000, 0);
+    const settings = await this.getSettings(userId);
+    const insights = await this.getInsights(userId);
+
+    return {
+      exportedAt: new Date().toISOString(),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        bio: user.bio,
+        isWaitlistUser: user.isWaitlistUser,
+      },
+      entries: entries.items,
+      settings,
+      insights,
+    };
+  }
+
   async getClusters(userId: string): Promise<{
     headline: string;
     items: HomeCluster[];
     folders: Array<{ id: string; title: string; entryCount: number; updatedAtLabel: string }>;
   }> {
     const { analytics } = await this.getSnapshot(userId);
-    const userFolders = await db
-      .select({
-        id: clusters.id,
-        title: clusters.name,
-        description: clusters.description,
-        updatedAt: clusters.updatedAt,
-      })
-      .from(clusters)
-      .where(eq(clusters.userId, userId))
-      .orderBy(desc(clusters.updatedAt));
-
     const decodedEntries = await this.getDecodedEntries(userId);
-    await this.ensureReliableClusters(userId, analytics.clusters.items, decodedEntries);
+    const aiClustered = await this.ensureAiClusters(userId, decodedEntries);
+    if (!aiClustered) {
+      await this.ensureReliableClusters(userId, analytics.clusters.items, decodedEntries);
+    }
 
     const userFoldersAfterPromotion = await db
       .select({
         id: clusters.id,
         title: clusters.name,
         description: clusters.description,
+        color: clusters.color,
+        metadata: clusters.metadata,
         updatedAt: clusters.updatedAt,
       })
       .from(clusters)
@@ -447,7 +535,12 @@ export class HomeService implements HomeApi {
                   analyticsMatch?.description ??
                   'A stable space formed from recurring patterns in your entries.',
                 strength: index === 0 ? 'Dominant' : (analyticsMatch?.strength ?? 'Emerging'),
-                tones: analyticsMatch?.tones ?? ['Reflective', 'Focused'],
+                tones: folder.metadata?.themeTags?.length
+                  ? folder.metadata.themeTags
+                  : (analyticsMatch?.tones ?? ['Reflective', 'Focused']),
+                color: folder.color,
+                themeTags: folder.metadata?.themeTags ?? analyticsMatch?.tones ?? [],
+                source: folder.metadata?.source ?? 'manual',
               };
             })
           : analytics.clusters.items,
@@ -463,6 +556,186 @@ export class HomeService implements HomeApi {
     };
   }
 
+  async recluster(userId: string) {
+    await this.redis.invalidatePattern(`home:*:${userId}*`);
+    return this.getClusters(userId);
+  }
+
+  private buildDateFallbackClusterSpecs(entries: DecodedHomeEntry[]) {
+    const now = new Date();
+    const startOfThisWeek = new Date(now);
+    startOfThisWeek.setUTCHours(0, 0, 0, 0);
+    startOfThisWeek.setUTCDate(now.getUTCDate() - now.getUTCDay());
+    const startOfLastWeek = new Date(startOfThisWeek);
+    startOfLastWeek.setUTCDate(startOfThisWeek.getUTCDate() - 7);
+
+    const groups = [
+      {
+        id: 'this-week',
+        name: 'This Week',
+        description: 'Entries written during the current week.',
+        color: '#6F3A2E',
+        theme_tags: ['recent', 'weekly'],
+        entry_ids: [] as string[],
+      },
+      {
+        id: 'last-week',
+        name: 'Last Week',
+        description: 'Entries from the previous week.',
+        color: '#274A47',
+        theme_tags: ['recent', 'past'],
+        entry_ids: [] as string[],
+      },
+      {
+        id: 'older',
+        name: 'Older Reflections',
+        description: 'Earlier entries waiting to connect with newer patterns.',
+        color: '#473829',
+        theme_tags: ['older', 'archive'],
+        entry_ids: [] as string[],
+      },
+    ];
+
+    for (const entry of entries) {
+      if (entry.createdAt >= startOfThisWeek) {
+        groups[0].entry_ids.push(entry.id);
+      } else if (entry.createdAt >= startOfLastWeek) {
+        groups[1].entry_ids.push(entry.id);
+      } else {
+        groups[2].entry_ids.push(entry.id);
+      }
+    }
+
+    return groups.filter((group) => group.entry_ids.length > 0);
+  }
+
+  private async ensureAiClusters(userId: string, entries: DecodedHomeEntry[]): Promise<boolean> {
+    if (entries.length === 0) return true;
+
+    const latestEntryUpdatedAt = entries.reduce(
+      (latest, entry) => Math.max(latest, entry.updatedAt.getTime()),
+      0,
+    );
+    const existingAiClusters = await db
+      .select({
+        id: clusters.id,
+        metadata: clusters.metadata,
+        updatedAt: clusters.updatedAt,
+      })
+      .from(clusters)
+      .where(eq(clusters.userId, userId));
+
+    const hasFreshAiClusters = existingAiClusters.some((cluster) => {
+      const generatedAt = cluster.metadata?.lastGeneratedAt
+        ? Date.parse(cluster.metadata.lastGeneratedAt)
+        : 0;
+      return (
+        cluster.metadata?.source === 'ai' &&
+        Number.isFinite(generatedAt) &&
+        generatedAt >= latestEntryUpdatedAt
+      );
+    });
+
+    if (hasFreshAiClusters && entries.every((entry) => entry.clusterId)) {
+      return true;
+    }
+
+    const generated = await generateEntryClusters({
+      entries: entries.map((entry) => ({
+        id: entry.id,
+        title: entry.title,
+        body: entry.text,
+        createdAt: entry.createdAt.toISOString(),
+      })),
+    });
+
+    const specs =
+      generated?.clusters?.length &&
+      this.validateGeneratedClusterCoverage(generated.clusters, entries)
+        ? generated.clusters.map((cluster) => ({
+            id: cluster.id,
+            name: cluster.name,
+            description: cluster.description,
+            color: cluster.color,
+            theme_tags: cluster.theme_tags,
+            entry_ids: cluster.entry_ids,
+            source: 'ai' as const,
+          }))
+        : this.buildDateFallbackClusterSpecs(entries).map((cluster) => ({
+            ...cluster,
+            source: 'date-fallback' as const,
+          }));
+
+    if (specs.length === 0) return false;
+
+    const generatedAt = new Date().toISOString();
+    for (const spec of specs) {
+      const [existing] = await db
+        .select({ id: clusters.id })
+        .from(clusters)
+        .where(and(eq(clusters.userId, userId), eq(clusters.name, spec.name)))
+        .limit(1);
+
+      const metadata = {
+        themeTags: spec.theme_tags,
+        source: spec.source,
+        lastGeneratedAt: generatedAt,
+      };
+
+      let clusterId = existing?.id;
+      if (existing) {
+        await db
+          .update(clusters)
+          .set({
+            description: spec.description,
+            color: spec.color,
+            icon: 'folder',
+            metadata,
+            updatedAt: new Date(),
+          })
+          .where(and(eq(clusters.id, existing.id), eq(clusters.userId, userId)));
+      } else {
+        const [created] = await db
+          .insert(clusters)
+          .values({
+            userId,
+            name: spec.name,
+            description: spec.description,
+            color: spec.color,
+            icon: 'folder',
+            metadata,
+          })
+          .returning({ id: clusters.id });
+        clusterId = created.id;
+      }
+
+      if (!clusterId) continue;
+      await db
+        .update(journalEntries)
+        .set({ clusterId, updatedAt: new Date() })
+        .where(and(eq(journalEntries.userId, userId), inArray(journalEntries.id, spec.entry_ids)));
+    }
+
+    await this.redis.invalidatePattern(`entries:all:${userId}:*`);
+    return true;
+  }
+
+  private validateGeneratedClusterCoverage(
+    clustersInput: Array<{ entry_ids?: string[] }>,
+    entries: DecodedHomeEntry[],
+  ): boolean {
+    const validIds = new Set(entries.map((entry) => entry.id));
+    const seen = new Set<string>();
+    for (const cluster of clustersInput) {
+      if (!cluster.entry_ids?.length) return false;
+      for (const entryId of cluster.entry_ids) {
+        if (!validIds.has(entryId) || seen.has(entryId)) return false;
+        seen.add(entryId);
+      }
+    }
+    return seen.size === validIds.size;
+  }
+
   /**
    * Promotes AI-suggested clusters to stable, database-backed folders
    * and automatically assigns matching entries to them.
@@ -470,7 +743,7 @@ export class HomeService implements HomeApi {
    */
   private async ensureReliableClusters(
     userId: string,
-    suggestedClusters: any[],
+    suggestedClusters: HomeCluster[],
     entries: DecodedHomeEntry[],
   ): Promise<void> {
     // 1. Identify entries that aren't assigned to any cluster yet
@@ -666,25 +939,35 @@ export class HomeService implements HomeApi {
   async getClusterDetail(userId: string, clusterId: string): Promise<HomeClusterDetail | null> {
     const { analytics } = await this.getSnapshot(userId);
     const entries = await this.getDecodedEntries(userId);
-    const dbCluster = await db
+    const dbClusters = await db
       .select({
         id: clusters.id,
         name: clusters.name,
         description: clusters.description,
       })
       .from(clusters)
-      .where(eq(clusters.id, clusterId))
-      .limit(1);
+      .where(eq(clusters.userId, userId));
+
+    const requestedSegment = normalizeRouteSegment(clusterId);
+    const dbCluster =
+      dbClusters.find(
+        (candidate) =>
+          candidate.id === clusterId ||
+          candidate.name.toLowerCase() === decodeURIComponent(clusterId).toLowerCase() ||
+          normalizeRouteSegment(candidate.name) === requestedSegment,
+      ) ?? null;
 
     const cluster =
-      analytics.clusters.items.find((item) => item.id === clusterId) ??
-      (dbCluster[0]
+      analytics.clusters.items.find(
+        (item) => item.id === clusterId || normalizeRouteSegment(item.name) === requestedSegment,
+      ) ??
+      (dbCluster
         ? ({
-            id: dbCluster[0].id,
-            name: dbCluster[0].name,
+            id: dbCluster.id,
+            name: dbCluster.name,
             entryCount: 0,
             updatedAtLabel: 'Recently',
-            description: dbCluster[0].description ?? 'Your custom folder for related entries.',
+            description: dbCluster.description ?? 'Your custom folder for related entries.',
             strength: 'Emerging',
             tones: ['Reflective'],
           } as HomeCluster)
@@ -700,8 +983,8 @@ export class HomeService implements HomeApi {
       .map((word) => word.trim())
       .filter(Boolean);
 
-    const matchingEntries = dbCluster[0]
-      ? entries.filter((entry) => entry.clusterId === clusterId)
+    const matchingEntries = dbCluster
+      ? entries.filter((entry) => entry.clusterId === dbCluster.id)
       : cluster.id.startsWith('recent-entries')
         ? entries
         : entries.filter((entry) => {
@@ -753,6 +1036,241 @@ export class HomeService implements HomeApi {
         aiInsights?.reflectionPrompt ||
         `If you had to explain why ${cluster.name.toLowerCase()} matters right now, what truth would you be least comfortable saying out loud?`,
     };
+  }
+
+  private normalizeCanvasCards(cards: EntryCanvasCard[]): EntryCanvasCard[] {
+    const sorted = cards.slice(0, 8).map((card, index) => ({
+      ...card,
+      id: card.id || `card_${index + 1}`,
+      x: Math.max(0, Math.min(900, Number.isFinite(card.x) ? card.x : 120 + index * 80)),
+      y: Math.max(0, Math.min(600, Number.isFinite(card.y) ? card.y : 80 + index * 60)),
+      width: Math.max(160, Math.min(260, Number.isFinite(card.width) ? card.width : 220)),
+      height: Math.max(100, Math.min(180, Number.isFinite(card.height) ? card.height : 140)),
+      color: card.color || '#1C1C1C',
+      border_color: card.border_color || '#E07A5F',
+    }));
+
+    for (let i = 0; i < sorted.length; i += 1) {
+      const card = sorted[i];
+      for (let j = 0; j < i; j += 1) {
+        const other = sorted[j];
+        const overlaps =
+          Math.abs(card.x - other.x) < Math.min(card.width, other.width) &&
+          Math.abs(card.y - other.y) < Math.min(card.height, other.height);
+        if (overlaps) {
+          card.x = Math.min(900 - card.width, card.x + 24 * (i + 1));
+          card.y = Math.min(600 - card.height, card.y + 20 * (i + 1));
+        }
+      }
+    }
+
+    return sorted;
+  }
+
+  private buildStarterCanvas(entry: DecodedHomeEntry, clusterName = 'Recent Entries'): EntryCanvas {
+    const title = entry.title || entry.text.split(/\s+/).slice(0, 6).join(' ') || 'Untitled entry';
+    const body = entry.text.split('\n').find(Boolean) ?? entry.text;
+    const words = entry.text.split(/\s+/).filter(Boolean);
+    const secondBody = words
+      .slice(0, Math.max(8, Math.min(32, Math.floor(words.length / 2))))
+      .join(' ');
+
+    const cards: EntryCanvasCard[] = this.normalizeCanvasCards([
+      {
+        id: 'card_1',
+        type: 'reflection',
+        title,
+        body: body.slice(0, 420) || 'Start shaping this thought manually.',
+        x: 120,
+        y: 110,
+        width: 230,
+        height: 150,
+        color: '#1C1C1C',
+        border_color: '#E07A5F',
+        tag: 'Entry',
+      },
+      ...(words.length > 8
+        ? [
+            {
+              id: 'card_2',
+              type: 'idea' as const,
+              title: 'Key Thread',
+              body: secondBody || body.slice(0, 240),
+              x: 470,
+              y: 270,
+              width: 220,
+              height: 130,
+              color: '#171313',
+              border_color: '#8B3A3A',
+              tag: clusterName,
+            },
+          ]
+        : []),
+    ]);
+
+    return {
+      entryId: entry.id,
+      canvasTitle: title,
+      cards,
+      connections:
+        cards.length > 1
+          ? [{ id: 'conn_card_1_card_2', from: 'card_1', to: 'card_2', label: 'connects to' }]
+          : [],
+      clusterInsight:
+        cards.length > 1
+          ? `This entry begins forming a ${clusterName.toLowerCase()} thread.`
+          : 'Add another card or regenerate when there is more text to analyze.',
+      lastEdited: new Date().toISOString(),
+      generatedAt: new Date().toISOString(),
+      source: 'fallback',
+    };
+  }
+
+  private async getEntryForCanvas(userId: string, entryId: string): Promise<DecodedHomeEntry> {
+    const entries = await this.getDecodedEntries(userId);
+    const entry = entries.find((candidate) => candidate.id === entryId);
+    if (!entry) {
+      throw new Error('Entry not found');
+    }
+    return entry;
+  }
+
+  private async buildGeneratedCanvas(userId: string, entryId: string): Promise<EntryCanvas> {
+    const entry = await this.getEntryForCanvas(userId, entryId);
+    const cluster = entry.clusterId ? await this.getClusterDetail(userId, entry.clusterId) : null;
+    const clusterName = cluster?.cluster.name ?? 'Recent Entries';
+    const aiCanvas = await generateEntryCanvas({
+      entryTitle: entry.title || entry.text.split(/\s+/).slice(0, 6).join(' ') || 'Untitled entry',
+      entryBody: entry.text,
+      clusterName,
+      clusterTags: cluster?.cluster.tones ?? [],
+    });
+
+    if (!aiCanvas) {
+      return this.buildStarterCanvas(entry, clusterName);
+    }
+
+    const cards = this.normalizeCanvasCards(aiCanvas.cards as EntryCanvasCard[]);
+    const cardIds = new Set(cards.map((card) => card.id));
+    const connections: EntryCanvasConnection[] = aiCanvas.connections
+      .filter((connection) => cardIds.has(connection.from) && cardIds.has(connection.to))
+      .map((connection) => ({
+        id: `conn_${connection.from}_${connection.to}`,
+        from: connection.from,
+        to: connection.to,
+        label: connection.label,
+      }));
+
+    return {
+      entryId,
+      canvasTitle: aiCanvas.canvas_title,
+      cards,
+      connections,
+      clusterInsight: aiCanvas.cluster_insight,
+      lastEdited: new Date().toISOString(),
+      generatedAt: new Date().toISOString(),
+      source: 'ai',
+    };
+  }
+
+  private async persistEntryCanvas(userId: string, canvas: EntryCanvas): Promise<EntryCanvas> {
+    const now = new Date();
+    const [saved] = await db
+      .insert(entryCanvases)
+      .values({
+        userId,
+        entryId: canvas.entryId,
+        canvasTitle: canvas.canvasTitle,
+        cards: canvas.cards,
+        connections: canvas.connections,
+        clusterInsight: canvas.clusterInsight,
+        generationMetadata: {
+          generatedAt: canvas.generatedAt,
+          source: canvas.source === 'saved' ? 'manual' : canvas.source,
+        },
+        lastEdited: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: entryCanvases.entryId,
+        set: {
+          canvasTitle: canvas.canvasTitle,
+          cards: canvas.cards,
+          connections: canvas.connections,
+          clusterInsight: canvas.clusterInsight,
+          generationMetadata: {
+            generatedAt: canvas.generatedAt,
+            source: canvas.source === 'saved' ? 'manual' : canvas.source,
+          },
+          lastEdited: now,
+          updatedAt: now,
+        },
+      })
+      .returning();
+
+    return {
+      entryId: saved.entryId,
+      canvasTitle: saved.canvasTitle,
+      cards: saved.cards,
+      connections: saved.connections,
+      clusterInsight: saved.clusterInsight ?? '',
+      lastEdited: saved.lastEdited.toISOString(),
+      generatedAt: saved.generationMetadata?.generatedAt,
+      source: canvas.source,
+    };
+  }
+
+  async getEntryCanvas(userId: string, entryId: string): Promise<EntryCanvas> {
+    await this.getEntryForCanvas(userId, entryId);
+
+    const [saved] = await db
+      .select()
+      .from(entryCanvases)
+      .where(and(eq(entryCanvases.userId, userId), eq(entryCanvases.entryId, entryId)))
+      .limit(1);
+
+    if (saved) {
+      return {
+        entryId: saved.entryId,
+        canvasTitle: saved.canvasTitle,
+        cards: this.normalizeCanvasCards(saved.cards),
+        connections: saved.connections,
+        clusterInsight: saved.clusterInsight ?? '',
+        lastEdited: saved.lastEdited.toISOString(),
+        generatedAt: saved.generationMetadata?.generatedAt,
+        source: 'saved',
+      };
+    }
+
+    const generated = await this.buildGeneratedCanvas(userId, entryId);
+    return this.persistEntryCanvas(userId, generated);
+  }
+
+  async saveEntryCanvas(
+    userId: string,
+    input: {
+      entryId: string;
+      canvasTitle: string;
+      cards: EntryCanvasCard[];
+      connections: EntryCanvasConnection[];
+      clusterInsight?: string;
+    },
+  ): Promise<EntryCanvas> {
+    await this.getEntryForCanvas(userId, input.entryId);
+    return this.persistEntryCanvas(userId, {
+      entryId: input.entryId,
+      canvasTitle: input.canvasTitle,
+      cards: this.normalizeCanvasCards(input.cards),
+      connections: input.connections,
+      clusterInsight: input.clusterInsight ?? '',
+      lastEdited: new Date().toISOString(),
+      source: 'manual',
+    });
+  }
+
+  async regenerateEntryCanvas(userId: string, entryId: string): Promise<EntryCanvas> {
+    const generated = await this.buildGeneratedCanvas(userId, entryId);
+    return this.persistEntryCanvas(userId, generated);
   }
 
   async deleteAccount(userId: string): Promise<{ deleted: true }> {

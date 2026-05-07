@@ -287,6 +287,9 @@ export type HomeCluster = {
   description: string;
   strength: 'Dominant' | 'Emerging';
   tones: string[];
+  color?: string | null;
+  themeTags?: string[];
+  source?: 'ai' | 'manual' | 'date-fallback';
 };
 
 export type HomeCanvasFolder = {
@@ -297,6 +300,8 @@ export type HomeCanvasFolder = {
 };
 
 export type HomeInsights = {
+  lastUpdated: string;
+  isStale: boolean;
   overview: {
     entryCount: number;
     currentStreak: number;
@@ -334,6 +339,7 @@ export type HomeInsights = {
     description: string;
     tags: string[];
   };
+  reflectionHistogram: Array<{ hour: number; count: number; percentage: number }>;
 };
 
 export type HomeAccount = {
@@ -368,12 +374,71 @@ export type HomeClusterDetail = {
   reflectionPrompt: string;
 };
 
+export type EntryCanvasCard = {
+  id: string;
+  type: 'idea' | 'quote' | 'emotion' | 'question' | 'warning' | 'reflection';
+  title: string;
+  body: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  border_color: string;
+  tag?: string;
+};
+
+export type EntryCanvasConnection = {
+  id?: string;
+  from: string;
+  to: string;
+  label?: string;
+};
+
+export type EntryCanvas = {
+  entryId: string;
+  canvasTitle: string;
+  cards: EntryCanvasCard[];
+  connections: EntryCanvasConnection[];
+  clusterInsight: string;
+  lastEdited: string;
+  generatedAt?: string;
+  source: 'ai' | 'fallback' | 'manual' | 'saved';
+};
+
+export type OnboardingStatus = {
+  completed: boolean;
+  isWaitlistUser: boolean;
+  message: string | null;
+};
+
+export type AccountExport = {
+  exportedAt: string;
+  user: {
+    id: string;
+    email: string;
+    name: string | null;
+    bio: string | null;
+    isWaitlistUser: boolean;
+  };
+  entries: UserEntry[];
+  settings: HomeSettings;
+  insights: HomeInsights;
+};
+
 export type HomeApi = {
   getInsights: (userId: string) => Promise<HomeInsights>;
   getAccount: (userId: string) => Promise<HomeAccount>;
   getSettings: (userId: string) => Promise<HomeSettings>;
   updateSettings: (userId: string, input: Partial<HomeSettings>) => Promise<HomeSettings>;
+  getOnboardingStatus: (userId: string) => Promise<OnboardingStatus>;
+  exportAccountData: (userId: string) => Promise<AccountExport>;
   getClusters: (userId: string) => Promise<{
+    headline: string;
+    items: HomeCluster[];
+    folders: HomeCanvasFolder[];
+  }>;
+  recluster: (userId: string) => Promise<{
     headline: string;
     items: HomeCluster[];
     folders: HomeCanvasFolder[];
@@ -381,6 +446,18 @@ export type HomeApi = {
   createFolder: (userId: string, input: { name?: string }) => Promise<HomeCanvasFolder>;
   deleteFolder: (userId: string, folderId: string) => Promise<{ deleted: true }>;
   getClusterDetail: (userId: string, clusterId: string) => Promise<HomeClusterDetail | null>;
+  getEntryCanvas: (userId: string, entryId: string) => Promise<EntryCanvas>;
+  saveEntryCanvas: (
+    userId: string,
+    input: {
+      entryId: string;
+      canvasTitle: string;
+      cards: EntryCanvasCard[];
+      connections: EntryCanvasConnection[];
+      clusterInsight?: string;
+    },
+  ) => Promise<EntryCanvas>;
+  regenerateEntryCanvas: (userId: string, entryId: string) => Promise<EntryCanvas>;
   deleteAccount: (userId: string) => Promise<{ deleted: true }>;
 };
 
@@ -478,10 +555,25 @@ import {
 import { run as getAllRun } from './namespaces/private/entries/getAll/run.js';
 
 import {
+  config as createHomeFolderConfig,
+  schema as createHomeFolderSchema,
+} from './namespaces/private/home/createFolder/constants.js';
+import { run as createHomeFolderRun } from './namespaces/private/home/createFolder/run.js';
+import {
   config as deleteHomeAccountConfig,
   schema as deleteHomeAccountSchema,
 } from './namespaces/private/home/deleteAccount/constants.js';
 import { run as deleteHomeAccountRun } from './namespaces/private/home/deleteAccount/run.js';
+import {
+  config as deleteHomeFolderConfig,
+  schema as deleteHomeFolderSchema,
+} from './namespaces/private/home/deleteFolder/constants.js';
+import { run as deleteHomeFolderRun } from './namespaces/private/home/deleteFolder/run.js';
+import {
+  config as exportAccountDataConfig,
+  schema as exportAccountDataSchema,
+} from './namespaces/private/home/exportAccountData/constants.js';
+import { run as exportAccountDataRun } from './namespaces/private/home/exportAccountData/run.js';
 import {
   config as getHomeAccountConfig,
   schema as getHomeAccountSchema,
@@ -498,25 +590,40 @@ import {
 } from './namespaces/private/home/getClusters/constants.js';
 import { run as getHomeClustersRun } from './namespaces/private/home/getClusters/run.js';
 import {
-  config as createHomeFolderConfig,
-  schema as createHomeFolderSchema,
-} from './namespaces/private/home/createFolder/constants.js';
-import { run as createHomeFolderRun } from './namespaces/private/home/createFolder/run.js';
-import {
-  config as deleteHomeFolderConfig,
-  schema as deleteHomeFolderSchema,
-} from './namespaces/private/home/deleteFolder/constants.js';
-import { run as deleteHomeFolderRun } from './namespaces/private/home/deleteFolder/run.js';
+  config as getEntryCanvasConfig,
+  schema as getEntryCanvasSchema,
+} from './namespaces/private/home/getEntryCanvas/constants.js';
+import { run as getEntryCanvasRun } from './namespaces/private/home/getEntryCanvas/run.js';
 import {
   config as getHomeInsightsConfig,
   schema as getHomeInsightsSchema,
 } from './namespaces/private/home/getInsights/constants.js';
 import { run as getHomeInsightsRun } from './namespaces/private/home/getInsights/run.js';
 import {
+  config as getOnboardingStatusConfig,
+  schema as getOnboardingStatusSchema,
+} from './namespaces/private/home/getOnboardingStatus/constants.js';
+import { run as getOnboardingStatusRun } from './namespaces/private/home/getOnboardingStatus/run.js';
+import {
   config as getHomeSettingsConfig,
   schema as getHomeSettingsSchema,
 } from './namespaces/private/home/getSettings/constants.js';
 import { run as getHomeSettingsRun } from './namespaces/private/home/getSettings/run.js';
+import {
+  config as reclusterConfig,
+  schema as reclusterSchema,
+} from './namespaces/private/home/recluster/constants.js';
+import { run as reclusterRun } from './namespaces/private/home/recluster/run.js';
+import {
+  config as regenerateEntryCanvasConfig,
+  schema as regenerateEntryCanvasSchema,
+} from './namespaces/private/home/regenerateEntryCanvas/constants.js';
+import { run as regenerateEntryCanvasRun } from './namespaces/private/home/regenerateEntryCanvas/run.js';
+import {
+  config as saveEntryCanvasConfig,
+  schema as saveEntryCanvasSchema,
+} from './namespaces/private/home/saveEntryCanvas/constants.js';
+import { run as saveEntryCanvasRun } from './namespaces/private/home/saveEntryCanvas/run.js';
 import {
   config as updateHomeSettingsConfig,
   schema as updateHomeSettingsSchema,
@@ -682,10 +789,25 @@ function buildPrivateRouter(services: Services) {
         .input(updateHomeSettingsSchema)
         .mutation(({ input, ctx }) => updateHomeSettingsRun(input, ctx, services)),
 
+      getOnboardingStatus: authedProcedure
+        .use(makeRateLimitMiddleware(getOnboardingStatusConfig.rateLimit))
+        .input(getOnboardingStatusSchema)
+        .query(({ input, ctx }) => getOnboardingStatusRun(input, ctx, services)),
+
+      exportAccountData: authedProcedure
+        .use(makeRateLimitMiddleware(exportAccountDataConfig.rateLimit))
+        .input(exportAccountDataSchema)
+        .query(({ input, ctx }) => exportAccountDataRun(input, ctx, services)),
+
       getClusters: authedProcedure
         .use(makeRateLimitMiddleware(getHomeClustersConfig.rateLimit))
         .input(getHomeClustersSchema)
         .query(({ input, ctx }) => getHomeClustersRun(input, ctx, services)),
+
+      recluster: authedProcedure
+        .use(makeRateLimitMiddleware(reclusterConfig.rateLimit))
+        .input(reclusterSchema)
+        .mutation(({ input, ctx }) => reclusterRun(input, ctx, services)),
 
       createFolder: authedProcedure
         .use(makeRateLimitMiddleware(createHomeFolderConfig.rateLimit))
@@ -701,6 +823,21 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(getClusterDetailConfig.rateLimit))
         .input(getClusterDetailSchema)
         .query(({ input, ctx }) => getClusterDetailRun(input, ctx, services)),
+
+      getEntryCanvas: authedProcedure
+        .use(makeRateLimitMiddleware(getEntryCanvasConfig.rateLimit))
+        .input(getEntryCanvasSchema)
+        .query(({ input, ctx }) => getEntryCanvasRun(input, ctx, services)),
+
+      saveEntryCanvas: authedProcedure
+        .use(makeRateLimitMiddleware(saveEntryCanvasConfig.rateLimit))
+        .input(saveEntryCanvasSchema)
+        .mutation(({ input, ctx }) => saveEntryCanvasRun(input, ctx, services)),
+
+      regenerateEntryCanvas: authedProcedure
+        .use(makeRateLimitMiddleware(regenerateEntryCanvasConfig.rateLimit))
+        .input(regenerateEntryCanvasSchema)
+        .mutation(({ input, ctx }) => regenerateEntryCanvasRun(input, ctx, services)),
 
       deleteAccount: authedProcedure
         .use(makeRateLimitMiddleware(deleteHomeAccountConfig.rateLimit))

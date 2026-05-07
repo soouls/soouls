@@ -99,7 +99,10 @@ export class UsersService {
       }
     }
 
-    await this.messagingService.sendWelcomeSequence(newUser.id);
+    // 5. Welcome sequence should not block user creation
+    void this.messagingService.sendWelcomeSequence(newUser.id).catch((err) => {
+      console.error('[Users] Welcome sequence background failure:', err);
+    });
 
     return newUser.id;
   }
@@ -117,10 +120,28 @@ export class UsersService {
       transactionalWhatsappOptIn?: boolean;
     },
   ): Promise<void> {
+    let updateData = data;
+
+    if (data.preferences) {
+      const [currentUser] = await db
+        .select({ preferences: users.preferences })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      updateData = {
+        ...data,
+        preferences: {
+          ...((currentUser?.preferences as Record<string, unknown> | null) ?? {}),
+          ...data.preferences,
+        },
+      };
+    }
+
     await db
       .update(users)
       .set({
-        ...data,
+        ...updateData,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));

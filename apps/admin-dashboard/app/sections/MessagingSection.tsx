@@ -8,17 +8,6 @@ import { PermissionGate } from '../components/PermissionGate';
 import { ActionButton, Panel, StatusBadge } from '../components/ui';
 import { type Messaging, api, formatRelativeTime } from '../lib/api';
 
-type AudienceEstimate = {
-  total: number;
-  breakdown: {
-    all: number;
-    last7Days: number;
-    last30Days: number;
-    premium: number;
-    enterprise: number;
-  };
-};
-
 export function MessagingSection() {
   const { setFlash } = useShell();
   const queryClient = useQueryClient();

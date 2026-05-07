@@ -8,6 +8,22 @@ import { useState } from 'react';
 
 type Step = 'email' | 'code' | 'success';
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'errors' in error &&
+    Array.isArray((error as { errors?: unknown[] }).errors)
+  ) {
+    const [firstError] = (error as { errors?: Array<{ message?: string }> }).errors ?? [];
+    if (typeof firstError?.message === 'string' && firstError.message.length > 0) {
+      return firstError.message;
+    }
+  }
+
+  return fallback;
+}
+
 export default function ForgotPassword() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
@@ -33,9 +49,9 @@ export default function ForgotPassword() {
         identifier: emailAddress,
       });
       setStep('code');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const msg = err.errors?.[0]?.message || 'Failed to send reset code.';
+      const msg = getErrorMessage(err, 'Failed to send reset code.');
       if (msg.toLowerCase().includes('no account') || msg.toLowerCase().includes('not found')) {
         setError('No account found with this email address.');
       } else {
@@ -79,9 +95,9 @@ export default function ForgotPassword() {
       } else {
         setError('Something went wrong. Please try again.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.errors?.[0]?.message || 'Invalid code or password. Please try again.');
+      setError(getErrorMessage(err, 'Invalid code or password. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +140,7 @@ export default function ForgotPassword() {
 
         <div className="z-10 w-full max-w-[420px] bg-[#1A1A1A]/80 backdrop-blur-xl border border-white/5 rounded-[32px] p-8 md:p-10 shadow-2xl relative">
           <button
+            type="button"
             onClick={() => {
               setStep('email');
               setError('');
@@ -148,10 +165,14 @@ export default function ForgotPassword() {
 
           <form onSubmit={handleResetPassword} className="space-y-5">
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2">
+              <label
+                htmlFor="forgot-reset-code"
+                className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2"
+              >
                 VERIFICATION CODE
               </label>
               <input
+                id="forgot-reset-code"
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -162,7 +183,10 @@ export default function ForgotPassword() {
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2">
+              <label
+                htmlFor="forgot-new-password"
+                className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2"
+              >
                 NEW PASSWORD
               </label>
               <div className="relative">
@@ -170,6 +194,7 @@ export default function ForgotPassword() {
                   <Lock className="h-4 w-4 text-slate-500" />
                 </div>
                 <input
+                  id="forgot-new-password"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -182,7 +207,10 @@ export default function ForgotPassword() {
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2">
+              <label
+                htmlFor="forgot-confirm-password"
+                className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2"
+              >
                 CONFIRM PASSWORD
               </label>
               <div className="relative">
@@ -190,6 +218,7 @@ export default function ForgotPassword() {
                   <Lock className="h-4 w-4 text-slate-500" />
                 </div>
                 <input
+                  id="forgot-confirm-password"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -218,6 +247,7 @@ export default function ForgotPassword() {
           </form>
 
           <button
+            type="button"
             onClick={handleSendCode}
             className="mt-4 w-full text-center text-xs text-slate-500 hover:text-orange-300 transition-colors"
           >
@@ -254,7 +284,10 @@ export default function ForgotPassword() {
       </div>
 
       <div className="absolute top-10 right-12">
-        <button className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+        <button
+          type="button"
+          className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+        >
           ?
         </button>
       </div>
@@ -282,7 +315,10 @@ export default function ForgotPassword() {
 
         <form onSubmit={handleSendCode} className="space-y-6">
           <div>
-            <label className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2">
+            <label
+              htmlFor="forgot-email-address"
+              className="block text-[10px] uppercase tracking-[0.1em] text-slate-500 mb-2 ml-2"
+            >
               ACCOUNT EMAIL
             </label>
             <div className="relative">
@@ -290,6 +326,7 @@ export default function ForgotPassword() {
                 <Mail className="h-4 w-4 text-slate-500" />
               </div>
               <input
+                id="forgot-email-address"
                 type="email"
                 value={emailAddress}
                 onChange={(e) => setEmailAddress(e.target.value)}

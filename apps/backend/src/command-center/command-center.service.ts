@@ -1183,10 +1183,14 @@ export class CommandCenterService {
 
     // Calculate churn from actual user data
     const totalUsers = await db.select({ count: sql<number>`count(*)` }).from(users);
-    const activeUsers = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.accountStatus, 'active'));
+    const activeUsers = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.accountStatus, 'active'));
     const totalCount = Number(totalUsers[0]?.count ?? 1);
     const activeCount = Number(activeUsers[0]?.count ?? 0);
-    const churnRateResult = totalCount > 0 ? Math.round(((totalCount - activeCount) / totalCount) * 100 * 10) / 10 : 0;
+    const churnRateResult =
+      totalCount > 0 ? Math.round(((totalCount - activeCount) / totalCount) * 100 * 10) / 10 : 0;
 
     // Real revenue from Stripe webhooks over last 7 days
     const revenueByDay = await db
@@ -1196,17 +1200,20 @@ export class CommandCenterService {
       })
       .from(stripeWebhooks)
       .where(sql`${stripeWebhooks.createdAt} > NOW() - INTERVAL '7 days'`)
-      .groupBy(sql`${stripeWebhooks.createdAt}::date, to_char(${stripeWebhooks.createdAt}::date, 'Dy')`)
+      .groupBy(
+        sql`${stripeWebhooks.createdAt}::date, to_char(${stripeWebhooks.createdAt}::date, 'Dy')`,
+      )
       .orderBy(sql`${stripeWebhooks.createdAt}::date`);
 
     // Fallback: if no webhook data, estimate from MRR spread over 7 days
     const mrr = Number(mrrResult[0]?.mrr || 0);
-    const recentRevenue = revenueByDay.length > 0
-      ? revenueByDay.map((row) => ({ date: row.date, amount: Number(row.amount) / 100 }))
-      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => ({
-          date: day,
-          amount: Math.round((mrr / 30) * 100) / 100,
-        }));
+    const recentRevenue =
+      revenueByDay.length > 0
+        ? revenueByDay.map((row) => ({ date: row.date, amount: Number(row.amount) / 100 }))
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => ({
+            date: day,
+            amount: Math.round((mrr / 30) * 100) / 100,
+          }));
 
     const webhooks = await db
       .select()

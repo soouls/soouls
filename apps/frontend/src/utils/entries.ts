@@ -106,27 +106,27 @@ export function decodeEntryContent(rawContent: string | null | undefined): strin
   if (!rawContent) return '';
 
   const trimmed = rawContent.trim();
-  
+
   // 1. If it's already a valid JSON string (starts with { or [), return as is
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) return rawContent;
 
   try {
     // 2. Handle draft prefix if present (used in local storage drafts)
     const cleanContent = trimmed.startsWith('lz:') ? trimmed.slice(3) : trimmed;
-    
+
     // 3. Attempt decompression from Base64 (Standard for new records)
     let decompressed = LZString.decompressFromBase64(cleanContent);
-    
+
     // 4. Fallback to UTF16 (Legacy/Mixed records)
     if (!decompressed) {
       decompressed = LZString.decompressFromUTF16(cleanContent);
     }
-    
+
     // 5. Final validation: if we got something and it looks like it could be JSON or plain text
     if (decompressed && decompressed.length > 0) {
       return decompressed;
     }
-    
+
     return rawContent;
   } catch (err) {
     console.warn('Failed to decode entry content:', err);

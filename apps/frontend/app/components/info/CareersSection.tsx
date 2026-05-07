@@ -104,7 +104,10 @@ export default function CareersSection() {
               Don't see a role that fits? We are always looking for passionate thinkers and
               builders.
             </p>
-            <button className="px-10 py-5 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors">
+            <button
+              type="button"
+              className="px-10 py-5 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors"
+            >
               Send us your story
             </button>
           </div>

@@ -457,7 +457,11 @@ function extractTopKeywords(entries: DecodedHomeEntry[]): string[] {
     .map(([word]) => word);
 }
 
-function buildMonthlyQuote(topTheme: ThemeScore | undefined, keywords: string[], entryCount: number): string {
+function buildMonthlyQuote(
+  topTheme: ThemeScore | undefined,
+  keywords: string[],
+  entryCount: number,
+): string {
   if (entryCount === 0) {
     return 'No entries yet this month. Start journaling to see your insights.';
   }
@@ -468,7 +472,12 @@ function buildMonthlyQuote(topTheme: ThemeScore | undefined, keywords: string[],
   return `This month, your writing keeps circling {ts1}${topTheme.label.toLowerCase()}{/ts1}${keywordText ? ` through {ts1}${keywordText}{/ts1}` : ''}.`;
 }
 
-function buildMonthlyAnalysis(topTheme: ThemeScore | undefined, weeklyCount: number, streak: number, entryCount: number): string {
+function buildMonthlyAnalysis(
+  topTheme: ThemeScore | undefined,
+  weeklyCount: number,
+  streak: number,
+  entryCount: number,
+): string {
   if (entryCount === 0) {
     return 'Start writing to unlock insights about your thinking patterns.';
   }
@@ -481,7 +490,11 @@ function buildMonthlyAnalysis(topTheme: ThemeScore | undefined, weeklyCount: num
   return `Your activity reflects a {ts2}${weeklyCount} entry{/ts2} rhythm this week, maintaining a {ts2}${streak} day streak{/ts2}. The recurring theme of "${topTheme.label}" suggests a clear direction.`;
 }
 
-function buildStatLine(weeklyCount: number, previousWeeklyCount: number, entryCount: number): { line: string; note: string } {
+function buildStatLine(
+  weeklyCount: number,
+  previousWeeklyCount: number,
+  entryCount: number,
+): { line: string; note: string } {
   // Cannot calculate stats from a single entry
   if (entryCount <= 1) {
     return { line: '', note: '' };
@@ -493,7 +506,8 @@ function buildStatLine(weeklyCount: number, previousWeeklyCount: number, entryCo
       line: `${pct}% increase in reflection volume`,
       note: 'You are writing more this week compared to last, deepening your self-awareness.',
     };
-  } else if (pct < 0) {
+  }
+  if (pct < 0) {
     return {
       line: `${Math.abs(pct)}% decrease in reflection volume`,
       note: 'Your writing pace has slowed — a period of external focus or rest.',
@@ -505,7 +519,10 @@ function buildStatLine(weeklyCount: number, previousWeeklyCount: number, entryCo
   };
 }
 
-function buildFinalSynthesis(topTheme: ThemeScore | undefined, entryCount: number): { headline: string; body: string } {
+function buildFinalSynthesis(
+  topTheme: ThemeScore | undefined,
+  entryCount: number,
+): { headline: string; body: string } {
   if (entryCount === 0) {
     return {
       headline: 'Your story starts with the first entry',
@@ -583,10 +600,7 @@ function buildThinkingShifts(
 /**
  * Real co-occurrence: scan entries for themes that appear together.
  */
-function buildRelationshipMap(
-  entries: DecodedHomeEntry[],
-  themeScores: ThemeScore[],
-) {
+function buildRelationshipMap(entries: DecodedHomeEntry[], themeScores: ThemeScore[]) {
   const topThemes = themeScores.slice(0, 6);
   const nodes = topThemes.map((t) => ({
     id: t.key,
@@ -622,17 +636,20 @@ function buildRelationshipMap(
  */
 function buildReflectionTone(entries: DecodedHomeEntry[]): string {
   if (entries.length === 0) return '';
-  if (entries.length === 1) return 'Only one entry so far — write more to reveal your reflection tone.';
+  if (entries.length === 1)
+    return 'Only one entry so far — write more to reveal your reflection tone.';
 
   const avgWordCount = Math.round(
-    entries.reduce((sum, e) => sum + e.text.split(/\s+/).filter(Boolean).length, 0) / entries.length,
+    entries.reduce((sum, e) => sum + e.text.split(/\s+/).filter(Boolean).length, 0) /
+      entries.length,
   );
   const peakHour = getMostActiveHour(entries);
   const isNightWriter = peakHour >= 21 || peakHour < 5;
   const isLongForm = avgWordCount > 50;
 
-  if (isNightWriter && isLongForm) return 'Deep, contemplative night writing with extended self-examination.';
-  if (isNightWriter) return 'Concise late-night reflections capturing the day\'s essence.';
+  if (isNightWriter && isLongForm)
+    return 'Deep, contemplative night writing with extended self-examination.';
+  if (isNightWriter) return "Concise late-night reflections capturing the day's essence.";
   if (isLongForm) return 'Thorough, detailed entries that unpack thoughts methodically.';
   return 'Quick, focused entries that capture signal efficiently.';
 }
@@ -768,7 +785,10 @@ export function buildHomeAnalytics(input: {
   const topTheme = themeScores.length > 0 ? themeScores[0] : undefined;
   const clusters = buildClusters(entries, themeScores, input.now);
   const weeklyCount = getWeeklyEntryCount(entries, input.now);
-  const previousWeeklyCount = getWeeklyEntryCount(entries, new Date(input.now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const previousWeeklyCount = getWeeklyEntryCount(
+    entries,
+    new Date(input.now.getTime() - 7 * 24 * 60 * 60 * 1000),
+  );
   const stat = buildStatLine(weeklyCount, previousWeeklyCount, entries.length);
 
   return {
@@ -781,7 +801,12 @@ export function buildHomeAnalytics(input: {
     },
     insights: {
       monthlyQuote: buildMonthlyQuote(topTheme, keywords, entries.length),
-      monthlyAnalysis: buildMonthlyAnalysis(topTheme, weeklyCount, getCurrentStreak(entries, input.now), entries.length),
+      monthlyAnalysis: buildMonthlyAnalysis(
+        topTheme,
+        weeklyCount,
+        getCurrentStreak(entries, input.now),
+        entries.length,
+      ),
       statLine: stat.line,
       statNote: stat.note,
       dominantTheme: topTheme?.label || '',

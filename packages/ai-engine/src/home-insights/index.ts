@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { getOpenAiProvider } from '../env.js';
+import { getInsightModel } from '../env.js';
 
 const homeInsightSchema = z.object({
   monthlyQuote: z.string(),
@@ -9,6 +9,15 @@ const homeInsightSchema = z.object({
   statNote: z.string(),
   dominantTheme: z.string(),
   previousTheme: z.string(),
+  thoughtThemes: z
+    .array(
+      z.object({
+        label: z.string(),
+        count: z.number(),
+        percentage: z.number(),
+      }),
+    )
+    .max(5),
   finalSynthesis: z.object({
     headline: z.string(),
     body: z.string(),
@@ -68,9 +77,9 @@ export async function generateHomeInsightCopy(input: {
   writingProfileTitleFallback: string;
   writingProfileDescriptionFallback: string;
 }): Promise<HomeInsightCopy | null> {
-  const openai = getOpenAiProvider();
+  const model = getInsightModel();
 
-  if (!openai) {
+  if (!model) {
     return null;
   }
 
@@ -81,7 +90,7 @@ export async function generateHomeInsightCopy(input: {
     .slice(0, 50)
     .map(
       (e, i) =>
-        `Entry ${i + 1} [${e.timestamp}, ${e.dayOfWeek}, ${e.hourOfDay}:00, ${e.wordCount} words]: ${e.text.substring(0, 250)}`,
+        `Entry ${i + 1} [${e.timestamp}, ${e.dayOfWeek}, ${e.hourOfDay}:00, ${e.wordCount} words]: ${e.text.substring(0, 1200)}`,
     );
 
   // Determine edge-case instructions
@@ -98,7 +107,7 @@ export async function generateHomeInsightCopy(input: {
 
   try {
     const { object } = await generateObject({
-      model: openai('gpt-4o-mini'),
+      model,
       schema: homeInsightSchema,
       prompt: [
         'You are an introspective journal analyst for a journaling app named Soouls.',
@@ -126,6 +135,10 @@ export async function generateHomeInsightCopy(input: {
         '- dominantTheme: Single word label for the current dominant theme (e.g. "Clarity", "Discipline").',
         '- previousTheme: Single word label for what the theme evolved from (e.g. "Exploration", "Anxiety").',
         '',
+        'BOX 2 - THOUGHT THEMES:',
+        '- thoughtThemes: Top 1-5 themes from the real entries only. Labels must be 2-3 words, ALL CAPS. Count entries per theme and set percentage = count / total entries * 100.',
+        '- Sort descending by count. Do not invent filler themes.',
+        '',
         'BOX 4 — RELATIONSHIP MAP:',
         '- relationshipMap.nodes: Top concepts/themes as nodes. Max 6 nodes. id: lowercase slug, label: ALL CAPS, size: 1-10 based on frequency.',
         '- relationshipMap.links: Connections between nodes. source/target match node ids. strength: 0.0-1.0 based on how often they appear together in the same entry. Only include connections with strength > 0.3.',
@@ -138,7 +151,7 @@ export async function generateHomeInsightCopy(input: {
         '',
         'BOX 6 — FINAL SYNTHESIS:',
         '- finalSynthesis.headline: Max 12 words. The single most important insight from ALL the analysis above. Must be genuinely derived from entries, not generic.',
-        '- finalSynthesis.body: Max 30 words. Supporting context derived from the entries.',
+        '- finalSynthesis.body: Max 30 words. It must synthesize the monthly quote, thought themes, relationship map, reflection tone, and thinking shifts.',
         '',
         'OTHER FIELDS:',
         '- reflectionToneDescription: One sentence (max 15 words) describing the emotional vibe of their entries.',
@@ -153,6 +166,66 @@ export async function generateHomeInsightCopy(input: {
         '- If entries are about cooking, insights must be about cooking — never generic "growth" language.',
         '- Do NOT invent topics not present in the entries.',
         '- Keep language calm, specific, and emotionally intelligent.',
+      ].join('\n'),
+    });
+
+    return object;
+  } catch {
+    return null;
+  }
+}
+
+const clusterSchema = z.object({
+  clusters: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(80),
+        name: z.string().min(2).max(48),
+        description: z.string().min(1).max(220),
+        icon: z.string().default('folder'),
+        color: z.string().min(4).max(24),
+        entry_ids: z.array(z.string()).min(1),
+        theme_tags: z.array(z.string()).min(1).max(4),
+      }),
+    )
+    .min(1)
+    .max(8),
+});
+
+export type GeneratedEntryClusters = z.infer<typeof clusterSchema>;
+
+export async function generateEntryClusters(input: {
+  entries: Array<{ id: string; title: string | null; body: string; createdAt: string }>;
+}): Promise<GeneratedEntryClusters | null> {
+  const model = getInsightModel();
+  if (!model || input.entries.length === 0) return null;
+
+  const entriesForPrompt = input.entries.slice(0, 120).map((entry) => ({
+    id: entry.id,
+    title: entry.title ?? '',
+    body: entry.body.slice(0, 1200),
+    created_at: entry.createdAt,
+  }));
+
+  try {
+    const { object } = await generateObject({
+      model,
+      schema: clusterSchema,
+      prompt: [
+        'You are a journal analyst for Soouls. Group the user journal entries into meaningful clusters.',
+        'Return ONLY valid JSON matching the schema. No markdown.',
+        '',
+        `Entries: ${JSON.stringify(entriesForPrompt)}`,
+        '',
+        'Rules:',
+        '- Min 1 cluster, max 8 clusters.',
+        '- Every entry id must appear in exactly ONE cluster.',
+        '- Use only real entry IDs from the input.',
+        '- Cluster names must be evocative, 2-4 words, not generic. Never use "Journal Entries", "Misc", or "Other".',
+        '- Description must be one plain-language sentence based on the entries.',
+        '- Color must be a dark muted hex fitting a dark UI.',
+        '- theme_tags must be 2-4 lowercase words describing the feel of the cluster.',
+        '- If there are only 1-2 entries, create one cluster.',
       ].join('\n'),
     });
 
@@ -183,12 +256,12 @@ export async function generateClusterInsights(input: {
   clusterName: string;
   entriesText: string[];
 }): Promise<ClusterInsightCopy | null> {
-  const openai = getOpenAiProvider();
-  if (!openai) return null;
+  const model = getInsightModel();
+  if (!model) return null;
 
   try {
     const { object } = await generateObject({
-      model: openai('gpt-4o-mini'),
+      model,
       schema: clusterInsightSchema,
       prompt: [
         'You are an AI therapist/companion analyzing journal entries for a cluster.',
@@ -198,6 +271,100 @@ export async function generateClusterInsights(input: {
         'Generate an emotionally intelligent narrative, observation, next step, and reflection prompt based on their real writings. Keep it empathetic and insightful.',
       ].join('\n'),
     });
+    return object;
+  } catch {
+    return null;
+  }
+}
+
+const entryCanvasSchema = z.object({
+  canvas_title: z.string().min(1).max(80),
+  cards: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(64),
+        type: z.enum(['idea', 'quote', 'emotion', 'question', 'warning', 'reflection']),
+        title: z.string().min(1).max(100),
+        body: z.string().min(1).max(500),
+        x: z.number().min(0).max(900),
+        y: z.number().min(0).max(600),
+        width: z.number().min(160).max(260),
+        height: z.number().min(100).max(180),
+        color: z.string().min(4).max(24),
+        border_color: z.string().min(4).max(24),
+        tag: z.string().max(48).optional(),
+      }),
+    )
+    .min(1)
+    .max(8),
+  connections: z
+    .array(
+      z.object({
+        from: z.string(),
+        to: z.string(),
+        label: z.string().max(40).optional(),
+      }),
+    )
+    .max(12),
+  warning_card: z
+    .object({
+      exists: z.boolean(),
+      card_id: z.string().nullable(),
+      message: z.string().nullable(),
+    })
+    .optional(),
+  cluster_insight: z.string().max(300),
+});
+
+export type GeneratedEntryCanvas = z.infer<typeof entryCanvasSchema>;
+
+export async function generateEntryCanvas(input: {
+  entryTitle: string;
+  entryBody: string;
+  clusterName: string;
+  clusterTags: string[];
+}): Promise<GeneratedEntryCanvas | null> {
+  const model = getInsightModel();
+  if (!model) return null;
+
+  const words = input.entryBody.split(/\s+/).filter(Boolean);
+  const truncatedBody = words.slice(0, 800).join(' ');
+  const isShort = words.length < 30;
+
+  try {
+    const { object } = await generateObject({
+      model,
+      schema: entryCanvasSchema,
+      prompt: [
+        'You are a visual thinking assistant for Soouls, a private journaling app.',
+        'Decompose the user journal entry into interconnected thought cards.',
+        'Return ONLY valid JSON that matches the schema.',
+        '',
+        `Entry title: ${input.entryTitle}`,
+        `Entry body: ${truncatedBody}`,
+        `Cluster theme: ${input.clusterName}`,
+        `Cluster tags: ${input.clusterTags.join(', ') || 'none'}`,
+        words.length > 800
+          ? 'The entry was truncated to 800 words. Focus on the most emotionally significant ideas.'
+          : '',
+        isShort
+          ? 'This entry is under 30 words. Use 2-3 cards only and do not pad with invented content.'
+          : '',
+        '',
+        'Rules:',
+        '- Use 3-8 cards unless the entry is under 30 words, then use 2-3.',
+        '- All text must be directly grounded in the entry. Do not invent facts.',
+        '- Card types: idea, quote, emotion, question, warning, reflection.',
+        '- Spread x/y positions across a 900x600 canvas. Do not stack cards.',
+        '- Width must be 160-260 and height must be 100-180.',
+        '- Use dark card colors and muted orange/red/teal/brown border colors that fit a dark UI.',
+        '- Add at least one connection if there are 2 or more cards.',
+        '- Warning cards are only for anxiety, conflict, urgency, or red-flag themes present in the entry.',
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    });
+
     return object;
   } catch {
     return null;

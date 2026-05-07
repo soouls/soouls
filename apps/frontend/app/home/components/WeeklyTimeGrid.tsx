@@ -78,6 +78,7 @@ export function WeeklyTimeGrid({
                   {SHORT_DAYS[wd.getDay()]}
                 </span>
                 <button
+                  type="button"
                   onClick={() => onSelectDay(wd.getDate())}
                   className={`w-9 h-9 rounded-full text-sm font-semibold flex items-center justify-center transition-all ${
                     isToday
@@ -185,7 +186,7 @@ export function WeeklyTimeGrid({
                     })}
 
                     {/* Render Soouls Entries (assuming default 30 min duration for visual) */}
-                    {dayEntries.map((entry, index) => {
+                    {dayEntries.map((entry) => {
                       const startHour =
                         entry.createdAt.getHours() + entry.createdAt.getMinutes() / 60;
                       const top = startHour * 80;
@@ -194,6 +195,7 @@ export function WeeklyTimeGrid({
                       return (
                         <button
                           key={entry.id}
+                          type="button"
                           onClick={() => onOpenEntry(entry.id)}
                           className="absolute left-1 right-1 rounded-md px-2 py-1.5 overflow-hidden text-left text-[10px] bg-zinc-800 border border-zinc-700 hover:border-[#e67e65] hover:bg-zinc-700 transition-all z-20 shadow-lg"
                           style={{

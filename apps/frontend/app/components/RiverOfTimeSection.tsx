@@ -237,6 +237,7 @@ export default function RiverOfTimeSection() {
         <div className="reveal mt-[30px] lg:mt-[40px] flex flex-col items-center lg:items-start w-full">
           <div className="flex flex-col lg:flex-row items-center gap-[12px] mb-[8px]">
             <svg
+              aria-hidden="true"
               width="28"
               height="28"
               viewBox="0 0 24 24"

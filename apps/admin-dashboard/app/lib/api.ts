@@ -248,7 +248,7 @@ const CACHE_CONFIGS: Record<string, CacheConfig> = {
   '/api/admin/entries': { revalidate: 60, staleWhileRevalidate: 300 },
 };
 
-const WHITELISTED_CACHE_URLS = new Set(Object.keys(CACHE_CONFIGS));
+const _WHITELISTED_CACHE_URLS = new Set(Object.keys(CACHE_CONFIGS));
 
 export async function api<T>(
   url: string,
@@ -259,7 +259,10 @@ export async function api<T>(
     cache: init?.cache ?? 'no-store',
   });
 
-  const payload = (await response.json().catch(() => null)) as T | { message?: string; statusCode?: number; error?: string } | null;
+  const payload = (await response.json().catch(() => null)) as
+    | T
+    | { message?: string; statusCode?: number; error?: string }
+    | null;
   if (!response.ok) {
     // NestJS returns { statusCode, message, error } format
     const msg =

@@ -5,10 +5,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { LogOut, Settings, Sparkles, UserCircle, X } from 'lucide-react';
 import Link from 'next/link';
 import type React from 'react';
+import { trpc } from '../../src/utils/trpc';
 import { CanvasLoopIcon, DiamondIcon, NetworkIcon } from './Icons';
 import { SymbolLogo } from './SymbolLogo';
-import { trpc } from '../../src/utils/trpc';
-
 
 interface ProfileSidebarProps {
   isOpen: boolean;
@@ -83,7 +82,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 <br />
                 in a row.&quot;
               </p>
-              
+
               {insights?.monthlyAnalysis && (
                 <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/10">
                   <div className="flex items-center gap-2 mb-2 text-[#D46B4E]">
@@ -100,7 +99,11 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             {/* Nav Links */}
             <nav className="flex-1 space-y-2 relative z-10">
               {[
-                { label: 'Dashboard', href: '/home/dashboard', icon: <DiamondIcon className="w-5 h-5" /> },
+                {
+                  label: 'Dashboard',
+                  href: '/home/dashboard',
+                  icon: <DiamondIcon className="w-5 h-5" />,
+                },
                 {
                   label: 'Insights',
                   href: '/home/insights',
