@@ -41,9 +41,7 @@ async function bootstrap() {
   expressApp.set('trust proxy', 1);
 
   const allowedOrigins = Array.from(
-    new Set(
-      [process.env.FRONTEND_URL, process.env.COMMAND_CENTER_URL].filter(Boolean) as string[],
-    ),
+    new Set([process.env.FRONTEND_URL, process.env.COMMAND_CENTER_URL].filter(Boolean) as string[]),
   );
 
   app.enableCors({

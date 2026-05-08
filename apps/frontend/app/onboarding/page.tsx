@@ -234,7 +234,7 @@ function BackgroundField({ stage }: { stage: Stage }) {
           opacity: [0.1, 0.2, 0.1],
           scale: [1, 1.1, 1],
         }}
-        transition={{ duration: 8, repeat: Infinity }}
+        transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY }}
         className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--soouls-accent-rgb),0.04)_0,transparent_55%)]"
       />
     </>
@@ -308,7 +308,8 @@ function ChoiceCard({
       <div
         className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          background: 'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.08) 0%, transparent 70%)',
+          background:
+            'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.08) 0%, transparent 70%)',
         }}
       />
       {mascot && mascotAwake ? <MiniMascot mode={mascot} /> : null}
@@ -436,7 +437,6 @@ export default function OnboardingPage() {
     }
   }, [isLoaded, onboardingStatus, router, user]);
 
-
   useEffect(() => {
     previewTheme(theme, 'dark');
   }, [previewTheme, theme]);
@@ -463,7 +463,6 @@ export default function OnboardingPage() {
   const getStageNumber = useCallback((s: Stage) => {
     return FLOW_SEQUENCE.indexOf(s) + 1;
   }, []);
-
 
   const goNext = useCallback(() => {
     const index = FLOW_SEQUENCE.indexOf(stage);
@@ -618,7 +617,6 @@ export default function OnboardingPage() {
 
       <div className="relative z-10 min-h-screen px-4 pb-32 pt-6 sm:px-8 lg:px-10">
         <div className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col items-center">
-
           <div className="flex min-w-0 w-full flex-1 flex-col items-center justify-center pt-12 lg:pt-20">
             <div className="mb-12 flex w-full items-center justify-center">
               <Link
@@ -1337,7 +1335,9 @@ export default function OnboardingPage() {
                     className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs font-bold uppercase tracking-[0.28em] text-white disabled:opacity-40 transition-shadow"
                     style={{
                       backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.96)',
-                      boxShadow: canContinue ? '0 10px 20px rgba(var(--soouls-accent-rgb), 0.2)' : 'none',
+                      boxShadow: canContinue
+                        ? '0 10px 20px rgba(var(--soouls-accent-rgb), 0.2)'
+                        : 'none',
                     }}
                   >
                     Next

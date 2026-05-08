@@ -1,6 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
 import {
   type InsightEntryMeta,
   generateClusterInsights,
@@ -530,7 +530,11 @@ export class HomeService implements HomeApi {
   }> {
     const { analytics } = await this.getSnapshot(userId);
     const decodedEntries = await this.getDecodedEntries(userId);
-    const aiClustered = await this.ensureAiClusters(userId, decodedEntries, analytics.clusters.items);
+    const aiClustered = await this.ensureAiClusters(
+      userId,
+      decodedEntries,
+      analytics.clusters.items,
+    );
     if (!aiClustered) {
       await this.ensureReliableClusters(userId, analytics.clusters.items, decodedEntries);
     }
@@ -570,27 +574,27 @@ export class HomeService implements HomeApi {
                 return count > 0 || folder.metadata?.source === 'manual';
               })
               .map((folder, index) => {
-              const analyticsMatch = analytics.clusters.items.find(
-                (item) => item.name.toLowerCase() === folder.title.toLowerCase(),
-              );
-              return {
-                id: folder.id,
-                name: folder.title,
-                entryCount: entryCounts.get(folder.id) ?? analyticsMatch?.entryCount ?? 0,
-                updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
-                description:
-                  folder.description ??
-                  analyticsMatch?.description ??
-                  'A stable space formed from recurring patterns in your entries.',
-                strength: index === 0 ? 'Dominant' : (analyticsMatch?.strength ?? 'Emerging'),
-                tones: folder.metadata?.themeTags?.length
-                  ? folder.metadata.themeTags
-                  : (analyticsMatch?.tones ?? ['Reflective', 'Focused']),
-                color: folder.color,
-                themeTags: folder.metadata?.themeTags ?? analyticsMatch?.tones ?? [],
-                source: folder.metadata?.source ?? 'manual',
-              };
-            })
+                const analyticsMatch = analytics.clusters.items.find(
+                  (item) => item.name.toLowerCase() === folder.title.toLowerCase(),
+                );
+                return {
+                  id: folder.id,
+                  name: folder.title,
+                  entryCount: entryCounts.get(folder.id) ?? analyticsMatch?.entryCount ?? 0,
+                  updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
+                  description:
+                    folder.description ??
+                    analyticsMatch?.description ??
+                    'A stable space formed from recurring patterns in your entries.',
+                  strength: index === 0 ? 'Dominant' : (analyticsMatch?.strength ?? 'Emerging'),
+                  tones: folder.metadata?.themeTags?.length
+                    ? folder.metadata.themeTags
+                    : (analyticsMatch?.tones ?? ['Reflective', 'Focused']),
+                  color: folder.color,
+                  themeTags: folder.metadata?.themeTags ?? analyticsMatch?.tones ?? [],
+                  source: folder.metadata?.source ?? 'manual',
+                };
+              })
           : analytics.clusters.items,
       folders:
         userFoldersAfterPromotion.length > 0
@@ -969,9 +973,7 @@ export class HomeService implements HomeApi {
       }
 
       const matchWords =
-        cluster.name === 'Recent Entries'
-          ? []
-          : this.getClusterMatchWords(cluster.name);
+        cluster.name === 'Recent Entries' ? [] : this.getClusterMatchWords(cluster.name);
 
       for (const entry of entries) {
         if (entry.clusterId) continue;

@@ -82,7 +82,6 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 <br />
                 in a row.&quot;
               </p>
-
             </div>
 
             {/* Nav Links */}
