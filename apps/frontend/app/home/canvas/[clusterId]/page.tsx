@@ -298,11 +298,11 @@ export default function CanvasClusterPage() {
       border_color: '#E07A5F',
       tag: 'Manual',
     };
-    setNodes((current: Node[]) => [...current, ...makeCanvasNodes([card], patchCard)]);
+    setNodes((current: CanvasNode[]) => [...current, ...makeCanvasNodes([card], patchCard)]);
   };
 
   const deleteSelection = () => {
-    setNodes((current: Node[]) => current.filter((node: Node) => !node.selected));
+    setNodes((current: CanvasNode[]) => current.filter((node: CanvasNode) => !node.selected));
     setEdges((current: Edge[]) => current.filter((edge: Edge) => !edge.selected));
   };
 
