@@ -266,7 +266,10 @@ export class HomeService implements HomeApi {
     };
   }
 
-  private async getSnapshot(userId: string): Promise<{
+  private async getSnapshot(
+    userId: string,
+    forceRefresh = false,
+  ): Promise<{
     user: UserRow;
     settings: NormalizedUserPreferences;
     analytics: ReturnType<typeof buildHomeAnalytics>;
@@ -281,7 +284,7 @@ export class HomeService implements HomeApi {
       lastUpdated: string;
     }>(cacheKey);
 
-    if (cached) {
+    if (cached && !forceRefresh) {
       return cached;
     }
 
@@ -320,13 +323,23 @@ export class HomeService implements HomeApi {
   }
 
   async getInsights(userId: string): Promise<HomeInsights> {
-    const { analytics, lastUpdated } = await this.getSnapshot(userId);
+    const snapshot = await this.getSnapshot(userId);
     const entries = await this.getDecodedEntries(userId);
+    const lastUpdatedDate = Date.parse(snapshot.lastUpdated);
+    const isStale = entries.some((entry) => entry.updatedAt.getTime() > lastUpdatedDate);
+
+    if (isStale) {
+      this.triggerBackgroundEnrichment(userId).catch((err) =>
+        console.error('[HomeService] Background enrichment failed:', err),
+      );
+    }
+
+    const { analytics, lastUpdated } = snapshot;
     const reflectionHistogram = this.buildReflectionHistogram(entries);
 
     return {
       lastUpdated,
-      isStale: entries.some((entry) => entry.updatedAt.getTime() > Date.parse(lastUpdated)),
+      isStale,
       overview: analytics?.overview,
       monthlyQuote: analytics?.insights?.monthlyQuote ?? 'You are building your reflection rhythm.',
       monthlyAnalysis: analytics?.insights?.monthlyAnalysis ?? 'Not enough data yet.',
@@ -443,6 +456,29 @@ export class HomeService implements HomeApi {
     await this.redis.invalidatePattern(`home:*:${userId}*`);
 
     return next;
+  }
+
+  async refreshInsights(userId: string): Promise<HomeInsights> {
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const cacheKey = `${this.getCacheKey('home:snapshot:v5', userId)}:${monthKey}`;
+    await this.redis.del(cacheKey);
+
+    // Force a fresh snapshot which will do AI enrichment
+    await this.getSnapshot(userId, true);
+    return this.getInsights(userId);
+  }
+
+  private async triggerBackgroundEnrichment(userId: string) {
+    const lockKey = `home:enrichment-lock:${userId}`;
+    const isLocked = await this.redis.exists(lockKey);
+    if (isLocked) return;
+
+    await this.redis.set(lockKey, 'locked', 30);
+    try {
+      await this.getSnapshot(userId, true);
+    } finally {
+      await this.redis.del(lockKey);
+    }
   }
 
   async getOnboardingStatus(userId: string) {
@@ -669,6 +705,8 @@ export class HomeService implements HomeApi {
     if (specs.length === 0) return false;
 
     const generatedAt = new Date().toISOString();
+    const createdClusterIds: string[] = [];
+
     for (const spec of specs) {
       const [existing] = await db
         .select({ id: clusters.id })
@@ -710,10 +748,34 @@ export class HomeService implements HomeApi {
       }
 
       if (!clusterId) continue;
+      createdClusterIds.push(clusterId);
+
       await db
         .update(journalEntries)
         .set({ clusterId, updatedAt: new Date() })
         .where(and(eq(journalEntries.userId, userId), inArray(journalEntries.id, spec.entry_ids)));
+    }
+
+    // Handle orphans (entries missed by AI but within the 80% threshold)
+    const assignedEntryIds = new Set(specs.flatMap((s) => s.entry_ids));
+    const orphans = entries.filter((e) => !assignedEntryIds.has(e.id));
+
+    // CodeRabbit Suggestion: Assign to the first valid thematic cluster created for this user
+    // in this session to ensure entries don't end up in "Date Folders" if 80%+ coverage is met.
+    if (orphans.length > 0 && createdClusterIds.length > 0) {
+      const fallbackClusterId = createdClusterIds[0];
+      await db
+        .update(journalEntries)
+        .set({ clusterId: fallbackClusterId, updatedAt: new Date() })
+        .where(
+          and(
+            eq(journalEntries.userId, userId),
+            inArray(
+              journalEntries.id,
+              orphans.map((o) => o.id),
+            ),
+          ),
+        );
     }
 
     await this.redis.invalidatePattern(`entries:all:${userId}:*`);
@@ -725,15 +787,24 @@ export class HomeService implements HomeApi {
     entries: DecodedHomeEntry[],
   ): boolean {
     const validIds = new Set(entries.map((entry) => entry.id));
+    if (validIds.size === 0) return true;
+
+    let seenCount = 0;
     const seen = new Set<string>();
+
     for (const cluster of clustersInput) {
-      if (!cluster.entry_ids?.length) return false;
+      if (!cluster.entry_ids?.length) continue;
       for (const entryId of cluster.entry_ids) {
-        if (!validIds.has(entryId) || seen.has(entryId)) return false;
-        seen.add(entryId);
+        if (validIds.has(entryId) && !seen.has(entryId)) {
+          seen.add(entryId);
+          seenCount++;
+        }
       }
     }
-    return seen.size === validIds.size;
+
+    // Require at least 80% coverage to accept AI clusters instead of falling back to dates
+    const coverage = seenCount / validIds.size;
+    return coverage >= 0.8;
   }
 
   /**
