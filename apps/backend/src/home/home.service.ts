@@ -458,6 +458,29 @@ export class HomeService implements HomeApi {
     return next;
   }
 
+  async refreshInsights(userId: string): Promise<HomeInsights> {
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const cacheKey = `${this.getCacheKey('home:snapshot:v5', userId)}:${monthKey}`;
+    await this.redis.del(cacheKey);
+
+    // Force a fresh snapshot which will do AI enrichment
+    await this.getSnapshot(userId, true);
+    return this.getInsights(userId);
+  }
+
+  private async triggerBackgroundEnrichment(userId: string) {
+    const lockKey = `home:enrichment-lock:${userId}`;
+    const isLocked = await this.redis.exists(lockKey);
+    if (isLocked) return;
+
+    await this.redis.set(lockKey, 'locked', 30);
+    try {
+      await this.getSnapshot(userId, true);
+    } finally {
+      await this.redis.del(lockKey);
+    }
+  }
+
   async getOnboardingStatus(userId: string) {
     const user = await this.getUserRow(userId);
     const preferences = (user.preferences ?? {}) as Record<string, unknown>;

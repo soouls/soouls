@@ -428,6 +428,7 @@ export type AccountExport = {
 
 export type HomeApi = {
   getInsights: (userId: string) => Promise<HomeInsights>;
+  refreshInsights: (userId: string) => Promise<HomeInsights>;
   getAccount: (userId: string) => Promise<HomeAccount>;
   getSettings: (userId: string) => Promise<HomeSettings>;
   updateSettings: (userId: string, input: Partial<HomeSettings>) => Promise<HomeSettings>;
