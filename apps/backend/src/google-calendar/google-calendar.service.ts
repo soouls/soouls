@@ -26,7 +26,7 @@ export class GoogleCalendarService {
   private readonly clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? '';
   private readonly redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI ?? '';
 
-  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
+  constructor(private readonly redis: RedisService) {}
 
   // ─── Configured? ─────────────────────────────────────────────────────────
 

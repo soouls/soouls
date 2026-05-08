@@ -633,10 +633,10 @@ export default function HomePage() {
                 }}
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 ${refreshInsights.isLoading ? 'animate-spin' : ''}`}
+                  className={`w-3.5 h-3.5 ${refreshInsights.isPending ? 'animate-spin' : ''}`}
                   strokeWidth={2}
                 />
-                {refreshInsights.isLoading ? 'Refreshing…' : 'Refresh'}
+                {refreshInsights.isPending ? 'Refreshing…' : 'Refresh'}
               </button>
             </div>
 

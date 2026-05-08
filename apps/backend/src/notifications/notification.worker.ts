@@ -13,10 +13,7 @@ export class NotificationWorker implements OnModuleInit, OnModuleDestroy {
   private readonly connection = createRedisConnection();
   private worker: Worker<NotificationJobData, void, NotificationJobName> | null = null;
 
-  constructor(
-    @Inject(NotificationDispatchService)
-    private readonly dispatcher: NotificationDispatchService,
-  ) {}
+  constructor(private readonly dispatcher: NotificationDispatchService) {}
 
   onModuleInit() {
     if (!this.connection) {
