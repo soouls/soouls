@@ -760,6 +760,8 @@ export class HomeService implements HomeApi {
     const assignedEntryIds = new Set(specs.flatMap((s) => s.entry_ids));
     const orphans = entries.filter((e) => !assignedEntryIds.has(e.id));
 
+    // CodeRabbit Suggestion: Assign to the first valid thematic cluster created for this user
+    // in this session to ensure entries don't end up in "Date Folders" if 80%+ coverage is met.
     if (orphans.length > 0 && createdClusterIds.length > 0) {
       const fallbackClusterId = createdClusterIds[0];
       await db
