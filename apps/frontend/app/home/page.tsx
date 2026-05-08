@@ -12,12 +12,14 @@ import {
   LayoutGrid,
   Loader2,
   Mic,
+  Moon,
   MoreVertical,
   Search,
   Sparkles,
   Trash2,
   User,
   X,
+  RefreshCw,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -34,6 +36,143 @@ import { CalendarModal } from './components/CalendarModal';
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,var(--soouls-accent)&radius=50`;
+}
+
+/* ─────────── tiny SVG icons from Insights ─────────── */
+const SoulLeafIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="48"
+    height="48"
+    viewBox="0 0 48 48"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M46.4309 8.97949C46.4095 8.61252 46.2541 8.2662 45.9941 8.00628C45.7342 7.74635 45.3879 7.59092 45.0209 7.56949C35.3159 7.00699 27.5234 9.95824 24.1747 15.4857C21.9622 19.1401 21.9659 23.5782 24.1447 27.812C22.9044 29.2882 21.998 31.0151 21.4878 32.8745L18.4372 29.8126C19.9034 26.7507 19.8472 23.5595 18.2497 20.9082C15.7747 16.8226 10.0616 14.6326 2.96842 15.0489C2.60146 15.0703 2.25514 15.2257 1.99521 15.4857C1.73529 15.7456 1.57986 16.0919 1.55842 16.4589C1.1403 23.552 3.33218 29.2651 7.4178 31.7401C8.76597 32.564 10.3153 33 11.8953 33.0001C13.4288 32.9811 14.9385 32.6178 16.3128 31.937L21.0003 36.6245V42.0001C21.0003 42.3979 21.1583 42.7795 21.4396 43.0608C21.7209 43.3421 22.1025 43.5001 22.5003 43.5001C22.8981 43.5001 23.2797 43.3421 23.561 43.0608C23.8423 42.7795 24.0003 42.3979 24.0003 42.0001V36.4707C23.9935 34.0844 24.8056 31.768 26.3009 29.9082C28.2302 30.9166 30.3699 31.4561 32.5466 31.4832C34.651 31.49 36.7164 30.9151 38.5147 29.822C44.0422 26.477 47.0009 18.6845 46.4309 8.97949ZM8.96468 29.1751C6.08843 27.4332 4.46093 23.3101 4.5003 18.0001C9.8103 17.9551 13.9334 19.5882 15.6753 22.4645C16.5847 23.9645 16.7328 25.7139 16.1365 27.5157L11.5597 22.9389C11.2761 22.6694 10.8985 22.5214 10.5073 22.5265C10.1162 22.5315 9.74246 22.6891 9.46586 22.9657C9.18926 23.2423 9.03165 23.616 9.02664 24.0071C9.02163 24.3983 9.16962 24.7759 9.43905 25.0595L14.0159 29.6364C12.2141 30.2326 10.4666 30.0845 8.96468 29.1751ZM36.9603 27.2589C34.4478 28.7795 31.4947 28.8957 28.4947 27.6339L38.5616 17.5651C38.831 17.2815 38.979 16.9039 38.974 16.5128C38.969 16.1216 38.8113 15.7479 38.5347 15.4713C38.2581 15.1947 37.8844 15.0371 37.4933 15.0321C37.1021 15.0271 36.7245 15.1751 36.4409 15.4445L26.3722 25.5001C25.1047 22.5001 25.219 19.5451 26.7472 17.0345C29.3609 12.722 35.5597 10.3182 43.4966 10.5039C43.6766 18.4389 41.2766 24.6451 36.9603 27.2589Z"
+      fill="#B7FF8D"
+    />
+  </svg>
+);
+
+const MoonZzzIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="32"
+    height="32"
+    viewBox="0 0 28 28"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M14 21a8 8 0 0 1-5-14.3 8 8 0 0 0 9.3 11.3A8 8 0 0 1 14 21z" fill="#E8704A" />
+    <path
+      d="M19 11h2.5l-2.5 3h2.5"
+      stroke="#E8704A"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M23 6h2l-2 2.5h2"
+      stroke="#E8704A"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const TrendUpIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#E8704A"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+    <polyline points="16 7 22 7 22 13" />
+  </svg>
+);
+
+const TrendDownIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#E8704A"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+    <polyline points="16 17 22 17 22 11" />
+  </svg>
+);
+
+const CheckCircleIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#E8704A"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+);
+
+function SectionCard({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={`rounded-[20px] border border-[rgba(255,255,255,0.04)] p-[32px] flex flex-col ${className}`}
+      style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
+    >
+      {children}
+    </section>
+  );
+}
+
+function parseHighlightedText(text: string | undefined | null, fallback: string) {
+  if (!text) return fallback;
+  const parts = text.split(/(\{ts[12]\}.*?\{\/ts[12]\})/g);
+
+  return parts.map((part, i) => {
+    if (part.startsWith('{ts1}')) {
+      const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
+      return (
+        <span key={i} style={{ color: '#E8704A' }}>
+          {innerText}
+        </span>
+      );
+    }
+    if (part.startsWith('{ts2}')) {
+      const innerText = part.replace(/\{ts2\}/g, '').replace(/\{\/ts2\}/g, '');
+      return (
+        <strong key={i} className="text-[#f0ece6] font-semibold">
+          {innerText}
+        </strong>
+      );
+    }
+    return part;
+  });
 }
 
 function entryTitle(entry: UserEntry) {
@@ -365,6 +504,8 @@ export default function HomePage() {
 
   const { data: insights } = trpc.private.home.getInsights.useQuery(undefined);
   const { data: entries } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
+  const refreshInsights = trpc.private.home.refreshInsights.useMutation();
+  const utils = trpc.useContext();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -380,38 +521,7 @@ export default function HomePage() {
     }
   }, []);
 
-  const activityBars = buildActivityBars(entries?.items ?? []);
   const thoughtThemes = insights?.thoughtThemes ?? [];
-  const coreThemes = insights?.coreThemes ?? [];
-  const shiftMetrics = useMemo(() => {
-    return (
-      coreThemes.length
-        ? coreThemes
-        : thoughtThemes.map((theme) => ({ label: theme.label, percent: theme.progress }))
-    )
-      .slice(0, 4)
-      .map((theme, index) => ({
-        label: theme.label,
-        icon:
-          index === 0 ? (
-            <ArrowUpRight className="h-4 w-4" style={{ color: 'var(--soouls-accent)' }} />
-          ) : index === 1 ? (
-            <ArrowDownRight className="h-4 w-4 text-white/40" />
-          ) : index === 2 ? (
-            <span
-              className="rounded-full border px-2 py-0.5 text-[8px] tracking-widest"
-              style={{
-                borderColor: 'rgba(var(--soouls-accent-rgb),0.35)',
-                color: 'var(--soouls-accent)',
-              }}
-            >
-              EMERGING
-            </span>
-          ) : (
-            <CircleOff className="h-4 w-4 text-white/30" />
-          ),
-      }));
-  }, [coreThemes, thoughtThemes]);
 
   const avatarUrl =
     user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id);
@@ -500,151 +610,305 @@ export default function HomePage() {
             className="w-full rounded-[2rem] p-4 md:p-8"
             style={{ backgroundColor: 'var(--soouls-bg-surface)' }}
           >
-            <div className="mb-6 flex justify-end gap-2 text-[11px] font-medium tracking-wider text-[var(--soouls-text-faint)]">
-              <Calendar className="h-3.5 w-3.5" />
-              {formatCurrentMonthRange()}
-            </div>
-            <div
-              className="mb-6 rounded-2xl p-7 md:p-10"
-              style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
-            >
-              <LeafIcon className="mb-6 h-5 w-5 text-[#86A861]" />
-              <p className="font-playfair text-2xl italic leading-[1.25] text-[var(--soouls-text-strong)] md:text-5xl">
-                "
-                {insights?.monthlyQuote ??
-                  'Your entries are beginning to show a more coherent direction.'}
-                "
-              </p>
-              <p className="mt-6 max-w-5xl text-sm leading-relaxed text-[var(--soouls-text-muted)]">
-                {insights
-                  ? `You have ${insights.overview?.entryCount ?? 0} entries in your archive, ${insights.overview?.weeklyEntryCount ?? 0} entries this week, and a ${insights.overview?.currentStreak ?? 0}-day reflective streak.`
-                  : 'Your home summary evolves from your real writing as soon as you start capturing entries.'}
-              </p>
+            <div className="flex justify-between items-center mb-6 px-2">
+              <div className="flex justify-end gap-2 text-[11px] font-medium tracking-wider text-[var(--soouls-text-faint)]">
+                <Calendar className="h-3.5 w-3.5" />
+                {formatCurrentMonthRange()}
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await refreshInsights.mutateAsync({});
+                    await utils.private.home.getInsights.invalidate();
+                  } catch (err) {
+                    console.error('Refresh failed:', err);
+                  }
+                }}
+                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-all duration-300 cursor-pointer hover:shadow-[0_0_16px_rgba(232,112,74,0.3)]"
+                style={{
+                  borderColor: '#E8704A',
+                  color: '#E8704A',
+                  backgroundColor: 'rgba(232,112,74,0.06)',
+                }}
+              >
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${refreshInsights.isLoading ? 'animate-spin' : ''}`}
+                  strokeWidth={2}
+                />
+                {refreshInsights.isLoading ? 'Refreshing…' : 'Refresh'}
+              </button>
             </div>
 
-            <div className="mb-6 grid gap-6 lg:grid-cols-2">
-              <div
-                className="rounded-2xl p-7"
-                style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
-              >
-                <h2 className="mb-8 text-base font-medium">Thought Themes</h2>
-                <div className="space-y-5">
-                  {thoughtThemes.length ? (
-                    thoughtThemes.slice(0, 4).map((theme) => (
-                      <div key={theme.key}>
-                        <div className="mb-2 flex justify-between text-[10px] font-medium tracking-wider text-[var(--soouls-text-faint)]">
-                          <span>{theme.label.toUpperCase()}</span>
-                          <span>{theme.count} ENTRIES</span>
+            <SectionCard className="mb-6">
+              <div className="flex justify-between items-start mb-[24px]">
+                <SoulLeafIcon />
+                {insights?.previousTheme && insights?.dominantTheme && (
+                  <div className="text-[10px] tracking-[0.1em] text-[rgba(240,236,230,0.4)] uppercase font-medium">
+                    {insights.previousTheme} <span className="mx-1">→</span>{' '}
+                    <span className="text-[#E8704A]">{insights.dominantTheme}</span>
+                  </div>
+                )}
+              </div>
+
+              <p className="font-playfair text-[32px] font-semibold italic leading-[1.2] mb-[24px] text-[#f0ece6] tracking-[-0.01em]">
+                &ldquo;{parseHighlightedText(insights?.monthlyQuote, '')}&rdquo;
+              </p>
+
+              <div className="space-y-4">
+                {insights?.monthlyAnalysis && (
+                  <p className="text-[14px] leading-[1.65] font-light text-[rgba(240,236,230,0.55)] max-w-[95%] tracking-wide">
+                    {parseHighlightedText(insights.monthlyAnalysis, '')}
+                  </p>
+                )}
+
+                {insights?.statLine && (
+                  <div className="pt-2">
+                    <p className="text-[14px] font-medium text-[#f0ece6] mb-1">
+                      {insights.statLine}
+                    </p>
+                    <p className="text-[13px] font-light text-[rgba(240,236,230,0.4)] italic">
+                      {insights.statNote}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <SectionCard>
+                <h2 className="text-[24px] font-light tracking-[-0.01em] text-[#f0ece6] mb-[36px] font-sans">
+                  Thought Themes
+                </h2>
+                {thoughtThemes.length === 0 ? (
+                  <p className="text-[13px] font-light text-[rgba(240,236,230,0.35)] italic">
+                    Write more entries to reveal your thought themes.
+                  </p>
+                ) : (
+                  <div className="space-y-[26px] flex-1 flex flex-col justify-end">
+                    {thoughtThemes.slice(0, 4).map((t, i) => (
+                      <div key={i} className="space-y-2">
+                        <div className="flex justify-between text-[11px] font-medium tracking-wider text-[rgba(240,236,230,0.45)]">
+                          <span>{t.label.toUpperCase()}</span>
+                          <span>{t.progress}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-black/50">
+                        <div className="h-[10px] rounded-full overflow-hidden bg-[#3c241a]">
                           <div
-                            className="h-full rounded-full"
+                            className="h-full rounded-full transition-all duration-1000"
                             style={{
-                              width: `${theme.progress}%`,
-                              background: 'linear-gradient(90deg,var(--soouls-accent),orange)',
+                              width: `${t.progress}%`,
+                              background:
+                                i === 0
+                                  ? 'linear-gradient(90deg, #E8704A, #fbc343)'
+                                  : i === 1
+                                    ? '#8b5e34'
+                                    : '#5c3d2e',
                             }}
                           />
                         </div>
                       </div>
-                    ))
+                    ))}
+                  </div>
+                )}
+              </SectionCard>
+
+              <SectionCard className="justify-between">
+                <div>
+                  <h2 className="text-[24px] font-light tracking-[-0.01em] text-[#f0ece6] mb-[32px] font-sans">
+                    Reflection Patterns
+                  </h2>
+                  <div className="flex items-start gap-[16px]">
+                    <div className="mt-[2px] shrink-0 opacity-90">
+                      <MoonZzzIcon />
+                    </div>
+                    <p className="text-[15px] leading-[1.5] font-light text-[rgba(240,236,230,0.65)]">
+                      You tend to reflect most during{' '}
+                      {(insights?.overview?.mostActivePeriod || 'late night').toLowerCase()}s
+                    </p>
+                  </div>
+
+                  <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[rgba(232,112,74,0.4)] to-transparent my-[24px]" />
+
+                  {insights?.reflectionToneDescription ? (
+                    <p className="text-[12px] italic leading-[1.65] text-[rgba(240,236,230,0.35)] text-center max-w-[95%] mx-auto">
+                      &ldquo;{insights.reflectionToneDescription}&rdquo;
+                    </p>
                   ) : (
-                    <p className="rounded-2xl border border-[var(--soouls-border)] p-5 text-sm text-[var(--soouls-text-muted)]">
-                      Your theme graph will begin filling in after your first few real entries.
+                    <p className="text-[12px] italic leading-[1.65] text-[rgba(240,236,230,0.25)] text-center">
+                      Write more entries to see patterns.
                     </p>
                   )}
                 </div>
-              </div>
 
-              <div
-                className="rounded-2xl p-7"
-                style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
-              >
-                <h2 className="mb-5 text-base font-medium">Reflection Patterns</h2>
-                <p className="mb-8 text-sm leading-relaxed text-[var(--soouls-text-muted)]">
-                  You tend to reflect most during{' '}
-                  {insights?.overview?.mostActivePeriod ?? 'late evenings'}, when your thoughts
-                  become more structured.
+                {/* Histogram placeholder to match style */}
+                <div className="flex items-end justify-center h-[80px] w-full mt-[36px] gap-1">
+                  {(insights?.reflectionHistogram || []).slice(0, 9).map((slot, i) => {
+                    const height = slot.count > 0 ? Math.max(8, slot.percentage) : 4;
+                    const colors = [
+                      '#2a1610',
+                      '#3c1d14',
+                      '#7a3b2b',
+                      '#b85840',
+                      '#E8704A',
+                      '#b85840',
+                      '#7a3b2b',
+                      '#3c1d14',
+                      '#2a1610',
+                    ];
+                    return (
+                      <div
+                        key={i}
+                        className="flex-1 max-w-[32px] transition-all duration-700"
+                        style={{
+                          height: `${height}%`,
+                          backgroundColor: colors[i % colors.length],
+                          opacity: 0.4 + (height / 100) * 0.6,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </SectionCard>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <SectionCard>
+                <h2 className="text-[24px] font-light tracking-[-0.01em] text-[#f0ece6] mb-[6px] font-sans">
+                  How your Thoughts connect
+                </h2>
+                <p className="text-[11px] font-light tracking-[0.06em] text-[rgba(240,236,230,0.6)] uppercase mb-[32px]">
+                  Relationship Map
                 </p>
-                <div className="flex h-28 items-end justify-center gap-2 border-b border-white/10">
-                  {(activityBars.length ? activityBars : [20, 34, 50, 70, 84, 64, 38])
-                    .slice(0, 7)
-                    .map((value, index) => {
+
+                <div className="relative w-full h-[200px] flex items-center justify-center bg-[#181818] rounded-lg overflow-hidden">
+                  <svg aria-hidden="true" width="100%" height="100%" viewBox="0 0 300 200">
+                    <defs>
+                      <filter id="glow-node">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                        <feMerge>
+                          <feMergeNode in="coloredBlur" />
+                          <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                      </filter>
+                    </defs>
+
+                    {(insights?.relationshipMap?.links || []).map((link, i) => {
+                      const nodes = insights?.relationshipMap?.nodes || [];
+                      const sourceNode = nodes.find((n) => n.id === link.source);
+                      const targetNode = nodes.find((n) => n.id === link.target);
+                      if (!sourceNode || !targetNode) return null;
+
+                      const sIdx = nodes.indexOf(sourceNode);
+                      const tIdx = nodes.indexOf(targetNode);
+
+                      const x1 = 50 + (sIdx % 3) * 100;
+                      const y1 = 50 + Math.floor(sIdx / 3) * 80;
+                      const x2 = 50 + (tIdx % 3) * 100;
+                      const y2 = 50 + Math.floor(tIdx / 3) * 80;
+
                       return (
-                        <span
-                          key={index}
-                          className="w-7 bg-[rgba(var(--soouls-accent-rgb),0.75)]"
-                          style={{
-                            height: `${Math.max(16, value)}%`,
-                            opacity: 0.35 + index * 0.08,
-                          }}
+                        <line
+                          key={i}
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="rgba(232,112,74,0.15)"
+                          strokeWidth={link.strength * 2}
                         />
                       );
                     })}
+
+                    {(insights?.relationshipMap?.nodes || []).map((node, i) => {
+                      const x = 50 + (i % 3) * 100;
+                      const y = 50 + Math.floor(i / 3) * 80;
+                      const radius = Math.max(5, node.size);
+                      const color = i % 2 === 0 ? '#E8704A' : '#fbc343';
+
+                      return (
+                        <g key={node.id}>
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r={radius}
+                            fill={color}
+                            filter="url(#glow-node)"
+                            opacity={0.8}
+                          />
+                          <circle cx={x} cy={y} r={radius / 2} fill="#ffebd2" />
+                          <text
+                            x={x}
+                            y={y + radius + 12}
+                            fill="rgba(255,255,255,0.4)"
+                            fontSize="9"
+                            fontWeight="300"
+                            textAnchor="middle"
+                            letterSpacing="0.05em"
+                            className="uppercase"
+                          >
+                            {node.label}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
                 </div>
-              </div>
+              </SectionCard>
+
+              <SectionCard>
+                <h2 className="text-[24px] font-light tracking-[-0.01em] text-[#f0ece6] mb-[6px] font-sans">
+                  Your thinking is shifting
+                </h2>
+                <p className="text-[11px] font-light tracking-[0.06em] text-[rgba(240,236,230,0.6)] uppercase mb-[36px]">
+                  Evolution Cycle
+                </p>
+
+                <div className="space-y-[24px] flex-1 flex flex-col justify-center px-2 pb-2">
+                  {(insights?.thinkingShifts || []).length === 0 ? (
+                    <p className="text-[13px] font-light text-[rgba(240,236,230,0.35)] italic">
+                      More entries needed for trend analysis.
+                    </p>
+                  ) : (
+                    (insights?.thinkingShifts || []).map((item, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <span className="text-[13px] font-light text-[rgba(240,236,230,0.6)] uppercase tracking-[0.02em]">
+                          {item.label}
+                        </span>
+                        {item.trend === 'up' && <TrendUpIcon />}
+                        {item.trend === 'down' && <TrendDownIcon />}
+                        {item.tag === 'EMERGING' && (
+                          <div
+                            className="px-[12px] py-[4px] rounded-full border border-[#E8704A] text-[#E8704A] text-[10px] font-light tracking-[0.04em]"
+                            style={{
+                              boxShadow:
+                                '0 0 12px rgba(232,112,74,0.25), inset 0 0 4px rgba(232,112,74,0.1)',
+                            }}
+                          >
+                            EMERGING
+                          </div>
+                        )}
+                        {item.trend === 'circle' && <CheckCircleIcon />}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </SectionCard>
             </div>
 
-            <div className="mb-6 grid gap-6 lg:grid-cols-[0.8fr_1fr]">
-              <div
-                className="rounded-2xl p-7"
-                style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
-              >
-                <h2 className="text-base font-semibold">How your Thoughts connect</h2>
-                <p className="mb-6 text-[10px] tracking-wider text-[var(--soouls-text-faint)]">
-                  RELATIONSHIP MAP
-                </p>
-                <div className="relative h-56 overflow-hidden rounded bg-[#181818]">
-                  {thoughtThemes.slice(0, 5).map((theme, index) => (
-                    <span
-                      key={theme.key}
-                      className="absolute h-3 w-3 rounded-full bg-[#e8c7b4] shadow-[0_0_18px_rgba(224,122,95,0.8)]"
-                      style={{ left: `${20 + index * 14}%`, top: `${25 + (index % 3) * 18}%` }}
-                    />
-                  ))}
-                </div>
+            <SectionCard className="relative flex flex-col items-center text-center py-[80px] px-[64px]">
+              <div className="absolute top-[32px] left-[32px]">
+                <SoulLeafIcon />
               </div>
-              <div
-                className="rounded-2xl p-7"
-                style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
-              >
-                <h2 className="text-base font-semibold">Your thinking is shifting</h2>
-                <p className="mb-6 text-[10px] tracking-wider text-[var(--soouls-text-faint)]">
-                  EVOLUTION CYCLE
-                </p>
-                <div className="space-y-4">
-                  {shiftMetrics.map((item) => (
-                    <div key={item.label} className="flex items-center justify-between">
-                      <span className="text-sm uppercase text-[var(--soouls-text-muted)]">
-                        {item.label}
-                      </span>
-                      {item.icon}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="rounded-2xl p-8 text-center md:p-10"
-              style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
-            >
-              <LeafIcon className="mx-auto mb-6 h-6 w-6 text-[#86A861]" />
-              <p
-                className="mb-4 text-[11px] tracking-widest"
-                style={{ color: 'var(--soouls-accent)' }}
-              >
+              <p className="text-[28px] md:text-[32px] font-semibold tracking-[-0.035em] mb-[32px] uppercase text-[#E8704A] font-sans">
                 FINAL SYNTHESIS
               </p>
-              <p className="font-playfair text-2xl italic md:text-4xl">
-                "
-                {insights?.finalSynthesis?.headline ??
-                  'Your writing suggests a meaningful transition is underway.'}
-                "
+              <p className="font-playfair text-[38px] md:text-[48px] font-semibold italic leading-[1.1] mb-[32px] text-[#f0ece6] tracking-[-0.035em] max-w-[95%]">
+                &ldquo;{insights?.finalSynthesis?.headline || ''}&rdquo;
               </p>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[var(--soouls-text-muted)]">
-                This summary updates from your actual entries, settings, and reflective cadence.
+              <p className="text-[18px] md:text-[20px] leading-[1.6] font-light text-[rgba(240,236,230,0.55)] max-w-[800px] tracking-wide">
+                {insights?.finalSynthesis?.body || ''}
               </p>
-            </div>
+            </SectionCard>
           </motion.div>
         </section>
       </main>

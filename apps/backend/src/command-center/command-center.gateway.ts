@@ -15,8 +15,8 @@ import { NotificationQueueService } from '../notifications/notification.queue';
 @WebSocketGateway({
   cors: {
     origin: [
-      process.env.COMMAND_CENTER_URL ?? 'http://localhost:3002',
-      process.env.FRONTEND_URL ?? 'http://localhost:3001',
+      process.env.COMMAND_CENTER_URL ?? '',
+      process.env.FRONTEND_URL ?? '',
     ],
     credentials: true,
   },

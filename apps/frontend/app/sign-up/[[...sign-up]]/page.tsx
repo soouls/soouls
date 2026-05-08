@@ -4,7 +4,7 @@ import { AuthenticateWithRedirectCallback, useSignUp, useUser } from '@clerk/nex
 import { Apple, ArrowLeft, Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { SymbolLogo } from '../../components/SymbolLogo';
 
@@ -33,10 +33,13 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  if (user) {
-    router.replace('/home');
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      router.replace('/home');
+    }
+  }, [router, user]);
+
+  if (user) return null;
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,7 +217,7 @@ export default function SignUpPage() {
             href="/sign-in"
             className="block text-[10px] font-bold tracking-widest text-[#E07A5F] uppercase hover:opacity-80 ml-1"
           >
-            Forgot Password?
+            Already have an account? Sign In
           </Link>
 
           <button
@@ -242,6 +245,13 @@ export default function SignUpPage() {
             <Apple className="w-6 h-6 text-white" />
           </button>
         </div>
+
+        <div className="mt-8 text-center text-xs text-white/30">
+          Returning to Soouls?{' '}
+          <Link href="/sign-in" className="text-[#E07A5F] hover:underline transition-colors">
+            Sign In
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -267,7 +277,7 @@ function StarBackground() {
       {/* Tiny stars */}
       {stars.map((star, i) => (
         <div
-          key={i}
+          key={`${star.left}-${star.top}-${i}`}
           className="absolute bg-white rounded-full opacity-20"
           style={{
             width: `${star.width}px`,

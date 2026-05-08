@@ -24,8 +24,7 @@ export class GoogleCalendarService {
 
   private readonly clientId = process.env.GOOGLE_CLIENT_ID ?? '';
   private readonly clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? '';
-  private readonly redirectUri =
-    process.env.GOOGLE_CALENDAR_REDIRECT_URI ?? 'http://localhost:3000/google-calendar/callback';
+  private readonly redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI ?? '';
 
   constructor(@Inject(RedisService) private readonly redis: RedisService) {}
 
@@ -53,7 +52,7 @@ export class GoogleCalendarService {
   // ─── Exchange code → token ────────────────────────────────────────────────
 
   async exchangeCode(code: string, clerkUserId: string): Promise<GCalToken> {
-    const res = await fetch('https://oauth2.googleapis.com/token', {
+    const res = (await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -63,7 +62,7 @@ export class GoogleCalendarService {
         redirect_uri: this.redirectUri,
         grant_type: 'authorization_code',
       }).toString(),
-    });
+    })) as any;
 
     if (!res.ok) {
       const err = await res.text();
@@ -93,7 +92,7 @@ export class GoogleCalendarService {
   // ─── Refresh access token ─────────────────────────────────────────────────
 
   private async refreshToken(token: GCalToken, clerkUserId: string): Promise<GCalToken> {
-    const res = await fetch('https://oauth2.googleapis.com/token', {
+    const res = (await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
@@ -102,7 +101,7 @@ export class GoogleCalendarService {
         refresh_token: token.refresh_token,
         grant_type: 'refresh_token',
       }).toString(),
-    });
+    })) as any;
 
     if (!res.ok) {
       // Refresh failed — wipe tokens so user reconnects
@@ -171,12 +170,12 @@ export class GoogleCalendarService {
       maxResults: '100',
     });
 
-    const res = await fetch(
+    const res = (await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,
       {
         headers: { Authorization: `Bearer ${token.access_token}` },
       },
-    );
+    )) as any;
 
     if (!res.ok) {
       const errBody = await res.text();

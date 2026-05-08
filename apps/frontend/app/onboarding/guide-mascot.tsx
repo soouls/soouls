@@ -96,7 +96,7 @@ export function GuideMascot({ step, awake, name, firstEntry, onWake, centered }:
               top: '50%',
               x: '-50%',
               y: '-50%',
-              scale: 1.5,
+              scale: 1.15,
             }
           : {
               left: 'auto',

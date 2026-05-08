@@ -1,6 +1,6 @@
 export const NOTIFICATIONS_QUEUE = 'notifications';
-export const DEFAULT_FRONTEND_URL = 'http://localhost:3001';
-export const DEFAULT_COMMAND_CENTER_URL = 'http://localhost:4000';
+export const DEFAULT_FRONTEND_URL = process.env.FRONTEND_URL ?? '';
+export const DEFAULT_COMMAND_CENTER_URL = process.env.COMMAND_CENTER_URL ?? '';
 export const NOTIFICATION_BATCH_SIZE = 20;
 
 export type NotificationJobMap = {

@@ -84,10 +84,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private get isClientReady(): boolean {
+    return this.client?.status === 'ready';
+  }
+
   async get<T>(key: string): Promise<T | null> {
-    if (!this.client) return null;
+    if (!this.isClientReady) return null;
     try {
-      const data = await this.client.get(key);
+      const data = await this.client!.get(key);
       return data ? JSON.parse(data) : null;
     } catch (e) {
       console.error(`[Redis] Get failed for ${key}`, e);
@@ -96,27 +100,52 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async set(key: string, value: unknown, ttlSeconds = 3600): Promise<void> {
-    if (!this.client) return;
+    if (!this.isClientReady) return;
     try {
-      await this.client.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+      await this.client!.set(key, JSON.stringify(value), 'EX', ttlSeconds);
     } catch (e) {
       console.error(`[Redis] Set failed for ${key}`, e);
     }
   }
 
-  async del(key: string): Promise<void> {
-    if (!this.client) return;
+  async acquireLock(key: string, token: string, ttlSeconds: number): Promise<boolean> {
+    if (!this.isClientReady) return true;
     try {
-      await this.client.del(key);
+      const result = await this.client!.set(key, token, 'EX', ttlSeconds, 'NX');
+      return result === 'OK';
+    } catch (e) {
+      console.error(`[Redis] Acquire lock failed for ${key}`, e);
+      return true;
+    }
+  }
+
+  async releaseLock(key: string, token: string): Promise<void> {
+    if (!this.isClientReady) return;
+    try {
+      await this.client!.eval(
+        "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end",
+        1,
+        key,
+        token,
+      );
+    } catch (e) {
+      console.error(`[Redis] Release lock failed for ${key}`, e);
+    }
+  }
+
+  async del(key: string): Promise<void> {
+    if (!this.isClientReady) return;
+    try {
+      await this.client!.del(key);
     } catch (e) {
       console.error(`[Redis] Del failed for ${key}`, e);
     }
   }
 
   async incr(key: string): Promise<number> {
-    if (!this.client) return 0;
+    if (!this.isClientReady) return 0;
     try {
-      return await this.client.incr(key);
+      return await this.client!.incr(key);
     } catch (e) {
       console.error(`[Redis] Incr failed for ${key}`, e);
       return 0;
@@ -124,9 +153,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async mget<T>(keys: string[]): Promise<Array<T | null>> {
-    if (!this.client || keys.length === 0) return [];
+    if (!this.isClientReady || keys.length === 0) return [];
     try {
-      const values = await this.client.mget(...keys);
+      const values = await this.client!.mget(...keys);
       return values.map((v) => (v ? (JSON.parse(v) as T) : null));
     } catch (e) {
       console.error('[Redis] MGet failed', e);
@@ -135,9 +164,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async mset(items: MultiCacheItem[], ttlSeconds = 3600): Promise<void> {
-    if (!this.client || items.length === 0) return;
+    if (!this.isClientReady || items.length === 0) return;
     try {
-      const pipeline = this.client.pipeline();
+      const pipeline = this.client!.pipeline();
       for (const item of items) {
         pipeline.set(item.key, JSON.stringify(item.value), 'EX', ttlSeconds);
       }
@@ -148,9 +177,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async mdel(keys: string[]): Promise<void> {
-    if (!this.client || keys.length === 0) return;
+    if (!this.isClientReady || keys.length === 0) return;
     try {
-      await this.client.del(...keys);
+      await this.client!.del(...keys);
     } catch (e) {
       console.error('[Redis] MDel failed', e);
     }
@@ -166,15 +195,15 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async invalidatePattern(pattern: string): Promise<number> {
-    if (!this.client) return 0;
+    if (!this.isClientReady) return 0;
     try {
       let count = 0;
       let cursor = '0';
       do {
-        const [nextCursor, keys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+        const [nextCursor, keys] = await this.client!.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
         cursor = nextCursor;
         if (keys.length > 0) {
-          await this.client.del(...keys);
+          await this.client!.del(...keys);
           count += keys.length;
         }
       } while (cursor !== '0');
@@ -186,9 +215,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async touch(key: string, ttlSeconds: number): Promise<boolean> {
-    if (!this.client) return false;
+    if (!this.isClientReady) return false;
     try {
-      const result = await this.client.expire(key, ttlSeconds);
+      const result = await this.client!.expire(key, ttlSeconds);
       return result === 1;
     } catch (e) {
       console.error(`[Redis] Touch failed for ${key}`, e);
@@ -197,9 +226,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async exists(key: string): Promise<boolean> {
-    if (!this.client) return false;
+    if (!this.isClientReady) return false;
     try {
-      const result = await this.client.exists(key);
+      const result = await this.client!.exists(key);
       return result === 1;
     } catch (e) {
       console.error(`[Redis] Exists failed for ${key}`, e);
@@ -208,9 +237,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getTtl(key: string): Promise<number> {
-    if (!this.client) return -1;
+    if (!this.isClientReady) return -1;
     try {
-      return await this.client.ttl(key);
+      return await this.client!.ttl(key);
     } catch (e) {
       console.error(`[Redis] Ttl failed for ${key}`, e);
       return -1;
@@ -218,12 +247,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async ping(): Promise<{ latencyMs: number; connected: boolean }> {
-    if (!this.client) {
+    if (!this.isClientReady) {
       return { latencyMs: -1, connected: false };
     }
     try {
       const start = Date.now();
-      await this.client.ping();
+      await this.client!.ping();
       return { latencyMs: Date.now() - start, connected: true };
     } catch (e) {
       console.error('[Redis] Ping failed', e);
@@ -232,9 +261,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getInfo(): Promise<Record<string, string> | null> {
-    if (!this.client) return null;
+    if (!this.isClientReady) return null;
     try {
-      const info = await this.client.info();
+      const info = await this.client!.info();
       const result: Record<string, string> = {};
       for (const line of info.split('\r\n')) {
         const [key, value] = line.split(':');
@@ -248,6 +277,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   get isConnected(): boolean {
-    return this.client !== null;
+    return this.isClientReady;
   }
 }

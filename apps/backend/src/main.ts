@@ -42,13 +42,7 @@ async function bootstrap() {
 
   const allowedOrigins = Array.from(
     new Set(
-      [
-        process.env.FRONTEND_URL,
-        process.env.COMMAND_CENTER_URL,
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-      ].filter(Boolean) as string[],
+      [process.env.FRONTEND_URL, process.env.COMMAND_CENTER_URL].filter(Boolean) as string[],
     ),
   );
 
