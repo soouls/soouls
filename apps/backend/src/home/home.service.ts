@@ -266,7 +266,10 @@ export class HomeService implements HomeApi {
     };
   }
 
-  private async getSnapshot(userId: string): Promise<{
+  private async getSnapshot(
+    userId: string,
+    forceRefresh = false,
+  ): Promise<{
     user: UserRow;
     settings: NormalizedUserPreferences;
     analytics: ReturnType<typeof buildHomeAnalytics>;
@@ -281,7 +284,7 @@ export class HomeService implements HomeApi {
       lastUpdated: string;
     }>(cacheKey);
 
-    if (cached) {
+    if (cached && !forceRefresh) {
       return cached;
     }
 
@@ -320,13 +323,23 @@ export class HomeService implements HomeApi {
   }
 
   async getInsights(userId: string): Promise<HomeInsights> {
-    const { analytics, lastUpdated } = await this.getSnapshot(userId);
+    const snapshot = await this.getSnapshot(userId);
     const entries = await this.getDecodedEntries(userId);
+    const lastUpdatedDate = Date.parse(snapshot.lastUpdated);
+    const isStale = entries.some((entry) => entry.updatedAt.getTime() > lastUpdatedDate);
+
+    if (isStale) {
+      this.triggerBackgroundEnrichment(userId).catch((err) =>
+        console.error('[HomeService] Background enrichment failed:', err),
+      );
+    }
+
+    const { analytics, lastUpdated } = snapshot;
     const reflectionHistogram = this.buildReflectionHistogram(entries);
 
     return {
       lastUpdated,
-      isStale: entries.some((entry) => entry.updatedAt.getTime() > Date.parse(lastUpdated)),
+      isStale,
       overview: analytics?.overview,
       monthlyQuote: analytics?.insights?.monthlyQuote ?? 'You are building your reflection rhythm.',
       monthlyAnalysis: analytics?.insights?.monthlyAnalysis ?? 'Not enough data yet.',

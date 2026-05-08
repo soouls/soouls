@@ -600,6 +600,11 @@ import {
 } from './namespaces/private/home/getInsights/constants.js';
 import { run as getHomeInsightsRun } from './namespaces/private/home/getInsights/run.js';
 import {
+  config as refreshInsightsConfig,
+  schema as refreshInsightsSchema,
+} from './namespaces/private/home/refreshInsights/constants.js';
+import { run as refreshInsightsRun } from './namespaces/private/home/refreshInsights/run.js';
+import {
   config as getOnboardingStatusConfig,
   schema as getOnboardingStatusSchema,
 } from './namespaces/private/home/getOnboardingStatus/constants.js';
@@ -773,6 +778,11 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(getHomeInsightsConfig.rateLimit))
         .input(getHomeInsightsSchema)
         .query(({ input, ctx }) => getHomeInsightsRun(input, ctx, services)),
+
+      refreshInsights: authedProcedure
+        .use(makeRateLimitMiddleware(refreshInsightsConfig.rateLimit))
+        .input(refreshInsightsSchema)
+        .mutation(({ input, ctx }) => refreshInsightsRun(input, ctx, services)),
 
       getAccount: authedProcedure
         .use(makeRateLimitMiddleware(getHomeAccountConfig.rateLimit))

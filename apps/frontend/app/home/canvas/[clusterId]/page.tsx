@@ -35,6 +35,7 @@ import {
   Sparkles,
   Trash2,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -560,7 +561,15 @@ export default function CanvasClusterPage() {
               onClick={(event) => event.stopPropagation()}
             >
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="text-[24px] font-semibold text-[#E07A5F]">Cluster Insights</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-[24px] font-semibold text-[#E07A5F]">Cluster Insights</h2>
+                  <Link
+                    href={`/home/clusters/${clusterId}`}
+                    className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-white/50 transition hover:bg-white/10 hover:text-white"
+                  >
+                    View Full Page
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowInsights(false)}
