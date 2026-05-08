@@ -1,5 +1,4 @@
 /* ── Google Fonts ── */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Urbanist:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -116,7 +115,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Urbanist", system-ui, sans-serif;
+  font-family: var(--font-urbanist), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -170,11 +169,11 @@ a {
 
 /* ── Typography ── */
 .font-playfair {
-  font-family: "Playfair Display", serif;
+  font-family: var(--font-playfair), Georgia, serif;
 }
 
 .font-urbanist {
-  font-family: "Urbanist", sans-serif;
+  font-family: var(--font-urbanist), system-ui, sans-serif;
 }
 
 /* ── SC Utility Classes ── */
@@ -345,23 +344,48 @@ a {
 
 /* ── Floating Orbs (auth pages) ── */
 @keyframes float-orb-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25% { transform: translate(80px, -60px) scale(1.1); }
-  50% { transform: translate(-40px, -120px) scale(0.95); }
-  75% { transform: translate(-80px, 40px) scale(1.05); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(80px, -60px) scale(1.1);
+  }
+  50% {
+    transform: translate(-40px, -120px) scale(0.95);
+  }
+  75% {
+    transform: translate(-80px, 40px) scale(1.05);
+  }
 }
 
 @keyframes float-orb-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(-100px, 80px) scale(1.15); }
-  66% { transform: translate(60px, -90px) scale(0.9); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-100px, 80px) scale(1.15);
+  }
+  66% {
+    transform: translate(60px, -90px) scale(0.9);
+  }
 }
 
 @keyframes float-orb-3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  20% { transform: translate(50px, 100px) scale(1.08); }
-  50% { transform: translate(-70px, -50px) scale(0.92); }
-  80% { transform: translate(90px, -80px) scale(1.12); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  20% {
+    transform: translate(50px, 100px) scale(1.08);
+  }
+  50% {
+    transform: translate(-70px, -50px) scale(0.92);
+  }
+  80% {
+    transform: translate(90px, -80px) scale(1.12);
+  }
 }
 
 .auth-orb-1 {
@@ -378,9 +402,18 @@ a {
 
 /* ── Particle drift ── */
 @keyframes particle-drift {
-  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
-  10% { opacity: 0.6; }
-  90% { opacity: 0.6; }
-  100% { transform: translateY(-100vh) translateX(40px) rotate(360deg); opacity: 0; }
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(40px) rotate(360deg);
+    opacity: 0;
+  }
 }
-

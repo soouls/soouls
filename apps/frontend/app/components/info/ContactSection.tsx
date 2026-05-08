@@ -74,15 +74,22 @@ export default function ContactSection() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="font-urbanist text-xs font-bold text-[#888888] tracking-widest uppercase ml-2">
+                  <label
+                    htmlFor="contactMessage"
+                    className="font-urbanist text-xs font-bold text-[#888888] tracking-widest uppercase ml-2"
+                  >
                     Message
                   </label>
                   <textarea
+                    id="contactMessage"
                     rows={4}
                     className="bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[#EFEBDD] font-urbanist focus:outline-none focus:border-[#E07A5F]/40 resize-none"
                   />
                 </div>
-                <button className="w-full py-5 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors">
+                <button
+                  type="button"
+                  className="w-full py-5 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors"
+                >
                   Send Message
                 </button>
               </form>

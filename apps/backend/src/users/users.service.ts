@@ -46,7 +46,7 @@ export class UsersService {
     const onWaitlist = isWaitlistEmail(email);
     const waitlistEntry = onWaitlist ? getWaitlistEntry(email) : null;
 
-    // 4. Create user in DB (with waitlist tag if applicable)
+    // 4. Atomic Upsert in DB (fixes race condition where parallel requests try to create the same user)
     const [newUser] = await db
       .insert(users)
       .values({
@@ -58,6 +58,15 @@ export class UsersService {
         accountStatus: onWaitlist ? 'beta' : 'active',
         transactionalWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
         marketingWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
+      })
+      .onConflictDoUpdate({
+        target: users.clerkId,
+        set: {
+          email,
+          name,
+          phoneNumber: phoneNumber || waitlistEntry?.phoneNumber || null,
+          updatedAt: new Date(),
+        },
       })
       .returning({ id: users.id });
 
@@ -90,7 +99,10 @@ export class UsersService {
       }
     }
 
-    await this.messagingService.sendWelcomeSequence(newUser.id);
+    // 5. Welcome sequence should not block user creation
+    void this.messagingService.sendWelcomeSequence(newUser.id).catch((err) => {
+      console.error('[Users] Welcome sequence background failure:', err);
+    });
 
     return newUser.id;
   }
@@ -108,10 +120,28 @@ export class UsersService {
       transactionalWhatsappOptIn?: boolean;
     },
   ): Promise<void> {
+    let updateData = data;
+
+    if (data.preferences) {
+      const [currentUser] = await db
+        .select({ preferences: users.preferences })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      updateData = {
+        ...data,
+        preferences: {
+          ...((currentUser?.preferences as Record<string, unknown> | null) ?? {}),
+          ...data.preferences,
+        },
+      };
+    }
+
     await db
       .update(users)
       .set({
-        ...data,
+        ...updateData,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));

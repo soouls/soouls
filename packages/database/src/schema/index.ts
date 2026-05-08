@@ -119,7 +119,29 @@ export const clusters = pgTable('clusters', {
   description: text('description'),
   color: text('color').default('#F59E0B'),
   icon: text('icon').default('sparkles'),
+  metadata: jsonb('metadata').$type<{
+    themeTags?: string[];
+    source?: 'ai' | 'manual' | 'date-fallback';
+    lastGeneratedAt?: string;
+  } | null>(),
   isPinned: boolean('is_pinned').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// ────────────────────────────────────────
+// Folders table
+// ────────────────────────────────────────
+export const folders = pgTable('folders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  color: text('color').default('#3B82F6'),
+  icon: text('icon').default('folder'),
+  parentId: uuid('parent_id'), // For nested folders
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -149,6 +171,7 @@ export const journalEntries = pgTable('journal_entries', {
 
   // Columns that exist in the live DB
   clusterId: uuid('cluster_id').references(() => clusters.id, { onDelete: 'set null' }),
+  folderId: uuid('folder_id').references(() => folders.id, { onDelete: 'set null' }),
   title: text('title'),
   isPinned: boolean('is_pinned').default(false).notNull(),
   wordCount: integer('word_count').default(0),
@@ -176,6 +199,56 @@ export const canvasNodes = pgTable('canvas_nodes', {
   emotion: text('emotion'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Per-entry editable AI thought maps rendered in the 2D cluster canvas.
+export const entryCanvases = pgTable('entry_canvases', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  entryId: uuid('entry_id')
+    .references(() => journalEntries.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  canvasTitle: text('canvas_title').notNull(),
+  cards: jsonb('cards')
+    .$type<
+      Array<{
+        id: string;
+        type: 'idea' | 'quote' | 'emotion' | 'question' | 'warning' | 'reflection';
+        title: string;
+        body: string;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        color: string;
+        border_color: string;
+        tag?: string;
+      }>
+    >()
+    .notNull(),
+  connections: jsonb('connections')
+    .$type<
+      Array<{
+        id?: string;
+        from: string;
+        to: string;
+        label?: string;
+      }>
+    >()
+    .notNull(),
+  clusterInsight: text('cluster_insight'),
+  generationMetadata: jsonb('generation_metadata').$type<{
+    generatedAt?: string;
+    model?: string;
+    source?: 'ai' | 'fallback' | 'manual';
+    warningCardId?: string | null;
+  } | null>(),
+  lastEdited: timestamp('last_edited').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // ────────────────────────────────────────

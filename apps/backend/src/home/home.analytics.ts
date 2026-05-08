@@ -34,6 +34,7 @@ export type DecodedEntryBlock = GoalBlock | TaskListBlock | MediaBlock;
 
 export type DecodedHomeEntry = {
   id: string;
+  clusterId: string | null;
   createdAt: Date;
   updatedAt: Date;
   text: string;
@@ -125,9 +126,27 @@ export type HomeAnalyticsBundle = {
     weeklyEntryCount: number;
   };
   insights: {
-    monthlyNarrative: string;
+    monthlyQuote: string;
+    monthlyAnalysis: string;
+    statLine: string;
+    statNote: string;
+    dominantTheme: string;
+    previousTheme: string;
     thoughtThemes: ThemeScore[];
-    finalSynthesis: string;
+    finalSynthesis: {
+      headline: string;
+      body: string;
+    };
+    reflectionToneDescription: string;
+    relationshipMap: {
+      nodes: Array<{ id: string; label: string; size: number }>;
+      links: Array<{ source: string; target: string; strength: number }>;
+    };
+    thinkingShifts: Array<{
+      label: string;
+      trend: 'up' | 'down' | 'circle' | null;
+      tag: string | null;
+    }>;
   };
   account: {
     writingProfile: WritingProfile;
@@ -315,14 +334,26 @@ function toDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function getCurrentStreak(entries: DecodedHomeEntry[]): number {
+function getCurrentStreak(entries: DecodedHomeEntry[], now: Date): number {
+  const todayKey = toDateKey(now);
+  const yesterday = new Date(now);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const yesterdayKey = toDateKey(yesterday);
+
   const uniqueDays = [...new Set(entries.map((entry) => toDateKey(entry.createdAt)))]
     .sort()
     .reverse();
+
   if (uniqueDays.length === 0) return 0;
 
+  // A streak is only "current" if the user showed up today or yesterday
+  const lastEntryDay = uniqueDays[0];
+  if (lastEntryDay !== todayKey && lastEntryDay !== yesterdayKey) {
+    return 0;
+  }
+
   let streak = 0;
-  const cursor = new Date(`${uniqueDays[0]}T00:00:00.000Z`);
+  const cursor = new Date(`${lastEntryDay}T00:00:00.000Z`);
 
   for (const day of uniqueDays) {
     if (toDateKey(cursor) !== day) {
@@ -426,21 +457,218 @@ function extractTopKeywords(entries: DecodedHomeEntry[]): string[] {
     .map(([word]) => word);
 }
 
-function buildMonthlyNarrative(topTheme: ThemeScore | undefined, keywords: string[]): string {
+function buildMonthlyQuote(
+  topTheme: ThemeScore | undefined,
+  keywords: string[],
+  entryCount: number,
+): string {
+  if (entryCount === 0) {
+    return 'No entries yet this month. Start journaling to see your insights.';
+  }
   if (!topTheme) {
     return 'Your recent entries show a steady desire to make sense of what matters, even when the pattern is still forming.';
   }
-
   const keywordText = keywords.slice(0, 2).join(' and ');
-  return `This month, your writing keeps circling ${topTheme.label.toLowerCase()}${keywordText ? ` through ${keywordText}` : ''}. The overall signal suggests movement from scattered thoughts toward clearer action.`;
+  return `This month, your writing keeps circling {ts1}${topTheme.label.toLowerCase()}{/ts1}${keywordText ? ` through {ts1}${keywordText}{/ts1}` : ''}.`;
 }
 
-function buildFinalSynthesis(topTheme: ThemeScore | undefined): string {
+function buildMonthlyAnalysis(
+  topTheme: ThemeScore | undefined,
+  weeklyCount: number,
+  streak: number,
+  entryCount: number,
+): string {
+  if (entryCount === 0) {
+    return 'Start writing to unlock insights about your thinking patterns.';
+  }
+  if (entryCount === 1) {
+    return 'Based on your first entry this month.';
+  }
   if (!topTheme) {
-    return 'Your entries suggest a reflective phase where clarity is still gathering around a few recurring thoughts.';
+    return `Your activity reflects a {ts2}${weeklyCount} entry{/ts2} rhythm this week. Keep writing to unlock deeper thematic insights.`;
+  }
+  return `Your activity reflects a {ts2}${weeklyCount} entry{/ts2} rhythm this week, maintaining a {ts2}${streak} day streak{/ts2}. The recurring theme of "${topTheme.label}" suggests a clear direction.`;
+}
+
+function buildStatLine(
+  weeklyCount: number,
+  previousWeeklyCount: number,
+  entryCount: number,
+): { line: string; note: string } {
+  // Cannot calculate stats from a single entry
+  if (entryCount <= 1) {
+    return { line: '', note: '' };
+  }
+  const diff = weeklyCount - previousWeeklyCount;
+  const pct = previousWeeklyCount > 0 ? Math.round((diff / previousWeeklyCount) * 100) : 0;
+  if (pct > 0) {
+    return {
+      line: `${pct}% increase in reflection volume`,
+      note: 'You are writing more this week compared to last, deepening your self-awareness.',
+    };
+  }
+  if (pct < 0) {
+    return {
+      line: `${Math.abs(pct)}% decrease in reflection volume`,
+      note: 'Your writing pace has slowed — a period of external focus or rest.',
+    };
+  }
+  return {
+    line: `${weeklyCount} entries this week`,
+    note: 'You are maintaining a consistent writing rhythm.',
+  };
+}
+
+function buildFinalSynthesis(
+  topTheme: ThemeScore | undefined,
+  entryCount: number,
+): { headline: string; body: string } {
+  if (entryCount === 0) {
+    return {
+      headline: 'Your story starts with the first entry',
+      body: 'Begin journaling to unlock your personal synthesis.',
+    };
+  }
+  if (entryCount === 1) {
+    return {
+      headline: 'You are beginning to put your thoughts into words',
+      body: 'One entry is a great start. Your synthesis will deepen as you write more.',
+    };
+  }
+  if (!topTheme) {
+    return {
+      headline: 'Patterns are forming beneath the surface',
+      body: 'Your entries suggest a reflective phase where clarity is still gathering around a few recurring thoughts.',
+    };
+  }
+  return {
+    headline: `Consolidating around ${topTheme.label.toLowerCase()}`,
+    body: `Your mental landscape is shifting towards deeper focus on ${topTheme.label.toLowerCase()}. The more you write, the more your direction becomes visible.`,
+  };
+}
+
+/**
+ * Real temporal split: compare first-half vs second-half of entries to detect trends.
+ */
+function buildThinkingShifts(
+  entries: DecodedHomeEntry[],
+  themeScores: ThemeScore[],
+): Array<{ label: string; trend: 'up' | 'down' | 'circle' | null; tag: string | null }> {
+  if (entries.length < 4 || themeScores.length === 0) {
+    // Not enough data for temporal comparison — mark everything as emerging
+    return themeScores.slice(0, 4).map((theme) => ({
+      label: theme.label.toUpperCase(),
+      trend: null,
+      tag: 'EMERGING',
+    }));
   }
 
-  return `Right now, your mental landscape is consolidating around ${topTheme.label.toLowerCase()}. The more you write, the more your direction becomes visible.`;
+  const sorted = [...entries].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const mid = Math.floor(sorted.length / 2);
+  const firstHalf = sorted.slice(0, mid);
+  const secondHalf = sorted.slice(mid);
+
+  return themeScores.slice(0, 5).map((theme) => {
+    const firstCount = firstHalf.filter((e) => {
+      const corpus = getEntryCorpus(e);
+      return theme.keywords.some((kw) => corpus.includes(kw));
+    }).length;
+    const secondCount = secondHalf.filter((e) => {
+      const corpus = getEntryCorpus(e);
+      return theme.keywords.some((kw) => corpus.includes(kw));
+    }).length;
+
+    let trend: 'up' | 'down' | 'circle' | null = null;
+    let tag: string | null = null;
+
+    if (firstCount === 0 && secondCount > 0) {
+      tag = 'EMERGING';
+    } else if (firstCount > 0 && secondCount === 0) {
+      trend = 'circle'; // resolved
+    } else if (secondCount > firstCount) {
+      trend = 'up';
+    } else if (secondCount < firstCount) {
+      trend = 'down';
+    } else {
+      trend = 'circle';
+    }
+
+    return { label: theme.label.toUpperCase(), trend, tag };
+  });
+}
+
+/**
+ * Real co-occurrence: scan entries for themes that appear together.
+ */
+function buildRelationshipMap(entries: DecodedHomeEntry[], themeScores: ThemeScore[]) {
+  const topThemes = themeScores.slice(0, 6);
+  const nodes = topThemes.map((t) => ({
+    id: t.key,
+    label: t.label.toUpperCase(),
+    size: Math.min(10, Math.max(2, Math.round((t.count / Math.max(entries.length, 1)) * 10))),
+  }));
+
+  // Calculate co-occurrence: how often do two themes appear in the same entry?
+  const links: Array<{ source: string; target: string; strength: number }> = [];
+  for (let i = 0; i < topThemes.length; i++) {
+    for (let j = i + 1; j < topThemes.length; j++) {
+      const themeA = topThemes[i];
+      const themeB = topThemes[j];
+      let coCount = 0;
+      for (const entry of entries) {
+        const corpus = getEntryCorpus(entry);
+        const hasA = themeA.keywords.some((kw) => corpus.includes(kw));
+        const hasB = themeB.keywords.some((kw) => corpus.includes(kw));
+        if (hasA && hasB) coCount++;
+      }
+      const strength = entries.length > 0 ? Math.round((coCount / entries.length) * 10) / 10 : 0;
+      if (strength > 0.1) {
+        links.push({ source: themeA.key, target: themeB.key, strength: Math.min(1, strength) });
+      }
+    }
+  }
+
+  return { nodes, links };
+}
+
+/**
+ * Real reflection tone: computed from peak time and entry patterns.
+ */
+function buildReflectionTone(entries: DecodedHomeEntry[]): string {
+  if (entries.length === 0) return '';
+  if (entries.length === 1)
+    return 'Only one entry so far — write more to reveal your reflection tone.';
+
+  const avgWordCount = Math.round(
+    entries.reduce((sum, e) => sum + e.text.split(/\s+/).filter(Boolean).length, 0) /
+      entries.length,
+  );
+  const peakHour = getMostActiveHour(entries);
+  const isNightWriter = peakHour >= 21 || peakHour < 5;
+  const isLongForm = avgWordCount > 50;
+
+  if (isNightWriter && isLongForm)
+    return 'Deep, contemplative night writing with extended self-examination.';
+  if (isNightWriter) return "Concise late-night reflections capturing the day's essence.";
+  if (isLongForm) return 'Thorough, detailed entries that unpack thoughts methodically.';
+  return 'Quick, focused entries that capture signal efficiently.';
+}
+
+function getMostActiveHour(entries: DecodedHomeEntry[]): number {
+  const hourCounts = new Map<number, number>();
+  for (const entry of entries) {
+    const hour = entry.createdAt.getUTCHours();
+    hourCounts.set(hour, (hourCounts.get(hour) ?? 0) + 1);
+  }
+  let maxHour = 0;
+  let maxCount = 0;
+  for (const [hour, count] of hourCounts) {
+    if (count > maxCount) {
+      maxHour = hour;
+      maxCount = count;
+    }
+  }
+  return maxHour;
 }
 
 function buildWritingProfile(entries: DecodedHomeEntry[]): WritingProfile {
@@ -491,6 +719,25 @@ function buildClusters(
   themeScores: ThemeScore[],
   now: Date,
 ): ClusterCard[] {
+  if (entries.length > 0 && themeScores.length === 0) {
+    const latestDate =
+      [...entries].sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())[0]
+        ?.updatedAt ?? now;
+
+    return [
+      {
+        id: 'recent-entries-1',
+        name: 'Recent Entries',
+        entryCount: entries.length,
+        updatedAtLabel: formatUpdatedAtLabel(latestDate, now),
+        description:
+          'Entries that are saved and ready for the canvas, waiting for a stronger recurring theme to emerge.',
+        strength: 'Emerging',
+        tones: ['Reflective', 'Unsorted'],
+      },
+    ];
+  }
+
   return themeScores.slice(0, 6).map((theme, index) => {
     const themedEntries = entries.filter((entry) => {
       const corpus = getEntryCorpus(entry);
@@ -537,19 +784,38 @@ export function buildHomeAnalytics(input: {
   const keywords = extractTopKeywords(entries);
   const topTheme = themeScores.length > 0 ? themeScores[0] : undefined;
   const clusters = buildClusters(entries, themeScores, input.now);
+  const weeklyCount = getWeeklyEntryCount(entries, input.now);
+  const previousWeeklyCount = getWeeklyEntryCount(
+    entries,
+    new Date(input.now.getTime() - 7 * 24 * 60 * 60 * 1000),
+  );
+  const stat = buildStatLine(weeklyCount, previousWeeklyCount, entries.length);
 
   return {
     overview: {
       entryCount: entries.length,
-      currentStreak: getCurrentStreak(entries),
+      currentStreak: getCurrentStreak(entries, input.now),
       mostActivePeriod: getMostActivePeriod(entries),
       completedTaskCount: getCompletedTaskCount(entries),
-      weeklyEntryCount: getWeeklyEntryCount(entries, input.now),
+      weeklyEntryCount: weeklyCount,
     },
     insights: {
-      monthlyNarrative: buildMonthlyNarrative(topTheme, keywords),
+      monthlyQuote: buildMonthlyQuote(topTheme, keywords, entries.length),
+      monthlyAnalysis: buildMonthlyAnalysis(
+        topTheme,
+        weeklyCount,
+        getCurrentStreak(entries, input.now),
+        entries.length,
+      ),
+      statLine: stat.line,
+      statNote: stat.note,
+      dominantTheme: topTheme?.label || '',
+      previousTheme: themeScores[1]?.label || '',
       thoughtThemes: themeScores,
-      finalSynthesis: buildFinalSynthesis(topTheme),
+      finalSynthesis: buildFinalSynthesis(topTheme, entries.length),
+      reflectionToneDescription: buildReflectionTone(entries),
+      relationshipMap: buildRelationshipMap(entries, themeScores),
+      thinkingShifts: buildThinkingShifts(entries, themeScores),
     },
     account: {
       writingProfile: buildWritingProfile(entries),

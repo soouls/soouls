@@ -20,6 +20,12 @@ async function bootstrap() {
     }),
   );
   const isDevelopment = process.env.NODE_ENV !== 'production';
+  const isVercel = process.env.VERCEL === '1';
+
+  if (isVercel || !isDevelopment) {
+    app.setGlobalPrefix('/_/backend');
+  }
+
   const appWithBodyParser = app as typeof app & {
     useBodyParser: (
       type: 'json' | 'urlencoded',
@@ -27,21 +33,23 @@ async function bootstrap() {
     ) => void;
   };
 
-  appWithBodyParser.useBodyParser('json', { limit: '50mb' });
-  appWithBodyParser.useBodyParser('urlencoded', { extended: true, limit: '50mb' });
+  appWithBodyParser.useBodyParser('json', { limit: '10mb' });
+  appWithBodyParser.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
   app.use(helmet());
 
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
   const allowedOrigins = Array.from(
-    new Set([
-      process.env.FRONTEND_URL ?? 'http://localhost:3001',
-      process.env.COMMAND_CENTER_URL ?? 'http://localhost:3002',
-      'http://localhost:3001',
-      'http://localhost:3002',
-      'http://localhost:3000',
-    ]),
+    new Set(
+      [
+        process.env.FRONTEND_URL,
+        process.env.COMMAND_CENTER_URL,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:3002',
+      ].filter(Boolean) as string[],
+    ),
   );
 
   app.enableCors({
@@ -52,6 +60,12 @@ async function bootstrap() {
       }
 
       if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      // Allow all Vercel domains (production & previews)
+      if (origin.endsWith('.vercel.app')) {
         callback(null, true);
         return;
       }

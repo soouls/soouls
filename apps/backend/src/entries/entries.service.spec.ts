@@ -4,17 +4,41 @@ import LZString from 'lz-string';
 const selectMock = mock(() => undefined);
 const insertMock = mock(() => undefined);
 const updateMock = mock(() => undefined);
+const deleteMock = mock(() => undefined);
 const executeMock = mock(() => undefined);
+const s3SendMock = mock(async () => undefined);
 
 mock.module('@aws-sdk/client-s3', () => ({
-  PutObjectCommand: class PutObjectCommand {},
+  PutObjectCommand: class PutObjectCommand {
+    input: unknown;
+
+    constructor(input: unknown) {
+      this.input = input;
+    }
+  },
   S3Client: class S3Client {
-    send = mock(async () => undefined);
+    send = s3SendMock;
   },
 }));
 
 mock.module('@aws-sdk/s3-request-presigner', () => ({
   getSignedUrl: mock(async () => 'https://example.com/upload'),
+}));
+
+mock.module('@soouls/ai-engine/embeddings', () => ({
+  generateEmbedding: mock(async () => new Array(1536).fill(0)),
+}));
+
+mock.module('@soouls/ai-engine/sentiment', () => ({
+  analyzeSentiment: mock(async () => ({
+    score: 0,
+    label: 'Neutral',
+    color: '#888888',
+  })),
+}));
+
+mock.module('../redis/redis.service', () => ({
+  RedisService: class RedisService {},
 }));
 
 mock.module('@soouls/database/schema', () => ({
@@ -41,6 +65,8 @@ mock.module('@soouls/database/schema', () => ({
     updatedAt: 'journal_entries.updated_at',
     userId: 'journal_entries.user_id',
     wordCount: 'journal_entries.word_count',
+    status: 'journal_entries.status',
+    sentimentScore: 'journal_entries.sentiment_score',
   },
   messageCampaigns: {
     id: 'message_campaigns.id',
@@ -71,6 +97,7 @@ mock.module('@soouls/database/client', () => ({
     select: selectMock,
     insert: insertMock,
     update: updateMock,
+    delete: deleteMock,
     execute: executeMock,
   },
   and: (...args: unknown[]) => args,
@@ -109,16 +136,20 @@ describe('EntriesService', () => {
     selectMock.mockReset();
     insertMock.mockReset();
     updateMock.mockReset();
+    deleteMock.mockReset();
     executeMock.mockReset();
+    s3SendMock.mockReset();
     redis.del.mockReset();
     redis.get.mockReset();
     redis.invalidatePattern.mockReset();
     redis.set.mockReset();
 
+    process.env.R2_PUBLIC_URL = 'https://media.example.com';
     redis.get.mockImplementation(async (_key: string) => null);
     redis.del.mockImplementation(async () => undefined);
     redis.invalidatePattern.mockImplementation(async () => undefined);
     redis.set.mockImplementation(async () => undefined);
+    s3SendMock.mockImplementation(async () => undefined);
     selectMock.mockImplementation(() => createSelectBuilder([]));
   });
 
@@ -141,8 +172,93 @@ describe('EntriesService', () => {
 
     expect(derived).toEqual({
       title: 'Finish roadmap before sleep',
-      wordCount: 4,
+      wordCount: 12,
       taskStatus: 'completed',
+      mediaUrl: null,
+      attachments: [],
+      metadata: {
+        media: {
+          byteSizeTotal: 0,
+          count: 0,
+          sha256: [],
+          storageKeys: [],
+        },
+      },
+      extractedText: 'Finish roadmap before sleep\n\n- [x] Write outline\n\n- [x] Ship draft',
+    });
+  });
+
+  it('mirrors uploaded media metadata into derived entry fields', () => {
+    const service = new EntriesService(redis as any);
+    const payload = JSON.stringify({
+      textContent: 'Photo and voice memory',
+      blocks: [
+        {
+          id: 'image-block',
+          type: 'image',
+          dataUrl: 'https://media.example.com/entries/user-123/entry-123/photo.webp',
+          storageKey: 'entries/user-123/entry-123/photo.webp',
+          contentType: 'image/webp',
+          byteSize: 1280,
+          sha256: 'abc123',
+          name: 'photo.webp',
+          uploadedAt: '2026-05-03T00:00:00.000Z',
+        },
+        {
+          id: 'voice-block',
+          type: 'voice',
+          dataUrl: 'https://media.example.com/entries/user-123/entry-123/voice.webm',
+          storageKey: 'entries/user-123/entry-123/voice.webm',
+          contentType: 'audio/webm',
+          byteSize: 2560,
+          sha256: 'def456',
+          duration: 7,
+          uploadedAt: '2026-05-03T00:00:01.000Z',
+        },
+      ],
+    });
+
+    const derived = (service as any).deriveEntryFields(payload, 'entry');
+
+    expect(derived.mediaUrl).toBe(
+      'https://media.example.com/entries/user-123/entry-123/photo.webp',
+    );
+    expect(derived.attachments).toEqual([
+      {
+        blockId: 'image-block',
+        type: 'image',
+        url: 'https://media.example.com/entries/user-123/entry-123/photo.webp',
+        storageKey: 'entries/user-123/entry-123/photo.webp',
+        contentType: 'image/webp',
+        byteSize: 1280,
+        sha256: 'abc123',
+        name: 'photo.webp',
+        duration: null,
+        uploadedAt: '2026-05-03T00:00:00.000Z',
+      },
+      {
+        blockId: 'voice-block',
+        type: 'voice',
+        url: 'https://media.example.com/entries/user-123/entry-123/voice.webm',
+        storageKey: 'entries/user-123/entry-123/voice.webm',
+        contentType: 'audio/webm',
+        byteSize: 2560,
+        sha256: 'def456',
+        name: null,
+        duration: 7,
+        uploadedAt: '2026-05-03T00:00:01.000Z',
+      },
+    ]);
+    expect(derived.metadata).toEqual({
+      media: {
+        count: 2,
+        sha256: ['abc123', 'def456'],
+        storageKeys: [
+          'entries/user-123/entry-123/photo.webp',
+          'entries/user-123/entry-123/voice.webm',
+        ],
+        byteSizeTotal: 3840,
+      },
     });
   });
 
@@ -158,5 +274,21 @@ describe('EntriesService', () => {
 
     expect(redis.get).toHaveBeenCalledWith('entry:user-b:entry-123');
     expect(result).toBeNull();
+  });
+
+  it('uploads media data URLs through the backend and returns a public R2 URL', async () => {
+    const service = new EntriesService(redis as any);
+    selectMock.mockImplementation(() => createSelectBuilder([{ id: 'entry-123' }]));
+
+    const result = await service.uploadMediaDataUrl(
+      'user-123',
+      'entry-123',
+      'data:image/png;base64,aGVsbG8=',
+      'image/png',
+    );
+
+    expect(result.publicUrl).toStartWith('https://media.example.com/entries/user-123/entry-123/');
+    expect(result.publicUrl).toEndWith('.png');
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
   });
 });

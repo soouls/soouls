@@ -96,7 +96,8 @@ const MONTHS = [
   'December',
 ];
 const SHORT_DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3000';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ?? process.env.BACKEND_URL ?? 'http://localhost:3000';
 
 // ─── Empty State ─────────────────────────────────────────────────────────────
 
@@ -110,6 +111,7 @@ function EmptyDay({ onNewEntry }: { onNewEntry: () => void }) {
         No entries on this day yet.
       </p>
       <button
+        type="button"
         onClick={onNewEntry}
         className="text-xs text-[var(--soouls-accent)] hover:underline underline-offset-2"
       >
@@ -153,6 +155,7 @@ function GCalModal({
         onClick={(e) => e.stopPropagation()}
       >
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-5 right-5 text-gray-500 hover:text-white transition-colors z-10"
         >
@@ -189,12 +192,14 @@ function GCalModal({
             </p>
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={onClose}
                 className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
               >
                 Close
               </button>
               <button
+                type="button"
                 onClick={onDisconnect}
                 className="px-5 py-3 rounded-xl border border-red-500/20 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
               >
@@ -236,6 +241,7 @@ function GCalModal({
 
             <div className="flex gap-3">
               <button
+                type="button"
                 onClick={onConnect}
                 disabled={connecting || !isConfigured}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-3 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-lg shadow-[var(--soouls-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -248,6 +254,7 @@ function GCalModal({
                 {connecting ? 'Redirecting…' : 'Authorize with Google'}
               </button>
               <button
+                type="button"
                 onClick={onClose}
                 className="px-5 py-3 rounded-xl border border-white/10 text-sm text-gray-400 hover:text-white hover:border-white/20 transition-colors"
               >
@@ -265,7 +272,6 @@ function GCalModal({
 
 export function CalendarModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const { user } = useUser();
   const { getToken } = useAuth();
   const today = useMemo(() => new Date(), []);
 
@@ -522,6 +528,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
         <header className="flex justify-between items-center p-6 border-b border-white/5 shrink-0 relative">
           <div className="flex items-center gap-8 w-full justify-center relative">
             <button
+              type="button"
               onClick={() => navigate(-1)}
               className="text-[var(--soouls-accent)] hover:opacity-80 transition-opacity p-2"
             >
@@ -536,6 +543,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
               )}
             </h2>
             <button
+              type="button"
               onClick={() => navigate(1)}
               className="text-[var(--soouls-accent)] hover:opacity-80 transition-opacity p-2"
             >
@@ -545,6 +553,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
 
           <div className="flex items-center gap-4 absolute right-6">
             <button
+              type="button"
               onClick={() => setShowGCalModal(true)}
               className={`hidden sm:inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
                 gcalConnected
@@ -564,6 +573,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
               {(['Monthly', 'Weekly', 'Daily'] as ViewMode[]).map((v) => (
                 <button
                   key={v}
+                  type="button"
                   onClick={() => setView(v)}
                   className={`px-5 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
                     view === v
@@ -577,6 +587,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <button
+              type="button"
               onClick={onClose}
               className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors ml-2 hidden"
             >
@@ -688,6 +699,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                       {selectedEntries.map((entry) => (
                         <button
                           key={entry.id}
+                          type="button"
                           onClick={() => openEntry(entry.id)}
                           className="w-full text-left rounded-2xl border border-white/10 px-4 py-3 bg-white/[0.02] hover:border-[var(--soouls-accent)]/40 hover:bg-[var(--soouls-accent)]/10 transition-all shadow-lg group"
                         >
@@ -711,6 +723,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                           Want to see all your events?
                         </div>
                         <button
+                          type="button"
                           onClick={() => setShowGCalModal(true)}
                           className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-lg"
                         >

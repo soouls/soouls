@@ -64,7 +64,6 @@ function formatAction(action: string): string {
 }
 
 export function AuditLogsSection() {
-  const { viewer } = useShell();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
@@ -165,10 +164,10 @@ export function AuditLogsSection() {
       system: 0,
       api: 0,
     };
-    logs.forEach((log) => {
+    for (const log of logs) {
       const cat = getCategory(log.action);
       if (counts[cat] !== undefined) counts[cat]++;
-    });
+    }
     return counts;
   }, [logs]);
 

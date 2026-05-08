@@ -12,7 +12,8 @@ dist
 build
 .next
 out
-
+.env*.production
+.env.production
 # Misc
 .DS_Store
 *.pem

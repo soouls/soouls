@@ -50,7 +50,7 @@ export default function SpatialCanvasSection() {
         </p>
       </div>
 
-      {/* Spatial Canvas Demo — card cluster */}
+      {/* Spatial Canvas Demo â€” card cluster */}
       <div
         ref={containerRef}
         className="reveal relative mx-auto w-full max-w-[1200px] h-[900px] md:h-[600px] overflow-hidden"
@@ -101,16 +101,15 @@ export default function SpatialCanvasSection() {
               <path d="M8 5V19L19 12L8 5Z" fill="#E07A5F" />
             </svg>
             <div className="flex items-center gap-[3px] flex-1">
-              {Array.from({ length: 32 }).map((_, j) => {
-                const h = 8 + Math.sin(j * 0.5) * 14 + Math.random() * 8;
-                // biome-ignore lint/suspicious/noArrayIndexKey: static shapes
+              {Array.from({ length: 32 }, (_, index) => {
+                const h = 8 + Math.sin(index * 0.5) * 14 + Math.random() * 8;
                 return (
                   <div
-                    key={`doodle-bar-${j}`}
+                    key={`doodle-bar-${index}-${Math.round(h)}`}
                     style={{
                       width: '3px',
                       height: `${Math.max(6, h)}px`,
-                      background: j < 12 ? '#FFFFFF' : 'rgba(255,255,255,0.3)',
+                      background: index < 12 ? '#FFFFFF' : 'rgba(255,255,255,0.3)',
                       borderRadius: '2px',
                     }}
                   />
@@ -187,13 +186,12 @@ export default function SpatialCanvasSection() {
           className="absolute transition-shadow duration-300 font-urbanist left-[15%] md:left-[20%] top-[40%] md:top-[42%] w-[200px] md:w-[260px] bg-[#1C1C1C] rounded-[16px] p-5 md:p-6 shadow-[0_12px_24px_rgba(0,0,0,0.3)]"
         >
           {[
-            { label: '2k running' },
-            { label: '3 litr water' },
-            { label: 'backend integration' },
-          ].map((t, i) => {
-            // biome-ignore lint/suspicious/noArrayIndexKey: static layout
+            { id: 'task-running', label: '2k running' },
+            { id: 'task-water', label: '3 litr water' },
+            { id: 'task-backend', label: 'backend integration' },
+          ].map((task) => {
             return (
-              <div key={`task-item-${i}`} className="flex items-center gap-3 mb-4 last:mb-0">
+              <div key={task.id} className="flex items-center gap-3 mb-4 last:mb-0">
                 <div
                   style={{
                     width: 14,
@@ -202,7 +200,7 @@ export default function SpatialCanvasSection() {
                     border: '1px solid rgba(255,255,255,0.2)',
                   }}
                 />
-                <span style={{ fontSize: '15px', color: '#D8D8D8' }}>{t.label}</span>
+                <span style={{ fontSize: '15px', color: '#D8D8D8' }}>{task.label}</span>
               </div>
             );
           })}
@@ -290,7 +288,7 @@ export default function SpatialCanvasSection() {
           </svg>
         </motion.div>
 
-        {/* DRAG • MOVE • CONNECT • REFLECT */}
+        {/* DRAG â€¢ MOVE â€¢ CONNECT â€¢ REFLECT */}
         <div
           className="absolute flex items-center gap-6 font-urbanist "
           style={{
@@ -301,23 +299,30 @@ export default function SpatialCanvasSection() {
             color: '#E5B36A',
           }}
         >
-          {['DRAG', '•', 'MOVE', '•', 'CONNECT', '•', 'REFLECT'].map((w, i) => {
-            // biome-ignore lint/suspicious/noArrayIndexKey: static word list
+          {[
+            { id: 'drag', label: 'DRAG' },
+            { id: 'dot-1', label: 'â€¢' },
+            { id: 'move', label: 'MOVE' },
+            { id: 'dot-2', label: 'â€¢' },
+            { id: 'connect', label: 'CONNECT' },
+            { id: 'dot-3', label: 'â€¢' },
+            { id: 'reflect', label: 'REFLECT' },
+          ].map((word) => {
             return (
               <span
-                key={`action-word-${i}`}
+                key={word.id}
                 style={{
                   fontSize: '14px',
                   letterSpacing: '0.15em',
                   color: '#E07A5F',
-                  opacity: w === '•' ? 1 : 0.8,
+                  opacity: word.label === 'â€¢' ? 1 : 0.8,
                   fontWeight: 600,
                 }}
               >
-                {w}
+                {word.label}
               </span>
             );
-          })}
+          })}{' '}
         </div>
       </div>
     </section>

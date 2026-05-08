@@ -100,18 +100,20 @@ export default function ClusterDetailPage() {
       <header className="px-8 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)]">
           <button
+            type="button"
             onClick={() => router.push('/home/clusters')}
             className="transition duration-300 hover:text-[var(--soouls-accent)]"
           >
             Home
           </button>
           <span>/</span>
-          <span
-            className="hover:text-[var(--soouls-accent)] cursor-pointer"
+          <button
+            type="button"
+            className="hover:text-[var(--soouls-accent)]"
             onClick={() => router.push('/home/clusters')}
           >
             Clusters
-          </span>
+          </button>
           <span>/</span>
           <span style={{ color: 'var(--soouls-accent)' }}>{cluster.name}</span>
         </div>
@@ -128,6 +130,21 @@ export default function ClusterDetailPage() {
           )}
         </div>
       </header>
+
+      <div className="max-w-5xl mx-auto w-full px-6 flex justify-end mb-2">
+        <Link
+          href={`/home/canvas/${clusterId}`}
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 active:scale-95"
+          style={{
+            backgroundColor: 'var(--soouls-bg-surface)',
+            border: '1px solid var(--soouls-border)',
+            color: 'var(--soouls-accent)',
+          }}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Explore on Canvas
+        </Link>
+      </div>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-col pt-4 pb-20">
         <div

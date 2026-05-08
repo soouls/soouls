@@ -5,6 +5,6 @@ export async function run(
   input: Input,
   ctx: ProtectedContext,
   services: Services,
-): Promise<{ uploadUrl: string; publicUrl: string }> {
+): Promise<{ uploadUrl: string; publicUrl: string; storageKey: string }> {
   return services.entries.getUploadPresignedUrl(ctx.userId, input.entryId, input.contentType);
 }

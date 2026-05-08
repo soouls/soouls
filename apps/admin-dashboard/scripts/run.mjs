@@ -3,6 +3,20 @@ import { existsSync, realpathSync, symlinkSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnv = resolve(currentDir, '..', '..', '..', '.env');
+
+// Load environment variables if the file exists (native in Node 20.6+)
+if (existsSync(rootEnv)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(rootEnv);
+    }
+  } catch (e) {
+    console.warn('Failed to load root .env file:', e.message);
+  }
+}
+
 const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const localNodeModules = resolve(appRoot, 'node_modules');
 const frontendNodeModules = resolve(appRoot, '..', 'frontend', 'node_modules');

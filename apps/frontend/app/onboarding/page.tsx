@@ -286,6 +286,9 @@ export default function OnboardingPage() {
   const updateUser = trpc.private.users.update.useMutation();
   const updateSettings = trpc.private.home.updateSettings.useMutation();
   const createEntry = trpc.private.entries.create.useMutation();
+  const { data: onboardingStatus } = trpc.private.home.getOnboardingStatus.useQuery(undefined, {
+    enabled: Boolean(user),
+  });
 
   const [stage, setStage] = useState<Stage>('reason');
   const [answers, setAnswers] = useState<FlowAnswers>({});
@@ -297,7 +300,9 @@ export default function OnboardingPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
 
-  const isWaitlistUser = Boolean(user?.publicMetadata?.isWaitlistUser);
+  const isWaitlistUser = Boolean(
+    onboardingStatus?.isWaitlistUser || user?.publicMetadata?.isWaitlistUser,
+  );
   const questionStep = QUESTION_STEPS.includes(stage) ? QUESTION_STEPS.indexOf(stage) + 1 : null;
 
   const previewTheme = useCallback(
@@ -330,8 +335,13 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (onboardingStatus?.completed) {
+      router.replace('/home');
+      return;
+    }
+
     setNameInput((current) => current || user.firstName || user.fullName || '');
-  }, [isLoaded, router, user]);
+  }, [isLoaded, onboardingStatus?.completed, router, user]);
 
   useEffect(() => {
     previewTheme(theme, 'dark');
@@ -386,7 +396,10 @@ export default function OnboardingPage() {
 
   const handleWake = useCallback(() => {
     setMascotAwake(true);
-    setStage('name');
+    // Add a slight delay for the mascot to "stretch" and greet before moving to next stage
+    setTimeout(() => {
+      setStage('name');
+    }, 1200);
   }, []);
 
   const handleFinish = useCallback(async () => {
@@ -400,14 +413,21 @@ export default function OnboardingPage() {
     setSaveError(null);
 
     try {
-      await Promise.all([
-        updateUser.mutateAsync({
-          name: trimmedName,
-          mascot: 'Orbi',
-          themePreference: theme,
-        }),
-        updateSettings.mutateAsync(settingsPatch),
-      ]);
+      await updateSettings.mutateAsync(settingsPatch);
+      await updateUser.mutateAsync({
+        name: trimmedName,
+        mascot: 'Orbi',
+        themePreference: theme,
+        preferences: {
+          ...settingsPatch,
+          onboardingCompleted: true,
+          onboardingRoomName: trimmedSpace,
+          onboardingAnswers: {
+            ...answers,
+            tone: theme,
+          },
+        },
+      });
 
       await createEntry.mutateAsync({
         type: 'entry',
@@ -844,35 +864,36 @@ export default function OnboardingPage() {
                       }}
                     >
                       <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(var(--soouls-accent-rgb),0.26)] bg-[rgba(var(--soouls-accent-rgb),0.08)]">
-                        <Sparkles className="h-7 w-7" style={{ color: 'var(--soouls-accent)' }} />
+                        <Sunrise className="h-7 w-7" style={{ color: 'var(--soouls-accent)' }} />
                       </div>
                       <h2
                         className="text-[2.6rem] leading-[1] text-white sm:text-[3.2rem]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
-                        Your guide is waiting.
+                        Meet your companion.
                       </h2>
                       <p className="mx-auto mt-4 max-w-[34rem] text-base leading-relaxed text-[rgba(239,235,221,0.72)]">
-                        Orbi is already tracking your signal from the corner. Wake the mascot when
-                        you want the room to feel alive.
+                        Orbi is your personal guide through the archive. It learns your rhythm,
+                        holds your thoughts, and keeps the light steady.
                       </p>
 
                       <div className="mt-8 flex flex-col items-center gap-4">
                         <button
                           type="button"
                           onClick={handleWake}
-                          className="inline-flex items-center gap-2 rounded-full border px-7 py-3 text-sm uppercase tracking-[0.26em]"
+                          className="inline-flex items-center gap-2 rounded-full border px-8 py-4 text-sm uppercase tracking-[0.26em] transition-all hover:scale-105 active:scale-95"
                           style={{
                             borderColor: 'rgba(var(--soouls-accent-rgb), 0.4)',
-                            backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.08)',
+                            backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.12)',
                             color: 'var(--soouls-accent)',
+                            boxShadow: '0 0 20px rgba(var(--soouls-accent-rgb), 0.2)',
                           }}
                         >
                           Wake Orbi
-                          <ArrowRight className="h-4 w-4" />
+                          <Sparkles className="h-4 w-4" />
                         </button>
-                        <p className="text-xs uppercase tracking-[0.26em] text-[rgba(239,235,221,0.44)]">
-                          Or tap the mascot in the right corner
+                        <p className="text-xs uppercase tracking-[0.26em] text-[rgba(239,235,221,0.3)]">
+                          Tap the companion to begin
                         </p>
                       </div>
                     </div>
@@ -898,7 +919,7 @@ export default function OnboardingPage() {
                     >
                       {isWaitlistUser ? (
                         <div
-                          className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.24em]"
+                          className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.16em]"
                           style={{
                             borderColor: 'rgba(var(--soouls-accent-rgb), 0.3)',
                             backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.08)',
@@ -906,7 +927,10 @@ export default function OnboardingPage() {
                           }}
                         >
                           <CheckCircle2 className="h-4 w-4" />
-                          Early believer
+                          <span className="truncate">
+                            {onboardingStatus?.message ??
+                              'You are always special to us. You are a waitlist member. Thank you.'}
+                          </span>
                         </div>
                       ) : null}
 
@@ -1252,6 +1276,7 @@ export default function OnboardingPage() {
         name={nameInput.trim() || user?.firstName || undefined}
         firstEntry={firstEntry.trim() || undefined}
         onWake={stage === 'wake' ? handleWake : undefined}
+        centered={stage === 'wake'}
       />
 
       <div className="sr-only">{titleTone}</div>

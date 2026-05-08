@@ -41,6 +41,31 @@ export function buildActivityBars(
   return counts.map((count) => Math.max(12, Math.round((count / max) * 100)));
 }
 
+export function buildWeeklyActivityBars(
+  entries: Array<Pick<UserEntry, 'createdAt'>>,
+  now = new Date(),
+): number[] {
+  const counts = new Array(7).fill(0);
+  const weekAgo = new Date(now);
+  weekAgo.setDate(now.getDate() - 6);
+  weekAgo.setHours(0, 0, 0, 0);
+
+  // We want to map current week's days (Sun-Sat)
+  // But the design might show the last 7 days relative to today.
+  // Actually, Sun Mon Tue Wed Thu Fri Sat is standard.
+
+  for (const entry of entries) {
+    const date = new Date(entry.createdAt);
+    if (date >= weekAgo) {
+      const day = date.getDay(); // 0 is Sunday
+      counts[day] += 1;
+    }
+  }
+
+  const max = Math.max(...counts, 1);
+  return counts.map((count) => Math.max(12, Math.round((count / max) * 100)));
+}
+
 export function clusterMatchesEntry(
   cluster: Pick<HomeCluster, 'name'>,
   entry: Pick<UserEntry, 'title' | 'content'>,

@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 export const LeafIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -11,6 +9,7 @@ export const LeafIcon = ({ className }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    aria-hidden="true"
   >
     <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
     <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
@@ -26,6 +25,7 @@ export const DiamondIcon = ({ className }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    aria-hidden="true"
   >
     <polygon points="12 2 16 6 12 10 8 6 12 2" />
     <polygon points="12 14 16 18 12 22 8 18 12 14" />
@@ -43,6 +43,7 @@ export const CanvasLoopIcon = ({ className }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    aria-hidden="true"
   >
     <path d="M12 12C9.5 8 5 8 5 12C5 16 9.5 16 12 12Z" />
     <path d="M12 12C14.5 8 19 8 19 12C19 16 14.5 16 12 12Z" />
@@ -60,6 +61,7 @@ export const CompassIcon = ({ className }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    aria-hidden="true"
   >
     <circle cx="12" cy="12" r="10" />
     <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
@@ -75,6 +77,7 @@ export const NetworkIcon = ({ className }: { className?: string }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className}
+    aria-hidden="true"
   >
     <circle cx="12" cy="12" r="3" />
     <circle cx="18" cy="6" r="2" />

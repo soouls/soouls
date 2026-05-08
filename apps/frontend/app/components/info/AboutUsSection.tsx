@@ -6,6 +6,7 @@ export default function AboutUsSection() {
       {/* Background Decoration: Clover Pattern */}
       <div className="absolute top-[10%] left-[-10%] opacity-[0.03] rotate-12 pointer-events-none">
         <svg
+          aria-hidden="true"
           width="600"
           height="600"
           viewBox="0 0 100 100"

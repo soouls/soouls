@@ -1,12 +1,26 @@
 import { spawn } from 'node:child_process';
-import { realpathSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const appRoot = realpathSync.native(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnv = resolve(currentDir, '..', '..', '..', '.env');
+
+// Load environment variables if the file exists (native in Node 20.6+)
+if (existsSync(rootEnv)) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile(rootEnv);
+    }
+  } catch (e) {
+    console.warn('Failed to load root .env file:', e.message);
+  }
+}
+
+const appRoot = realpathSync.native(resolve(currentDir, '..'));
 const entryPoint = resolve(appRoot, 'src', 'main.ts');
 
-const child = spawn('bun', ['run', '--env-file=../../.env', entryPoint], {
+const child = spawn('bun', ['run', entryPoint], {
   cwd: appRoot,
   stdio: 'inherit',
   env: process.env,

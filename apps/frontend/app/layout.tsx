@@ -1,6 +1,5 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
-import { Playfair_Display, Urbanist } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/react';
@@ -8,6 +7,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { CSPostHogProvider } from '../src/providers/posthog-provider';
 import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
 import { UiThemeProvider } from '../src/providers/ui-theme-provider';
+import { GlobalMascot } from './components/GlobalMascot';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -18,15 +18,14 @@ const geistMono = localFont({
   variable: '--font-geist-mono',
 });
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
+const playfair = localFont({
+  src: './fonts/GeistVF.woff',
   variable: '--font-playfair',
 });
 
-const urbanist = Urbanist({
-  subsets: ['latin'],
+const urbanist = localFont({
+  src: './fonts/GeistVF.woff',
   variable: '--font-urbanist',
-  weight: ['300', '400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -56,6 +55,7 @@ export default function RootLayout({
             <PersistedTRPCProvider>
               <UiThemeProvider>{children}</UiThemeProvider>
             </PersistedTRPCProvider>
+            <GlobalMascot />
             <Analytics />
             <SpeedInsights />
           </CSPostHogProvider>
