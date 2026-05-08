@@ -601,11 +601,6 @@ import {
 } from './namespaces/private/home/getInsights/constants.js';
 import { run as getHomeInsightsRun } from './namespaces/private/home/getInsights/run.js';
 import {
-  config as refreshInsightsConfig,
-  schema as refreshInsightsSchema,
-} from './namespaces/private/home/refreshInsights/constants.js';
-import { run as refreshInsightsRun } from './namespaces/private/home/refreshInsights/run.js';
-import {
   config as getOnboardingStatusConfig,
   schema as getOnboardingStatusSchema,
 } from './namespaces/private/home/getOnboardingStatus/constants.js';
@@ -620,6 +615,11 @@ import {
   schema as reclusterSchema,
 } from './namespaces/private/home/recluster/constants.js';
 import { run as reclusterRun } from './namespaces/private/home/recluster/run.js';
+import {
+  config as refreshInsightsConfig,
+  schema as refreshInsightsSchema,
+} from './namespaces/private/home/refreshInsights/constants.js';
+import { run as refreshInsightsRun } from './namespaces/private/home/refreshInsights/run.js';
 import {
   config as regenerateEntryCanvasConfig,
   schema as regenerateEntryCanvasSchema,

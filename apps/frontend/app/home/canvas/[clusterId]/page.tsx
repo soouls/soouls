@@ -76,7 +76,9 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
         minHeight={100}
         maxWidth={360}
         maxHeight={260}
-        onResize={(_event: any, size: { width: number; height: number }) => onPatch(id, { width: size.width, height: size.height })}
+        onResize={(_event: any, size: { width: number; height: number }) =>
+          onPatch(id, { width: size.width, height: size.height })
+        }
       />
       <Handle type="target" position={Position.Top} className="!border-[#E07A5F] !bg-[#1C1C1C]" />
       <Handle
@@ -119,9 +121,7 @@ function makeCanvasNodes(
   }));
 }
 
-function makeCanvasEdges(
-  connections: EntryCanvasConnection[],
-): Edge[] {
+function makeCanvasEdges(connections: EntryCanvasConnection[]): Edge[] {
   return connections.map((connection) => ({
     id: connection.id ?? `edge-${connection.from}-${connection.to}`,
     source: connection.from,
