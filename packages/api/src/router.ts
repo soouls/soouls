@@ -428,6 +428,7 @@ export type AccountExport = {
 
 export type HomeApi = {
   getInsights: (userId: string) => Promise<HomeInsights>;
+  refreshInsights: (userId: string) => Promise<HomeInsights>;
   getAccount: (userId: string) => Promise<HomeAccount>;
   getSettings: (userId: string) => Promise<HomeSettings>;
   updateSettings: (userId: string, input: Partial<HomeSettings>) => Promise<HomeSettings>;
@@ -615,6 +616,11 @@ import {
 } from './namespaces/private/home/recluster/constants.js';
 import { run as reclusterRun } from './namespaces/private/home/recluster/run.js';
 import {
+  config as refreshInsightsConfig,
+  schema as refreshInsightsSchema,
+} from './namespaces/private/home/refreshInsights/constants.js';
+import { run as refreshInsightsRun } from './namespaces/private/home/refreshInsights/run.js';
+import {
   config as regenerateEntryCanvasConfig,
   schema as regenerateEntryCanvasSchema,
 } from './namespaces/private/home/regenerateEntryCanvas/constants.js';
@@ -773,6 +779,11 @@ function buildPrivateRouter(services: Services) {
         .use(makeRateLimitMiddleware(getHomeInsightsConfig.rateLimit))
         .input(getHomeInsightsSchema)
         .query(({ input, ctx }) => getHomeInsightsRun(input, ctx, services)),
+
+      refreshInsights: authedProcedure
+        .use(makeRateLimitMiddleware(refreshInsightsConfig.rateLimit))
+        .input(refreshInsightsSchema)
+        .mutation(({ input, ctx }) => refreshInsightsRun(input, ctx, services)),
 
       getAccount: authedProcedure
         .use(makeRateLimitMiddleware(getHomeAccountConfig.rateLimit))

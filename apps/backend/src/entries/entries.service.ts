@@ -88,7 +88,7 @@ export class EntriesService {
     GALAXY: 3600,
   };
 
-  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
+  constructor(private readonly redis: RedisService) {}
 
   private getCacheKey(prefix: string, ...parts: (string | number)[]): string {
     return `${prefix}:${parts.join(':')}`;

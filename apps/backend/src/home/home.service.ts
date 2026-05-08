@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
 import {
@@ -266,7 +267,10 @@ export class HomeService implements HomeApi {
     };
   }
 
-  private async getSnapshot(userId: string): Promise<{
+  private async getSnapshot(
+    userId: string,
+    forceRefresh = false,
+  ): Promise<{
     user: UserRow;
     settings: NormalizedUserPreferences;
     analytics: ReturnType<typeof buildHomeAnalytics>;
@@ -281,7 +285,7 @@ export class HomeService implements HomeApi {
       lastUpdated: string;
     }>(cacheKey);
 
-    if (cached) {
+    if (cached && !forceRefresh) {
       return cached;
     }
 
@@ -320,13 +324,23 @@ export class HomeService implements HomeApi {
   }
 
   async getInsights(userId: string): Promise<HomeInsights> {
-    const { analytics, lastUpdated } = await this.getSnapshot(userId);
+    const snapshot = await this.getSnapshot(userId);
     const entries = await this.getDecodedEntries(userId);
+    const lastUpdatedDate = Date.parse(snapshot.lastUpdated);
+    const isStale = entries.some((entry) => entry.updatedAt.getTime() > lastUpdatedDate);
+
+    if (isStale) {
+      this.triggerBackgroundEnrichment(userId).catch((err) =>
+        console.error('[HomeService] Background enrichment failed:', err),
+      );
+    }
+
+    const { analytics, lastUpdated } = snapshot;
     const reflectionHistogram = this.buildReflectionHistogram(entries);
 
     return {
       lastUpdated,
-      isStale: entries.some((entry) => entry.updatedAt.getTime() > Date.parse(lastUpdated)),
+      isStale,
       overview: analytics?.overview,
       monthlyQuote: analytics?.insights?.monthlyQuote ?? 'You are building your reflection rhythm.',
       monthlyAnalysis: analytics?.insights?.monthlyAnalysis ?? 'Not enough data yet.',
@@ -441,8 +455,37 @@ export class HomeService implements HomeApi {
       .where(eq(users.id, userId));
 
     await this.redis.invalidatePattern(`home:*:${userId}*`);
-
     return next;
+  }
+
+  async refreshInsights(userId: string): Promise<HomeInsights> {
+    const monthKey = new Date().toISOString().slice(0, 7);
+    const cacheKey = `${this.getCacheKey('home:snapshot:v5', userId)}:${monthKey}`;
+    await this.redis.del(cacheKey);
+
+    // Force a fresh snapshot which will do AI enrichment
+    await this.getSnapshot(userId, true);
+    return this.getInsights(userId);
+  }
+
+  private async triggerBackgroundEnrichment(userId: string) {
+    const lockKey = `home:enrichment-lock:${userId}`;
+    const lockToken = Math.random().toString(36).substring(2);
+
+    const isLocked = await this.redis.exists(lockKey);
+    if (isLocked) return;
+
+    await this.redis.set(lockKey, lockToken, 45); // 45s TTL for background enrichment
+    try {
+      await this.getSnapshot(userId, true);
+    } catch (err) {
+      console.error(`[HomeService] Background enrichment failed for user ${userId}:`, err);
+    } finally {
+      const currentToken = await this.redis.get<string>(lockKey);
+      if (currentToken === lockToken) {
+        await this.redis.del(lockKey);
+      }
+    }
   }
 
   async getOnboardingStatus(userId: string) {
@@ -487,7 +530,11 @@ export class HomeService implements HomeApi {
   }> {
     const { analytics } = await this.getSnapshot(userId);
     const decodedEntries = await this.getDecodedEntries(userId);
-    const aiClustered = await this.ensureAiClusters(userId, decodedEntries);
+    const aiClustered = await this.ensureAiClusters(
+      userId,
+      decodedEntries,
+      analytics.clusters.items,
+    );
     if (!aiClustered) {
       await this.ensureReliableClusters(userId, analytics.clusters.items, decodedEntries);
     }
@@ -521,37 +568,47 @@ export class HomeService implements HomeApi {
       headline: analytics.clusters.headline,
       items:
         userFoldersAfterPromotion.length > 0
-          ? userFoldersAfterPromotion.map((folder, index) => {
-              const analyticsMatch = analytics.clusters.items.find(
-                (item) => item.name.toLowerCase() === folder.title.toLowerCase(),
-              );
-              return {
-                id: folder.id,
-                name: folder.title,
-                entryCount: entryCounts.get(folder.id) ?? analyticsMatch?.entryCount ?? 0,
-                updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
-                description:
-                  folder.description ??
-                  analyticsMatch?.description ??
-                  'A stable space formed from recurring patterns in your entries.',
-                strength: index === 0 ? 'Dominant' : (analyticsMatch?.strength ?? 'Emerging'),
-                tones: folder.metadata?.themeTags?.length
-                  ? folder.metadata.themeTags
-                  : (analyticsMatch?.tones ?? ['Reflective', 'Focused']),
-                color: folder.color,
-                themeTags: folder.metadata?.themeTags ?? analyticsMatch?.tones ?? [],
-                source: folder.metadata?.source ?? 'manual',
-              };
-            })
+          ? userFoldersAfterPromotion
+              .filter((folder) => {
+                const count = entryCounts.get(folder.id) ?? 0;
+                return count > 0 || folder.metadata?.source === 'manual';
+              })
+              .map((folder, index) => {
+                const analyticsMatch = analytics.clusters.items.find(
+                  (item) => item.name.toLowerCase() === folder.title.toLowerCase(),
+                );
+                return {
+                  id: folder.id,
+                  name: folder.title,
+                  entryCount: entryCounts.get(folder.id) ?? analyticsMatch?.entryCount ?? 0,
+                  updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
+                  description:
+                    folder.description ??
+                    analyticsMatch?.description ??
+                    'A stable space formed from recurring patterns in your entries.',
+                  strength: index === 0 ? 'Dominant' : (analyticsMatch?.strength ?? 'Emerging'),
+                  tones: folder.metadata?.themeTags?.length
+                    ? folder.metadata.themeTags
+                    : (analyticsMatch?.tones ?? ['Reflective', 'Focused']),
+                  color: folder.color,
+                  themeTags: folder.metadata?.themeTags ?? analyticsMatch?.tones ?? [],
+                  source: folder.metadata?.source ?? 'manual',
+                };
+              })
           : analytics.clusters.items,
       folders:
         userFoldersAfterPromotion.length > 0
-          ? userFoldersAfterPromotion.map((folder) => ({
-              id: folder.id,
-              title: folder.title,
-              entryCount: entryCounts.get(folder.id) ?? 0,
-              updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
-            }))
+          ? userFoldersAfterPromotion
+              .filter((folder) => {
+                const count = entryCounts.get(folder.id) ?? 0;
+                return count > 0 || folder.metadata?.source === 'manual';
+              })
+              .map((folder) => ({
+                id: folder.id,
+                title: folder.title,
+                entryCount: entryCounts.get(folder.id) ?? 0,
+                updatedAtLabel: formatRelativeUpdatedAt(folder.updatedAt),
+              }))
           : analytics.canvas.folders,
     };
   }
@@ -609,7 +666,11 @@ export class HomeService implements HomeApi {
     return groups.filter((group) => group.entry_ids.length > 0);
   }
 
-  private async ensureAiClusters(userId: string, entries: DecodedHomeEntry[]): Promise<boolean> {
+  private async ensureAiClusters(
+    userId: string,
+    entries: DecodedHomeEntry[],
+    suggestedClusters: HomeCluster[],
+  ): Promise<boolean> {
     if (entries.length === 0) return true;
 
     const latestEntryUpdatedAt = entries.reduce(
@@ -661,14 +722,13 @@ export class HomeService implements HomeApi {
             entry_ids: cluster.entry_ids,
             source: 'ai' as const,
           }))
-        : this.buildDateFallbackClusterSpecs(entries).map((cluster) => ({
-            ...cluster,
-            source: 'date-fallback' as const,
-          }));
+        : this.buildThematicFallbackClusterSpecs(suggestedClusters, entries);
 
     if (specs.length === 0) return false;
 
     const generatedAt = new Date().toISOString();
+    const createdClusterIds: string[] = [];
+
     for (const spec of specs) {
       const [existing] = await db
         .select({ id: clusters.id })
@@ -710,14 +770,104 @@ export class HomeService implements HomeApi {
       }
 
       if (!clusterId) continue;
+      createdClusterIds.push(clusterId);
+
       await db
         .update(journalEntries)
         .set({ clusterId, updatedAt: new Date() })
         .where(and(eq(journalEntries.userId, userId), inArray(journalEntries.id, spec.entry_ids)));
     }
+    // Handle orphans (entries missed by AI but within the 80% threshold)
+    const assignedEntryIds = new Set(specs.flatMap((s) => s.entry_ids));
+    const orphans = entries.filter((e) => !assignedEntryIds.has(e.id));
+
+    if (orphans.length > 0 && createdClusterIds.length > 0) {
+      // Fetch all valid clusters for this user to ensure we have the full set of candidates
+      const userClusters = await db
+        .select({ id: clusters.id, name: clusters.name })
+        .from(clusters)
+        .where(eq(clusters.userId, userId));
+
+      for (const orphan of orphans) {
+        let bestClusterId = createdClusterIds[0];
+        let maxScore = -1;
+
+        const orphanCorpus = `${orphan.title ?? ''} ${orphan.text}`.toLowerCase();
+
+        for (const cluster of userClusters) {
+          if (!createdClusterIds.includes(cluster.id)) continue;
+
+          const matchWords = cluster.name
+            .toLowerCase()
+            .split(/[^a-z0-9]+/g)
+            .filter(Boolean);
+
+          const score = matchWords.reduce(
+            (acc, word) => acc + (orphanCorpus.includes(word) ? 1 : 0),
+            0,
+          );
+
+          if (score > maxScore) {
+            maxScore = score;
+            bestClusterId = cluster.id;
+          }
+        }
+
+        await db
+          .update(journalEntries)
+          .set({ clusterId: bestClusterId, updatedAt: new Date() })
+          .where(and(eq(journalEntries.userId, userId), eq(journalEntries.id, orphan.id)));
+      }
+    }
 
     await this.redis.invalidatePattern(`entries:all:${userId}:*`);
     return true;
+  }
+
+  private buildThematicFallbackClusterSpecs(
+    suggestedClusters: HomeCluster[],
+    entries: DecodedHomeEntry[],
+  ) {
+    const thematicClusters = suggestedClusters.filter(
+      (cluster) => cluster.name !== 'Recent Entries' && cluster.entryCount > 0,
+    );
+    const sourceClusters =
+      thematicClusters.length > 0
+        ? thematicClusters
+        : suggestedClusters.filter((cluster) => cluster.entryCount > 0);
+
+    if (sourceClusters.length === 0) {
+      return this.buildDateFallbackClusterSpecs(entries).map((cluster) => ({
+        ...cluster,
+        source: 'date-fallback' as const,
+      }));
+    }
+
+    const specs = sourceClusters.slice(0, 6).map((cluster, index) => ({
+      id: cluster.id,
+      name: cluster.name,
+      description: cluster.description,
+      color: cluster.color ?? ['#6F3A2E', '#274A47', '#473829', '#3B3152'][index % 4],
+      theme_tags: cluster.themeTags?.length ? cluster.themeTags : cluster.tones,
+      entry_ids: [] as string[],
+      source: 'ai' as const,
+    }));
+
+    entries.forEach((entry, index) => {
+      const bestMatch = specs.reduce(
+        (best, spec, specIndex) => {
+          const score = this.scoreEntryClusterMatch(
+            entry,
+            this.getClusterMatchWords(spec.name, spec.theme_tags),
+          );
+          return score > best.score ? { index: specIndex, score } : best;
+        },
+        { index: index % specs.length, score: -1 },
+      );
+      specs[bestMatch.index]?.entry_ids.push(entry.id);
+    });
+
+    return specs.filter((spec) => spec.entry_ids.length > 0);
   }
 
   private validateGeneratedClusterCoverage(
@@ -725,15 +875,24 @@ export class HomeService implements HomeApi {
     entries: DecodedHomeEntry[],
   ): boolean {
     const validIds = new Set(entries.map((entry) => entry.id));
+    if (validIds.size === 0) return true;
+
+    let seenCount = 0;
     const seen = new Set<string>();
+
     for (const cluster of clustersInput) {
-      if (!cluster.entry_ids?.length) return false;
+      if (!cluster.entry_ids?.length) continue;
       for (const entryId of cluster.entry_ids) {
-        if (!validIds.has(entryId) || seen.has(entryId)) return false;
-        seen.add(entryId);
+        if (validIds.has(entryId) && !seen.has(entryId)) {
+          seen.add(entryId);
+          seenCount++;
+        }
       }
     }
-    return seen.size === validIds.size;
+
+    // Require at least 80% coverage to accept AI clusters instead of falling back to dates
+    const coverage = seenCount / validIds.size;
+    return coverage >= 0.8;
   }
 
   /**
@@ -814,12 +973,7 @@ export class HomeService implements HomeApi {
       }
 
       const matchWords =
-        cluster.name === 'Recent Entries'
-          ? []
-          : cluster.name
-              .toLowerCase()
-              .split(/[^a-z0-9]+/g)
-              .filter(Boolean);
+        cluster.name === 'Recent Entries' ? [] : this.getClusterMatchWords(cluster.name);
 
       for (const entry of entries) {
         if (entry.clusterId) continue;
@@ -828,8 +982,7 @@ export class HomeService implements HomeApi {
         if (cluster.name === 'Recent Entries') {
           matches = true;
         } else {
-          const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
-          matches = matchWords.some((word) => corpus.includes(word));
+          matches = this.scoreEntryClusterMatch(entry, matchWords) > 0;
         }
 
         if (matches) {
@@ -841,6 +994,19 @@ export class HomeService implements HomeApi {
         }
       }
     }
+  }
+
+  private getClusterMatchWords(name: string, themeTags: string[] = []): string[] {
+    return [...themeTags, name]
+      .flatMap((value) => value.toLowerCase().split(/[^a-z0-9]+/g))
+      .map((word) => word.trim())
+      .filter(Boolean);
+  }
+
+  private scoreEntryClusterMatch(entry: DecodedHomeEntry, matchWords: string[]): number {
+    if (matchWords.length === 0) return 0;
+    const corpus = `${entry.title ?? ''} ${entry.text}`.toLowerCase();
+    return matchWords.reduce((score, word) => score + (corpus.includes(word) ? 1 : 0), 0);
   }
 
   private extractTopKeywordsFromEntries(entries: DecodedHomeEntry[]): string[] {

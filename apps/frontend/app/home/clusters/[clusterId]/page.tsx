@@ -131,6 +131,21 @@ export default function ClusterDetailPage() {
         </div>
       </header>
 
+      <div className="max-w-5xl mx-auto w-full px-6 flex justify-end mb-2">
+        <Link
+          href={`/home/canvas/${clusterId}`}
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 active:scale-95"
+          style={{
+            backgroundColor: 'var(--soouls-bg-surface)',
+            border: '1px solid var(--soouls-border)',
+            color: 'var(--soouls-accent)',
+          }}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          Explore on Canvas
+        </Link>
+      </div>
+
       <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-col pt-4 pb-20">
         <div
           className="rounded-[2.5rem] border p-8 md:p-12 shadow-2xl"

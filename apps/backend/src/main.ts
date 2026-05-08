@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import * as Sentry from '@sentry/nestjs';
 import helmet from 'helmet';
 import pino from 'pino-http';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -26,30 +27,15 @@ async function bootstrap() {
     app.setGlobalPrefix('/_/backend');
   }
 
-  const appWithBodyParser = app as typeof app & {
-    useBodyParser: (
-      type: 'json' | 'urlencoded',
-      options: Record<string, boolean | number | string>,
-    ) => void;
-  };
-
-  appWithBodyParser.useBodyParser('json', { limit: '10mb' });
-  appWithBodyParser.useBodyParser('urlencoded', { extended: true, limit: '10mb' });
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.use(helmet());
 
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
   const allowedOrigins = Array.from(
-    new Set(
-      [
-        process.env.FRONTEND_URL,
-        process.env.COMMAND_CENTER_URL,
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3002',
-      ].filter(Boolean) as string[],
-    ),
+    new Set([process.env.FRONTEND_URL, process.env.COMMAND_CENTER_URL].filter(Boolean) as string[]),
   );
 
   app.enableCors({

@@ -118,7 +118,7 @@ function SectionCard({
   return (
     <section
       className={`rounded-[20px] border border-[rgba(255,255,255,0.04)] p-[32px] flex flex-col ${className}`}
-      style={{ backgroundColor: '#111111' }}
+      style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
     >
       {children}
     </section>
@@ -131,6 +131,7 @@ export default function InsightsPage() {
 
   const utils = trpc.useUtils();
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   const { data: insights, isLoading: insightsLoading } =
     trpc.private.home.getInsights.useQuery(undefined);
@@ -139,22 +140,26 @@ export default function InsightsPage() {
     cursor: 0,
   });
 
-  const updateSettings = trpc.private.home.updateSettings.useMutation();
+  const refreshInsights = trpc.private.home.refreshInsights.useMutation();
   const isLoading = insightsLoading || entriesLoading;
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    setRefreshError(null);
     try {
-      // 1. Force clear backend Redis cache by "updating" settings with empty payload
-      await updateSettings.mutateAsync({});
+      // 1. Trigger explicit insight refresh (invalidates Redis and triggers background job)
+      await refreshInsights.mutateAsync({});
 
-      // 2. Invalidate TRPC queries to re-fetch from the backend (which now has no cache)
+      // 2. Invalidate TRPC queries to re-fetch from the backend
       await utils.private.home.getInsights.invalidate();
       await utils.private.entries.getAll.invalidate();
+    } catch (err) {
+      console.error('[InsightsPage] Refresh failed:', err);
+      setRefreshError('Refresh failed. Check your connection and try again.');
     } finally {
       setRefreshing(false);
     }
-  }, [utils]);
+  }, [refreshInsights, utils]);
 
   const peakTimeData = useMemo(() => {
     const timeSlots = [
@@ -284,11 +289,11 @@ export default function InsightsPage() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-32 pb-0 items-stretch">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col mt-48 pb-28">
         <section
-          className="flex-1 backdrop-blur-[48px] border-t rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-6"
+          className="w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6"
           style={{
-            backgroundColor: 'var(--soouls-bg-panel)',
+            backgroundColor: 'var(--soouls-bg-surface)',
             borderColor: 'var(--soouls-border)',
             opacity: 0.96,
           }}
@@ -330,6 +335,10 @@ export default function InsightsPage() {
               </button>
             </div>
           </div>
+
+          {refreshError ? (
+            <p className="px-2 text-[12px] font-light text-[#E8704A]">{refreshError}</p>
+          ) : null}
 
           {entryCount === 0 ? (
             <SectionCard>

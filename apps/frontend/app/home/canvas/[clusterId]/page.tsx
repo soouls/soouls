@@ -3,7 +3,7 @@
 import '@xyflow/react/dist/style.css';
 
 import { useUser } from '@clerk/nextjs';
-import type { EntryCanvasCard, UserEntry } from '@soouls/api/router';
+import type { EntryCanvasCard, EntryCanvasConnection, UserEntry } from '@soouls/api/router';
 import {
   Background,
   type Connection,
@@ -35,6 +35,7 @@ import {
   Sparkles,
   Trash2,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -75,7 +76,9 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
         minHeight={100}
         maxWidth={360}
         maxHeight={260}
-        onResize={(_event, size) => onPatch(id, { width: size.width, height: size.height })}
+        onResize={(_event: any, size: { width: number; height: number }) =>
+          onPatch(id, { width: size.width, height: size.height })
+        }
       />
       <Handle type="target" position={Position.Top} className="!border-[#E07A5F] !bg-[#1C1C1C]" />
       <Handle
@@ -118,9 +121,7 @@ function makeCanvasNodes(
   }));
 }
 
-function makeCanvasEdges(
-  connections: Array<{ id?: string; from: string; to: string; label?: string }>,
-): Edge[] {
+function makeCanvasEdges(connections: EntryCanvasConnection[]): Edge[] {
   return connections.map((connection) => ({
     id: connection.id ?? `edge-${connection.from}-${connection.to}`,
     source: connection.from,
@@ -197,8 +198,8 @@ export default function CanvasClusterPage() {
 
   const patchCard = useCallback(
     (cardId: string, patch: Partial<EntryCanvasCard>) => {
-      setNodes((current) =>
-        current.map((node) =>
+      setNodes((current: CanvasNode[]) =>
+        current.map((node: CanvasNode) =>
           node.id === cardId
             ? {
                 ...node,
@@ -233,12 +234,12 @@ export default function CanvasClusterPage() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSaveState('saving');
     saveTimerRef.current = setTimeout(async () => {
-      const cards = nodes.map((node) => ({
+      const cards = nodes.map((node: CanvasNode) => ({
         ...node.data.card,
         x: Math.round(node.position.x),
         y: Math.round(node.position.y),
       }));
-      const connections = edges.map((edge) => ({
+      const connections = edges.map((edge: Edge) => ({
         id: edge.id,
         from: edge.source,
         to: edge.target,
@@ -266,7 +267,7 @@ export default function CanvasClusterPage() {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      setEdges((current) =>
+      setEdges((current: Edge[]) =>
         addEdge(
           {
             ...connection,
@@ -297,19 +298,19 @@ export default function CanvasClusterPage() {
       border_color: '#E07A5F',
       tag: 'Manual',
     };
-    setNodes((current) => [...current, ...makeCanvasNodes([card], patchCard)]);
+    setNodes((current: CanvasNode[]) => [...current, ...makeCanvasNodes([card], patchCard)]);
   };
 
   const deleteSelection = () => {
-    setNodes((current) => current.filter((node) => !node.selected));
-    setEdges((current) => current.filter((edge) => !edge.selected));
+    setNodes((current: CanvasNode[]) => current.filter((node: CanvasNode) => !node.selected));
+    setEdges((current: Edge[]) => current.filter((edge: Edge) => !edge.selected));
   };
 
   const editConnectionLabel = (_event: React.MouseEvent, edge: Edge) => {
     const nextLabel = prompt('Connection label', typeof edge.label === 'string' ? edge.label : '');
     if (nextLabel === null) return;
-    setEdges((current) =>
-      current.map((item) =>
+    setEdges((current: Edge[]) =>
+      current.map((item: Edge) =>
         item.id === edge.id ? { ...item, label: nextLabel.trim() || undefined } : item,
       ),
     );
@@ -560,7 +561,15 @@ export default function CanvasClusterPage() {
               onClick={(event) => event.stopPropagation()}
             >
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="text-[24px] font-semibold text-[#E07A5F]">Cluster Insights</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-[24px] font-semibold text-[#E07A5F]">Cluster Insights</h2>
+                  <Link
+                    href={`/home/clusters/${clusterId}`}
+                    className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-white/50 transition hover:bg-white/10 hover:text-white"
+                  >
+                    View Full Page
+                  </Link>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowInsights(false)}

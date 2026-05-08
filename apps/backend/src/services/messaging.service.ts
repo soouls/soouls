@@ -118,10 +118,9 @@ export class MessagingService {
   };
 
   constructor(
-    @Inject(NotificationQueueService) private readonly notificationQueue: NotificationQueueService,
-    @Inject(NotificationDispatchService)
+    private readonly notificationQueue: NotificationQueueService,
     private readonly notificationDispatch: NotificationDispatchService,
-    @Inject(RedisService) private readonly redis: RedisService,
+    private readonly redis: RedisService,
   ) {}
 
   private isAdmin(user: Pick<UserMessagingProfile, 'email' | 'clerkId'>) {
