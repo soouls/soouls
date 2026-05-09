@@ -64,17 +64,20 @@ const MoonZzzIcon = () => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M14 21a8 8 0 0 1-5-14.3 8 8 0 0 0 9.3 11.3A8 8 0 0 1 14 21z" fill="#E8704A" />
+    <path
+      d="M14 21a8 8 0 0 1-5-14.3 8 8 0 0 0 9.3 11.3A8 8 0 0 1 14 21z"
+      fill="var(--soouls-accent)"
+    />
     <path
       d="M19 11h2.5l-2.5 3h2.5"
-      stroke="#E8704A"
+      stroke="var(--soouls-accent)"
       strokeWidth="1.2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M23 6h2l-2 2.5h2"
-      stroke="#E8704A"
+      stroke="var(--soouls-accent)"
       strokeWidth="1.2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -89,7 +92,7 @@ const TrendUpIcon = () => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#E8704A"
+    stroke="var(--soouls-accent)"
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -106,7 +109,7 @@ const TrendDownIcon = () => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#E8704A"
+    stroke="var(--soouls-accent)"
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -123,7 +126,7 @@ const CheckCircleIcon = () => (
     height="18"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#E8704A"
+    stroke="var(--soouls-accent)"
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -158,7 +161,7 @@ function parseHighlightedText(text: string | undefined | null, fallback: string)
     if (part.startsWith('{ts1}')) {
       const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
       return (
-        <span key={i} style={{ color: '#E8704A' }}>
+        <span key={i} style={{ color: 'var(--soouls-accent)' }}>
           {innerText}
         </span>
       );
@@ -255,7 +258,11 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
         <p className="text-center text-xs text-[#7a7a7a]">Add more</p>
         <div className="mt-3 flex items-end gap-1">
           {[16, 24, 14, 28, 20, 12, 26, 18].map((height, index) => (
-            <span key={index} className="w-2 rounded bg-[#e07a5f]" style={{ height }} />
+            <span
+              key={index}
+              className="w-2 rounded bg-[var(--soouls-accent)]"
+              style={{ height }}
+            />
           ))}
         </div>
       </div>
@@ -269,7 +276,7 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
             .map((t, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div
-                  className={`w-3 h-3 rounded-[2px] border ${t.done ? 'bg-[#E07A5F] border-[#E07A5F]' : 'border-white/20'}`}
+                  className={`w-3 h-3 rounded-[2px] border ${t.done ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]' : 'border-white/20'}`}
                 >
                   {t.done && <Check className="w-2.5 h-2.5 text-white" />}
                 </div>
@@ -285,7 +292,7 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
             </div>
           )}
         </div>
-        <p className="text-2xl text-[#e07a5f]">
+        <p className="text-2xl text-[var(--soouls-accent)]">
           00:01:48 <span className="text-xs">pm</span>
         </p>
         <p className="mt-2 text-[10px] text-[#b7ff8d]">Goal set</p>
@@ -503,7 +510,6 @@ export default function HomePage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const { data: insights } = trpc.private.home.getInsights.useQuery(undefined);
-  const { data: entries } = trpc.private.entries.getAll.useQuery({ limit: 120, cursor: 0 });
   const refreshInsights = trpc.private.home.refreshInsights.useMutation();
   const utils = trpc.useContext();
 
@@ -625,11 +631,11 @@ export default function HomePage() {
                     console.error('Refresh failed:', err);
                   }
                 }}
-                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-all duration-300 cursor-pointer hover:shadow-[0_0_16px_rgba(232,112,74,0.3)]"
+                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-all duration-300 cursor-pointer hover:shadow-[0_0_16px_rgba(var(--soouls-accent-rgb),0.3)]"
                 style={{
-                  borderColor: '#E8704A',
-                  color: '#E8704A',
-                  backgroundColor: 'rgba(232,112,74,0.06)',
+                  borderColor: 'var(--soouls-accent)',
+                  color: 'var(--soouls-accent)',
+                  backgroundColor: 'rgba(var(--soouls-accent-rgb),0.06)',
                 }}
               >
                 <RefreshCw
@@ -646,7 +652,7 @@ export default function HomePage() {
                 {insights?.previousTheme && insights?.dominantTheme && (
                   <div className="text-[10px] tracking-[0.1em] text-[rgba(240,236,230,0.4)] uppercase font-medium">
                     {insights.previousTheme} <span className="mx-1">→</span>{' '}
-                    <span className="text-[#E8704A]">{insights.dominantTheme}</span>
+                    <span className="text-[var(--soouls-accent)]">{insights.dominantTheme}</span>
                   </div>
                 )}
               </div>
@@ -699,7 +705,7 @@ export default function HomePage() {
                               width: `${t.progress}%`,
                               background:
                                 i === 0
-                                  ? 'linear-gradient(90deg, #E8704A, #fbc343)'
+                                  ? 'linear-gradient(90deg, var(--soouls-accent), var(--soouls-accent))'
                                   : i === 1
                                     ? '#8b5e34'
                                     : '#5c3d2e',
@@ -727,7 +733,7 @@ export default function HomePage() {
                     </p>
                   </div>
 
-                  <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[rgba(232,112,74,0.4)] to-transparent my-[24px]" />
+                  <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-[rgba(var(--soouls-accent-rgb),0.4)] to-transparent my-[24px]" />
 
                   {insights?.reflectionToneDescription ? (
                     <p className="text-[12px] italic leading-[1.65] text-[rgba(240,236,230,0.35)] text-center max-w-[95%] mx-auto">
@@ -749,7 +755,7 @@ export default function HomePage() {
                       '#3c1d14',
                       '#7a3b2b',
                       '#b85840',
-                      '#E8704A',
+                      'var(--soouls-accent)',
                       '#b85840',
                       '#7a3b2b',
                       '#3c1d14',
@@ -813,7 +819,7 @@ export default function HomePage() {
                           y1={y1}
                           x2={x2}
                           y2={y2}
-                          stroke="rgba(232,112,74,0.15)"
+                          stroke="rgba(var(--soouls-accent-rgb),0.15)"
                           strokeWidth={link.strength * 2}
                         />
                       );
@@ -823,7 +829,7 @@ export default function HomePage() {
                       const x = 50 + (i % 3) * 100;
                       const y = 50 + Math.floor(i / 3) * 80;
                       const radius = Math.max(5, node.size);
-                      const color = i % 2 === 0 ? '#E8704A' : '#fbc343';
+                      const color = i % 2 === 0 ? 'var(--soouls-accent)' : 'var(--soouls-accent)';
 
                       return (
                         <g key={node.id}>
@@ -878,10 +884,10 @@ export default function HomePage() {
                         {item.trend === 'down' && <TrendDownIcon />}
                         {item.tag === 'EMERGING' && (
                           <div
-                            className="px-[12px] py-[4px] rounded-full border border-[#E8704A] text-[#E8704A] text-[10px] font-light tracking-[0.04em]"
+                            className="px-[12px] py-[4px] rounded-full border border-[var(--soouls-accent)] text-[var(--soouls-accent)] text-[10px] font-light tracking-[0.04em]"
                             style={{
                               boxShadow:
-                                '0 0 12px rgba(232,112,74,0.25), inset 0 0 4px rgba(232,112,74,0.1)',
+                                '0 0 12px rgba(var(--soouls-accent-rgb),0.25), inset 0 0 4px rgba(var(--soouls-accent-rgb),0.1)',
                             }}
                           >
                             EMERGING
@@ -899,7 +905,7 @@ export default function HomePage() {
               <div className="absolute top-[32px] left-[32px]">
                 <SoulLeafIcon />
               </div>
-              <p className="text-[28px] md:text-[32px] font-semibold tracking-[-0.035em] mb-[32px] uppercase text-[#E8704A] font-sans">
+              <p className="text-[28px] md:text-[32px] font-semibold tracking-[-0.035em] mb-[32px] uppercase text-[var(--soouls-accent)] font-sans">
                 FINAL SYNTHESIS
               </p>
               <p className="font-playfair text-[38px] md:text-[48px] font-semibold italic leading-[1.1] mb-[32px] text-[#f0ece6] tracking-[-0.035em] max-w-[95%]">

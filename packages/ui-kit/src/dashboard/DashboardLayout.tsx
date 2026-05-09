@@ -12,7 +12,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, userActionSlot, title }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-base-cream selection:bg-amber-400/30">
+    <div className="min-h-screen bg-[#0A0A0A] text-base-cream selection:bg-[rgba(var(--soouls-accent-rgb),0.3)]">
       <Sidebar />
 
       <main className="lg:pl-64">
@@ -35,7 +35,7 @@ export function DashboardLayout({ children, userActionSlot, title }: DashboardLa
               className="text-slate-400 hover:text-base-cream transition-colors relative"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-orange-500" />
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--soouls-accent)]" />
             </button>
             <div className="h-8 w-px bg-white/10" />
             {userActionSlot}

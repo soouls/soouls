@@ -172,7 +172,7 @@ const DashboardPage = () => {
             Home
           </button>
           <span className="text-white/30">/</span>
-          <span className="text-[#E07A5F]">Dashboard</span>
+          <span className="text-[var(--soouls-accent)]">Dashboard</span>
         </div>
 
         <button
@@ -183,7 +183,7 @@ const DashboardPage = () => {
           {user?.imageUrl ? (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-[#E07A5F]/20 flex items-center justify-center text-[#E07A5F] font-bold">
+            <div className="w-full h-full bg-[var(--soouls-accent)]/20 flex items-center justify-center text-[var(--soouls-accent)] font-bold">
               {user?.firstName?.[0] || 'S'}
             </div>
           )}
@@ -215,7 +215,7 @@ const DashboardPage = () => {
                     </button>
                     <button
                       type="button"
-                      className="flex items-center gap-2.5 text-[#E07A5F] hover:opacity-80 transition-all"
+                      className="flex items-center gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-all"
                     >
                       <ImageIcon className="w-5 h-5" />
                       <span className="text-[16px] font-medium">Image</span>
@@ -254,17 +254,17 @@ const DashboardPage = () => {
                     <h3 className="text-[18px] font-medium text-white/90">
                       60 Reflection Challenge
                     </h3>
-                    <Target className="w-5 h-5 text-[#E07A5F]" />
+                    <Target className="w-5 h-5 text-[var(--soouls-accent)]" />
                   </div>
                   <div className="space-y-4">
-                    <div className="text-[16px] text-[#E07A5F] font-medium">
+                    <div className="text-[16px] text-[var(--soouls-accent)] font-medium">
                       {Math.max(0, 60 - entries.length)} entries left
                     </div>
                     <div className="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(100, (entries.length / 60) * 100)}%` }}
-                        className="h-full bg-gradient-to-r from-[#E07A5F] to-[#D46B4E]"
+                        className="h-full bg-gradient-to-r from-[var(--soouls-accent)] to-[var(--soouls-accent)]"
                       />
                     </div>
                     <div className="flex justify-between text-[14px] text-white/40 font-medium">
@@ -280,10 +280,10 @@ const DashboardPage = () => {
                     <h3 className="text-[18px] font-medium text-white/90">
                       30 Reflection Challenge
                     </h3>
-                    <Target className="w-5 h-5 text-[#E07A5F]" />
+                    <Target className="w-5 h-5 text-[var(--soouls-accent)]" />
                   </div>
                   <div className="space-y-4">
-                    <div className="text-[16px] text-[#E07A5F] font-medium">
+                    <div className="text-[16px] text-[var(--soouls-accent)] font-medium">
                       {entries.length >= 30
                         ? 'Challenge Completed!'
                         : `${Math.max(0, 30 - entries.length)} entries left`}
@@ -292,7 +292,7 @@ const DashboardPage = () => {
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(100, (entries.length / 30) * 100)}%` }}
-                        className="h-full bg-gradient-to-r from-[#E07A5F] to-[#D46B4E]"
+                        className="h-full bg-gradient-to-r from-[var(--soouls-accent)] to-[var(--soouls-accent)]"
                       />
                     </div>
                     <div className="flex justify-between text-[14px] text-white/40 font-medium">
@@ -316,10 +316,38 @@ const DashboardPage = () => {
                       aria-hidden="true"
                       className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
                     >
-                      <line x1="20%" y1="20%" x2="50%" y2="50%" stroke="#E07A5F" strokeWidth="1" />
-                      <line x1="80%" y1="20%" x2="50%" y2="50%" stroke="#E07A5F" strokeWidth="1" />
-                      <line x1="15%" y1="75%" x2="50%" y2="50%" stroke="#E07A5F" strokeWidth="1" />
-                      <line x1="85%" y1="80%" x2="50%" y2="50%" stroke="#E07A5F" strokeWidth="1" />
+                      <line
+                        x1="20%"
+                        y1="20%"
+                        x2="50%"
+                        y2="50%"
+                        stroke="var(--soouls-accent)"
+                        strokeWidth="1"
+                      />
+                      <line
+                        x1="80%"
+                        y1="20%"
+                        x2="50%"
+                        y2="50%"
+                        stroke="var(--soouls-accent)"
+                        strokeWidth="1"
+                      />
+                      <line
+                        x1="15%"
+                        y1="75%"
+                        x2="50%"
+                        y2="50%"
+                        stroke="var(--soouls-accent)"
+                        strokeWidth="1"
+                      />
+                      <line
+                        x1="85%"
+                        y1="80%"
+                        x2="50%"
+                        y2="50%"
+                        stroke="var(--soouls-accent)"
+                        strokeWidth="1"
+                      />
                     </svg>
 
                     {/* Real Graph Nodes from Cluster Entries */}
@@ -355,8 +383,8 @@ const DashboardPage = () => {
                           transform: 'translate(-50%, -50%)',
                           zIndex: 30,
                           width: '160px',
-                          bg: '#E07A5F/5',
-                          border: '#E07A5F/20',
+                          bg: '[var(--soouls-accent)]/5',
+                          border: '[var(--soouls-accent)]/20',
                         },
                         {
                           top: '10%',
@@ -426,7 +454,7 @@ const DashboardPage = () => {
                           }}
                         >
                           <div
-                            className={`text-[6px] mb-0.5 uppercase font-bold ${index === 0 ? 'text-[#E07A5F]' : 'text-white/30'}`}
+                            className={`text-[6px] mb-0.5 uppercase font-bold ${index === 0 ? 'text-[var(--soouls-accent)]' : 'text-white/30'}`}
                           >
                             {new Date(entry.createdAt).toLocaleDateString('en-US', {
                               month: 'short',
@@ -462,7 +490,7 @@ const DashboardPage = () => {
                           <Plus className="w-2.5 h-2.5" /> CREATE
                         </button>
                         <div className="w-[1px] h-3 bg-white/10" />
-                        <div className="px-3 py-1 text-[10px] text-[#E07A5F] uppercase font-bold">
+                        <div className="px-3 py-1 text-[10px] text-[var(--soouls-accent)] uppercase font-bold">
                           CD
                         </div>
                         <div className="w-[1px] h-3 bg-white/10" />
@@ -482,7 +510,7 @@ const DashboardPage = () => {
                       </div>
                       <button
                         type="button"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#E07A5F]/10 border border-[#E07A5F]/30 rounded-full text-[#E07A5F] text-[12px] font-bold hover:bg-[#E07A5F] hover:text-white transition-all"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30 rounded-full text-[var(--soouls-accent)] text-[12px] font-bold hover:bg-[var(--soouls-accent)] hover:text-white transition-all"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Start New Cluster
@@ -509,7 +537,7 @@ const DashboardPage = () => {
                             onClick={() => router.push(`/home/new-entry?id=${task.entryId}`)}
                           >
                             <div
-                              className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.done ? 'bg-[#E07A5F] border-[#E07A5F]' : 'border-white/20'}`}
+                              className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.done ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]' : 'border-white/20'}`}
                             >
                               {task.done && <CheckSquare className="w-3.5 h-3.5 text-white" />}
                             </div>
@@ -538,21 +566,21 @@ const DashboardPage = () => {
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('today')}
-                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'today' ? 'bg-[#E07A5F] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
+                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'today' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
                       >
                         Today
                       </button>
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('yesterday')}
-                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'yesterday' ? 'bg-[#E07A5F] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
+                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'yesterday' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
                       >
                         Yesterday
                       </button>
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('search')}
-                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'search' ? 'bg-[#E07A5F] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
+                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'search' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
                       >
                         <Search className="w-3.5 h-3.5" />
                         Search
@@ -562,7 +590,7 @@ const DashboardPage = () => {
 
                   <button
                     type="button"
-                    className="text-[#E07A5F] text-[14px] font-medium hover:underline text-left mt-auto"
+                    className="text-[var(--soouls-accent)] text-[14px] font-medium hover:underline text-left mt-auto"
                     onClick={() => router.push('/home/entries')}
                   >
                     View all Tasks
@@ -570,20 +598,24 @@ const DashboardPage = () => {
                 </div>
 
                 {/* 5. REFLECTION HIGHLIGHT (Wide) */}
-                <div className="md:col-span-2 bg-[#1A1817] border border-[#E07A5F]/10 rounded-[24px] p-10 relative overflow-hidden group">
+                <div className="md:col-span-2 bg-[#1A1817] border border-[var(--soouls-accent)]/10 rounded-[24px] p-10 relative overflow-hidden group">
                   <div className="flex items-center gap-8 relative z-10 mb-6">
-                    <div className="w-20 h-20 rounded-[24px] bg-[#E07A5F]/5 border border-[#E07A5F]/10 flex items-center justify-center shrink-0">
-                      <LeafIcon className="w-10 h-10 text-[#E07A5F]" />
+                    <div className="w-20 h-20 rounded-[24px] bg-[var(--soouls-accent)]/5 border border-[var(--soouls-accent)]/10 flex items-center justify-center shrink-0">
+                      <LeafIcon className="w-10 h-10 text-[var(--soouls-accent)]" />
                     </div>
                     <div className="space-y-2">
                       <h2 className="text-[28px] leading-tight text-white/95 font-medium">
                         You reflected{' '}
-                        <span className="text-[#E07A5F] font-bold">{weeklyReflections} times</span>{' '}
+                        <span className="text-[var(--soouls-accent)] font-bold">
+                          {weeklyReflections} times
+                        </span>{' '}
                         this week.
                       </h2>
                       <h3 className="text-[22px] text-white/80">
                         Top pattern detected:{' '}
-                        <span className="text-[#E07A5F] font-bold italic">"{topTheme}"</span>
+                        <span className="text-[var(--soouls-accent)] font-bold italic">
+                          "{topTheme}"
+                        </span>
                       </h3>
                     </div>
                   </div>
@@ -612,7 +644,7 @@ const DashboardPage = () => {
                         ? `"${getEntryPlainText(firstEntry).slice(0, 200)}..."`
                         : '"Start your journey by writing your first entry. Every thought counts towards your personal growth."'}
                     </p>
-                    <div className="text-[24px] font-bold text-[#E07A5F] uppercase tracking-[0.1em]">
+                    <div className="text-[24px] font-bold text-[var(--soouls-accent)] uppercase tracking-[0.1em]">
                       {firstEntry
                         ? new Date(firstEntry.createdAt).toDateString() ===
                           new Date().toDateString()
@@ -647,11 +679,11 @@ const DashboardPage = () => {
                             <motion.div
                               initial={{ height: 0 }}
                               animate={{ height: `${bar.percent}%` }}
-                              className={`w-full rounded-full transition-all duration-700 group-hover:brightness-125 ${idx === now.getDay() ? 'bg-[#E07A5F]' : 'bg-white/20'}`}
+                              className={`w-full rounded-full transition-all duration-700 group-hover:brightness-125 ${idx === now.getDay() ? 'bg-[var(--soouls-accent)]' : 'bg-white/20'}`}
                             />
                           </div>
                           <span
-                            className={`text-[10px] font-bold uppercase tracking-tighter ${idx === now.getDay() ? 'text-[#E07A5F]' : 'text-white/20'}`}
+                            className={`text-[10px] font-bold uppercase tracking-tighter ${idx === now.getDay() ? 'text-[var(--soouls-accent)]' : 'text-white/20'}`}
                           >
                             {bar.label}
                           </span>
@@ -659,9 +691,9 @@ const DashboardPage = () => {
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-3 py-2.5 px-5 bg-[#E07A5F]/20 border border-[#E07A5F]/30 rounded-full justify-center">
-                      <BarChart3 className="w-4 h-4 text-[#E07A5F]" />
-                      <span className="text-[14px] font-bold text-[#E07A5F]">
+                    <div className="flex items-center gap-3 py-2.5 px-5 bg-[var(--soouls-accent)]/20 border border-[var(--soouls-accent)]/30 rounded-full justify-center">
+                      <BarChart3 className="w-4 h-4 text-[var(--soouls-accent)]" />
+                      <span className="text-[14px] font-bold text-[var(--soouls-accent)]">
                         {weeklyReflections} entries this week
                       </span>
                     </div>

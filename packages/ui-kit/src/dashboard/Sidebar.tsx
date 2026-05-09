@@ -33,7 +33,7 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 hidden h-screen w-64 flex-col border-r border-white/5 bg-base-charcoal p-6 lg:flex">
       <div className="mb-10 flex items-center gap-3 px-2">
-        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500" />
+        <div className="h-8 w-8 rounded-full bg-[var(--soouls-accent)] shadow-[0_0_18px_rgba(var(--soouls-accent-rgb),0.35)]" />
         <span className="font-editorial text-xl text-base-cream">Soouls</span>
       </div>
 
@@ -46,20 +46,22 @@ export function Sidebar() {
               href={item.href}
               className={`group flex items-center gap-3 rounded-xl px-4 py-3 transition-all ${
                 isActive
-                  ? 'bg-white/5 text-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.1)]'
+                  ? 'bg-white/5 text-[var(--soouls-accent)] shadow-[0_0_20px_rgba(var(--soouls-accent-rgb),0.16)]'
                   : 'text-slate-400 hover:bg-white/5 hover:text-base-cream'
               }`}
             >
               <item.icon
                 className={`h-5 w-5 transition-colors ${
-                  isActive ? 'text-amber-400' : 'text-slate-500 group-hover:text-slate-300'
+                  isActive
+                    ? 'text-[var(--soouls-accent)]'
+                    : 'text-slate-500 group-hover:text-slate-300'
                 }`}
               />
               <span className="font-clarity text-sm font-medium">{item.label}</span>
               {isActive && (
                 <motion.div
                   layoutId="active-nav"
-                  className="absolute left-0 h-8 w-1 rounded-r-full bg-amber-400"
+                  className="absolute left-0 h-8 w-1 rounded-r-full bg-[var(--soouls-accent)]"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}

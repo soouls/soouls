@@ -1766,7 +1766,8 @@ function NewEntryContent() {
     });
   };
   const textUnits = useMemo(() => {
-    return splitIntoThoughtUnits(textContent);
+    const trimmed = textContent.trim();
+    return trimmed ? [trimmed] : [];
   }, [textContent]);
   const [draggedTileId, setDraggedTileId] = useState<string | null>(null);
   const [dropTargetId, setDropTargetId] = useState<string | null>(null);
@@ -1793,12 +1794,14 @@ function NewEntryContent() {
   );
 
   const commitDraftThoughts = useCallback(() => {
-    const incoming = splitIntoThoughtUnits(newThoughtDraft);
-    if (incoming.length === 0) return;
-    const nextUnits = [...textUnits, ...incoming];
-    setTextContent(nextUnits.join('\n'));
+    const incoming = newThoughtDraft.trim();
+    if (!incoming) return;
+    setTextContent((current) => {
+      const trimmed = current.trim();
+      return trimmed ? `${trimmed}\n\n${incoming}` : incoming;
+    });
     setNewThoughtDraft('');
-  }, [newThoughtDraft, setTextContent, textUnits]);
+  }, [newThoughtDraft, setTextContent]);
 
   useEffect(() => {
     const current = metadata.composerLayout ?? [];
@@ -1904,7 +1907,7 @@ function NewEntryContent() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-1 text-sky-300 text-xs bg-sky-500/10 px-3 py-1 rounded-full border border-sky-500/20"
+                  className="flex items-center gap-1 text-[var(--soouls-accent)] text-xs bg-[rgba(var(--soouls-accent-rgb),0.1)] px-3 py-1 rounded-full border border-[rgba(var(--soouls-accent-rgb),0.2)]"
                 >
                   <Check className="w-3 h-3" />
                   Draft stored on this device

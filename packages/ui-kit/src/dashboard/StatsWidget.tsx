@@ -31,7 +31,7 @@ export function StatsWidget({ totalEntries, weeklyActivity }: StatsWidgetProps) 
               animate={{ height: `${activity[i]}%` }}
               transition={{ duration: 1, delay: i * 0.1 }}
               className={`w-full max-w-[6px] rounded-full ${
-                i === 6 ? 'bg-amber-400' : 'bg-white/10'
+                i === 6 ? 'bg-[var(--soouls-accent)]' : 'bg-white/10'
               }`}
             />
             <span className="font-clarity text-[10px] text-slate-500 uppercase">{day}</span>

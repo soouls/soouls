@@ -95,7 +95,7 @@ export default function ClustersPage() {
             <HomeIcon className="w-4 h-4" />
             <span>Home</span>
           </button>
-          <span className="text-[#D46B4E] ml-2">/ Clusters</span>
+          <span className="text-[var(--soouls-accent)] ml-2">/ Clusters</span>
         </div>
 
         <button
@@ -130,7 +130,7 @@ export default function ClustersPage() {
               <div className="space-y-6">
                 <h1
                   className="text-[60px] leading-none italic tracking-[-0.035em]"
-                  style={{ fontFamily: "'Playfair Display', serif", color: '#E07A5F' }}
+                  style={{ fontFamily: "'Playfair Display', serif", color: 'var(--soouls-accent)' }}
                 >
                   Your thought clusters
                 </h1>
@@ -164,7 +164,7 @@ export default function ClustersPage() {
                       onClick={() => setFilter(option.key)}
                       className={`px-8 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.2em] transition-all border ${
                         filter === option.key
-                          ? 'bg-[#CD7861]/20 border-[#E07A5F] text-[#E07A5F]'
+                          ? 'bg-[var(--soouls-accent)]/20 border-[var(--soouls-accent)] text-[var(--soouls-accent)]'
                           : 'bg-[#1F1918]/20 border-[#A8A8A8] text-[#A8A8A8]'
                       }`}
                     >
@@ -192,7 +192,7 @@ export default function ClustersPage() {
               <button
                 type="button"
                 onClick={() => router.push(`/home/clusters/${featured.id}`)}
-                className="w-full text-left backdrop-blur-[75px] border border-[#E07A5F]/25 rounded-[32px] p-16 flex justify-between items-center relative group transition-all hover:bg-white/[0.02]"
+                className="w-full text-left backdrop-blur-[75px] border border-[var(--soouls-accent)]/25 rounded-[32px] p-16 flex justify-between items-center relative group transition-all hover:bg-white/[0.02]"
                 style={{
                   backgroundColor: '#222222',
                   boxShadow: '0px 4.98px 4.98px rgba(0, 0, 0, 0.25)',
@@ -200,14 +200,14 @@ export default function ClustersPage() {
               >
                 <div className="flex-1 space-y-10 w-full">
                   <div className="flex items-center gap-4">
-                    <div className="px-8 py-4 rounded-[60px] border border-[#E07A5F] bg-[#E07A5F]/20 text-[#E07A5F] text-[15px] font-bold">
+                    <div className="px-8 py-4 rounded-[60px] border border-[var(--soouls-accent)] bg-[var(--soouls-accent)]/20 text-[var(--soouls-accent)] text-[15px] font-bold">
                       {featured.strength === 'Dominant' ? 'ACTIVE HUB' : 'EMERGING'}
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <GraduationCap className="w-8 h-8 text-[#E07A5F]" />
+                      <GraduationCap className="w-8 h-8 text-[var(--soouls-accent)]" />
                       <h2
                         className="text-[28px] italic tracking-[-0.035em] text-[#E6E2D6]"
                         style={{ fontFamily: "'Playfair Display', serif" }}
@@ -233,21 +233,21 @@ export default function ClustersPage() {
                       <span className="text-[16px] font-light text-[#A8A8A8] tracking-[-0.035em] block uppercase">
                         STRENGTH
                       </span>
-                      <div className="text-[16px] font-light text-[#E07A5F]">
+                      <div className="text-[16px] font-light text-[var(--soouls-accent)]">
                         {featured.strength}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-[300px] h-[300px] rounded-full border border-[#E07A5F] bg-[#E07A5F]/5 flex flex-col items-center justify-center space-y-5">
+                <div className="w-[300px] h-[300px] rounded-full border border-[var(--soouls-accent)] bg-[var(--soouls-accent)]/5 flex flex-col items-center justify-center space-y-5">
                   <div
                     className="text-[60px] italic leading-none text-[#E6E2D6]"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
                     {featured.entryCount}
                   </div>
-                  <div className="text-[15px] font-bold text-[#E07A5F] tracking-[-0.035em]">
+                  <div className="text-[15px] font-bold text-[var(--soouls-accent)] tracking-[-0.035em]">
                     ENTRIES
                   </div>
                 </div>
@@ -287,12 +287,12 @@ export default function ClustersPage() {
                     </div>
                   </div>
 
-                  <p className="text-[20px] font-medium italic leading-tight text-[#E07A5F]/75 tracking-[-0.035em]">
+                  <p className="text-[20px] font-medium italic leading-tight text-[var(--soouls-accent)]/75 tracking-[-0.035em]">
                     {cluster.description}
                   </p>
 
                   <div className="pt-4 flex justify-between items-center border-t border-white/5">
-                    <div className="px-8 py-2 rounded-[60px] border border-[#E07A5F] bg-[#E07A5F]/20 text-[#E07A5F] text-[15px] font-bold">
+                    <div className="px-8 py-2 rounded-[60px] border border-[var(--soouls-accent)] bg-[var(--soouls-accent)]/20 text-[var(--soouls-accent)] text-[15px] font-bold">
                       {cluster.strength === 'Dominant' ? 'ACTIVE HUB' : 'EMERGING'}
                     </div>
                     <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/40 transition-all group-hover:translate-x-1" />
