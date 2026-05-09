@@ -35,6 +35,9 @@
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
         "GOOGLE_CALENDAR_REDIRECT_URI",
+        "MESSAGING_REPLY_TO_EMAIL",
+        "MESSAGING_ADMIN_EMAILS",
+        "MESSAGING_ADMIN_CLERK_IDS",
         "LOG_LEVEL",
         "NODE_ENV"
       ],

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { isVercelRuntime } from '../runtime';
 import { ServicesModule } from '../services/services.module';
 import { CommandCenterAuthGuard } from './command-center.auth.guard';
 import { CommandCenterController } from './command-center.controller';
@@ -9,6 +10,10 @@ import { CommandCenterService } from './command-center.service';
 @Module({
   imports: [ServicesModule, NotificationsModule],
   controllers: [CommandCenterController],
-  providers: [CommandCenterService, CommandCenterAuthGuard, CommandCenterGateway],
+  providers: [
+    CommandCenterService,
+    CommandCenterAuthGuard,
+    ...(isVercelRuntime ? [] : [CommandCenterGateway]),
+  ],
 })
 export class CommandCenterModule {}

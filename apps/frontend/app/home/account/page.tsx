@@ -294,7 +294,7 @@ export default function AccountPage() {
                   {email}
                 </p>
                 {onboardingStatus?.isWaitlistUser ? (
-                  <div className="inline-flex w-fit items-center rounded-full border border-[#E07A5F]/40 bg-[#E07A5F]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#E07A5F]">
+                  <div className="inline-flex w-fit items-center rounded-full border border-[var(--soouls-accent)]/40 bg-[var(--soouls-accent)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--soouls-accent)]">
                     Waitlist member
                   </div>
                 ) : null}

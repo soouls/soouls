@@ -44,6 +44,7 @@ export function GlobalMascot() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [blink, setBlink] = useState(false);
+  const [hasAwakened, setHasAwakened] = useState(false);
 
   const lastActivityRef = useRef(Date.now());
   const roamIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,6 +78,11 @@ export function GlobalMascot() {
     },
     [emotion],
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setHasAwakened(window.localStorage.getItem('soouls-orbi-awake') === 'true');
+  }, []);
 
   const updatePosition = useCallback(() => {
     if (!isRoaming) {
@@ -174,32 +180,6 @@ export function GlobalMascot() {
   }, [isRoaming, mouseX, mouseY, isHovered, showMessage]);
 
   useEffect(() => {
-    const isAtOnboarding = pathname === '/onboarding';
-
-    if (isAtOnboarding && !isRoaming) {
-      setEmotion('sleepy');
-      setPosition({
-        x: -(window.innerWidth / 2) + 150,
-        y: -(window.innerHeight / 2) + 200,
-      }); // Start at center
-
-      const wakeUp = setTimeout(() => {
-        setEmotion('surprised');
-        showMessage('Oh! Hello there!');
-        setTimeout(() => {
-          setEmotion('happy');
-          showMessage("I'm Orbi, your companion.");
-          setTimeout(() => {
-            setPosition({ x: 0, y: 0 }); // Move to corner
-          }, 2000);
-        }, 2000);
-      }, 3000);
-
-      return () => clearTimeout(wakeUp);
-    }
-  }, [pathname, isRoaming, showMessage]);
-
-  useEffect(() => {
     if (isRoaming) {
       updatePosition();
       roamIntervalRef.current = setInterval(updatePosition, 10000);
@@ -227,17 +207,22 @@ export function GlobalMascot() {
   const isAuthPage = pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up');
   const isLandingPage = pathname === '/';
 
-  if (!isLoaded || !isSignedIn || isAuthPage || isLandingPage) {
+  if (!isLoaded || !isSignedIn || isAuthPage || isLandingPage || pathname === '/onboarding') {
+    return null;
+  }
+
+  if (!hasAwakened) {
     return null;
   }
 
   return (
     <motion.div
-      className="fixed bottom-6 right-6 z-[9999] pointer-events-auto cursor-pointer"
+      className="fixed bottom-3 left-1/2 z-[9999] pointer-events-auto cursor-pointer"
+      style={{ marginLeft: -96 }}
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{
         opacity: 1,
-        scale: isRoaming ? 1.15 : 1,
+        scale: isRoaming ? 0.72 : 0.62,
         x: position.x,
         y: position.y,
         rotate: isRoaming ? [0, -5, 5, 0] : 0,

@@ -4,7 +4,7 @@ import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { type MascotEmotion, OrbiMascotBase } from '../components/OrbiMascotBase';
 
-type ThemeColor = 'orange' | 'yellow' | 'green' | 'purple';
+type ThemeColor = 'ember' | 'gold' | 'sage' | 'violet';
 
 type GuideMascotProps = {
   theme: ThemeColor;
@@ -93,19 +93,19 @@ export function GuideMascot({ step, awake, name, firstEntry, onWake, centered }:
         centered
           ? {
               left: '50%',
-              top: '50%',
+              top: '64%',
               x: '-50%',
               y: '-50%',
-              scale: 1.5,
+              scale: 0.72,
             }
           : {
               left: 'auto',
               top: 'auto',
               right: '40px',
-              bottom: '40px',
+              bottom: '28px',
               x: 0,
               y: 0,
-              scale: 1,
+              scale: 0.62,
             }
       }
       transition={{ type: 'spring', damping: 35, stiffness: 80 }}

@@ -19,7 +19,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const GCAL_COLORS: Record<string, string> = {
   '1': '#B86B4E',
   '2': '#AE8B7E',
-  '3': '#D46B4E',
+  '3': 'var(--soouls-accent)',
   '4': '#A67C52',
   '5': '#E6B89C',
   '6': '#845C44',

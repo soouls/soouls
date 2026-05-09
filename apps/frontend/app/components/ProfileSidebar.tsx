@@ -74,26 +74,15 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                   </p>
                 </div>
               </div>
-              <h2 className="text-[32px] font-bold text-[#D46B4E] tracking-tight leading-none mb-4">
+              <h2 className="text-[32px] font-bold text-[var(--soouls-accent)] tracking-tight leading-none mb-4">
                 {fullName}
               </h2>
               <p className="text-xl text-white font-playfair italic leading-snug">
-                &quot;You&apos;ve shown up <span className="text-[#D46B4E]">{streak} days</span>
+                &quot;You&apos;ve shown up{' '}
+                <span className="text-[var(--soouls-accent)]">{streak} days</span>
                 <br />
                 in a row.&quot;
               </p>
-
-              {insights?.monthlyAnalysis && (
-                <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                  <div className="flex items-center gap-2 mb-2 text-[#D46B4E]">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-medium tracking-wide uppercase">AI Insight</span>
-                  </div>
-                  <p className="text-sm text-white/80 leading-relaxed font-light">
-                    {insights.monthlyAnalysis}
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Nav Links */}

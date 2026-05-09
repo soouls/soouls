@@ -1,4 +1,4 @@
-type AccentTheme = 'orange' | 'yellow' | 'green' | 'purple';
+type AccentTheme = 'ember' | 'gold' | 'sage' | 'violet';
 type ThemeMode = 'dark' | 'light';
 type DefaultView = 'canvas' | 'list' | 'calendar';
 type WritingMode = 'minimal' | 'guided';
@@ -163,7 +163,7 @@ export type HomeAnalyticsBundle = {
 
 const DEFAULT_PREFERENCES: NormalizedUserPreferences = {
   themeMode: 'dark',
-  accentTheme: 'orange',
+  accentTheme: 'ember',
   defaultView: 'canvas',
   writingMode: 'minimal',
   insightDepth: 'balanced',
@@ -179,7 +179,14 @@ const DEFAULT_PREFERENCES: NormalizedUserPreferences = {
   reminderTime: '20:00',
 };
 
-const ACCENT_THEMES = new Set<AccentTheme>(['orange', 'yellow', 'green', 'purple']);
+const LEGACY_ACCENT_THEME_MAP: Record<string, AccentTheme> = {
+  orange: 'ember',
+  yellow: 'gold',
+  green: 'sage',
+  purple: 'violet',
+};
+
+const ACCENT_THEMES = new Set<AccentTheme>(['ember', 'gold', 'sage', 'violet']);
 
 const THEME_DEFINITIONS: ThemeDefinition[] = [
   {
@@ -305,7 +312,8 @@ const STOP_WORDS = new Set([
 
 function asAccentTheme(value: string | null | undefined): AccentTheme | null {
   if (!value) return null;
-  const normalized = value.toLowerCase() as AccentTheme;
+  const raw = value.toLowerCase();
+  const normalized = (LEGACY_ACCENT_THEME_MAP[raw] ?? raw) as AccentTheme;
   return ACCENT_THEMES.has(normalized) ? normalized : null;
 }
 

@@ -6,17 +6,17 @@
 
 :root {
   /* Figma SC Color Tokens */
-  --soouls-bg: #222222;
-  --soouls-bg-elevated: #1c1c1c;
-  --soouls-bg-surface: #141414;
-  --soouls-bg-panel: #0f0f0f;
+  --soouls-bg: #191b1f;
+  --soouls-bg-elevated: #202329;
+  --soouls-bg-surface: #15171c;
+  --soouls-bg-panel: #101217;
   --soouls-border: rgba(255, 255, 255, 0.08);
   --soouls-text: #efebdd;
   --soouls-text-strong: #ffffff;
   --soouls-text-muted: rgba(239, 235, 221, 0.62);
   --soouls-text-faint: rgba(239, 235, 221, 0.34);
-  --soouls-accent: #e07a5f;
-  --soouls-accent-rgb: 224, 122, 95;
+  --soouls-accent: #f06f4f;
+  --soouls-accent-rgb: 240, 111, 79;
   --soouls-overlay-subtle: rgba(255, 255, 255, 0.04);
   --soouls-overlay-muted: rgba(255, 255, 255, 0.08);
   --soouls-overlay-strong: rgba(255, 255, 255, 0.16);
@@ -41,10 +41,10 @@
 }
 
 html[data-theme-mode="light"] {
-  --soouls-bg: #f3eee4;
-  --soouls-bg-elevated: #fffaf3;
-  --soouls-bg-surface: #fff8f0;
-  --soouls-bg-panel: #efe6d8;
+  --soouls-bg: #f5f1ea;
+  --soouls-bg-elevated: #fffdf8;
+  --soouls-bg-surface: #fffbf4;
+  --soouls-bg-panel: #ece4d7;
   --soouls-border: rgba(30, 24, 18, 0.08);
   --soouls-text: #241d17;
   --soouls-text-strong: #111111;
@@ -62,24 +62,28 @@ html[data-theme-mode="light"] {
   color-scheme: light;
 }
 
+html[data-accent-theme="ember"],
 html[data-accent-theme="orange"] {
-  --soouls-accent: #e07a5f;
-  --soouls-accent-rgb: 224, 122, 95;
+  --soouls-accent: #f06f4f;
+  --soouls-accent-rgb: 240, 111, 79;
 }
 
+html[data-accent-theme="gold"],
 html[data-accent-theme="yellow"] {
-  --soouls-accent: #d9a23d;
-  --soouls-accent-rgb: 217, 162, 61;
+  --soouls-accent: #d8a23f;
+  --soouls-accent-rgb: 216, 162, 63;
 }
 
+html[data-accent-theme="sage"],
 html[data-accent-theme="green"] {
-  --soouls-accent: #73b27c;
-  --soouls-accent-rgb: 115, 178, 124;
+  --soouls-accent: #74ad86;
+  --soouls-accent-rgb: 116, 173, 134;
 }
 
+html[data-accent-theme="violet"],
 html[data-accent-theme="purple"] {
-  --soouls-accent: #8c72d8;
-  --soouls-accent-rgb: 140, 114, 216;
+  --soouls-accent: #8d79d6;
+  --soouls-accent-rgb: 141, 121, 214;
 }
 
 /* Smooth scroll */

@@ -256,7 +256,7 @@ export type UsersApi = {
 
 export type HomeSettings = {
   themeMode: 'dark' | 'light';
-  accentTheme: 'orange' | 'yellow' | 'green' | 'purple';
+  accentTheme: 'ember' | 'gold' | 'sage' | 'violet';
   defaultView: 'canvas' | 'list' | 'calendar';
   writingMode: 'minimal' | 'guided';
   insightDepth: 'minimal' | 'balanced' | 'deep';

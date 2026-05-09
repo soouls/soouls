@@ -12,11 +12,16 @@ export class TrpcRouter {
   public readonly appRouter: AppRouter;
 
   constructor(
-    @Inject(EntriesService) private readonly entriesService: EntriesService,
-    @Inject(HomeService) private readonly homeService: HomeService,
-    @Inject(MessagingService) private readonly messagingService: MessagingService,
-    @Inject(TasksService) private readonly tasksService: TasksService,
-    @Inject(UsersService) private readonly usersService: UsersService,
+    @Inject(EntriesService)
+    private readonly entriesService: EntriesService,
+    @Inject(HomeService)
+    private readonly homeService: HomeService,
+    @Inject(MessagingService)
+    private readonly messagingService: MessagingService,
+    @Inject(TasksService)
+    private readonly tasksService: TasksService,
+    @Inject(UsersService)
+    private readonly usersService: UsersService,
   ) {
     this.appRouter = createAppRouter({
       entries: this.entriesService as unknown as EntriesApi,

@@ -29,10 +29,10 @@ import { trpc } from '../../../src/utils/trpc';
 const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
 
 const ACCENT_OPTIONS: { value: HomeSettings['accentTheme']; label: string; hex: string }[] = [
-  { value: 'orange', label: 'Orange', hex: '#E07A5F' },
-  { value: 'yellow', label: 'Yellow', hex: '#D9A23D' },
-  { value: 'green', label: 'Green', hex: '#73B27C' },
-  { value: 'purple', label: 'Purple', hex: '#8C72D8' },
+  { value: 'ember', label: 'Ember', hex: '#F06F4F' },
+  { value: 'gold', label: 'Gold', hex: '#D8A23F' },
+  { value: 'sage', label: 'Sage', hex: '#74AD86' },
+  { value: 'violet', label: 'Violet', hex: '#8D79D6' },
 ];
 
 function avatarFor(seed?: string | null) {

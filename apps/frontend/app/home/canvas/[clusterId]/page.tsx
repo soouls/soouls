@@ -63,14 +63,14 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
         width: card.width,
         minHeight: card.height,
         background: card.color || '#141111',
-        borderColor: isWarning ? '#F5A524' : card.border_color || '#E07A5F',
+        borderColor: isWarning ? '#F5A524' : card.border_color || 'var(--soouls-accent)',
         boxShadow: selected
           ? '0 0 0 1px rgba(224,122,95,0.55), 0 0 42px rgba(224,122,95,0.22)'
           : undefined,
       }}
     >
       <NodeResizer
-        color="#E07A5F"
+        color="var(--soouls-accent)"
         isVisible={selected}
         minWidth={160}
         minHeight={100}
@@ -80,15 +80,19 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
           onPatch(id, { width: size.width, height: size.height })
         }
       />
-      <Handle type="target" position={Position.Top} className="!border-[#E07A5F] !bg-[#1C1C1C]" />
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!border-[var(--soouls-accent)] !bg-[#1C1C1C]"
+      />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!border-[#E07A5F] !bg-[#1C1C1C]"
+        className="!border-[var(--soouls-accent)] !bg-[#1C1C1C]"
       />
 
       <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-[#E07A5F]">
+        <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--soouls-accent)]">
           {card.tag || card.type}
         </span>
         {isWarning ? <span className="text-[#F5A524]">!</span> : null}
@@ -129,7 +133,7 @@ function makeCanvasEdges(connections: EntryCanvasConnection[]): Edge[] {
     label: connection.label,
     type: 'smoothstep',
     animated: false,
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#E07A5F' },
+    markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--soouls-accent)' },
     style: { stroke: 'rgba(224,122,95,0.55)', strokeWidth: 1.2 },
     labelStyle: { fill: '#E6E2D6', fontSize: 11 },
   }));
@@ -273,7 +277,7 @@ export default function CanvasClusterPage() {
             ...connection,
             id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
             type: 'smoothstep',
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#E07A5F' },
+            markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--soouls-accent)' },
             style: { stroke: 'rgba(224,122,95,0.55)', strokeWidth: 1.2 },
           },
           current,
@@ -295,7 +299,7 @@ export default function CanvasClusterPage() {
       width: 220,
       height: 140,
       color: '#171313',
-      border_color: '#E07A5F',
+      border_color: 'var(--soouls-accent)',
       tag: 'Manual',
     };
     setNodes((current: CanvasNode[]) => [...current, ...makeCanvasNodes([card], patchCard)]);
@@ -347,7 +351,9 @@ export default function CanvasClusterPage() {
             Canvas
           </button>
           <span className="text-white/35">/</span>
-          <span className="text-[#E07A5F]">{clusterDetail?.cluster.name ?? 'Cluster'}</span>
+          <span className="text-[var(--soouls-accent)]">
+            {clusterDetail?.cluster.name ?? 'Cluster'}
+          </span>
         </div>
         <button
           type="button"
@@ -403,7 +409,7 @@ export default function CanvasClusterPage() {
                   onClick={() => setSelectedEntryId(entry.id)}
                   className={`w-full rounded-[24px] border p-5 text-left transition ${
                     selectedEntryId === entry.id
-                      ? 'border-[#E07A5F]/70 bg-[#E07A5F]/10'
+                      ? 'border-[var(--soouls-accent)]/70 bg-[var(--soouls-accent)]/10'
                       : 'border-white/[0.04] bg-[#0F0F0F]/70 hover:border-white/10'
                   }`}
                 >
@@ -430,9 +436,9 @@ export default function CanvasClusterPage() {
           <button
             type="button"
             onClick={() => setShowInsights(true)}
-            className="mt-6 flex items-center justify-center gap-3 rounded-full border border-[#E07A5F]/50 bg-[#191312] px-5 py-4 text-[18px] font-semibold text-[#EFEBDD] shadow-[0_0_24px_rgba(224,122,95,0.16)]"
+            className="mt-6 flex items-center justify-center gap-3 rounded-full border border-[var(--soouls-accent)]/50 bg-[#191312] px-5 py-4 text-[18px] font-semibold text-[#EFEBDD] shadow-[0_0_24px_rgba(var(--soouls-accent-rgb),0.16)]"
           >
-            <Sparkles className="h-5 w-5 text-[#E07A5F]" />
+            <Sparkles className="h-5 w-5 text-[var(--soouls-accent)]" />
             Cluster Insights
           </button>
         </aside>
@@ -557,12 +563,14 @@ export default function CanvasClusterPage() {
               initial={{ y: 24, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 24, opacity: 0 }}
-              className="max-h-[80vh] w-full max-w-[760px] overflow-y-auto rounded-[28px] border border-[#E07A5F]/30 bg-[#111]/95 p-8 shadow-2xl"
+              className="max-h-[80vh] w-full max-w-[760px] overflow-y-auto rounded-[28px] border border-[var(--soouls-accent)]/30 bg-[#111]/95 p-8 shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="mb-8 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-[24px] font-semibold text-[#E07A5F]">Cluster Insights</h2>
+                  <h2 className="text-[24px] font-semibold text-[var(--soouls-accent)]">
+                    Cluster Insights
+                  </h2>
                   <Link
                     href={`/home/clusters/${clusterId}`}
                     className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-white/50 transition hover:bg-white/10 hover:text-white"
@@ -593,10 +601,10 @@ export default function CanvasClusterPage() {
                 ))}
               </div>
               <div className="mt-6 rounded-[22px] bg-[#222] p-5">
-                <p className="mb-2 text-[#E07A5F]">Next Logical Step</p>
+                <p className="mb-2 text-[var(--soouls-accent)]">Next Logical Step</p>
                 <p className="text-sm leading-relaxed text-white/55">{clusterDetail.nextStep}</p>
               </div>
-              <div className="mt-6 rounded-[22px] border border-[#E07A5F]/30 bg-[#2A1713] p-5 text-center">
+              <div className="mt-6 rounded-[22px] border border-[var(--soouls-accent)]/30 bg-[#2A1713] p-5 text-center">
                 <p className="font-playfair text-[22px] italic text-[#EFEBDD]">
                   “{clusterDetail.reflectionPrompt}”
                 </p>
@@ -624,7 +632,7 @@ function ToolbarButton({
       onClick={onClick}
       className="flex min-w-[112px] flex-col items-center gap-1 px-5 py-3 text-[#EFEBDD]/80 transition hover:bg-white/10 hover:text-white"
     >
-      <span className="h-5 w-5 text-[#E07A5F] [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
+      <span className="h-5 w-5 text-[var(--soouls-accent)] [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
       <span className="text-[12px] uppercase tracking-[0.08em]">{label}</span>
     </button>
   );

@@ -2,13 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, db, desc, eq, sql } from '@soouls/database/client';
 import { messageCampaigns, messageDeliveries, users } from '@soouls/database/schema';
 import { Resend } from 'resend';
-import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+import type { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import {
   countValue,
   normalizePhoneNumber,
   parseEnvList,
 } from '../notifications/notification.constants';
-import { NotificationQueueService } from '../notifications/notification.queue';
+import type { NotificationQueueService } from '../notifications/notification.queue';
 import { buildCampaignTemplate } from '../notifications/notification.templates';
 import {
   BRAND_PRESETS,
@@ -18,7 +18,7 @@ import {
   type UserMessagingProfile,
   getBrandPreset,
 } from '../notifications/notification.types';
-import { RedisService } from '../redis/redis.service';
+import type { RedisService } from '../redis/redis.service';
 
 type BrandKey = 'soouls' | 'soouls-studio' | 'founder-desk';
 type CampaignStatus = 'draft' | 'sending' | 'sent' | 'partially_sent' | 'failed';
@@ -118,10 +118,9 @@ export class MessagingService {
   };
 
   constructor(
-    @Inject(NotificationQueueService) private readonly notificationQueue: NotificationQueueService,
-    @Inject(NotificationDispatchService)
+    private readonly notificationQueue: NotificationQueueService,
     private readonly notificationDispatch: NotificationDispatchService,
-    @Inject(RedisService) private readonly redis: RedisService,
+    private readonly redis: RedisService,
   ) {}
 
   private isAdmin(user: Pick<UserMessagingProfile, 'email' | 'clerkId'>) {

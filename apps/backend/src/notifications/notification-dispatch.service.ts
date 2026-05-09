@@ -237,7 +237,7 @@ export class NotificationDispatchService {
       Body: message.body,
     });
 
-    const response = await fetch(
+    const response = (await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
       {
         method: 'POST',
@@ -247,7 +247,7 @@ export class NotificationDispatchService {
         },
         body: form,
       },
-    );
+    )) as any;
 
     if (!response.ok) {
       return {
@@ -276,7 +276,7 @@ export class NotificationDispatchService {
       return;
     }
 
-    const response = await fetch(url, {
+    const response = (await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -290,7 +290,7 @@ export class NotificationDispatchService {
         phoneNumber: user.phoneNumber,
         source: 'signup',
       }),
-    });
+    })) as any;
 
     if (!response.ok) {
       throw new Error(`Newsletter sync failed: ${await response.text()}`);

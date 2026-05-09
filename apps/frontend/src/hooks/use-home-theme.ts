@@ -7,7 +7,7 @@ export const HOME_THEME_STORAGE_KEY = 'soouls-home-theme';
 
 export const HOME_DEFAULT_SETTINGS: HomeSettings = {
   themeMode: 'dark',
-  accentTheme: 'orange',
+  accentTheme: 'ember',
   defaultView: 'canvas',
   writingMode: 'minimal',
   insightDepth: 'balanced',
