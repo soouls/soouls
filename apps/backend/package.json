@@ -43,6 +43,7 @@
     "bullmq": "^5.71.0",
     "cache-manager": "^7.2.8",
     "cron": "^4.3.5",
+    "express": "^5.2.1",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.0",
     "luxon": "^3.7.0",
