@@ -104,4 +104,3 @@ async function bootstrap() {
 if (!isVercel) {
   void bootstrap();
 }
-

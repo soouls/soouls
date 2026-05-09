@@ -1,6 +1,6 @@
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { type Job, Worker } from 'bullmq';
-import { NotificationDispatchService } from './notification-dispatch.service';
+import type { NotificationDispatchService } from './notification-dispatch.service';
 import {
   NOTIFICATIONS_QUEUE,
   type NotificationJobData,

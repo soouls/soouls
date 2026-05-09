@@ -45,9 +45,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       res.end(
         JSON.stringify({
           error: 'Internal Server Error',
-          message: process.env.NODE_ENV === 'production'
-            ? 'The server encountered an error during startup.'
-            : String(error),
+          message:
+            process.env.NODE_ENV === 'production'
+              ? 'The server encountered an error during startup.'
+              : String(error),
         }),
       );
     }

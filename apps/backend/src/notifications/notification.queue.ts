@@ -1,12 +1,12 @@
 import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
 import { type JobsOptions, Queue } from 'bullmq';
+import { isVercelRuntime } from '../runtime';
 import {
   NOTIFICATIONS_QUEUE,
   type NotificationJobData,
   type NotificationJobName,
   createRedisConnection,
 } from './notification.constants';
-import { isVercelRuntime } from '../runtime';
 
 const DEFAULT_JOB_OPTIONS: JobsOptions = {
   attempts: 3,

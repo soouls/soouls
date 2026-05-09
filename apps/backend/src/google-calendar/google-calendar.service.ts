@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '../redis/redis.service';
+import type { RedisService } from '../redis/redis.service';
 
 export interface GCalToken {
   access_token: string;

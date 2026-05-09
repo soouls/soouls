@@ -80,7 +80,11 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
           onPatch(id, { width: size.width, height: size.height })
         }
       />
-      <Handle type="target" position={Position.Top} className="!border-[var(--soouls-accent)] !bg-[#1C1C1C]" />
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!border-[var(--soouls-accent)] !bg-[#1C1C1C]"
+      />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -347,7 +351,9 @@ export default function CanvasClusterPage() {
             Canvas
           </button>
           <span className="text-white/35">/</span>
-          <span className="text-[var(--soouls-accent)]">{clusterDetail?.cluster.name ?? 'Cluster'}</span>
+          <span className="text-[var(--soouls-accent)]">
+            {clusterDetail?.cluster.name ?? 'Cluster'}
+          </span>
         </div>
         <button
           type="button"
@@ -562,7 +568,9 @@ export default function CanvasClusterPage() {
             >
               <div className="mb-8 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-[24px] font-semibold text-[var(--soouls-accent)]">Cluster Insights</h2>
+                  <h2 className="text-[24px] font-semibold text-[var(--soouls-accent)]">
+                    Cluster Insights
+                  </h2>
                   <Link
                     href={`/home/clusters/${clusterId}`}
                     className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1 text-[11px] font-medium text-white/50 transition hover:bg-white/10 hover:text-white"
