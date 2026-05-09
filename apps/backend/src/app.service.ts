@@ -1,9 +1,16 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { db, sql } from '@soouls/database/client';
+import { isVercelRuntime } from './runtime';
 
 @Injectable()
 export class AppService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
+    // Skip DDL migrations on Vercel serverless — they timeout the cold start.
+    // These columns already exist in production; run migrations via a dedicated script instead.
+    if (isVercelRuntime) {
+      console.log('[AppService] Skipping DDL migrations on Vercel serverless runtime.');
+      return;
+    }
     await this.ensureUserProfileColumns();
   }
 

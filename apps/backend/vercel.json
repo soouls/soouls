@@ -1,9 +1,11 @@
 {
   "version": 2,
   "buildCommand": "bun run build",
+  "installCommand": "bun install",
   "functions": {
     "api/index.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "rewrites": [

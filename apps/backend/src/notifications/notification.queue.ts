@@ -6,6 +6,7 @@ import {
   type NotificationJobName,
   createRedisConnection,
 } from './notification.constants';
+import { isVercelRuntime } from '../runtime';
 
 const DEFAULT_JOB_OPTIONS: JobsOptions = {
   attempts: 3,
@@ -19,7 +20,9 @@ const DEFAULT_JOB_OPTIONS: JobsOptions = {
 
 @Injectable()
 export class NotificationQueueService implements OnModuleDestroy {
-  private readonly connection = createRedisConnection();
+  // Skip BullMQ queue creation on Vercel serverless — the Redis TCP connection
+  // hangs the cold start and workers can't run in serverless anyway.
+  private readonly connection = isVercelRuntime ? null : createRedisConnection();
   private readonly queue = this.connection
     ? new Queue<NotificationJobData, void, NotificationJobName>(NOTIFICATIONS_QUEUE, {
         connection: this.connection,
