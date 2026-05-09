@@ -61,4 +61,4 @@ export function UiThemeProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-type HomeAccent = 'orange' | 'yellow' | 'green' | 'purple';
+type HomeAccent = 'ember' | 'gold' | 'sage' | 'violet';

@@ -8,7 +8,7 @@ import { TrpcRouter } from './trpc.router';
 export class TrpcController {
   private readonly middleware: ReturnType<typeof createExpressMiddleware>;
 
-  constructor(private readonly trpcRouter: TrpcRouter) {
+  constructor(@Inject(TrpcRouter) private readonly trpcRouter: TrpcRouter) {
     this.middleware = createExpressMiddleware({
       router: this.trpcRouter.appRouter,
       createContext: async ({ req }) => createTrpcContext(req),

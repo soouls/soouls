@@ -40,7 +40,7 @@ type ViewMode = 'Monthly' | 'Weekly' | 'Daily';
 const GCAL_COLORS: Record<string, string> = {
   '1': '#B86B4E',
   '2': '#AE8B7E',
-  '3': '#D46B4E',
+  '3': 'var(--soouls-accent)',
   '4': '#A67C52',
   '5': '#E6B89C',
   '6': '#845C44',
@@ -231,7 +231,7 @@ function GCalModal({
             </ul>
 
             {!isConfigured && (
-              <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-400">
+              <div className="mb-6 rounded-xl border border-[rgba(var(--soouls-accent-rgb),0.2)] bg-[rgba(var(--soouls-accent-rgb),0.05)] px-4 py-3 text-xs text-[var(--soouls-accent)]">
                 Google Calendar OAuth is not yet configured on this server. Add{' '}
                 <code className="font-mono text-amber-300">GOOGLE_CLIENT_ID</code> and{' '}
                 <code className="font-mono text-amber-300">GOOGLE_CLIENT_SECRET</code> to your{' '}
@@ -718,7 +718,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
 
                     {/* GCal CTA */}
                     {!gcalConnected && (
-                      <div className="border border-[#D46B4E]/30 bg-[#D46B4E]/5 rounded-2xl p-4 text-center mt-6">
+                      <div className="rounded-2xl border border-[rgba(var(--soouls-accent-rgb),0.3)] bg-[rgba(var(--soouls-accent-rgb),0.05)] p-4 text-center mt-6">
                         <div className="text-xs text-gray-400 mb-3 font-medium">
                           Want to see all your events?
                         </div>

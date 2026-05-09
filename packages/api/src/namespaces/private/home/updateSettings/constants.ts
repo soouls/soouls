@@ -3,7 +3,7 @@ import type { RateLimitConfig } from '../../../../rate-limit.js';
 
 export const schema = z.object({
   themeMode: z.enum(['dark', 'light']).optional(),
-  accentTheme: z.enum(['orange', 'yellow', 'green', 'purple']).optional(),
+  accentTheme: z.enum(['ember', 'gold', 'sage', 'violet']).optional(),
   defaultView: z.enum(['canvas', 'list', 'calendar']).optional(),
   writingMode: z.enum(['minimal', 'guided']).optional(),
   insightDepth: z.enum(['minimal', 'balanced', 'deep']).optional(),

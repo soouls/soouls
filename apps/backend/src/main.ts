@@ -1,12 +1,13 @@
 import 'reflect-metadata';
+import type { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as Sentry from '@sentry/nestjs';
+import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 import pino from 'pino-http';
-import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
+export async function createApp(): Promise<INestApplication> {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: 1.0,
@@ -74,10 +75,17 @@ async function bootstrap() {
     credentials: true,
   });
 
+  console.log(`[Soouls API] CORS allowed origins: ${allowedOrigins.join(', ')}`);
+  return app;
+}
+
+async function bootstrap() {
+  const app = await createApp();
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   console.log(`[Soouls API] Listening on port ${port}`);
-  console.log(`[Soouls API] CORS allowed origins: ${allowedOrigins.join(', ')}`);
 }
 
-bootstrap();
+if (process.env.VERCEL !== '1') {
+  void bootstrap();
+}

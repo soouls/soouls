@@ -32,7 +32,7 @@ import { trpc } from '../../src/utils/trpc';
 import { SymbolLogo } from '../components/SymbolLogo';
 import { GuideMascot } from './guide-mascot';
 
-type ThemeColor = 'orange' | 'yellow' | 'green' | 'purple';
+type ThemeColor = 'ember' | 'gold' | 'sage' | 'violet';
 
 type Stage =
   | 'reason'
@@ -98,51 +98,34 @@ const THEME_COPY: Record<
     description: string;
   }
 > = {
-  orange: {
-    label: 'Orange',
+  ember: {
+    label: 'Ember',
     title: 'Signal fire',
     description: 'Warm, direct, and alive. Best when you want clarity fast.',
   },
-  yellow: {
+  gold: {
     label: 'Gold',
     title: 'Clear horizon',
     description: 'Brighter and lighter. Good for calm review and steady reflection.',
   },
-  green: {
-    label: 'Green',
+  sage: {
+    label: 'Sage',
     title: 'Living archive',
     description: 'Grounded, restorative, and growth-oriented.',
   },
-  purple: {
-    label: 'Purple',
+  violet: {
+    label: 'Violet',
     title: 'Depth chamber',
     description: 'Quiet, introspective, and made for slower inner work.',
   },
 };
 
-function getStageNumber(stage: Stage): number {
-  switch (stage) {
-    case 'reason':
-      return 1;
-    case 'capture':
-      return 2;
-    case 'tone':
-      return 3;
-    case 'rhythm':
-      return 4;
-    case 'support':
-      return 5;
-    case 'voice':
-      return 6;
-    case 'wake':
-    case 'entry':
-      return 7;
-    case 'done':
-      return 7;
-    default:
-      return 1;
-  }
-}
+const THEME_SWATCHES: Record<ThemeColor, string> = {
+  ember: '#f06f4f',
+  gold: '#d8a23f',
+  sage: '#74ad86',
+  violet: '#8d79d6',
+};
 
 function deriveSettings(answers: FlowAnswers, theme: ThemeColor) {
   const reminderByRhythm: Record<string, string> = {
@@ -385,7 +368,7 @@ export default function OnboardingPage() {
 
   const [stage, setStage] = useState<Stage>('reason');
   const [answers, setAnswers] = useState<FlowAnswers>({});
-  const [theme, setTheme] = useState<ThemeColor>('orange');
+  const [theme, setTheme] = useState<ThemeColor>('ember');
   const [mascotAwake, setMascotAwake] = useState(false);
   const [firstEntry, setFirstEntry] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -498,6 +481,7 @@ export default function OnboardingPage() {
 
   const handleWake = useCallback(() => {
     setMascotAwake(true);
+    window.localStorage.setItem('soouls-orbi-awake', 'true');
     setTimeout(() => {
       setStage('entry');
     }, 1200);
@@ -601,7 +585,7 @@ export default function OnboardingPage() {
     ],
   );
 
-  const titleTone = theme === 'orange' ? 'today' : THEME_COPY[theme].title.toLowerCase();
+  const titleTone = theme === 'ember' ? 'today' : THEME_COPY[theme].title.toLowerCase();
 
   if (isLoadingAuth || !isLoaded) {
     return (
@@ -822,14 +806,7 @@ export default function OnboardingPage() {
                                 <span
                                   className="h-4 w-4 rounded-full"
                                   style={{
-                                    backgroundColor:
-                                      key === 'orange'
-                                        ? '#e07a5f'
-                                        : key === 'yellow'
-                                          ? '#d9a23d'
-                                          : key === 'green'
-                                            ? '#73b27c'
-                                            : '#8c72d8',
+                                    backgroundColor: THEME_SWATCHES[key],
                                   }}
                                 />
                                 <span className="text-xs uppercase tracking-[0.32em] text-[rgba(239,235,221,0.58)]">

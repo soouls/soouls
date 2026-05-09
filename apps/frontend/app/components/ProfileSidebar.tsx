@@ -74,11 +74,12 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                   </p>
                 </div>
               </div>
-              <h2 className="text-[32px] font-bold text-[#D46B4E] tracking-tight leading-none mb-4">
+              <h2 className="text-[32px] font-bold text-[var(--soouls-accent)] tracking-tight leading-none mb-4">
                 {fullName}
               </h2>
               <p className="text-xl text-white font-playfair italic leading-snug">
-                &quot;You&apos;ve shown up <span className="text-[#D46B4E]">{streak} days</span>
+                &quot;You&apos;ve shown up{' '}
+                <span className="text-[var(--soouls-accent)]">{streak} days</span>
                 <br />
                 in a row.&quot;
               </p>
