@@ -14,7 +14,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import type { GoogleCalendarService } from './google-calendar.service';
+import { GoogleCalendarService } from './google-calendar.service';
 
 /**
  * Google Calendar OAuth2 endpoints.
