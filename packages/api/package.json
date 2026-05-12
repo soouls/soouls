@@ -4,12 +4,25 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./router": "./src/router.ts",
-    "./client": "./src/client.ts",
-    "./trpc": "./src/trpc.ts",
-    "./rate-limit": "./src/rate-limit.ts"
+    "./router": {
+      "types": "./src/router.ts",
+      "default": "./dist/router.js"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./dist/client.js"
+    },
+    "./trpc": {
+      "types": "./src/trpc.ts",
+      "default": "./dist/trpc.js"
+    },
+    "./rate-limit": {
+      "types": "./src/rate-limit.ts",
+      "default": "./dist/rate-limit.js"
+    }
   },
   "scripts": {
+    "build": "tsc",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {

@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "bun run build",
-  "installCommand": "bun install",
+  "buildCommand": "cd ../.. && npx turbo run build --filter=@soouls/backend",
+  "installCommand": "cd ../.. && bun install",
   "functions": {
     "api/index.ts": {
       "maxDuration": 60,
