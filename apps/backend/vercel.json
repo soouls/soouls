@@ -1,6 +1,7 @@
 {
   "version": 2,
   "framework": null,
+  "outputDirectory": "dist",
   "buildCommand": "cd ../.. && npx turbo run build --filter=@soouls/backend",
   "installCommand": "cd ../.. && bun install",
   "functions": {
