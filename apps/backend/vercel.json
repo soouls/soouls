@@ -3,7 +3,7 @@
   "buildCommand": "cd ../.. && npx turbo run build --filter=@soouls/backend",
   "installCommand": "cd ../.. && bun install",
   "functions": {
-    "api/index.ts": {
+    "src/main.ts": {
       "maxDuration": 60,
       "memory": 1024
     }
@@ -11,7 +11,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/src/main.ts"
     }
   ]
 }
