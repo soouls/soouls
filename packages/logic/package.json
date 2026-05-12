@@ -2,7 +2,6 @@
   "name": "@soouls/logic",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "exports": {
     "./canvas": {
       "types": "./src/canvas/index.ts",

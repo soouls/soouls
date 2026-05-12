@@ -2,7 +2,6 @@
   "name": "@soouls/api",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "exports": {
     "./router": {
       "types": "./src/router.ts",
