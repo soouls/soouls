@@ -15,7 +15,7 @@ import {
 import Link from 'next/link';
 import { useShell } from '../components/ClientShell';
 import { ActionButton, Panel, StatCard, StatusBadge, ToggleSwitch } from '../components/ui';
-import { type Overview, api, formatRelativeTime } from '../lib/api';
+import { type HealthPayload, type Overview, api, formatRelativeTime } from '../lib/api';
 
 interface DashboardSectionProps {
   onNavigate?: (section: string | SectionName) => void;
@@ -32,6 +32,11 @@ export function DashboardSection({ onNavigate }: DashboardSectionProps) {
     queryFn: () => api<Overview>('/command-api/overview'),
     refetchInterval: 15_000,
   });
+  const { data: health } = useQuery({
+    queryKey: ['dashboard-health'],
+    queryFn: () => api<HealthPayload>('/command-api/health'),
+    refetchInterval: 20_000,
+  });
 
   function invalidate() {
     void queryClient.invalidateQueries({ queryKey: ['overview'] });
@@ -40,6 +45,22 @@ export function DashboardSection({ onNavigate }: DashboardSectionProps) {
   const canManageEngineering = viewer?.permissions?.includes('mutate:feature_flags');
   const queueTotal =
     (overview?.queue.waiting ?? 0) + (overview?.queue.active ?? 0) + (overview?.queue.delayed ?? 0);
+  const providerReadiness = [
+    health?.messaging.providerHealth.emailConfigured,
+    health?.messaging.providerHealth.whatsappConfigured,
+    health?.messaging.providerHealth.newsletterConfigured,
+    health?.messaging.providerHealth.queueConfigured,
+  ].filter(Boolean).length;
+  const operationalScore = Math.round(
+    ([
+      overview?.telemetry.databaseHealthy,
+      health?.redis.connected,
+      overview?.queue.failed === 0,
+      providerReadiness >= 3,
+    ].filter(Boolean).length /
+      4) *
+      100,
+  );
 
   if (isLoading || !overview) {
     return (
@@ -76,6 +97,95 @@ export function DashboardSection({ onNavigate }: DashboardSectionProps) {
             <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-400">
               Live
             </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden rounded-2xl border border-amber-300/10 bg-[linear-gradient(135deg,rgba(245,158,11,0.12),rgba(15,23,42,0.55)_42%,rgba(4,8,15,0.92))] p-6">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-amber-300" />
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-200/80">
+                Internal Control Center
+              </span>
+            </div>
+            <h2 className="mt-4 max-w-2xl font-display text-2xl text-white">
+              Monitor the app, message users, manage incidents, and route team action from one
+              surface.
+            </h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                {
+                  label: 'Operational Score',
+                  value: `${operationalScore}%`,
+                  tone: operationalScore >= 75 ? 'text-emerald-300' : 'text-amber-300',
+                },
+                {
+                  label: 'Provider Readiness',
+                  value: `${providerReadiness}/4`,
+                  tone: providerReadiness >= 3 ? 'text-emerald-300' : 'text-amber-300',
+                },
+                {
+                  label: 'Queue Failures',
+                  value: overview.queue.failed,
+                  tone: overview.queue.failed > 0 ? 'text-rose-300' : 'text-emerald-300',
+                },
+                {
+                  label: 'Audit Events',
+                  value: overview.recentAuditLogs.length,
+                  tone: 'text-sky-300',
+                },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl bg-black/20 px-4 py-3">
+                  <div className={`font-mono text-2xl font-bold ${item.tone}`}>{item.value}</div>
+                  <div className="mt-1 text-[10px] uppercase tracking-widest text-slate-500">
+                    {item.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-2">
+            {[
+              {
+                label: 'Open Messaging',
+                detail: 'Broadcast, test, and inspect campaign delivery.',
+                href: '/messaging',
+                icon: Mail,
+              },
+              {
+                label: 'Resolve Incidents',
+                detail: 'Check Redis, queues, database latency, and providers.',
+                href: '/health',
+                icon: ShieldAlert,
+              },
+              {
+                label: 'Track Issues',
+                detail: 'GitHub Issues is the source of truth for team work.',
+                href: 'https://github.com/soouls/soouls/issues',
+                icon: FileText,
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 transition-colors hover:border-amber-300/20 hover:bg-white/[0.06]"
+                >
+                  <Icon className="h-4 w-4 text-amber-300" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium text-white">{item.label}</div>
+                    <div className="text-xs text-slate-500">{item.detail}</div>
+                  </div>
+                  <span className="text-xs text-slate-600 transition-colors group-hover:text-amber-300">
+                    Open
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

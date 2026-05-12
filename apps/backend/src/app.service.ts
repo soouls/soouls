@@ -42,7 +42,7 @@ export class AppService implements OnModuleInit {
           ${col.notNull ? 'NOT NULL' : ''};
         `));
       } catch (err) {
-        console.warn(`[AppService] Could not add column ${col.name} to users table:`, err.message);
+        console.warn(`[AppService] Could not add column ${col.name} to users table:`, (err as Error).message);
       }
     }
 
@@ -62,7 +62,7 @@ export class AppService implements OnModuleInit {
           ${col.notNull ? 'NOT NULL' : ''};
         `));
       } catch (err) {
-        console.warn(`[AppService] Could not add column ${col.name} to clusters table:`, err.message);
+        console.warn(`[AppService] Could not add column ${col.name} to clusters table:`, (err as Error).message);
       }
     }
 
@@ -84,7 +84,7 @@ export class AppService implements OnModuleInit {
         );
       `);
     } catch (err) {
-      console.warn('[AppService] Could not create entry_canvases table:', err.message);
+      console.warn('[AppService] Could not create entry_canvases table:', (err as Error).message);
     }
 
     const canvasColumns = [
@@ -107,7 +107,7 @@ export class AppService implements OnModuleInit {
           ${col.default ? `DEFAULT ${col.default}` : ''};
         `));
       } catch (err) {
-        console.warn(`[AppService] Could not add column ${col.name} to entry_canvases table:`, err.message);
+        console.warn(`[AppService] Could not add column ${col.name} to entry_canvases table:`, (err as Error).message);
       }
     }
 
@@ -126,7 +126,7 @@ export class AppService implements OnModuleInit {
         END $$;
       `);
     } catch (err) {
-      console.warn('[AppService] Could not add unique constraint to entry_canvases:', err.message);
+      console.warn('[AppService] Could not add unique constraint to entry_canvases:', (err as Error).message);
     }
   }
 }

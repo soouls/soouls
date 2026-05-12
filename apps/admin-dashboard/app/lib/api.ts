@@ -104,6 +104,10 @@ export type Messaging = {
     title: string;
     subject: string;
     status: string;
+    channels?: string[];
+    totalRecipients?: number;
+    emailRecipients?: number;
+    whatsappRecipients?: number;
     createdAt: string;
   }>;
   recentDeliveries: Array<{
@@ -116,7 +120,16 @@ export type Messaging = {
   providerHealth: {
     emailConfigured: boolean;
     whatsappConfigured: boolean;
+    queueConfigured: boolean;
     newsletterConfigured: boolean;
+    commandCenterConfigured?: boolean;
+  };
+  stats: {
+    totalUsers: number;
+    emailReachable: number;
+    whatsappReachable: number;
+    waitlistReachable: number;
+    campaignsSent: number;
   };
 };
 

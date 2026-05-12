@@ -2,19 +2,21 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import ClientShell from './components/ClientShell';
 import './globals.css';
 import { Providers } from './providers';
 
-const inter = Inter({
+const geist = Geist({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-geist',
+  display: 'swap',
 });
 
-const playfair = Playfair_Display({
+const geistMono = Geist_Mono({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  variable: '--font-geist-mono',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -33,7 +35,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <body className={`${geist.variable} ${geistMono.variable} font-sans`}>
           <Providers>
             <ClientShell>{children}</ClientShell>
             <Analytics />

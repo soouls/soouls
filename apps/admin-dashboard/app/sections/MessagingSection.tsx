@@ -8,6 +8,73 @@ import { PermissionGate } from '../components/PermissionGate';
 import { ActionButton, Panel, StatusBadge } from '../components/ui';
 import { type Messaging, api, formatRelativeTime } from '../lib/api';
 
+const ACTIVE_SENDER_EMAIL = 'team@soouls.in';
+const ACTIVE_SENDER_LABEL = `Soouls Team <${ACTIVE_SENDER_EMAIL}>`;
+
+const CAMPAIGN_PRESETS = [
+  {
+    key: 'thank-you',
+    label: 'Signup thank you',
+    title: 'Thank you message for new Soouls users',
+    subject: 'Thank you for joining Soouls',
+    body: `# Thank you for joining Soouls
+
+Hi there,
+
+Thank you for signing up and trusting Soouls with your reflective space. We are building this slowly and carefully so journaling feels calm, private, and genuinely useful.
+
+- Your workspace is ready
+- Your entries stay personal
+- More thoughtful updates are coming soon
+
+We are grateful you are here.`,
+    whatsapp:
+      'Thank you for joining Soouls. Your reflective workspace is ready, and we are grateful you are here.',
+    ctaLabel: 'Open Soouls',
+    ctaUrl: 'https://soouls.in/home',
+  },
+  {
+    key: 'waitlist',
+    label: 'Waitlist welcome',
+    title: 'Waitlist launch note',
+    subject: 'Your Soouls early access is ready',
+    body: `# Your early access is ready
+
+Hi there,
+
+You joined the Soouls waitlist early, and that means a lot. The first version is ready for you to explore.
+
+- Start with one honest entry
+- Try the Life Canvas
+- Tell us what feels magical and what feels rough
+
+Thank you for being part of the beginning.`,
+    whatsapp: 'Your Soouls early access is ready. Thank you for being part of the beginning.',
+    ctaLabel: 'Start Early Access',
+    ctaUrl: 'https://soouls.in/sign-up',
+  },
+  {
+    key: 'support',
+    label: 'Support update',
+    title: 'Product support update',
+    subject: 'A quick Soouls support update',
+    body: `# A quick Soouls support update
+
+Hi there,
+
+We are sharing a short update from the Soouls team.
+
+- What changed:
+- Who it affects:
+- What you need to do:
+
+Reply to this email if you need help. We will take care of it.`,
+    whatsapp: 'A quick Soouls support update: reply if you need help and we will take care of it.',
+    ctaLabel: 'Contact Support',
+    ctaUrl: 'mailto:support@soouls.in',
+  },
+] as const;
+
 export function MessagingSection() {
   const { setFlash } = useShell();
   const queryClient = useQueryClient();
@@ -16,16 +83,6 @@ export function MessagingSection() {
     queryKey: ['messaging'],
     queryFn: () => api<Messaging>('/command-api/messaging'),
     refetchInterval: 5000, // Auto-refresh every 5s for live delivery tracking
-  });
-
-  const { data: audience } = useQuery({
-    queryKey: ['messaging-audience'],
-    queryFn: () =>
-      api<{ count: number; premium: number; enterprise: number; last7Days: number }>(
-        '/command-api/users?limit=1',
-      ),
-    enabled: true,
-    staleTime: 60000,
   });
 
   const [isComposing, setIsComposing] = useState(false);
@@ -40,6 +97,7 @@ export function MessagingSection() {
   const [composeTitle, setComposeTitle] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeBody, setComposeBody] = useState('');
+  const [composeWhatsappBody, setComposeWhatsappBody] = useState('');
   const [composeCtaLabel, setComposeCtaLabel] = useState('');
   const [composeCtaUrl, setComposeCtaUrl] = useState('');
   const [composeChannels, setComposeChannels] = useState<Array<'email' | 'whatsapp'>>(['email']);
@@ -49,6 +107,16 @@ export function MessagingSection() {
 
   function invalidate() {
     void queryClient.invalidateQueries({ queryKey: ['messaging'] });
+  }
+
+  function applyCampaignPreset(preset: (typeof CAMPAIGN_PRESETS)[number]) {
+    setComposeTitle(preset.title);
+    setComposeSubject(preset.subject);
+    setComposeBody(preset.body);
+    setComposeWhatsappBody(preset.whatsapp);
+    setComposeCtaLabel(preset.ctaLabel);
+    setComposeCtaUrl(preset.ctaUrl);
+    setIsComposing(true);
   }
 
   async function handleSendTest() {
@@ -90,6 +158,7 @@ export function MessagingSection() {
           title: composeTitle,
           subject: composeSubject,
           markdownBody: composeBody,
+          whatsappBody: composeWhatsappBody || undefined,
           ctaLabel: composeCtaLabel || undefined,
           ctaUrl: composeCtaUrl || undefined,
           channels: composeChannels,
@@ -106,6 +175,7 @@ export function MessagingSection() {
       setComposeTitle('');
       setComposeSubject('');
       setComposeBody('');
+      setComposeWhatsappBody('');
       setComposeCtaLabel('');
       setComposeCtaUrl('');
       invalidate();
@@ -124,11 +194,13 @@ export function MessagingSection() {
   }
 
   const estimatedAudience =
-    targetSignupDate === 'last_7_days'
-      ? 50
-      : targetSignupDate === 'last_30_days'
-        ? 200
-        : audience?.count || 500;
+    targetBillingTier === 'waitlist_all'
+      ? messaging.stats.waitlistReachable
+      : targetBillingTier === 'waitlist'
+        ? Math.min(messaging.stats.waitlistReachable, messaging.stats.totalUsers)
+        : composeChannels.includes('whatsapp') && !composeChannels.includes('email')
+          ? messaging.stats.whatsappReachable
+          : messaging.stats.emailReachable;
 
   return (
     <div className="space-y-8">
@@ -186,7 +258,7 @@ export function MessagingSection() {
           <div className="mt-3 text-[10px] text-slate-500">
             Via Resend API
             <br />
-            Sender: team@soouls.com
+            Sender: {ACTIVE_SENDER_EMAIL}
           </div>
         </div>
 
@@ -224,9 +296,71 @@ export function MessagingSection() {
         </div>
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <Panel title="Campaign Starters">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {CAMPAIGN_PRESETS.map((preset) => (
+              <button
+                key={preset.key}
+                type="button"
+                onClick={() => applyCampaignPreset(preset)}
+                className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-amber-400/25 hover:bg-amber-400/[0.04]"
+              >
+                <div className="text-sm font-medium text-white">{preset.label}</div>
+                <div className="mt-1 text-xs text-slate-500">{preset.subject}</div>
+              </button>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Domain Sender Setup">
+          <div className="grid gap-2 text-xs">
+            {[
+              {
+                label: 'Verified sending domain',
+                value: messaging.providerHealth.emailConfigured ? 'Ready' : 'Needs Resend setup',
+              },
+              { label: 'Active sender', value: ACTIVE_SENDER_EMAIL },
+              { label: 'Recommended aliases', value: 'support@, updates@, founder@, security@' },
+              { label: 'Reply routing', value: 'Set MESSAGING_REPLY_TO_EMAIL for team inbox' },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between rounded-lg bg-white/[0.025] px-3 py-2"
+              >
+                <span className="text-slate-500">{item.label}</span>
+                <span className="text-right text-slate-300">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
       {isComposing && (
         <Panel title="Compose Campaign">
           <div className="grid gap-6">
+            <div>
+              <label
+                htmlFor="composeWhatsappBody"
+                className="mb-1.5 block text-xs font-medium text-slate-400"
+              >
+                WhatsApp Body{' '}
+                <span className="text-slate-500">(optional channel-specific copy)</span>
+              </label>
+              <textarea
+                id="composeWhatsappBody"
+                value={composeWhatsappBody}
+                onChange={(e) => setComposeWhatsappBody(e.target.value)}
+                placeholder="Short version for WhatsApp. If empty, Soouls will use the email text."
+                rows={4}
+                className="w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm text-white placeholder:text-slate-600 outline-none transition-colors focus:border-amber-400/30"
+              />
+              <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Keep it short, direct, and reply-friendly.</span>
+                <span>{composeWhatsappBody.length} chars</span>
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label
@@ -277,9 +411,9 @@ export function MessagingSection() {
               </label>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { email: 'team@soouls.com', label: 'Team', default: true },
-                  { email: 'hello@soouls.com', label: 'Hello', default: false },
-                  { email: 'updates@soouls.com', label: 'Updates', default: false },
+                  { email: ACTIVE_SENDER_EMAIL, label: 'Team', default: true },
+                  { email: 'hello@soouls.in', label: 'Hello', default: false },
+                  { email: 'updates@soouls.in', label: 'Updates', default: false },
                 ].map((sender) => (
                   <button
                     key={sender.email}
@@ -296,7 +430,7 @@ export function MessagingSection() {
                 ))}
               </div>
               <p className="mt-2 text-[10px] text-slate-600">
-                Requires verified domain on Resend. Currently active: team@soouls.com
+                Requires verified domain on Resend. Currently active: {ACTIVE_SENDER_EMAIL}
               </p>
             </div>
 
@@ -489,7 +623,8 @@ export function MessagingSection() {
                     className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none"
                   >
                     <option value="all">All Users</option>
-                    <option value="waitlist">Waitlist Users Only</option>
+                    <option value="waitlist">Signed-up waitlist users</option>
+                    <option value="waitlist_all">Full waitlist audience</option>
                     <option value="premium">Premium Only</option>
                     <option value="enterprise">Enterprise Only</option>
                     <option value="free">Free Only</option>
@@ -543,6 +678,26 @@ export function MessagingSection() {
                 <span className="text-xs text-amber-300">
                   Estimated recipients: ~{estimatedAudience.toLocaleString()}
                 </span>
+              </div>
+              <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-3">
+                <div className="rounded-lg bg-black/15 px-3 py-2">
+                  <div className="text-slate-500">Email reachable</div>
+                  <div className="font-mono text-slate-200">
+                    {messaging.stats.emailReachable.toLocaleString()}
+                  </div>
+                </div>
+                <div className="rounded-lg bg-black/15 px-3 py-2">
+                  <div className="text-slate-500">WhatsApp reachable</div>
+                  <div className="font-mono text-slate-200">
+                    {messaging.stats.whatsappReachable.toLocaleString()}
+                  </div>
+                </div>
+                <div className="rounded-lg bg-black/15 px-3 py-2">
+                  <div className="text-slate-500">Waitlist records</div>
+                  <div className="font-mono text-slate-200">
+                    {messaging.stats.waitlistReachable.toLocaleString()}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -613,7 +768,7 @@ export function MessagingSection() {
           <div className="rounded-xl border border-white/[0.08] bg-gradient-to-b from-slate-900 to-slate-950 p-6">
             <div className="mb-4 border-b border-white/[0.06] pb-4">
               <div className="text-xs text-slate-500">From</div>
-              <div className="text-sm text-white">Soouls Team &lt;team@soouls.com&gt;</div>
+              <div className="text-sm text-white">{ACTIVE_SENDER_LABEL}</div>
             </div>
             <div className="mb-4 border-b border-white/[0.06] pb-4">
               <div className="text-xs text-slate-500">Subject</div>

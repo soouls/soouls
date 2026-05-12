@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@clerk/nextjs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, TriangleAlert } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { Viewer } from '../lib/api';
@@ -40,8 +40,8 @@ function UnauthorizedRedirect() {
   }, [signOut, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#040814]">
-      <div className="flex flex-col items-center gap-4">
+    <main className="flex min-h-[100dvh] items-center justify-center bg-[#05070b]">
+      <div className="admin-glass flex flex-col items-center gap-4 rounded-[1.35rem] px-8 py-7">
         <div className="relative">
           <div className="absolute inset-0 rounded-full bg-amber-400/20 blur-xl" />
           <Loader2 className="relative h-10 w-10 animate-spin text-amber-300" />
@@ -126,8 +126,8 @@ export default function ClientShell({ children }: { children: React.ReactNode })
 
   if (!authLoaded || loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#040814]">
-        <div className="flex flex-col items-center gap-4">
+      <main className="flex min-h-[100dvh] items-center justify-center bg-[#05070b]">
+        <div className="admin-glass flex flex-col items-center gap-4 rounded-[1.35rem] px-8 py-7">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-amber-400/20 blur-xl" />
             <Loader2 className="relative h-10 w-10 animate-spin text-amber-300" />
@@ -147,10 +147,10 @@ export default function ClientShell({ children }: { children: React.ReactNode })
 
   if (error || !viewer) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#040814] px-6">
-        <div className="max-w-md rounded-2xl border border-rose-400/20 bg-rose-400/5 p-8 text-center backdrop-blur-sm">
+      <main className="flex min-h-[100dvh] items-center justify-center bg-[#05070b] px-6">
+        <div className="admin-glass max-w-md rounded-[1.35rem] p-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rose-400/10">
-            <span className="text-2xl">⚠️</span>
+            <TriangleAlert className="h-6 w-6 text-rose-300" aria-hidden="true" />
           </div>
           <p className="text-lg font-medium text-rose-200">{error ?? 'Unable to connect'}</p>
           <p className="mt-2 text-sm text-slate-500">
@@ -163,7 +163,7 @@ export default function ClientShell({ children }: { children: React.ReactNode })
               setLoading(true);
               void loadViewer().finally(() => setLoading(false));
             }}
-            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm text-white transition-colors duration-200 hover:bg-white/20"
           >
             <Loader2 className="h-4 w-4" />
             Retry

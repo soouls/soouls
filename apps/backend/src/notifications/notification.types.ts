@@ -58,6 +58,7 @@ export type CampaignInput = {
     nodeCount?: string;
     signupDate?: string;
     lastLogin?: string;
+    billingTier?: string;
   };
 };
 
