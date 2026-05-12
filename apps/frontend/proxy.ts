@@ -12,10 +12,17 @@ const isPublicRoute = createRouteMatcher([
   '/onboarding(.*)',
   ...publicInfoPaths.map((path) => `${path}(.*)`),
 ]);
+const isTrpcRoute = createRouteMatcher(['/trpc(.*)']);
 
 export default clerkMiddleware(async (auth, request) => {
   const { userId } = await auth();
   const { pathname } = request.nextUrl;
+
+  // Let the backend tRPC context verify the Bearer token and return tRPC-shaped
+  // JSON errors. Clerk page redirects here make the tRPC client fail to decode.
+  if (isTrpcRoute(request)) {
+    return NextResponse.next();
+  }
 
   // 1. If user is authenticated and tries to access the landing page, redirect to /home
   if (userId && pathname === '/') {

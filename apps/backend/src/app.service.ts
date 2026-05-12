@@ -19,71 +19,114 @@ export class AppService implements OnModuleInit {
   }
 
   private async ensureUserProfileColumns(): Promise<void> {
-    await db.execute(sql`
-      ALTER TABLE "users"
-        ADD COLUMN IF NOT EXISTS "theme_preference" text DEFAULT 'aurora',
-        ADD COLUMN IF NOT EXISTS "preferences" jsonb,
-        ADD COLUMN IF NOT EXISTS "mascot" text DEFAULT 'Lumi',
-        ADD COLUMN IF NOT EXISTS "is_waitlist_user" boolean DEFAULT false NOT NULL,
-        ADD COLUMN IF NOT EXISTS "marketing_email_opt_in" boolean DEFAULT true NOT NULL,
-        ADD COLUMN IF NOT EXISTS "marketing_whatsapp_opt_in" boolean DEFAULT false NOT NULL,
-        ADD COLUMN IF NOT EXISTS "transactional_email_opt_in" boolean DEFAULT true NOT NULL,
-        ADD COLUMN IF NOT EXISTS "transactional_whatsapp_opt_in" boolean DEFAULT false NOT NULL,
-        ADD COLUMN IF NOT EXISTS "welcome_email_sent_at" timestamp,
-        ADD COLUMN IF NOT EXISTS "welcome_whatsapp_sent_at" timestamp,
-        ADD COLUMN IF NOT EXISTS "last_secure_access_sent_at" timestamp
-    `);
+    const userColumns = [
+      { name: 'theme_preference', type: 'text', default: "'aurora'" },
+      { name: 'preferences', type: 'jsonb' },
+      { name: 'mascot', type: 'text', default: "'Lumi'" },
+      { name: 'is_waitlist_user', type: 'boolean', default: 'false', notNull: true },
+      { name: 'marketing_email_opt_in', type: 'boolean', default: 'true', notNull: true },
+      { name: 'marketing_whatsapp_opt_in', type: 'boolean', default: 'false', notNull: true },
+      { name: 'transactional_email_opt_in', type: 'boolean', default: 'true', notNull: true },
+      { name: 'transactional_whatsapp_opt_in', type: 'boolean', default: 'false', notNull: true },
+      { name: 'welcome_email_sent_at', type: 'timestamp' },
+      { name: 'welcome_whatsapp_sent_at', type: 'timestamp' },
+      { name: 'last_secure_access_sent_at', type: 'timestamp' },
+    ];
 
-    await db.execute(sql`
-      ALTER TABLE "clusters"
-        ADD COLUMN IF NOT EXISTS "color" text DEFAULT '#F59E0B',
-        ADD COLUMN IF NOT EXISTS "icon" text DEFAULT 'sparkles',
-        ADD COLUMN IF NOT EXISTS "metadata" jsonb,
-        ADD COLUMN IF NOT EXISTS "is_pinned" boolean DEFAULT false NOT NULL
-    `);
+    for (const col of userColumns) {
+      try {
+        await db.execute(sql.raw(`
+          ALTER TABLE "users" 
+          ADD COLUMN IF NOT EXISTS "${col.name}" ${col.type} 
+          ${col.default ? `DEFAULT ${col.default}` : ''} 
+          ${col.notNull ? 'NOT NULL' : ''};
+        `));
+      } catch (err) {
+        console.warn(`[AppService] Could not add column ${col.name} to users table:`, (err as Error).message);
+      }
+    }
 
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "entry_canvases" (
-        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-        "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-        "entry_id" uuid NOT NULL REFERENCES "journal_entries"("id") ON DELETE CASCADE,
-        "canvas_title" text NOT NULL,
-        "cards" jsonb NOT NULL,
-        "connections" jsonb NOT NULL,
-        "cluster_insight" text,
-        "generation_metadata" jsonb,
-        "last_edited" timestamp DEFAULT now() NOT NULL,
-        "created_at" timestamp DEFAULT now() NOT NULL,
-        "updated_at" timestamp DEFAULT now() NOT NULL,
-        CONSTRAINT "entry_canvases_entry_id_unique" UNIQUE("entry_id")
-      )
-    `);
+    const clusterColumns = [
+      { name: 'color', type: 'text', default: "'#F59E0B'" },
+      { name: 'icon', type: 'text', default: "'sparkles'" },
+      { name: 'metadata', type: 'jsonb' },
+      { name: 'is_pinned', type: 'boolean', default: 'false', notNull: true },
+    ];
 
-    await db.execute(sql`
-      ALTER TABLE "entry_canvases"
-        ADD COLUMN IF NOT EXISTS "user_id" uuid,
-        ADD COLUMN IF NOT EXISTS "entry_id" uuid,
-        ADD COLUMN IF NOT EXISTS "canvas_title" text,
-        ADD COLUMN IF NOT EXISTS "cards" jsonb,
-        ADD COLUMN IF NOT EXISTS "connections" jsonb,
-        ADD COLUMN IF NOT EXISTS "cluster_insight" text,
-        ADD COLUMN IF NOT EXISTS "generation_metadata" jsonb,
-        ADD COLUMN IF NOT EXISTS "last_edited" timestamp DEFAULT now(),
-        ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now()
-    `);
+    for (const col of clusterColumns) {
+      try {
+        await db.execute(sql.raw(`
+          ALTER TABLE "clusters" 
+          ADD COLUMN IF NOT EXISTS "${col.name}" ${col.type} 
+          ${col.default ? `DEFAULT ${col.default}` : ''} 
+          ${col.notNull ? 'NOT NULL' : ''};
+        `));
+      } catch (err) {
+        console.warn(`[AppService] Could not add column ${col.name} to clusters table:`, (err as Error).message);
+      }
+    }
 
-    await db.execute(sql`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1
-          FROM pg_constraint
-          WHERE conname = 'entry_canvases_entry_id_unique'
-        ) THEN
-          ALTER TABLE "entry_canvases"
-          ADD CONSTRAINT "entry_canvases_entry_id_unique" UNIQUE ("entry_id");
-        END IF;
-      END $$;
-    `);
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS "entry_canvases" (
+          "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+          "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+          "entry_id" uuid NOT NULL REFERENCES "journal_entries"("id") ON DELETE CASCADE,
+          "canvas_title" text NOT NULL,
+          "cards" jsonb NOT NULL,
+          "connections" jsonb NOT NULL,
+          "cluster_insight" text,
+          "generation_metadata" jsonb,
+          "last_edited" timestamp DEFAULT now() NOT NULL,
+          "created_at" timestamp DEFAULT now() NOT NULL,
+          "updated_at" timestamp DEFAULT now() NOT NULL,
+          CONSTRAINT "entry_canvases_entry_id_unique" UNIQUE("entry_id")
+        );
+      `);
+    } catch (err) {
+      console.warn('[AppService] Could not create entry_canvases table:', (err as Error).message);
+    }
+
+    const canvasColumns = [
+      { name: 'user_id', type: 'uuid' },
+      { name: 'entry_id', type: 'uuid' },
+      { name: 'canvas_title', type: 'text' },
+      { name: 'cards', type: 'jsonb' },
+      { name: 'connections', type: 'jsonb' },
+      { name: 'cluster_insight', type: 'text' },
+      { name: 'generation_metadata', type: 'jsonb' },
+      { name: 'last_edited', type: 'timestamp', default: 'now()' },
+      { name: 'updated_at', type: 'timestamp', default: 'now()' },
+    ];
+
+    for (const col of canvasColumns) {
+      try {
+        await db.execute(sql.raw(`
+          ALTER TABLE "entry_canvases" 
+          ADD COLUMN IF NOT EXISTS "${col.name}" ${col.type} 
+          ${col.default ? `DEFAULT ${col.default}` : ''};
+        `));
+      } catch (err) {
+        console.warn(`[AppService] Could not add column ${col.name} to entry_canvases table:`, (err as Error).message);
+      }
+    }
+
+    try {
+      await db.execute(sql`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (
+            SELECT 1
+            FROM pg_constraint
+            WHERE conname = 'entry_canvases_entry_id_unique'
+          ) THEN
+            ALTER TABLE "entry_canvases"
+            ADD CONSTRAINT "entry_canvases_entry_id_unique" UNIQUE ("entry_id");
+          END IF;
+        END $$;
+      `);
+    } catch (err) {
+      console.warn('[AppService] Could not add unique constraint to entry_canvases:', (err as Error).message);
+    }
   }
 }

@@ -27,13 +27,16 @@ export function DialogTrigger({ children, asChild }: { children: ReactNode; asCh
 export function DialogContent({ children, title }: { children: ReactNode; title: string }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" />
-      <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-2xl border border-white/[0.08] bg-[#040814] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-slate-950/68 backdrop-blur-sm animate-in fade-in duration-200" />
+      <DialogPrimitive.Content className="admin-glass fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 space-y-4 rounded-[1.35rem] p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between">
           <DialogPrimitive.Title className="font-display text-xl text-white">
             {title}
           </DialogPrimitive.Title>
-          <DialogPrimitive.Close className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white transition-colors">
+          <DialogPrimitive.Close
+            aria-label="Close dialog"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors duration-200 hover:bg-white/5 hover:text-white"
+          >
             <X className="h-5 w-5" />
           </DialogPrimitive.Close>
         </div>
@@ -55,11 +58,13 @@ export function StatCard({
   trend?: string;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] p-5 transition-all duration-300 hover:border-white/[0.1] hover:bg-white/[0.05]">
-      <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-amber-400/[0.04] blur-2xl transition-all group-hover:bg-amber-400/[0.08]" />
+    <div className="admin-glass group relative overflow-hidden rounded-[1.35rem] p-5 transition-[border-color,background-color,transform] duration-300 hover:-translate-y-0.5 hover:border-amber-300/18">
+      <div className="absolute -right-5 -top-5 h-28 w-28 rounded-full bg-amber-300/[0.045] blur-2xl transition-colors duration-300 group-hover:bg-amber-300/[0.075]" />
       <div className="relative">
-        <div className="text-amber-300/80">{icon}</div>
-        <div className="mt-3 font-display text-3xl font-bold text-white">{value}</div>
+        <div className="text-amber-200/80">{icon}</div>
+        <div className="mt-3 font-mono text-3xl font-semibold tracking-tight text-white">
+          {value}
+        </div>
         <div className="mt-1 flex items-center gap-2">
           <span className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</span>
           {trend && (
@@ -83,9 +88,9 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+    <section className="admin-glass rounded-[1.35rem] p-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg text-white">{title}</h2>
+        <h2 className="font-display text-lg text-pretty text-white">{title}</h2>
         {action}
       </div>
       <div className="mt-4">{children}</div>
@@ -163,7 +168,7 @@ export function EmptyState({
   description: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.08] py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-[1.35rem] border border-dashed border-white/[0.09] bg-white/[0.015] py-12 text-center">
       <div className="text-slate-600">{icon}</div>
       <div className="mt-3 text-sm font-medium text-slate-400">{title}</div>
       <div className="mt-1 text-xs text-slate-600">{description}</div>
@@ -183,9 +188,9 @@ export function ActionButton({
   disabled?: boolean;
 }) {
   const colors = {
-    default: 'border-white/10 text-white hover:bg-white/[0.06]',
+    default: 'border-white/10 text-white hover:border-white/20 hover:bg-white/[0.06]',
     primary:
-      'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30',
+      'border-transparent bg-[#d5a147] text-slate-950 font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_16px_40px_-22px_rgba(213,161,71,0.85)] hover:bg-[#e0b25d]',
     danger: 'border-rose-400/30 text-rose-300 hover:bg-rose-400/10',
   };
 
@@ -194,9 +199,9 @@ export function ActionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-xl border px-4 py-2.5 text-sm transition-all duration-200 ${
-        variant === 'primary' ? 'border-transparent' : ''
-      } ${colors[variant]} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+      className={`rounded-xl border px-4 py-2.5 text-sm transition-[background-color,border-color,box-shadow,transform] duration-200 active:translate-y-px ${colors[variant]} ${
+        disabled ? 'cursor-not-allowed opacity-50' : ''
+      }`}
     >
       {children}
     </button>

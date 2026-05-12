@@ -1,7 +1,7 @@
 import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const projectRoot = realpathSync.native(fileURLToPath(new URL('.', import.meta.url)));
+const monorepoRoot = realpathSync.native(fileURLToPath(new URL('../../', import.meta.url)));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,8 +9,10 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  outputFileTracingRoot: monorepoRoot,
+  transpilePackages: ['@soouls/ui-kit', '@soouls/api', '@soouls/logic'],
   turbopack: {
-    root: projectRoot,
+    root: monorepoRoot,
   },
 };
 

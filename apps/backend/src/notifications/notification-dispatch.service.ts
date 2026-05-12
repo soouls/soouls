@@ -1,6 +1,6 @@
 import { createClerkClient } from '@clerk/backend';
 import { Injectable } from '@nestjs/common';
-import { and, db, desc, eq, sql } from '@soouls/database/client';
+import { and, db, desc, eq, or, sql } from '@soouls/database/client';
 import {
   adminInvites,
   adminUsers,
@@ -9,6 +9,7 @@ import {
   messageCampaigns,
   messageDeliveries,
   users,
+  waitlistUsers,
 } from '@soouls/database/schema';
 import { Resend } from 'resend';
 import {
@@ -34,6 +35,10 @@ import {
   type WhatsAppMessage,
   getBrandPreset,
 } from './notification.types';
+
+type CampaignRecipient = UserMessagingProfile & {
+  userIdForDelivery?: string | null;
+};
 
 @Injectable()
 export class NotificationDispatchService {
@@ -90,16 +95,22 @@ export class NotificationDispatchService {
   private async listCampaignRecipients(options: {
     channels: Channel[];
     targeting?: Record<string, string>;
-  }) {
+  }): Promise<CampaignRecipient[]> {
     const conditions = [];
 
+    const channelConditions = [];
     if (options.channels.includes('email')) {
-      conditions.push(sql`${users.email} is not null`);
-      conditions.push(eq(users.marketingEmailOptIn, true));
+      channelConditions.push(
+        and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)),
+      );
     }
     if (options.channels.includes('whatsapp')) {
-      conditions.push(sql`${users.phoneNumber} is not null`);
-      conditions.push(eq(users.marketingWhatsappOptIn, true));
+      channelConditions.push(
+        and(sql`${users.phoneNumber} is not null`, eq(users.marketingWhatsappOptIn, true)),
+      );
+    }
+    if (channelConditions.length > 0) {
+      conditions.push(or(...channelConditions));
     }
 
     if (options.targeting) {
@@ -109,6 +120,16 @@ export class NotificationDispatchService {
         conditions.push(sql`${users.createdAt} > now() - interval '30 days'`);
       } else if (options.targeting.signupDate === 'older_than_30') {
         conditions.push(sql`${users.createdAt} < now() - interval '30 days'`);
+      }
+
+      if (options.targeting.billingTier === 'waitlist') {
+        conditions.push(eq(users.isWaitlistUser, true));
+      } else if (
+        options.targeting.billingTier &&
+        options.targeting.billingTier !== 'all' &&
+        options.targeting.billingTier !== 'waitlist_all'
+      ) {
+        conditions.push(sql`${users.billingTier} = ${options.targeting.billingTier}`);
       }
     }
 
@@ -130,11 +151,52 @@ export class NotificationDispatchService {
       .from(users);
 
     if (conditions.length > 0) {
-      const { and } = await import('@soouls/database/client');
       baseQuery.where(and(...conditions));
     }
 
-    return baseQuery.orderBy(desc(users.createdAt));
+    const signedUpRecipients = await baseQuery.orderBy(desc(users.createdAt));
+
+    if (options.targeting?.billingTier !== 'waitlist_all') {
+      return signedUpRecipients;
+    }
+
+    const allUserEmails = await db.select({ email: users.email }).from(users);
+    const signedUpEmails = new Set(allUserEmails.map((user) => user.email.toLowerCase()));
+    const waitlistRows = await db
+      .select({
+        id: waitlistUsers.id,
+        email: waitlistUsers.email,
+        phoneNumber: waitlistUsers.phoneNumber,
+        createdAt: waitlistUsers.createdAt,
+      })
+      .from(waitlistUsers)
+      .orderBy(desc(waitlistUsers.createdAt));
+
+    const waitlistRecipients = waitlistRows
+      .filter((entry) => !signedUpEmails.has(entry.email.toLowerCase()))
+      .filter((entry) => {
+        const canEmail = options.channels.includes('email') && Boolean(entry.email);
+        const canWhatsapp =
+          options.channels.includes('whatsapp') && Boolean(normalizePhoneNumber(entry.phoneNumber));
+        return canEmail || canWhatsapp;
+      })
+      .map((entry) => ({
+        id: entry.id,
+        clerkId: `waitlist:${entry.id}`,
+        email: entry.email,
+        name: null,
+        phoneNumber: entry.phoneNumber,
+        marketingEmailOptIn: true,
+        marketingWhatsappOptIn: Boolean(normalizePhoneNumber(entry.phoneNumber)),
+        transactionalEmailOptIn: true,
+        transactionalWhatsappOptIn: Boolean(normalizePhoneNumber(entry.phoneNumber)),
+        welcomeEmailSentAt: null,
+        welcomeWhatsappSentAt: null,
+        lastSecureAccessSentAt: null,
+        userIdForDelivery: null,
+      }));
+
+    return [...signedUpRecipients, ...waitlistRecipients];
   }
 
   private async recordDelivery(input: {
@@ -169,6 +231,10 @@ export class NotificationDispatchService {
       sentAt: input.status === 'sent' ? new Date() : null,
       updatedAt: new Date(),
     });
+  }
+
+  private getDeliveryUserId(user: CampaignRecipient) {
+    return user.userIdForDelivery === null ? undefined : (user.userIdForDelivery ?? user.id);
   }
 
   private async sendEmail(message: EmailMessage): Promise<TransportResult> {
@@ -284,7 +350,7 @@ export class NotificationDispatchService {
       },
       body: JSON.stringify({
         audience,
-        userId: user.id,
+        userId: this.getDeliveryUserId(user),
         email: user.email,
         name: user.name,
         phoneNumber: user.phoneNumber,
@@ -313,7 +379,7 @@ export class NotificationDispatchService {
     if (input.channel === 'email') {
       if (!user.email) {
         await this.recordDelivery({
-          userId: user.id,
+          userId: this.getDeliveryUserId(user),
           campaignId: input.campaignId,
           channel: 'email',
           category: input.category,
@@ -333,7 +399,7 @@ export class NotificationDispatchService {
         (respectMarketing && !user.marketingEmailOptIn)
       ) {
         await this.recordDelivery({
-          userId: user.id,
+          userId: this.getDeliveryUserId(user),
           campaignId: input.campaignId,
           channel: 'email',
           category: input.category,
@@ -356,7 +422,7 @@ export class NotificationDispatchService {
       });
 
       await this.recordDelivery({
-        userId: user.id,
+        userId: this.getDeliveryUserId(user),
         campaignId: input.campaignId,
         channel: 'email',
         category: input.category,
@@ -380,7 +446,7 @@ export class NotificationDispatchService {
 
     if (!phoneNumber) {
       await this.recordDelivery({
-        userId: user.id,
+        userId: this.getDeliveryUserId(user),
         campaignId: input.campaignId,
         channel: 'whatsapp',
         category: input.category,
@@ -400,7 +466,7 @@ export class NotificationDispatchService {
       (respectMarketing && !user.marketingWhatsappOptIn)
     ) {
       await this.recordDelivery({
-        userId: user.id,
+        userId: this.getDeliveryUserId(user),
         campaignId: input.campaignId,
         channel: 'whatsapp',
         category: input.category,
@@ -421,7 +487,7 @@ export class NotificationDispatchService {
     });
 
     await this.recordDelivery({
-      userId: user.id,
+      userId: this.getDeliveryUserId(user),
       campaignId: input.campaignId,
       channel: 'whatsapp',
       category: input.category,
@@ -675,7 +741,7 @@ export class NotificationDispatchService {
               brandKey: getBrandPreset(campaign.brandKey).key,
               templateKey: 'campaign',
               template,
-              respectMarketingPreferences: false,
+              respectMarketingPreferences: true,
             });
 
             if (result.status === 'sent') {

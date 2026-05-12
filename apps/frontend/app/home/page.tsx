@@ -32,6 +32,7 @@ import { getOptimizedImageUrl } from '../../src/utils/images';
 import { trpc } from '../../src/utils/trpc';
 import { CanvasLoopIcon, LeafIcon } from '../components/Icons';
 import { SymbolLogo } from '../components/SymbolLogo';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { CalendarModal } from './components/CalendarModal';
 
 function avatarFor(seed?: string | null) {
@@ -306,6 +307,8 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
   const [selected, setSelected] = useState(0);
   const router = useRouter();
   const trpcContext = trpc.useContext();
+  const [entryToDelete, setEntryToDelete] = useState<UserEntry | null>(null);
+
   const deleteEntry = trpc.private.entries.delete.useMutation({
     onSuccess: async () => {
       await Promise.all([
@@ -315,6 +318,7 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
         trpcContext.private.home.getClusters.invalidate(),
         trpcContext.private.home.getAccount.invalidate(),
       ]);
+      setEntryToDelete(null);
     },
   });
 
@@ -359,10 +363,10 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
     router.push(`/home/new-entry?id=${id}`);
   };
 
-  const handleDelete = async (entry: UserEntry) => {
-    if (!confirm(`Delete "${entryTitle(entry)}"?`)) return;
+  const confirmDelete = async () => {
+    if (!entryToDelete) return;
     try {
-      await deleteEntry.mutateAsync({ id: entry.id });
+      await deleteEntry.mutateAsync({ id: entryToDelete.id });
       setSelected(0);
     } catch (err) {
       console.error('Delete failed:', err);
@@ -444,7 +448,7 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        void handleDelete(entry);
+                        setEntryToDelete(entry);
                       }}
                       className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity"
                     >
@@ -498,6 +502,24 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
           <X className="h-5 w-5" />
         </button>
       </motion.div>
+
+      <ConfirmModal
+        isOpen={!!entryToDelete}
+        onClose={() => setEntryToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete entry?"
+        description={
+          <>
+            Are you sure you want to delete <br />
+            <span className="text-white">"{entryToDelete ? entryTitle(entryToDelete) : ''}"</span>?
+            <br />
+            This action cannot be undone.
+          </>
+        }
+        confirmText="Delete Entry"
+        confirmStyle="danger"
+        isPending={deleteEntry.isPending}
+      />
     </motion.div>
   );
 }

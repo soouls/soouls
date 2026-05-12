@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { getEntryPlainText, getEntryTitle } from '../../../src/utils/entries';
 import { trpc } from '../../../src/utils/trpc';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 type ViewState = 'folders' | 'list' | 'cluster';
 
@@ -90,6 +91,7 @@ export default function CanvasPage() {
   const [selectedEntry, setSelectedEntry] = useState<EntryItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [clusterNodes, setClusterNodes] = useState<ClusterNode[]>([]);
+  const [showReclusterConfirm, setShowReclusterConfirm] = useState(false);
 
   const clusters: ClusterItem[] = clusterData?.items ?? [];
   const entries: EntryItem[] = entriesData?.items ?? [];
@@ -145,9 +147,13 @@ export default function CanvasPage() {
     router.push(`/home/canvas/${cluster.id}`);
   };
 
-  const handleRecluster = async () => {
-    if (!confirm('Re-clustering will regroup your folders. Continue?')) return;
+  const confirmRecluster = async () => {
     await recluster.mutateAsync();
+    setShowReclusterConfirm(false);
+  };
+
+  const handleRecluster = () => {
+    setShowReclusterConfirm(true);
   };
 
   const handleEntryClick = (entry: EntryItem) => {
@@ -502,6 +508,22 @@ export default function CanvasPage() {
           </div>
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={showReclusterConfirm}
+        onClose={() => setShowReclusterConfirm(false)}
+        onConfirm={confirmRecluster}
+        title="Re-cluster folders?"
+        description={
+          <>
+            Are you sure you want to re-cluster? <br />
+            <span className="text-white">This will regroup all your folders based on your latest entries.</span>
+          </>
+        }
+        confirmText="Re-cluster"
+        confirmStyle="warning"
+        isPending={recluster.isPending}
+      />
     </div>
   );
 }

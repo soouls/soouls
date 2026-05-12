@@ -2,15 +2,30 @@
   "name": "@soouls/ai-engine",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "exports": {
-    "./prompts": "./src/prompts/index.ts",
-    "./embeddings": "./src/embeddings/index.ts",
-    "./llm": "./src/llm/index.ts",
-    "./sentiment": "./src/sentiment/index.ts",
-    "./home-insights": "./src/home-insights/index.ts"
+    "./prompts": {
+      "types": "./src/prompts/index.ts",
+      "default": "./dist/prompts/index.js"
+    },
+    "./embeddings": {
+      "types": "./src/embeddings/index.ts",
+      "default": "./dist/embeddings/index.js"
+    },
+    "./llm": {
+      "types": "./src/llm/index.ts",
+      "default": "./dist/llm/index.js"
+    },
+    "./sentiment": {
+      "types": "./src/sentiment/index.ts",
+      "default": "./dist/sentiment/index.js"
+    },
+    "./home-insights": {
+      "types": "./src/home-insights/index.ts",
+      "default": "./dist/home-insights/index.js"
+    }
   },
   "scripts": {
+    "build": "tsc",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -21,6 +36,7 @@
   },
   "devDependencies": {
     "@soouls/typescript-config": "*",
+    "@types/node": "^20.3.1",
     "typescript": "5.9.2"
   }
 }

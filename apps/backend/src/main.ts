@@ -2,9 +2,12 @@ import 'reflect-metadata';
 import type { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as Sentry from '@sentry/nestjs';
+import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { createTrpcContext } from './trpc/trpc.context';
+import { TrpcRouter } from './trpc/trpc.router';
 
 const isVercel = process.env.VERCEL === '1';
 
@@ -19,6 +22,7 @@ export async function createApp(): Promise<INestApplication> {
   const app = await NestFactory.create(AppModule, {
     // Disable verbose logging in serverless to speed up cold start
     logger: isVercel ? ['error', 'warn'] : ['log', 'error', 'warn', 'debug', 'verbose'],
+    bodyParser: false,
   });
 
   // Skip pino-http on Vercel — it adds cold start weight and Vercel has built-in logging
@@ -43,8 +47,6 @@ export async function createApp(): Promise<INestApplication> {
     app.setGlobalPrefix('/_/backend');
   }
 
-  app.use(json({ limit: '10mb' }));
-  app.use(urlencoded({ extended: true, limit: '10mb' }));
   app.use(helmet());
 
   const expressApp = app.getHttpAdapter().getInstance();
@@ -89,6 +91,18 @@ export async function createApp(): Promise<INestApplication> {
     ],
     credentials: true,
   });
+
+  const trpcRouter = app.get(TrpcRouter);
+  expressApp.use(
+    '/trpc',
+    createExpressMiddleware({
+      router: trpcRouter.appRouter,
+      createContext: async ({ req }) => createTrpcContext(req),
+    }),
+  );
+
+  app.use(json({ limit: '60mb' }));
+  app.use(urlencoded({ extended: true, limit: '60mb' }));
 
   console.log(`[Soouls API] CORS allowed origins: ${allowedOrigins.join(', ')}`);
   return app;

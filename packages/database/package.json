@@ -2,14 +2,23 @@
   "name": "@soouls/database",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "exports": {
-    "./schema": "./src/schema/index.ts",
-    "./client": "./src/client.ts",
-    "./waitlist-data": "./src/waitlist-data.ts",
+    "./schema": {
+      "types": "./src/schema/index.ts",
+      "default": "./dist/schema/index.js"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./dist/client.js"
+    },
+    "./waitlist-data": {
+      "types": "./src/waitlist-data.ts",
+      "default": "./dist/waitlist-data.js"
+    },
     "./migrations": "./migrations"
   },
   "scripts": {
+    "build": "tsc",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -23,6 +32,7 @@
   },
   "devDependencies": {
     "@soouls/typescript-config": "*",
+    "@types/node": "^20.3.1",
     "drizzle-kit": "^0.31.8",
     "typescript": "5.9.2"
   }

@@ -42,6 +42,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getEntryPlainText } from '../../../../src/utils/entries';
 import { clusterMatchesEntry, getEntryTitle, truncateText } from '../../../../src/utils/home';
 import { trpc } from '../../../../src/utils/trpc';
+import { ConfirmModal } from '../../../components/ConfirmModal';
 
 type CanvasNodeData = {
   card: EntryCanvasCard;
@@ -156,6 +157,7 @@ export default function CanvasClusterPage() {
     CanvasNode,
     Edge
   > | null>(null);
+  const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hydratedRef = useRef(false);
 
@@ -320,10 +322,15 @@ export default function CanvasClusterPage() {
     );
   };
 
-  const handleRegenerate = async () => {
+  const confirmRegenerate = async () => {
     if (!selectedEntryId) return;
-    if (!confirm('Regenerate this canvas? Your current manual layout will be replaced.')) return;
     await regenerateCanvas.mutateAsync({ entryId: selectedEntryId });
+    setShowRegenerateConfirm(false);
+  };
+
+  const handleRegenerate = () => {
+    if (!selectedEntryId) return;
+    setShowRegenerateConfirm(true);
   };
 
   return (
@@ -613,6 +620,22 @@ export default function CanvasClusterPage() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={showRegenerateConfirm}
+        onClose={() => setShowRegenerateConfirm(false)}
+        onConfirm={confirmRegenerate}
+        title="Regenerate canvas?"
+        description={
+          <>
+            Are you sure you want to regenerate this canvas? <br />
+            <span className="text-white">Your current manual layout will be replaced.</span>
+          </>
+        }
+        confirmText="Regenerate"
+        confirmStyle="warning"
+        isPending={regenerateCanvas.isPending}
+      />
     </div>
   );
 }

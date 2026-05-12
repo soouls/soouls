@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  Bell,
   Cpu,
   CreditCard,
   FileText,
@@ -12,6 +13,7 @@ import {
   Settings,
   Shield,
   ShieldAlert,
+  Sparkles,
   ToggleRight,
   Users,
 } from 'lucide-react';
@@ -29,6 +31,7 @@ import {
   HealthSection,
   MessagingSection,
   RateLimitsSection,
+  SECTION_TITLES,
   type SectionName,
   ServiceControlsSection,
   TeamSection,
@@ -171,23 +174,31 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#04080f]">
+    <div className="flex min-h-[100dvh] bg-transparent" data-admin-layer>
+      <a
+        href="#admin-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-amber-300 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-950"
+      >
+        Skip To Main Content
+      </a>
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 flex h-screen w-[260px] flex-col border-r border-white/[0.06] bg-[#060c18]/95 backdrop-blur-xl">
+      <aside className="fixed left-0 top-0 z-40 hidden h-[100dvh] w-[280px] flex-col border-r border-white/[0.07] bg-[#070b13]/82 shadow-[inset_-1px_0_0_rgba(255,255,255,0.035)] backdrop-blur-2xl lg:flex">
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20">
-            <Activity className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-white">SoulLabs</div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-              Command Center
+        <div className="px-5 py-5">
+          <div className="admin-glass flex items-center gap-3 rounded-[1.25rem] px-3 py-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#d5a147] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]">
+              <Activity className="h-5 w-5 text-slate-950" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-white">SoulLabs</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                Command Center
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+        <div className="admin-hairline mx-5 h-px" />
 
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
@@ -226,16 +237,17 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
                 onClick={() =>
                   item.section && router.push(SECTION_ROUTE_MAP[item.section as SectionName])
                 }
-                className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 ${
+                className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-[background-color,color,transform] duration-200 active:translate-y-px ${
                   isActive
-                    ? 'bg-gradient-to-r from-amber-400/15 to-orange-400/10 text-amber-200 shadow-inner'
-                    : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
+                    ? 'bg-[#d5a147]/12 text-amber-100 shadow-[inset_1px_0_0_rgba(213,161,71,0.75)]'
+                    : 'text-slate-400 hover:bg-white/[0.045] hover:text-slate-200'
                 }`}
               >
                 <Icon
                   className={`h-[18px] w-[18px] transition-colors ${
-                    isActive ? 'text-amber-300' : 'text-slate-500 group-hover:text-slate-300'
+                    isActive ? 'text-amber-200' : 'text-slate-500 group-hover:text-slate-300'
                   }`}
+                  aria-hidden="true"
                 />
                 <span className="flex-1 text-left">{item.label}</span>
                 {isActive && (
@@ -246,13 +258,13 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
           })}
         </nav>
 
-        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+        <div className="admin-hairline mx-5 h-px" />
 
         {/* User info */}
         {viewer && (
           <div className="px-4 py-4">
-            <div className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-3 transition-colors hover:bg-white/[0.05]">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/30 to-orange-500/20 text-xs font-bold text-amber-200">
+            <div className="admin-glass flex items-center gap-3 rounded-xl px-3 py-3 transition-colors duration-200 hover:bg-white/[0.05]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-300/14 text-xs font-bold text-amber-100">
                 {(viewer.name || viewer.email)[0]?.toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -271,8 +283,63 @@ export function DashboardShell({ viewer }: DashboardShellProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-[260px] flex-1 overflow-auto p-8">
-        <div className="mx-auto max-w-7xl">{renderSection()}</div>
+      <main id="admin-main" className="min-w-0 flex-1 overflow-auto px-4 py-5 lg:ml-[280px] lg:p-8">
+        <div className="mx-auto max-w-[1500px]">
+          <header className="admin-glass mb-6 flex items-center justify-between gap-4 rounded-[1.35rem] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.04] text-amber-200">
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-white">
+                  {SECTION_TITLES[activeSection]}
+                </div>
+                <div className="truncate text-xs text-slate-500">
+                  {viewer?.email ?? 'Internal operations'}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 rounded-full border border-emerald-300/15 bg-emerald-300/8 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300 sm:flex">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                Live Ops
+              </div>
+              <button
+                type="button"
+                aria-label="View command notifications"
+                className="rounded-xl border border-white/10 bg-white/[0.03] p-2 text-slate-300 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white"
+              >
+                <Bell className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </header>
+          <nav
+            aria-label="Mobile sections"
+            className="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden"
+          >
+            {visibleItems
+              .filter((item) => item.section)
+              .map((item) => {
+                const isActive = activeSection === item.section;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.label}
+                    href={SECTION_ROUTE_MAP[item.section as SectionName]}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs transition-colors duration-200 ${
+                      isActive
+                        ? 'border-amber-300/30 bg-amber-300/12 text-amber-100'
+                        : 'border-white/10 bg-white/[0.03] text-slate-400'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+          </nav>
+          {renderSection()}
+        </div>
       </main>
     </div>
   );

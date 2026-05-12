@@ -1,6 +1,6 @@
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { type Job, Worker } from 'bullmq';
-import type { NotificationDispatchService } from './notification-dispatch.service';
+import { NotificationDispatchService } from './notification-dispatch.service';
 import {
   NOTIFICATIONS_QUEUE,
   type NotificationJobData,
@@ -13,7 +13,7 @@ export class NotificationWorker implements OnModuleInit, OnModuleDestroy {
   private readonly connection = createRedisConnection();
   private worker: Worker<NotificationJobData, void, NotificationJobName> | null = null;
 
-  constructor(private readonly dispatcher: NotificationDispatchService) {}
+  constructor(private readonly dispatcher: NotificationDispatchService) { }
 
   onModuleInit() {
     if (!this.connection) {

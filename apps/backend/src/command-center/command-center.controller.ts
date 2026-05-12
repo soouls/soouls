@@ -237,6 +237,7 @@ export class CommandCenterController {
         nodeCount?: string;
         signupDate?: string;
         lastLogin?: string;
+        billingTier?: string;
       };
     },
   ) {

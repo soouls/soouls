@@ -9,7 +9,7 @@ import { db } from '@soouls/database/client';
 import { and, desc, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
 import LZString from 'lz-string';
-import type { RedisService } from '../redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 import { decryptData, encryptData } from '../utils/encryption';
 
 const s3 = new S3Client({

@@ -1571,23 +1571,22 @@ function NewEntryContent() {
 
   // ── tRPC auto-save (syncs to DB in addition to localStorage) ──────────────
   const utils = trpc.useContext();
-  const createMutation = trpc.private.entries.create.useMutation();
-  const updateMutation = trpc.private.entries.update.useMutation();
-  const createRef = useRef(createMutation.mutateAsync);
-  const updateRef = useRef(updateMutation.mutateAsync);
+  const upsertSyncMutation = trpc.private.entries.upsertSync.useMutation();
+  const upsertSyncRef = useRef(upsertSyncMutation.mutateAsync);
   useEffect(() => {
-    createRef.current = createMutation.mutateAsync;
-  });
-  useEffect(() => {
-    updateRef.current = updateMutation.mutateAsync;
+    upsertSyncRef.current = upsertSyncMutation.mutateAsync;
   });
 
   const [entryId, setEntryId] = useState<string | null>(initialId);
   const entryIdRef = useRef<string | null>(initialId);
   const metadataRef = useRef<EntryMetadata>(metadata);
   const isSaving = useRef(false);
+  const pendingCloudSave = useRef(false);
+  const cloudRetry = useRef<NodeJS.Timeout | null>(null);
+  const cloudSaveWaiters = useRef<Array<() => void>>([]);
   const dbDebounce = useRef<NodeJS.Timeout | null>(null);
   const userIdRef = useRef<string | undefined>(undefined);
+  const latestDraftRef = useRef({ text: textContent, blocks });
   useEffect(() => {
     entryIdRef.current = entryId;
   }, [entryId]);
@@ -1597,6 +1596,9 @@ function NewEntryContent() {
   useEffect(() => {
     userIdRef.current = user?.id;
   }, [user?.id]);
+  useEffect(() => {
+    latestDraftRef.current = { text: textContent, blocks };
+  }, [textContent, blocks]);
 
   const { data: existingEntry } = trpc.private.entries.getOne.useQuery(
     { id: initialId || '' },
@@ -1629,10 +1631,41 @@ function NewEntryContent() {
   const getUploadUrlMutation = trpc.private.entries.getUploadUrl.useMutation();
   const _updateMediaUrlMutation = trpc.private.entries.updateMediaUrl.useMutation();
 
+  const resolveCloudSaveWaiters = useCallback(() => {
+    const waiters = cloudSaveWaiters.current.splice(0);
+    for (const resolve of waiters) resolve();
+  }, []);
+
+  const waitForCloudSave = useCallback(async () => {
+    if (!isSaving.current && !pendingCloudSave.current) return;
+    await new Promise<void>((resolve) => {
+      cloudSaveWaiters.current.push(resolve);
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (cloudRetry.current) clearTimeout(cloudRetry.current);
+      resolveCloudSaveWaiters();
+    };
+  }, [resolveCloudSaveWaiters]);
+
   const performDbSave = useRef(async (text: string, blks: Block[], id: string | null) => {
-    if (!userIdRef.current || isSaving.current) return;
+    if (!userIdRef.current) return;
+    if (isSaving.current) {
+      pendingCloudSave.current = true;
+      setSyncStatus('syncing');
+      return;
+    }
+
+    if (cloudRetry.current) {
+      clearTimeout(cloudRetry.current);
+      cloudRetry.current = null;
+    }
+
     isSaving.current = true;
     setSyncStatus('syncing');
+    let shouldRunPendingSave = false;
     try {
       let targetEntryId = id;
       if (!targetEntryId) {
@@ -1644,7 +1677,11 @@ function NewEntryContent() {
             sentenceBentoLayout: buildSentenceBentoLayout(text),
           },
         });
-        const entry = await createRef.current({ content: initialPayload, type: 'entry' });
+        const entry = await upsertSyncRef.current({
+          content: initialPayload,
+          type: 'entry',
+          finalize: false,
+        });
         targetEntryId = entry.id;
         setEntryId(entry.id);
         entryIdRef.current = entry.id;
@@ -1713,7 +1750,12 @@ function NewEntryContent() {
           sentenceBentoLayout: buildSentenceBentoLayout(text),
         },
       });
-      await updateRef.current({ id: targetEntryId, content: payloadString });
+      await upsertSyncRef.current({
+        id: targetEntryId,
+        content: payloadString,
+        type: 'entry',
+        finalize: false,
+      });
 
       // Invalidate multiple queries to ensure consistency
       void utils.private.home.getClusters.invalidate();
@@ -1724,8 +1766,24 @@ function NewEntryContent() {
     } catch (err) {
       console.error('DB save failed:', err);
       setSyncStatus('error');
+      if (cloudRetry.current) clearTimeout(cloudRetry.current);
+      cloudRetry.current = setTimeout(() => {
+        const latest = latestDraftRef.current;
+        void performDbSave.current(latest.text, latest.blocks, entryIdRef.current);
+      }, 5000);
     } finally {
       isSaving.current = false;
+      if (pendingCloudSave.current) {
+        pendingCloudSave.current = false;
+        shouldRunPendingSave = true;
+      } else {
+        resolveCloudSaveWaiters();
+      }
+    }
+
+    if (shouldRunPendingSave) {
+      const latest = latestDraftRef.current;
+      await performDbSave.current(latest.text, latest.blocks, entryIdRef.current);
     }
   });
 
@@ -1747,8 +1805,10 @@ function NewEntryContent() {
 
   const handleHome = async () => {
     if (dbDebounce.current) clearTimeout(dbDebounce.current);
-    if ((textContent.trim() || blocks.length > 0) && !isSaving.current)
+    if (textContent.trim() || blocks.length > 0) {
       await performDbSave.current(textContent, blocks, entryIdRef.current);
+      await waitForCloudSave();
+    }
     router.push('/home');
   };
 

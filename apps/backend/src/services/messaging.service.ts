@@ -1,14 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, db, desc, eq, sql } from '@soouls/database/client';
-import { messageCampaigns, messageDeliveries, users } from '@soouls/database/schema';
+import { and, db, desc, eq, or, sql } from '@soouls/database/client';
+import { messageCampaigns, messageDeliveries, users, waitlistUsers } from '@soouls/database/schema';
 import { Resend } from 'resend';
-import type { NotificationDispatchService } from '../notifications/notification-dispatch.service';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
+import { NotificationDispatchService } from '../notifications/notification-dispatch.service';
 import {
   countValue,
   normalizePhoneNumber,
   parseEnvList,
 } from '../notifications/notification.constants';
-import type { NotificationQueueService } from '../notifications/notification.queue';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
+import { NotificationQueueService } from '../notifications/notification.queue';
 import { buildCampaignTemplate } from '../notifications/notification.templates';
 import {
   BRAND_PRESETS,
@@ -18,7 +20,8 @@ import {
   type UserMessagingProfile,
   getBrandPreset,
 } from '../notifications/notification.types';
-import type { RedisService } from '../redis/redis.service';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
+import { RedisService } from '../redis/redis.service';
 
 type BrandKey = 'soouls' | 'soouls-studio' | 'founder-desk';
 type CampaignStatus = 'draft' | 'sending' | 'sent' | 'partially_sent' | 'failed';
@@ -65,6 +68,7 @@ export interface CachedCenterData {
     totalUsers: number;
     emailReachable: number;
     whatsappReachable: number;
+    waitlistReachable: number;
     campaignsSent: number;
   };
   brands: Array<{ key: string; label: string; eyebrow: string }>;
@@ -101,6 +105,7 @@ type UserCenterResponse = {
     totalUsers: number;
     emailReachable: number;
     whatsappReachable: number;
+    waitlistReachable: number;
     campaignsSent: number;
   } | null;
   brands: Array<{ key: string; label: string; eyebrow: string }>;
@@ -191,6 +196,9 @@ export class MessagingService {
       .select({ count: sql<number>`count(*)` })
       .from(users)
       .where(sql`${users.phoneNumber} is not null`);
+    const [waitlistReachableRow] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(waitlistUsers);
 
     const campaigns = (
       await db
@@ -246,6 +254,7 @@ export class MessagingService {
         totalUsers: countValue(usersCountRow?.count),
         emailReachable: countValue(emailReachableRow?.count),
         whatsappReachable: countValue(whatsappReachableRow?.count),
+        waitlistReachable: countValue(waitlistReachableRow?.count),
         campaignsSent: campaigns.length,
       },
       brands: Object.values(BRAND_PRESETS).map((brand) => ({
@@ -299,13 +308,19 @@ export class MessagingService {
     const conditions = [];
 
     // Safety filters to ensure we don't accidentally send to people who opted out
+    const channelConditions = [];
     if (sanitizedChannels.includes('email')) {
-      conditions.push(sql`${users.email} is not null`);
-      conditions.push(eq(users.marketingEmailOptIn, true));
+      channelConditions.push(
+        and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)),
+      );
     }
     if (sanitizedChannels.includes('whatsapp')) {
-      conditions.push(sql`${users.phoneNumber} is not null`);
-      conditions.push(eq(users.marketingWhatsappOptIn, true));
+      channelConditions.push(
+        and(sql`${users.phoneNumber} is not null`, eq(users.marketingWhatsappOptIn, true)),
+      );
+    }
+    if (channelConditions.length > 0) {
+      conditions.push(or(...channelConditions));
     }
 
     if (input.targeting) {
@@ -322,7 +337,8 @@ export class MessagingService {
         conditions.push(eq(users.isWaitlistUser, true));
       } else if (
         (input.targeting as any).billingTier &&
-        (input.targeting as any).billingTier !== 'all'
+        (input.targeting as any).billingTier !== 'all' &&
+        (input.targeting as any).billingTier !== 'waitlist_all'
       ) {
         conditions.push(sql`${users.billingTier} = ${(input.targeting as any).billingTier}`);
       }
@@ -334,7 +350,28 @@ export class MessagingService {
     }
 
     const [audienceCountRow] = await baseQuery;
-    const estimatedRecipients = countValue(audienceCountRow?.count);
+    let estimatedRecipients = countValue(audienceCountRow?.count);
+
+    if ((input.targeting as any)?.billingTier === 'waitlist_all') {
+      const signedUpEmails = await db.select({ email: users.email }).from(users);
+      const signedUpEmailSet = new Set(signedUpEmails.map((user) => user.email.toLowerCase()));
+      const waitlistRows = await db
+        .select({ email: waitlistUsers.email, phoneNumber: waitlistUsers.phoneNumber })
+        .from(waitlistUsers);
+      const externalWaitlistCount = waitlistRows.filter((entry) => {
+        if (signedUpEmailSet.has(entry.email.toLowerCase())) {
+          return false;
+        }
+
+        const canEmail = sanitizedChannels.includes('email') && Boolean(entry.email);
+        const canWhatsapp =
+          sanitizedChannels.includes('whatsapp') &&
+          Boolean(normalizePhoneNumber(entry.phoneNumber));
+        return canEmail || canWhatsapp;
+      }).length;
+
+      estimatedRecipients += externalWaitlistCount;
+    }
 
     const [campaign] = await db
       .insert(messageCampaigns)
@@ -389,7 +426,7 @@ export class MessagingService {
     return { accepted: true };
   }
 
-  async getCenter(userId: string): Promise<UserCenterResponse & Omit<CachedCenterData, 'queue'>> {
+  async getCenter(userId: string): Promise<UserCenterResponse> {
     const cacheKey = `messaging:center:${userId}`;
     const viewer = await this.getUserByDbId(userId);
     const canManageCampaigns = this.isAdmin(viewer);

@@ -366,6 +366,7 @@ export const messageCampaigns = pgTable('message_campaigns', {
     nodeCount?: string;
     signupDate?: string;
     lastLogin?: string;
+    billingTier?: string;
   }>(),
   channels: jsonb('channels').$type<Array<'email' | 'whatsapp'>>().notNull(),
   status: messageCampaignStatusEnum('status').default('draft').notNull(),

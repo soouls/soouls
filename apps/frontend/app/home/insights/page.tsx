@@ -292,13 +292,12 @@ export default function InsightsPage() {
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col mt-48 pb-28">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28" style={{ marginTop: 'calc(9vw - 4rem)' }}>
         <section
           className="w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6"
           style={{
             backgroundColor: 'var(--soouls-bg-surface)',
-            borderColor: 'var(--soouls-border)',
-            opacity: 0.96,
+            border: '1px solid var(--soouls-border)',
           }}
         >
           <div className="flex justify-between items-center mb-6 px-2">

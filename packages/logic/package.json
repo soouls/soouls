@@ -2,18 +2,31 @@
   "name": "@soouls/logic",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "exports": {
-    "./canvas": "./src/canvas/index.ts",
-    "./emotions": "./src/emotions/index.ts",
-    "./math": "./src/math/index.ts",
-    "./messaging": "./src/messaging/index.ts"
+    "./canvas": {
+      "types": "./src/canvas/index.ts",
+      "default": "./dist/canvas/index.js"
+    },
+    "./emotions": {
+      "types": "./src/emotions/index.ts",
+      "default": "./dist/emotions/index.js"
+    },
+    "./math": {
+      "types": "./src/math/index.ts",
+      "default": "./dist/math/index.js"
+    },
+    "./messaging": {
+      "types": "./src/messaging/index.ts",
+      "default": "./dist/messaging/index.js"
+    }
   },
   "scripts": {
+    "build": "tsc",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
     "@soouls/typescript-config": "*",
+    "@types/node": "^20.3.1",
     "typescript": "5.9.2"
   }
 }
