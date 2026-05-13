@@ -26,12 +26,16 @@ const nextConfig = {
   },
   async rewrites() {
     const isVercel = process.env.VERCEL === '1';
+    const normalizedBackendUrl = backendUrl.replace(/\/$/, '');
+    const usesStandaloneBackend = !normalizedBackendUrl.endsWith('/_/backend');
 
-    // In local dev, we proxy to the absolute backendUrl (usually localhost:3000)
-    // In Vercel, we use the internal service route /_/backend defined in vercel.json
-    const destination = isVercel
-      ? '/_/backend/trpc/:path*'
-      : `${backendUrl.replace(/\/$/, '')}/trpc/:path*`;
+    // When the backend is deployed as its own Vercel project, keep using the
+    // explicit public backend URL even in production. Fall back to the shared
+    // multi-service route only when no standalone backend URL is configured.
+    const destination =
+      isVercel && !usesStandaloneBackend
+        ? '/_/backend/trpc/:path*'
+        : `${normalizedBackendUrl}/trpc/:path*`;
 
     return [
       {

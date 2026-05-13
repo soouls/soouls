@@ -1,12 +1,9 @@
-import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createApp } from '../src/main';
+'use strict';
 
-let cachedHandler: ((req: IncomingMessage, res: ServerResponse) => void) | null = null;
-let bootstrapError: Error | null = null;
+let cachedHandler = null;
+let bootstrapError = null;
 
 async function getHandler() {
-  // If a previous bootstrap attempt failed, don't retry every request —
-  // return the cached error so Vercel logs show the real cause.
   if (bootstrapError) {
     throw bootstrapError;
   }
@@ -15,11 +12,10 @@ async function getHandler() {
     try {
       console.log('[Vercel] Bootstrapping NestJS application...');
       const startTime = Date.now();
-
+      const { createApp } = await import('../dist/apps/backend/src/main.js');
       const app = await createApp();
       await app.init();
       cachedHandler = app.getHttpAdapter().getInstance();
-
       console.log(`[Vercel] NestJS bootstrapped in ${Date.now() - startTime}ms`);
     } catch (error) {
       bootstrapError = error instanceof Error ? error : new Error(String(error));
@@ -32,14 +28,13 @@ async function getHandler() {
   return cachedHandler;
 }
 
-export default async function handler(req: IncomingMessage, res: ServerResponse) {
+module.exports = async function handler(req, res) {
   try {
     const server = await getHandler();
     return server(req, res);
   } catch (error) {
     console.error('[Vercel] Handler error:', error);
 
-    // Return a proper error response instead of crashing silently
     if (!res.headersSent) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(
@@ -53,4 +48,4 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       );
     }
   }
-}
+};
