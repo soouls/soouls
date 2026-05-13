@@ -52,8 +52,17 @@ export async function createApp(): Promise<INestApplication> {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
+  const additionalCorsOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const allowVercelPreviewOrigins = process.env.ALLOW_VERCEL_PREVIEW_ORIGINS === 'true';
   const allowedOrigins = Array.from(
-    new Set([process.env.FRONTEND_URL, process.env.COMMAND_CENTER_URL].filter(Boolean) as string[]),
+    new Set(
+      [process.env.FRONTEND_URL, process.env.COMMAND_CENTER_URL, ...additionalCorsOrigins].filter(
+        Boolean,
+      ) as string[],
+    ),
   );
 
   app.enableCors({
@@ -68,8 +77,7 @@ export async function createApp(): Promise<INestApplication> {
         return;
       }
 
-      // Allow all Vercel domains (production & previews)
-      if (origin.endsWith('.vercel.app')) {
+      if (allowVercelPreviewOrigins && origin.endsWith('.vercel.app')) {
         callback(null, true);
         return;
       }
