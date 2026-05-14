@@ -8,6 +8,7 @@ import { CSPostHogProvider } from '../src/providers/posthog-provider';
 import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
 import { UiThemeProvider } from '../src/providers/ui-theme-provider';
 import { GlobalMascot } from './components/GlobalMascot';
+import PageTransition from './transition';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -53,7 +54,11 @@ export default function RootLayout({
         >
           <CSPostHogProvider>
             <PersistedTRPCProvider>
-              <UiThemeProvider>{children}</UiThemeProvider>
+              <UiThemeProvider>
+                <PageTransition>
+                  {children}
+                </PageTransition>
+              </UiThemeProvider>
             </PersistedTRPCProvider>
             <GlobalMascot />
             <Analytics />

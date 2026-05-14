@@ -165,6 +165,12 @@ const DashboardPage = () => {
       className="min-h-screen flex flex-col relative overflow-hidden select-none"
       style={{ backgroundColor: '#1F1F1F', color: '#EFEDDD', fontFamily: "'Urbanist', sans-serif" }}
     >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+        transition={{ duration: 1, ease: 'easeOut', delay: 0.5 }}
+        className="flex-1 flex flex-col w-full h-full relative"
+      >
       {/* BACKGROUND WATERMARK - Exact Design Parity */}
       <div className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none opacity-[0.5] select-none z-0 overflow-hidden whitespace-nowrap">
         <div className="relative">
@@ -270,11 +276,25 @@ const DashboardPage = () => {
             </div>
 
             {/* BENTO GRID - Matching Design Spacing */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.15,
+                    delayChildren: 0.7,
+                  }
+                }
+              }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+            >
               {/* COLUMN 1 & 2 AREA (Left + Middle) */}
               <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* 1. MEDITATION STREAK */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
                       60 Reflection Challenge
@@ -297,10 +317,10 @@ const DashboardPage = () => {
                       <span>60 goal</span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* 2. JOURNAL GOAL */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
                       30 Reflection Challenge
@@ -325,10 +345,10 @@ const DashboardPage = () => {
                       <span>30 goal</span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* 3. CLUSTER PREVIEW (THE MIDNIGHT ECHOS) */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/10 transition-all">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/10 transition-all">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
                       {bestCluster?.name || 'The Midnight Echos'}
@@ -542,10 +562,10 @@ const DashboardPage = () => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* 4. TODAY'S TASKS */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col">
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="text-[18px] font-medium text-white/90">Today's Tasks</h3>
                     <ChevronRight className="w-4 h-4 text-white/40" />
@@ -620,10 +640,10 @@ const DashboardPage = () => {
                   >
                     View all Tasks
                   </button>
-                </div>
+                </motion.div>
 
                 {/* 5. REFLECTION HIGHLIGHT (Wide) */}
-                <div className="md:col-span-2 bg-[#1A1817] border border-[var(--soouls-accent)]/10 rounded-[24px] p-10 relative overflow-hidden group">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="md:col-span-2 bg-[#1A1817] border border-[var(--soouls-accent)]/10 rounded-[24px] p-10 relative overflow-hidden group">
                   <div className="flex items-center gap-8 relative z-10 mb-6">
                     <div className="w-20 h-20 rounded-[24px] bg-[var(--soouls-accent)]/5 border border-[var(--soouls-accent)]/10 flex items-center justify-center shrink-0">
                       <LeafIcon className="w-12 h-12 text-[var(--soouls-accent)]" />
@@ -652,13 +672,13 @@ const DashboardPage = () => {
                         : `You've shown strong alignment with "${topTheme.toLowerCase()}" lately. Your entries suggest a ${growthPercent > 0 ? 'growing' : 'stable'} focus on this area, with an increase of ${Math.abs(growthPercent)}% in recurring patterns compared to last month.`}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               {/* COLUMN 3 AREA (Right) */}
               <div className="lg:col-span-1 flex flex-col gap-8">
                 {/* 6. RECENT ENTRIES */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8 flex-1">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8 flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">Recent Entries</h3>
                     <ChevronRight className="w-4 h-4 text-white/40" />
@@ -681,10 +701,10 @@ const DashboardPage = () => {
                         : 'Ready'}
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* 7. RECENT ACTIVITY (Graph) */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8">
+                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">Recent Activity</h3>
                     <div className="flex items-center gap-2 text-white/40 text-[12px] bg-white/[0.03] px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/[0.08] transition-all">
@@ -724,9 +744,9 @@ const DashboardPage = () => {
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </section>
       </main>
@@ -754,6 +774,7 @@ const DashboardPage = () => {
           background: rgba(224, 122, 95, 0.2);
         }
       `}</style>
+      </motion.div>
     </div>
   );
 };
