@@ -190,10 +190,19 @@ export default function AccountPage() {
   const handleBackupEntries = async () => {
     try {
       setExporting('entries');
-      const entries = await loadAllEntries();
-      downloadJson(`soouls-entries-backup-${new Date().toISOString().slice(0, 10)}.json`, {
+      const allEntries = await loadAllEntries();
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const recentEntries = allEntries.filter(
+        (entry) => new Date(entry.createdAt) >= thirtyDaysAgo,
+      );
+      downloadJson(`soouls-30day-backup-${new Date().toISOString().slice(0, 10)}.json`, {
         exportedAt: new Date().toISOString(),
-        entries,
+        periodDays: 30,
+        periodStart: thirtyDaysAgo.toISOString(),
+        periodEnd: new Date().toISOString(),
+        totalEntries: recentEntries.length,
+        entries: recentEntries,
       });
     } finally {
       setExporting(null);
@@ -439,7 +448,7 @@ export default function AccountPage() {
                   onClick={handleBackupEntries}
                   loading={exporting === 'entries'}
                 >
-                  Backup your entries
+                  Back up last 30 days
                 </DataActionButton>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">

@@ -26,7 +26,6 @@ export default function SignUpPage() {
   const [step, setStep] = useState<Step>('form');
 
   // Form State
-  const [username, setUsername] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -48,7 +47,7 @@ export default function SignUpPage() {
     setError('');
 
     try {
-      await signUp.create({ username, emailAddress, password });
+      await signUp.create({ emailAddress, password });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setStep('verify');
     } catch (err) {
@@ -151,26 +150,6 @@ export default function SignUpPage() {
 
         <form onSubmit={handleEmailSignUp} className="space-y-6">
           <div className="space-y-5">
-            <div>
-              <label
-                htmlFor="signup-username"
-                className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1"
-              >
-                Username
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                <input
-                  id="signup-username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your name"
-                  className="w-full bg-white/[0.03] border border-white/5 focus:border-[#E07A5F]/50 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/10 outline-none transition-all"
-                  required
-                />
-              </div>
-            </div>
             <div>
               <label
                 htmlFor="signup-email"

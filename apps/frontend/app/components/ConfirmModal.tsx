@@ -33,7 +33,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         return 'bg-[rgba(255,0,0,0.72)] border border-red-600 text-[#E6E2D6] hover:bg-red-700';
       case 'warning':
         return 'bg-[rgba(245,158,11,0.72)] border border-amber-600 text-[#E6E2D6] hover:bg-amber-600';
-      case 'primary':
       default:
         return 'bg-[var(--soouls-accent)] border border-[var(--soouls-accent)] text-white hover:opacity-90';
     }

@@ -52,12 +52,17 @@ export default function ClustersPage() {
   const featured = clusters[0];
   const rest = clusters.slice(1);
 
-  const avatarUrl = user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id);
+  const avatarUrl =
+    user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id);
 
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden select-none"
-      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)', fontFamily: "'Urbanist', sans-serif" }}
+      style={{
+        backgroundColor: 'var(--soouls-bg)',
+        color: 'var(--soouls-text)',
+        fontFamily: "'Urbanist', sans-serif",
+      }}
     >
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
@@ -77,26 +82,41 @@ export default function ClustersPage() {
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
-          <Link href="/home" className="transition-colors hover:opacity-80" style={{ color: 'var(--soouls-text-faint)' }}>
+          <Link
+            href="/home"
+            className="transition-colors hover:opacity-80"
+            style={{ color: 'var(--soouls-text-faint)' }}
+          >
             Home
           </Link>
-          <span style={{ color: 'var(--soouls-accent)' }} className="ml-1">/ Clusters</span>
+          <span style={{ color: 'var(--soouls-accent)' }} className="ml-1">
+            / Clusters
+          </span>
         </div>
         <button
           type="button"
           onClick={() => setIsOpen(true)}
           className="w-10 h-10 rounded-full border-2 transition-all cursor-pointer overflow-hidden"
-          style={{ borderColor: 'var(--soouls-overlay-muted)', boxShadow: '0 4px 4px rgba(0,0,0,0.25)' }}
+          style={{
+            borderColor: 'var(--soouls-overlay-muted)',
+            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+          }}
         >
           <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
         </button>
       </header>
 
       {/* Main card panel — overlaps the watermark text */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28" style={{ marginTop: 'calc(9vw - 4rem)' }}>
+      <main
+        className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28"
+        style={{ marginTop: 'calc(9vw - 4rem)' }}
+      >
         <section
           className="w-full rounded-[2rem] flex flex-col overflow-hidden"
-          style={{ backgroundColor: 'var(--soouls-bg-surface)', border: '1px solid var(--soouls-border)' }}
+          style={{
+            backgroundColor: 'var(--soouls-bg-surface)',
+            border: '1px solid var(--soouls-border)',
+          }}
         >
           {/* Card header row */}
           <div className="p-8 md:p-12 flex flex-col xl:flex-row justify-between items-start gap-8">
@@ -118,7 +138,10 @@ export default function ClustersPage() {
               {/* Search */}
               <div
                 className="flex items-center gap-3 px-5 py-3 rounded-full w-full xl:w-[380px]"
-                style={{ backgroundColor: 'rgba(230,226,214,0.12)', border: '1px solid rgba(230,226,214,0.1)' }}
+                style={{
+                  backgroundColor: 'rgba(230,226,214,0.12)',
+                  border: '1px solid rgba(230,226,214,0.1)',
+                }}
               >
                 <Search className="w-5 h-5 shrink-0" style={{ color: 'rgba(230,226,214,0.4)' }} />
                 <input
@@ -142,15 +165,15 @@ export default function ClustersPage() {
                     style={
                       filter === opt.key
                         ? {
-                          backgroundColor: 'rgba(var(--soouls-accent-rgb),0.15)',
-                          borderColor: 'var(--soouls-accent)',
-                          color: 'var(--soouls-accent)',
-                        }
+                            backgroundColor: 'rgba(var(--soouls-accent-rgb),0.15)',
+                            borderColor: 'var(--soouls-accent)',
+                            color: 'var(--soouls-accent)',
+                          }
                         : {
-                          backgroundColor: 'transparent',
-                          borderColor: 'rgba(230,226,214,0.25)',
-                          color: 'rgba(230,226,214,0.55)',
-                        }
+                            backgroundColor: 'transparent',
+                            borderColor: 'rgba(230,226,214,0.25)',
+                            color: 'rgba(230,226,214,0.55)',
+                          }
                     }
                   >
                     {opt.label}
@@ -213,25 +236,40 @@ export default function ClustersPage() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-[15px] font-light leading-relaxed max-w-xl" style={{ color: 'rgba(240,236,230,0.7)' }}>
+                  <p
+                    className="text-[15px] font-light leading-relaxed max-w-xl"
+                    style={{ color: 'rgba(240,236,230,0.7)' }}
+                  >
                     {featured.description}
                   </p>
 
                   {/* Meta row */}
                   <div className="flex gap-16 pt-2">
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.12em] font-medium" style={{ color: 'rgba(240,236,230,0.35)' }}>
+                      <p
+                        className="text-[11px] uppercase tracking-[0.12em] font-medium"
+                        style={{ color: 'rgba(240,236,230,0.35)' }}
+                      >
                         Emotion Tone
                       </p>
-                      <p className="text-[14px] font-light" style={{ color: 'rgba(240,236,230,0.75)' }}>
+                      <p
+                        className="text-[14px] font-light"
+                        style={{ color: 'rgba(240,236,230,0.75)' }}
+                      >
                         {featured.tones?.join('  •  ') || '—'}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[11px] uppercase tracking-[0.12em] font-medium" style={{ color: 'rgba(240,236,230,0.35)' }}>
+                      <p
+                        className="text-[11px] uppercase tracking-[0.12em] font-medium"
+                        style={{ color: 'rgba(240,236,230,0.35)' }}
+                      >
                         Strength
                       </p>
-                      <p className="text-[14px] font-light" style={{ color: 'var(--soouls-accent)' }}>
+                      <p
+                        className="text-[14px] font-light"
+                        style={{ color: 'var(--soouls-accent)' }}
+                      >
                         {featured.strength}
                       </p>
                     </div>
@@ -296,7 +334,10 @@ export default function ClustersPage() {
                         >
                           {cluster.name}
                         </h3>
-                        <p className="text-[12px] font-light" style={{ color: 'rgba(240,236,230,0.4)' }}>
+                        <p
+                          className="text-[12px] font-light"
+                          style={{ color: 'rgba(240,236,230,0.4)' }}
+                        >
                           {cluster.entryCount} entries · {cluster.updatedAtLabel}
                         </p>
                       </div>
@@ -309,7 +350,10 @@ export default function ClustersPage() {
                     </div>
 
                     {/* Description */}
-                    <p className="text-[13px] font-light leading-relaxed flex-1" style={{ color: 'rgba(240,236,230,0.55)' }}>
+                    <p
+                      className="text-[13px] font-light leading-relaxed flex-1"
+                      style={{ color: 'rgba(240,236,230,0.55)' }}
+                    >
                       {cluster.description}
                     </p>
 

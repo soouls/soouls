@@ -29,6 +29,7 @@ import {
   applyHomeTheme,
 } from '../../src/hooks/use-home-theme';
 import { trpc } from '../../src/utils/trpc';
+import { RoseLoader } from '../components/RoseLoader';
 import { SymbolLogo } from '../components/SymbolLogo';
 import { GuideMascot } from './guide-mascot';
 
@@ -279,40 +280,45 @@ function ChoiceCard({
       onClick={onClick}
       whileHover={{ scale: 1.01, y: -2 }}
       whileTap={{ scale: 0.99 }}
-      className="group relative min-h-[180px] w-full overflow-hidden rounded-[24px] border p-5 text-left transition-all duration-300 sm:p-6 lg:rounded-[28px]"
+      className="group relative min-h-[100px] w-full overflow-hidden rounded-[20px] border p-3 text-left transition-all duration-300 sm:p-4 lg:rounded-[22px]"
       style={{
-        borderColor: selected ? 'rgba(var(--soouls-accent-rgb), 0.58)' : 'rgba(255,255,255,0.04)',
-        backgroundColor: selected ? 'rgba(43, 22, 18, 0.96)' : 'rgba(28, 16, 14, 0.9)',
+        borderColor: selected ? 'rgba(var(--soouls-accent-rgb), 0.65)' : 'rgba(255,255,255,0.04)',
+        backgroundColor: selected
+          ? 'rgba(var(--soouls-accent-rgb), 0.25)'
+          : 'rgba(28, 16, 14, 0.9)',
         boxShadow: selected
-          ? '0 0 30px rgba(var(--soouls-accent-rgb), 0.12), 0 18px 44px rgba(74, 22, 16, 0.38)'
-          : '0 14px 38px rgba(73, 20, 13, 0.22)',
+          ? '0 0 30px rgba(var(--soouls-accent-rgb), 0.18), inset 0 1px 0 rgba(var(--soouls-accent-rgb), 0.12), 0 14px 36px rgba(74, 22, 16, 0.38)'
+          : '0 10px 28px rgba(73, 20, 13, 0.18)',
       }}
     >
       <div
-        className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className={`absolute inset-0 transition-opacity duration-500 ${selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
         style={{
-          background:
-            'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.08) 0%, transparent 70%)',
+          background: selected
+            ? 'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.22) 0%, transparent 70%)'
+            : 'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.08) 0%, transparent 70%)',
         }}
       />
       {mascot && mascotAwake ? <MiniMascot mode={mascot} /> : null}
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-white/5 bg-[rgba(255,255,255,0.04)]">
-        <span style={{ color: 'var(--soouls-accent)' }}>{icon}</span>
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/5 bg-[rgba(255,255,255,0.04)]">
+        <span style={{ color: selected ? 'var(--soouls-accent)' : 'var(--soouls-accent)' }}>
+          {icon}
+        </span>
       </div>
 
       {eyebrow ? (
-        <p className="mb-2 text-[10px] uppercase tracking-[0.28em] text-[var(--soouls-text-faint)]">
+        <p className="mb-1 text-[9px] uppercase tracking-[0.28em] text-[var(--soouls-text-faint)]">
           {eyebrow}
         </p>
       ) : null}
 
       <h3
-        className="max-w-[18rem] text-[1.45rem] leading-[1.08] text-white sm:text-[1.7rem] lg:text-[2rem]"
+        className="max-w-[18rem] text-[1.1rem] leading-[1.08] text-white sm:text-[1.25rem] lg:text-[1.4rem]"
         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
       >
         {title}
       </h3>
-      <p className="mt-3 max-w-[28rem] text-sm leading-relaxed text-[rgba(239,235,221,0.68)] sm:text-base">
+      <p className="mt-1.5 max-w-[28rem] text-xs leading-relaxed text-[rgba(239,235,221,0.68)] sm:text-sm">
         {description}
       </p>
     </motion.button>
@@ -323,7 +329,7 @@ function ProgressHeader({ step }: { step: number }) {
   const markers = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6', 'stage-7'];
 
   return (
-    <div className="mb-8 flex flex-col items-center gap-4">
+    <div className="mb-4 flex flex-col items-center gap-3">
       <div className="text-[12px] font-bold uppercase tracking-[0.5em] text-[var(--soouls-accent)] opacity-80">
         {`Discovery Stage ${String(step).padStart(2, '0')}`}
       </div>
@@ -590,19 +596,19 @@ export default function OnboardingPage() {
   if (isLoadingAuth || !isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050505]">
-        <Loader2 className="h-8 w-8 animate-spin text-[var(--soouls-accent)]" />
+        <RoseLoader className="h-16 w-16" color="var(--soouls-accent)" />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#050505] text-white">
+    <div className="relative h-[100dvh] w-full overflow-hidden bg-[#050505] text-white">
       <BackgroundField stage={stage} />
 
-      <div className="relative z-10 min-h-screen px-4 pb-32 pt-6 sm:px-8 lg:px-10">
-        <div className="mx-auto flex min-h-screen w-full max-w-[1200px] flex-col items-center">
-          <div className="flex min-w-0 w-full flex-1 flex-col items-center justify-center pt-12 lg:pt-20">
-            <div className="mb-12 flex w-full items-center justify-center">
+      <div className="relative z-10 flex h-full flex-col px-4 pt-4 pb-20 sm:px-8 lg:px-10">
+        <div className="mx-auto flex h-full w-full max-w-[1200px] flex-col items-center justify-center">
+          <div className="flex min-w-0 w-full flex-col items-center justify-center">
+            <div className="mb-4 flex w-full items-center justify-center">
               <Link
                 href="/"
                 className="text-[42px] font-semibold leading-none tracking-[-0.06em] text-[#e8d5b4] sm:text-[52px]"
@@ -628,9 +634,9 @@ export default function OnboardingPage() {
                       opacity: { duration: 0.2 },
                     }}
                   >
-                    <div className="mb-10 text-center">
+                    <div className="mb-6 text-center">
                       <h1
-                        className="text-[46px] leading-[0.98] text-white drop-shadow-[0_10px_26px_rgba(255,255,255,0.16)] sm:text-[68px] lg:text-[78px]"
+                        className="text-[36px] leading-[0.98] text-white drop-shadow-[0_10px_26px_rgba(255,255,255,0.16)] sm:text-[50px] lg:text-[58px]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
                         Why are you here{' '}
@@ -641,7 +647,7 @@ export default function OnboardingPage() {
                       </h1>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       <ChoiceCard
                         icon={<Wind className="h-7 w-7" />}
                         title="clear my mind"
@@ -693,9 +699,9 @@ export default function OnboardingPage() {
                       opacity: { duration: 0.2 },
                     }}
                   >
-                    <div className="mb-10 text-center">
+                    <div className="mb-6 text-center">
                       <h1
-                        className="text-[40px] leading-[1] text-white sm:text-[60px] lg:text-[68px]"
+                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
                         How do you want to{' '}
@@ -706,7 +712,7 @@ export default function OnboardingPage() {
                       </h1>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       <ChoiceCard
                         icon={<PenSquare className="h-7 w-7" />}
                         eyebrow="Minimal"
@@ -760,9 +766,9 @@ export default function OnboardingPage() {
                       opacity: { duration: 0.2 },
                     }}
                   >
-                    <div className="mb-10 text-center">
+                    <div className="mb-6 text-center">
                       <h1
-                        className="text-[40px] leading-[1] text-white sm:text-[60px] lg:text-[68px]"
+                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
                         Pick the room&apos;s{' '}
@@ -771,12 +777,12 @@ export default function OnboardingPage() {
                         </span>
                         .
                       </h1>
-                      <p className="mt-4 text-sm tracking-[0.14em] text-[rgba(239,235,221,0.62)] uppercase">
+                      <p className="mt-3 text-sm tracking-[0.14em] text-[rgba(239,235,221,0.62)] uppercase">
                         This becomes your app accent everywhere.
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       {(
                         Object.entries(THEME_COPY) as Array<
                           [ThemeColor, (typeof THEME_COPY)[ThemeColor]]
@@ -853,9 +859,9 @@ export default function OnboardingPage() {
                       opacity: { duration: 0.2 },
                     }}
                   >
-                    <div className="mb-10 text-center">
+                    <div className="mb-6 text-center">
                       <h1
-                        className="text-[40px] leading-[1] text-white sm:text-[60px] lg:text-[68px]"
+                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
                         When does the real{' '}
@@ -866,7 +872,7 @@ export default function OnboardingPage() {
                       </h1>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       <ChoiceCard
                         icon={<Sunrise className="h-7 w-7" />}
                         eyebrow="Reminder 7:30 AM"
@@ -920,9 +926,9 @@ export default function OnboardingPage() {
                       opacity: { duration: 0.2 },
                     }}
                   >
-                    <div className="mb-10 text-center">
+                    <div className="mb-6 text-center">
                       <h1
-                        className="text-[40px] leading-[1] text-white sm:text-[60px] lg:text-[68px]"
+                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
                         What do you want this platform to{' '}
@@ -933,7 +939,7 @@ export default function OnboardingPage() {
                       </h1>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       <ChoiceCard
                         icon={<MessageCircleHeart className="h-7 w-7" />}
                         eyebrow="Release"
@@ -987,9 +993,9 @@ export default function OnboardingPage() {
                       opacity: { duration: 0.2 },
                     }}
                   >
-                    <div className="mb-10 text-center">
+                    <div className="mb-6 text-center">
                       <h1
-                        className="text-[40px] leading-[1] text-white sm:text-[60px] lg:text-[68px]"
+                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
                         style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                       >
                         How should Soouls{' '}
@@ -1000,7 +1006,7 @@ export default function OnboardingPage() {
                       </h1>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                       <ChoiceCard
                         icon={<MoonStar className="h-7 w-7" />}
                         eyebrow="Minimal AI"
