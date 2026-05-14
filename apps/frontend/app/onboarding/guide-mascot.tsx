@@ -101,11 +101,12 @@ export function GuideMascot({ step, awake, name, firstEntry, onWake, centered }:
           : {
               left: 'auto',
               top: 'auto',
-              right: '40px',
-              bottom: '28px',
+              right: '16px',
+              bottom: '100px',
               x: 0,
               y: 0,
-              scale: 0.62,
+              scale: 0.42,
+              opacity: 0.85,
             }
       }
       transition={{ type: 'spring', damping: 35, stiffness: 80 }}

@@ -20,6 +20,31 @@ import { getEntryPlainText, getEntryTitle, parseEntryData } from '../../../src/u
 import { trpc } from '../../../src/utils/trpc';
 import { LeafIcon } from '../../components/Icons';
 
+function parseHighlightedText(text: string | undefined | null, fallback: string) {
+  if (!text) return fallback;
+  const parts = text.split(/(\{ts[12]\}.*?\{\/ts[12]\})/g);
+
+  return parts.map((part, i) => {
+    if (part.startsWith('{ts1}')) {
+      const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
+      return (
+        <span key={i} style={{ color: 'var(--soouls-accent)' }}>
+          {innerText}
+        </span>
+      );
+    }
+    if (part.startsWith('{ts2}')) {
+      const innerText = part.replace(/\{ts2\}/g, '').replace(/\{\/ts2\}/g, '');
+      return (
+        <strong key={i} className="text-[#f0ece6] font-semibold">
+          {innerText}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
 const DashboardPage = () => {
   const { user } = useUser();
   const { setIsOpen } = useSidebar();
@@ -308,7 +333,7 @@ const DashboardPage = () => {
                     <h3 className="text-[18px] font-medium text-white/90">
                       {bestCluster?.name || 'The Midnight Echos'}
                     </h3>
-                    <ChevronRight className="w-5 h-5 text-white/40" />
+                    <ChevronRight className="w-4 h-4 text-white/40" />
                   </div>
 
                   <div className="flex-1 rounded-[20px] bg-[#0A0A0A] border border-white/[0.03] relative p-6 overflow-hidden min-h-[350px]">
@@ -475,8 +500,8 @@ const DashboardPage = () => {
                     })}
 
                     {!clusterEntries.length && (
-                      <div className="absolute inset-0 flex items-center justify-center text-white/20 text-sm font-light italic">
-                        Your cluster map will appear as you write more.
+                      <div className="absolute inset-0 flex items-center justify-center text-white/30 text-[14px] font-light italic text-center px-6">
+                        Your cluster map will appear as you write more. Start a new entry to begin.
                       </div>
                     )}
 
@@ -487,7 +512,7 @@ const DashboardPage = () => {
                           type="button"
                           className="px-3 py-1 text-[10px] text-white/40 uppercase font-bold hover:text-white transition-colors flex items-center gap-1"
                         >
-                          <Plus className="w-2.5 h-2.5" /> CREATE
+                          <Plus className="w-3 h-3" /> CREATE
                         </button>
                         <div className="w-[1px] h-3 bg-white/10" />
                         <div className="px-3 py-1 text-[10px] text-[var(--soouls-accent)] uppercase font-bold">
@@ -498,21 +523,21 @@ const DashboardPage = () => {
                           type="button"
                           className="p-1 text-white/40 hover:text-white transition-colors"
                         >
-                          <LayoutGrid className="w-3.5 h-3.5" />
+                          <LayoutGrid className="w-4 h-4" />
                         </button>
                         <div className="w-[1px] h-3 bg-white/10" />
                         <button
                           type="button"
                           className="p-1 text-white/40 hover:text-white transition-colors"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-4 h-4" />
                         </button>
                       </div>
                       <button
                         type="button"
                         className="flex items-center gap-2 px-5 py-2.5 bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30 rounded-full text-[var(--soouls-accent)] text-[12px] font-bold hover:bg-[var(--soouls-accent)] hover:text-white transition-all"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-4 h-4" />
                         Start New Cluster
                       </button>
                     </div>
@@ -523,7 +548,7 @@ const DashboardPage = () => {
                 <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col">
                   <div className="flex items-center justify-between mb-8">
                     <h3 className="text-[18px] font-medium text-white/90">Today's Tasks</h3>
-                    <ChevronRight className="w-5 h-5 text-white/40" />
+                    <ChevronRight className="w-4 h-4 text-white/40" />
                   </div>
 
                   <div className="flex gap-6 mb-8 min-h-[350px]">
@@ -539,7 +564,7 @@ const DashboardPage = () => {
                             <div
                               className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.done ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]' : 'border-white/20'}`}
                             >
-                              {task.done && <CheckSquare className="w-3.5 h-3.5 text-white" />}
+                              {task.done && <CheckSquare className="w-4 h-4 text-white" />}
                             </div>
                             <div className="flex-1">
                               <p
@@ -556,7 +581,7 @@ const DashboardPage = () => {
                           </button>
                         ))
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-white/10 text-[14px] italic border-2 border-dashed border-white/5 rounded-2xl">
+                        <div className="flex flex-col items-center justify-center h-full text-white/30 text-[14px] italic border-2 border-dashed border-white/5 rounded-2xl">
                           No tasks found for this period
                         </div>
                       )}
@@ -582,7 +607,7 @@ const DashboardPage = () => {
                         onClick={() => setActiveTaskTab('search')}
                         className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'search' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
                       >
-                        <Search className="w-3.5 h-3.5" />
+                        <Search className="w-4 h-4" />
                         Search
                       </button>
                     </div>
@@ -601,7 +626,7 @@ const DashboardPage = () => {
                 <div className="md:col-span-2 bg-[#1A1817] border border-[var(--soouls-accent)]/10 rounded-[24px] p-10 relative overflow-hidden group">
                   <div className="flex items-center gap-8 relative z-10 mb-6">
                     <div className="w-20 h-20 rounded-[24px] bg-[var(--soouls-accent)]/5 border border-[var(--soouls-accent)]/10 flex items-center justify-center shrink-0">
-                      <LeafIcon className="w-10 h-10 text-[var(--soouls-accent)]" />
+                      <LeafIcon className="w-12 h-12 text-[var(--soouls-accent)]" />
                     </div>
                     <div className="space-y-2">
                       <h2 className="text-[28px] leading-tight text-white/95 font-medium">
@@ -622,8 +647,9 @@ const DashboardPage = () => {
 
                   <div className="relative z-10 p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-sm">
                     <p className="text-[18px] text-white/50 font-light leading-relaxed italic">
-                      {insights?.monthlyAnalysis ||
-                        `You've shown strong alignment with "${topTheme.toLowerCase()}" lately. Your entries suggest a ${growthPercent > 0 ? 'growing' : 'stable'} focus on this area, with an increase of ${Math.abs(growthPercent)}% in recurring patterns compared to last month.`}
+                      {insights?.monthlyAnalysis
+                        ? parseHighlightedText(insights.monthlyAnalysis, '')
+                        : `You've shown strong alignment with "${topTheme.toLowerCase()}" lately. Your entries suggest a ${growthPercent > 0 ? 'growing' : 'stable'} focus on this area, with an increase of ${Math.abs(growthPercent)}% in recurring patterns compared to last month.`}
                     </p>
                   </div>
                 </div>
@@ -635,7 +661,7 @@ const DashboardPage = () => {
                 <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8 flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">Recent Entries</h3>
-                    <ChevronRight className="w-5 h-5 text-white/40" />
+                    <ChevronRight className="w-4 h-4 text-white/40" />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center gap-6">
@@ -663,7 +689,7 @@ const DashboardPage = () => {
                     <h3 className="text-[18px] font-medium text-white/90">Recent Activity</h3>
                     <div className="flex items-center gap-2 text-white/40 text-[12px] bg-white/[0.03] px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/[0.08] transition-all">
                       <span>Last 7 Days</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>
 

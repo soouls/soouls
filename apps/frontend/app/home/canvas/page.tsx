@@ -27,7 +27,7 @@ type ViewState = 'folders' | 'list' | 'cluster';
 const FolderIcon = ({
   className,
   count = '0',
-  color = '#C55B40',
+  color,
 }: {
   className?: string;
   count?: string;
@@ -46,7 +46,7 @@ const FolderIcon = ({
       stroke="rgba(255,255,255,0.03)"
       strokeWidth="0.5"
     />
-    <rect x="22" y="54" width="28" height="10" rx="5" fill={color ?? '#C55B40'} />
+    <rect x="22" y="54" width="28" height="10" rx="5" fill={color || 'var(--soouls-accent)'} />
     <text
       x="36"
       y="60.5"
@@ -517,7 +517,9 @@ export default function CanvasPage() {
         description={
           <>
             Are you sure you want to re-cluster? <br />
-            <span className="text-white">This will regroup all your folders based on your latest entries.</span>
+            <span className="text-white">
+              This will regroup all your folders based on your latest entries.
+            </span>
           </>
         }
         confirmText="Re-cluster"

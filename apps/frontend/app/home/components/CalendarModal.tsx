@@ -525,8 +525,8 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <header className="flex justify-between items-center p-6 border-b border-white/5 shrink-0 relative">
-          <div className="flex items-center gap-8 w-full justify-center relative">
+        <header className="flex items-center p-6 border-b border-white/5 shrink-0 gap-4">
+          <div className="flex items-center gap-4 flex-1 justify-center">
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -551,7 +551,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-4 absolute right-6">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
               onClick={() => setShowGCalModal(true)}
@@ -566,7 +566,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
               ) : (
                 <Calendar size={12} />
               )}
-              <span>{gcalConnected ? 'Connected' : 'Connect Google Calendar'}</span>
+              <span>{gcalConnected ? 'Connected' : 'Google Calendar'}</span>
             </button>
 
             <div className="bg-black/40 p-1 rounded-full border border-white/5 flex items-center shrink-0">
@@ -585,14 +585,6 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                 </button>
               ))}
             </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors ml-2 hidden"
-            >
-              <X size={20} />
-            </button>
           </div>
         </header>
 

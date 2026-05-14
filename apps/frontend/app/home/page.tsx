@@ -30,9 +30,9 @@ import { decodeEntryContent, getEntryPlainText, getEntryTitle } from '../../src/
 import { buildActivityBars, formatCurrentMonthRange } from '../../src/utils/home';
 import { getOptimizedImageUrl } from '../../src/utils/images';
 import { trpc } from '../../src/utils/trpc';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { CanvasLoopIcon, LeafIcon } from '../components/Icons';
 import { SymbolLogo } from '../components/SymbolLogo';
-import { ConfirmModal } from '../components/ConfirmModal';
 import { CalendarModal } from './components/CalendarModal';
 
 function avatarFor(seed?: string | null) {
@@ -245,59 +245,43 @@ function SearchPreview({ entry }: { entry?: UserEntry }) {
   );
 
   return (
-    <div className="grid grid-cols-2 grid-rows-3 gap-3 h-full overflow-y-auto custom-scrollbar p-1">
-      {/* 1. Main Text Block */}
-      <BentoBlock className="col-span-1 row-span-1" title="Reflection">
-        <p className="text-[10px] leading-relaxed text-[#D8D8D8] font-urbanist line-clamp-4">
-          {text || 'Silence is the space where your thoughts find their true voice...'}
+    <div className="flex flex-col gap-3 h-full overflow-y-auto custom-scrollbar p-1">
+      {/* Main Text Block */}
+      <BentoBlock className="flex-1" title="Reflection">
+        <p className="text-[12px] leading-relaxed text-[#D8D8D8] font-urbanist whitespace-pre-wrap">
+          {text || 'Empty entry'}
         </p>
-        <div className="mt-4 h-20 rounded bg-[linear-gradient(135deg,rgba(224,122,95,0.28),rgba(239,235,221,0.08))]" />
-        <p className="mt-2 text-[10px] text-[#b7ff8d]">Entry preview</p>
       </BentoBlock>
-      <div className="rounded-md bg-[#222] p-3">
-        <div className="mb-3 h-8 rounded bg-[#1c1c1c]" />
-        <p className="text-center text-xs text-[#7a7a7a]">Add more</p>
-        <div className="mt-3 flex items-end gap-1">
-          {[16, 24, 14, 28, 20, 12, 26, 18].map((height, index) => (
-            <span
-              key={index}
-              className="w-2 rounded bg-[var(--soouls-accent)]"
-              style={{ height }}
-            />
-          ))}
-        </div>
-      </div>
 
-      {/* 4. Tasklist/Goals Block */}
-      <BentoBlock className="col-span-1 row-span-1" title="Intentions">
-        <div className="space-y-2">
-          {blocks
-            .find((b) => b.type === 'tasklist')
-            ?.tasks?.slice(0, 3)
-            .map((t, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div
-                  className={`w-3 h-3 rounded-[2px] border ${t.done ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]' : 'border-white/20'}`}
-                >
-                  {t.done && <Check className="w-2.5 h-2.5 text-white" />}
+      {/* Tasklist/Goals Block */}
+      {blocks.find((b) => b.type === 'tasklist') && (
+        <BentoBlock className="shrink-0" title="Intentions">
+          <div className="space-y-2 mt-1">
+            {blocks
+              .find((b) => b.type === 'tasklist')
+              ?.tasks?.map((t, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div
+                    className={`w-4 h-4 rounded-[4px] border flex items-center justify-center shrink-0 ${
+                      t.done
+                        ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]'
+                        : 'border-white/20'
+                    }`}
+                  >
+                    {t.done && <Check className="w-3 h-3 text-white" />}
+                  </div>
+                  <span
+                    className={`text-[12px] ${
+                      t.done ? 'text-white/30 line-through' : 'text-[#D8D8D8]/90'
+                    }`}
+                  >
+                    {t.text}
+                  </span>
                 </div>
-                <span
-                  className={`text-[8px] ${t.done ? 'text-white/20 line-through' : 'text-[#D8D8D8]/80'}`}
-                >
-                  {t.text}
-                </span>
-              </div>
-            )) || (
-            <div className="py-4 text-center opacity-20">
-              <span className="text-[8px] uppercase tracking-widest">No Tasks set</span>
-            </div>
-          )}
-        </div>
-        <p className="text-2xl text-[var(--soouls-accent)]">
-          00:01:48 <span className="text-xs">pm</span>
-        </p>
-        <p className="mt-2 text-[10px] text-[#b7ff8d]">Goal set</p>
-      </BentoBlock>
+              ))}
+          </div>
+        </BentoBlock>
+      )}
     </div>
   );
 }
