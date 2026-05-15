@@ -218,6 +218,7 @@ export function GlobalMascot() {
     <motion.div
       drag
       dragMomentum={false}
+      dragElastic={0}
       onDragStart={() => setIsRoaming(false)}
       onDragEnd={(e, info) => {
         setPosition((prev) => ({
@@ -240,8 +241,8 @@ export function GlobalMascot() {
         type: 'spring',
         damping: 35,
         stiffness: 40,
-        x: { duration: 5, ease: 'easeInOut' },
-        y: { duration: 5, ease: 'easeInOut' },
+        x: isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
+        y: isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
         scale: { type: 'spring', stiffness: 200, damping: 20 },
       }}
       onHoverStart={() => {

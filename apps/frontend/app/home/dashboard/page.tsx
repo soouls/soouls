@@ -231,8 +231,16 @@ const DashboardPage = () => {
             {/* WRITING SECTION - Matching Design Exactly */}
             <div className="space-y-6">
               <h2 className="text-[20px] font-medium text-white/90 px-2">Let's start New Entry</h2>
-              <div 
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => router.push('/home/new-entry')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push('/home/new-entry');
+                  }
+                }}
                 className="w-full bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col min-h-[220px] transition-all group relative cursor-pointer hover:border-white/20"
               >
                 <span className="text-[24px] text-white/20 font-light mb-auto">
@@ -363,9 +371,17 @@ const DashboardPage = () => {
                 </motion.div>
 
                 {/* 3. CLUSTER PREVIEW (THE MIDNIGHT ECHOS) */}
-                <motion.div 
+                <motion.div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => router.push('/home/clusters')}
-                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} 
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push('/home/clusters');
+                    }
+                  }}
+                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
                   className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
                 >
                   <div className="flex items-center justify-between">
