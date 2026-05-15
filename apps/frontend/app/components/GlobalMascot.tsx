@@ -185,7 +185,6 @@ export function GlobalMascot() {
       roamIntervalRef.current = setInterval(updatePosition, 10000);
     } else if (pathname !== '/onboarding') {
       if (roamIntervalRef.current) clearInterval(roamIntervalRef.current);
-      setPosition({ x: 0, y: 0 });
     }
     return () => {
       if (roamIntervalRef.current) clearInterval(roamIntervalRef.current);
@@ -217,6 +216,15 @@ export function GlobalMascot() {
 
   return (
     <motion.div
+      drag
+      dragMomentum={false}
+      onDragStart={() => setIsRoaming(false)}
+      onDragEnd={(e, info) => {
+        setPosition((prev) => ({
+          x: prev.x + info.offset.x,
+          y: prev.y + info.offset.y,
+        }));
+      }}
       className="fixed bottom-3 left-1/2 z-[9999] pointer-events-auto cursor-pointer"
       style={{ marginLeft: -96 }}
       initial={{ opacity: 0, scale: 0.5 }}
