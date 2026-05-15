@@ -45,11 +45,13 @@ export function GlobalMascot() {
   const [isHovered, setIsHovered] = useState(false);
   const [blink, setBlink] = useState(false);
   const [hasAwakened, setHasAwakened] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const lastActivityRef = useRef(Date.now());
   const roamIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const eyeDartIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dragDeltaRef = useRef({ x: 0, y: 0 });
   const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mouse tracking for eyes
@@ -85,11 +87,6 @@ export function GlobalMascot() {
   }, []);
 
   const updatePosition = useCallback(() => {
-    if (!isRoaming) {
-      setPosition({ x: 0, y: 0 });
-      return;
-    }
-
     const padding = 150;
     const maxX = window.innerWidth - padding * 2;
     const maxY = window.innerHeight - padding * 2;
@@ -219,12 +216,21 @@ export function GlobalMascot() {
       drag
       dragMomentum={false}
       dragElastic={0}
-      onDragStart={() => setIsRoaming(false)}
-      onDragEnd={(e, info) => {
+      onDragStart={() => {
+        setIsRoaming(false);
+        setIsDragging(true);
+        dragDeltaRef.current = { x: 0, y: 0 };
+      }}
+      onDrag={(e, info) => {
+        dragDeltaRef.current.x += info.delta.x;
+        dragDeltaRef.current.y += info.delta.y;
+      }}
+      onDragEnd={() => {
         setPosition((prev) => ({
-          x: prev.x + info.offset.x,
-          y: prev.y + info.offset.y,
+          x: prev.x + dragDeltaRef.current.x,
+          y: prev.y + dragDeltaRef.current.y,
         }));
+        setTimeout(() => setIsDragging(false), 50);
       }}
       className="fixed bottom-3 left-1/2 z-[9999] pointer-events-auto cursor-pointer"
       style={{ marginLeft: -96 }}
@@ -241,8 +247,8 @@ export function GlobalMascot() {
         type: 'spring',
         damping: 35,
         stiffness: 40,
-        x: isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
-        y: isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
+        x: isDragging ? { duration: 0 } : isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
+        y: isDragging ? { duration: 0 } : isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
         scale: { type: 'spring', stiffness: 200, damping: 20 },
       }}
       onHoverStart={() => {

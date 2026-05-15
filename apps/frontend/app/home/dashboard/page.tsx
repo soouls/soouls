@@ -160,6 +160,24 @@ const DashboardPage = () => {
         : 0
       : Math.round(((currentMonthEntries - lastMonthEntries) / lastMonthEntries) * 100);
 
+  const handleNewEntryAction = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (e.type === 'keydown') {
+      const keyEvent = e as React.KeyboardEvent;
+      if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return;
+      if (keyEvent.key === ' ') keyEvent.preventDefault();
+    }
+    router.push('/home/new-entry');
+  };
+
+  const handleClustersAction = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (e.type === 'keydown') {
+      const keyEvent = e as React.KeyboardEvent;
+      if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return;
+      if (keyEvent.key === ' ') keyEvent.preventDefault();
+    }
+    router.push('/home/clusters');
+  };
+
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden select-none"
@@ -234,13 +252,8 @@ const DashboardPage = () => {
               <div
                 role="button"
                 tabIndex={0}
-                onClick={() => router.push('/home/new-entry')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    router.push('/home/new-entry');
-                  }
-                }}
+                onClick={handleNewEntryAction}
+                onKeyDown={handleNewEntryAction}
                 className="w-full bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col min-h-[220px] transition-all group relative cursor-pointer hover:border-white/20"
               >
                 <span className="text-[24px] text-white/20 font-light mb-auto">
@@ -374,13 +387,8 @@ const DashboardPage = () => {
                 <motion.div
                   role="button"
                   tabIndex={0}
-                  onClick={() => router.push('/home/clusters')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      router.push('/home/clusters');
-                    }
-                  }}
+                  onClick={handleClustersAction}
+                  onKeyDown={handleClustersAction}
                   variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
                   className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
                 >
