@@ -160,6 +160,24 @@ const DashboardPage = () => {
         : 0
       : Math.round(((currentMonthEntries - lastMonthEntries) / lastMonthEntries) * 100);
 
+  const handleNewEntryAction = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (e.type === 'keydown') {
+      const keyEvent = e as React.KeyboardEvent;
+      if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return;
+      if (keyEvent.key === ' ') keyEvent.preventDefault();
+    }
+    router.push('/home/new-entry');
+  };
+
+  const handleClustersAction = (e: React.MouseEvent | React.KeyboardEvent) => {
+    if (e.type === 'keydown') {
+      const keyEvent = e as React.KeyboardEvent;
+      if (keyEvent.key !== 'Enter' && keyEvent.key !== ' ') return;
+      if (keyEvent.key === ' ') keyEvent.preventDefault();
+    }
+    router.push('/home/clusters');
+  };
+
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden select-none"
@@ -231,7 +249,13 @@ const DashboardPage = () => {
             {/* WRITING SECTION - Matching Design Exactly */}
             <div className="space-y-6">
               <h2 className="text-[20px] font-medium text-white/90 px-2">Let's start New Entry</h2>
-              <div className="w-full bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col min-h-[220px] transition-all group relative">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={handleNewEntryAction}
+                onKeyDown={handleNewEntryAction}
+                className="w-full bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col min-h-[220px] transition-all group relative cursor-pointer hover:border-white/20"
+              >
                 <span className="text-[24px] text-white/20 font-light mb-auto">
                   Write something to start
                 </span>
@@ -239,21 +263,33 @@ const DashboardPage = () => {
                   <div className="flex items-center gap-10">
                     <button
                       type="button"
-                      className="flex items-center gap-2.5 text-[#A78BFA] hover:opacity-80 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/home/new-entry');
+                      }}
+                      className="flex items-center gap-2.5 text-[#A78BFA] hover:opacity-80 transition-all cursor-pointer"
                     >
                       <Mic className="w-5 h-5" />
                       <span className="text-[16px] font-medium">Voice note</span>
                     </button>
                     <button
                       type="button"
-                      className="flex items-center gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/home/new-entry');
+                      }}
+                      className="flex items-center gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-all cursor-pointer"
                     >
                       <ImageIcon className="w-5 h-5" />
                       <span className="text-[16px] font-medium">Image</span>
                     </button>
                     <button
                       type="button"
-                      className="flex items-center gap-2.5 text-[#34D399] hover:opacity-80 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push('/home/new-entry');
+                      }}
+                      className="flex items-center gap-2.5 text-[#34D399] hover:opacity-80 transition-all cursor-pointer"
                     >
                       <CheckSquare className="w-5 h-5" />
                       <span className="text-[16px] font-medium">Task</span>
@@ -348,7 +384,14 @@ const DashboardPage = () => {
                 </motion.div>
 
                 {/* 3. CLUSTER PREVIEW (THE MIDNIGHT ECHOS) */}
-                <motion.div variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }} className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/10 transition-all">
+                <motion.div
+                  role="button"
+                  tabIndex={0}
+                  onClick={handleClustersAction}
+                  onKeyDown={handleClustersAction}
+                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
+                  className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
+                >
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
                       {bestCluster?.name || 'The Midnight Echos'}
@@ -530,7 +573,11 @@ const DashboardPage = () => {
                       <div className="flex items-center gap-2 p-1 rounded-full bg-black/60 border border-white/10 backdrop-blur-md">
                         <button
                           type="button"
-                          className="px-3 py-1 text-[10px] text-white/40 uppercase font-bold hover:text-white transition-colors flex items-center gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push('/home/new-entry');
+                          }}
+                          className="px-3 py-1 text-[10px] text-white/40 uppercase font-bold hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
                         >
                           <Plus className="w-3 h-3" /> CREATE
                         </button>
@@ -541,21 +588,33 @@ const DashboardPage = () => {
                         <div className="w-[1px] h-3 bg-white/10" />
                         <button
                           type="button"
-                          className="p-1 text-white/40 hover:text-white transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push('/home/clusters');
+                          }}
+                          className="p-1 text-white/40 hover:text-white transition-colors cursor-pointer"
                         >
                           <LayoutGrid className="w-4 h-4" />
                         </button>
                         <div className="w-[1px] h-3 bg-white/10" />
                         <button
                           type="button"
-                          className="p-1 text-white/40 hover:text-white transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push('/home/clusters');
+                          }}
+                          className="p-1 text-white/40 hover:text-white transition-colors cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
                       <button
                         type="button"
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30 rounded-full text-[var(--soouls-accent)] text-[12px] font-bold hover:bg-[var(--soouls-accent)] hover:text-white transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push('/home/clusters');
+                        }}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30 rounded-full text-[var(--soouls-accent)] text-[12px] font-bold hover:bg-[var(--soouls-accent)] hover:text-white transition-all cursor-pointer z-10 relative"
                       >
                         <Plus className="w-4 h-4" />
                         Start New Cluster
