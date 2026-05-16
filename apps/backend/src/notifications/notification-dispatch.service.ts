@@ -243,6 +243,14 @@ export class NotificationDispatchService {
     const fromName = process.env.MESSAGING_FROM_NAME ?? 'Soouls';
 
     if (!apiKey || !fromEmail) {
+      if (process.env.NODE_ENV === 'production') {
+        return {
+          status: 'failed',
+          provider: 'system',
+          errorMessage: 'Email provider not configured.',
+        };
+      }
+
       console.log('[Messaging] Email preview', {
         to: message.to,
         subject: message.subject,
@@ -285,6 +293,14 @@ export class NotificationDispatchService {
     const fromNumber = process.env.TWILIO_WHATSAPP_FROM;
 
     if (!accountSid || !authToken || !fromNumber) {
+      if (process.env.NODE_ENV === 'production') {
+        return {
+          status: 'failed',
+          provider: 'system',
+          errorMessage: 'WhatsApp provider not configured.',
+        };
+      }
+
       console.log('[Messaging] WhatsApp preview', {
         to: message.to,
         body: message.body.slice(0, 120),
@@ -672,6 +688,49 @@ export class NotificationDispatchService {
     });
   }
 
+  private async isCampaignStopped(campaignId: string): Promise<boolean> {
+    const [row] = await db
+      .select({ status: messageCampaigns.status })
+      .from(messageCampaigns)
+      .where(eq(messageCampaigns.id, campaignId))
+      .limit(1);
+    return row?.status === 'failed';
+  }
+
+  async stopCampaign(campaignId: string) {
+    await db
+      .update(messageCampaigns)
+      .set({ status: 'failed', updatedAt: new Date() })
+      .where(eq(messageCampaigns.id, campaignId));
+  }
+
+  async getCampaignDeliveries(campaignId: string) {
+    const deliveries = await db
+      .select({
+        id: messageDeliveries.id,
+        channel: messageDeliveries.channel,
+        status: messageDeliveries.status,
+        recipient: messageDeliveries.recipient,
+        provider: messageDeliveries.provider,
+        errorMessage: messageDeliveries.errorMessage,
+        sentAt: messageDeliveries.sentAt,
+        createdAt: messageDeliveries.createdAt,
+      })
+      .from(messageDeliveries)
+      .where(eq(messageDeliveries.campaignId, campaignId))
+      .orderBy(desc(messageDeliveries.createdAt));
+
+    const sent = deliveries.filter((d) => d.status === 'sent').length;
+    const failed = deliveries.filter((d) => d.status === 'failed').length;
+    const skipped = deliveries.filter((d) => d.status === 'skipped').length;
+    const pending = deliveries.filter((d) => d.status === 'pending').length;
+
+    return {
+      deliveries,
+      summary: { total: deliveries.length, sent, failed, skipped, pending },
+    };
+  }
+
   async processCampaignDispatch(campaignId: string) {
     const [campaign] = await db
       .select({
@@ -698,77 +757,134 @@ export class NotificationDispatchService {
     );
 
     if (sanitizedChannels.length === 0) {
+      await db
+        .update(messageCampaigns)
+        .set({ status: 'failed', updatedAt: new Date() })
+        .where(eq(messageCampaigns.id, campaignId));
       throw new Error('Campaign has no sendable channels.');
     }
-
-    const recipients = await this.listCampaignRecipients({
-      channels: sanitizedChannels,
-      targeting: campaign.targeting as Record<string, string> | undefined,
-    });
-    const template = buildCampaignTemplate({
-      brandKey: getBrandPreset(campaign.brandKey).key,
-      subject: campaign.subject,
-      markdownBody: campaign.markdownBody,
-      ctaLabel: campaign.ctaLabel ?? undefined,
-      ctaUrl: campaign.ctaUrl ?? undefined,
-      whatsappBody: campaign.whatsappBody,
-    });
 
     let emailRecipients = 0;
     let whatsappRecipients = 0;
     let failedCount = 0;
+    let skippedCount = 0;
 
-    await db
-      .update(messageCampaigns)
-      .set({
-        status: 'sending',
-        totalRecipients: recipients.length,
-        updatedAt: new Date(),
-      })
-      .where(eq(messageCampaigns.id, campaignId));
+    try {
+      const recipients = await this.listCampaignRecipients({
+        channels: sanitizedChannels,
+        targeting: campaign.targeting as Record<string, string> | undefined,
+      });
+      const template = buildCampaignTemplate({
+        brandKey: getBrandPreset(campaign.brandKey).key,
+        subject: campaign.subject,
+        markdownBody: campaign.markdownBody,
+        ctaLabel: campaign.ctaLabel ?? undefined,
+        ctaUrl: campaign.ctaUrl ?? undefined,
+        whatsappBody: campaign.whatsappBody,
+      });
 
-    for (let index = 0; index < recipients.length; index += NOTIFICATION_BATCH_SIZE) {
-      const batch = recipients.slice(index, index + NOTIFICATION_BATCH_SIZE);
+      await db
+        .update(messageCampaigns)
+        .set({
+          status: 'sending',
+          totalRecipients: recipients.length,
+          updatedAt: new Date(),
+        })
+        .where(eq(messageCampaigns.id, campaignId));
 
-      await Promise.all(
-        batch.flatMap((recipient) =>
-          sanitizedChannels.map(async (channel) => {
-            const result = await this.deliverTemplate({
-              user: recipient,
-              campaignId,
-              channel,
-              category: 'marketing',
-              brandKey: getBrandPreset(campaign.brandKey).key,
-              templateKey: 'campaign',
-              template,
-              respectMarketingPreferences: true,
-            });
+      for (let index = 0; index < recipients.length; index += NOTIFICATION_BATCH_SIZE) {
+        const batch = recipients.slice(index, index + NOTIFICATION_BATCH_SIZE);
 
-            if (result.status === 'sent') {
-              if (channel === 'email') {
-                emailRecipients += 1;
-              } else {
-                whatsappRecipients += 1;
+        for (const recipient of batch) {
+          // Check if campaign was stopped mid-batch to give immediate feedback to the Stop button
+          if (await this.isCampaignStopped(campaignId)) {
+            console.log(`[Messaging] Campaign ${campaignId} was stopped by admin mid-batch.`);
+            break;
+          }
+
+          for (const channel of sanitizedChannels) {
+            try {
+              let effectiveChannel = channel;
+
+              const result = await this.deliverTemplate({
+                user: recipient,
+                campaignId,
+                channel: effectiveChannel,
+                category: 'marketing',
+                brandKey: getBrandPreset(campaign.brandKey).key,
+                templateKey: 'campaign',
+                template,
+                respectMarketingPreferences: true,
+              });
+
+              if (result.status === 'sent') {
+                if (effectiveChannel === 'email') {
+                  emailRecipients += 1;
+                } else {
+                  whatsappRecipients += 1;
+                }
+              } else if (result.status === 'failed') {
+                failedCount += 1;
+              } else if (result.status === 'skipped') {
+                skippedCount += 1;
               }
-            }
-
-            if (result.status === 'failed') {
+            } catch (error) {
               failedCount += 1;
+              console.error('[Messaging] Single delivery failed', {
+                campaignId,
+                recipient: recipient.email,
+                channel,
+                error: error instanceof Error ? error.message : String(error),
+              });
             }
-          }),
-        ),
-      );
-
-      // Polite rate limit: 1 second delay between batches
-      if (index + NOTIFICATION_BATCH_SIZE < recipients.length) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+            
+            // Wait 600ms between each single dispatch to stay under Resend's 2 requests/sec limit
+            await new Promise((resolve) => setTimeout(resolve, 600));
+          }
+        }
       }
+    } catch (error) {
+      // If the entire dispatch crashes, mark campaign as failed
+      console.error('[Messaging] Campaign dispatch crashed', {
+        campaignId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      await db
+        .update(messageCampaigns)
+        .set({
+          status: 'failed',
+          emailRecipients,
+          whatsappRecipients,
+          lastSentAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(messageCampaigns.id, campaignId));
+
+      throw error;
     }
 
+    // Check if it was stopped mid-run
+    const wasStopped = await this.isCampaignStopped(campaignId);
+    if (wasStopped) {
+      // Update counts but keep the 'failed' (stopped) status
+      await db
+        .update(messageCampaigns)
+        .set({
+          emailRecipients,
+          whatsappRecipients,
+          lastSentAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(messageCampaigns.id, campaignId));
+      return;
+    }
+
+    const totalDelivered = emailRecipients + whatsappRecipients;
     const status: 'sent' | 'partially_sent' | 'failed' =
-      failedCount === 0
+      failedCount === 0 && totalDelivered > 0
         ? 'sent'
-        : emailRecipients + whatsappRecipients > 0
+        : totalDelivered > 0
           ? 'partially_sent'
           : 'failed';
 

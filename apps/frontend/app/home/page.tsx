@@ -359,7 +359,7 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-2xl"
+      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/40 p-4 backdrop-blur-2xl"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -925,7 +925,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex w-full max-w-[1600px] -translate-x-1/2 items-center justify-between px-5 md:px-12">
+      <div className="pointer-events-none fixed bottom-6 left-0 right-0 z-[80] flex w-full items-center justify-between px-5 md:px-12">
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}

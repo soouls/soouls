@@ -10,8 +10,58 @@ import { type Messaging, api, formatRelativeTime } from '../lib/api';
 
 const ACTIVE_SENDER_EMAIL = 'team@soouls.in';
 const ACTIVE_SENDER_LABEL = `Soouls Team <${ACTIVE_SENDER_EMAIL}>`;
+const SELECT_CLASS =
+  'w-full rounded-xl border border-white/[0.08] bg-[#111827] px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-amber-400/30';
+const SMALL_SELECT_CLASS =
+  'rounded-md border border-white/[0.08] bg-[#111827] px-2 py-1 text-xs text-slate-200 outline-none transition-colors focus:border-amber-400/30';
+const OPTION_CLASS = 'bg-[#111827] text-slate-100';
+
+const SOOULS_LINKS = {
+  instagram: 'https://www.instagram.com/soouls.in/',
+  x: 'https://x.com/Soouls_in',
+  linkedin: 'https://www.linkedin.com/company/soouls/?viewAsMember=true',
+  website: 'https://soouls.in',
+  source: 'https://source.in',
+  whatsappGroup: 'https://chat.whatsapp.com/FbOlj3NEtbh3AsnIPRyYAd',
+};
 
 const CAMPAIGN_PRESETS = [
+  {
+    key: 'waitlist-community',
+    label: 'Waitlist community invite',
+    title: 'Waitlist community links launch',
+    subject: 'Soouls is opening up for our waitlist',
+    body: `# Soouls is opening up for our waitlist
+
+Hi there,
+
+You joined the Soouls waitlist early, and we are grateful you are part of the first circle.
+
+The first version of Soouls is live for you to explore. Start with one honest entry, come back when your thoughts feel loud, and help us shape a calmer way to reflect.
+
+- Website: ${SOOULS_LINKS.website}
+- Source: ${SOOULS_LINKS.source}
+- Instagram: ${SOOULS_LINKS.instagram}
+- X: ${SOOULS_LINKS.x}
+- LinkedIn: ${SOOULS_LINKS.linkedin}
+- WhatsApp community: ${SOOULS_LINKS.whatsappGroup}
+
+Thank you for being here at the beginning.`,
+    whatsapp: `Soouls is opening up for our waitlist.
+
+Website: ${SOOULS_LINKS.website}
+Source: ${SOOULS_LINKS.source}
+Instagram: ${SOOULS_LINKS.instagram}
+X: ${SOOULS_LINKS.x}
+LinkedIn: ${SOOULS_LINKS.linkedin}
+WhatsApp community: ${SOOULS_LINKS.whatsappGroup}
+
+Thank you for being part of the beginning.`,
+    ctaLabel: 'Join the Soouls Community',
+    ctaUrl: SOOULS_LINKS.whatsappGroup,
+    targetBillingTier: 'waitlist_all',
+    channels: ['email', 'whatsapp'],
+  },
   {
     key: 'thank-you',
     label: 'Signup thank you',
@@ -90,6 +140,14 @@ export function MessagingSection() {
   const [sendingTest, setSendingTest] = useState(false);
   const [testEmail, setTestEmail] = useState('');
   const [showTestDialog, setShowTestDialog] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+
+  const { data: campaignDetail } = useQuery({
+    queryKey: ['campaign-detail', selectedCampaignId],
+    queryFn: () => api<any>(`/command-api/messaging/campaigns/${selectedCampaignId}`),
+    enabled: !!selectedCampaignId,
+    refetchInterval: 5000,
+  });
 
   const [composeBrand, setComposeBrand] = useState<'soouls' | 'soouls-studio' | 'founder-desk'>(
     'soouls',
@@ -116,6 +174,12 @@ export function MessagingSection() {
     setComposeWhatsappBody(preset.whatsapp);
     setComposeCtaLabel(preset.ctaLabel);
     setComposeCtaUrl(preset.ctaUrl);
+    if ('targetBillingTier' in preset) {
+      setTargetBillingTier(preset.targetBillingTier);
+    }
+    if ('channels' in preset) {
+      setComposeChannels([...preset.channels]);
+    }
     setIsComposing(true);
   }
 
@@ -184,6 +248,16 @@ export function MessagingSection() {
     }
   }
 
+  async function handleStopCampaign(campaignId: string) {
+    try {
+      await api(`/command-api/messaging/campaigns/${campaignId}/stop`, { method: 'POST' });
+      setFlash('Campaign stopped successfully.');
+      invalidate();
+    } catch (err) {
+      setFlash(err instanceof Error ? err.message : 'Failed to stop campaign');
+    }
+  }
+
   if (!messaging) {
     return (
       <div className="animate-pulse space-y-6">
@@ -201,6 +275,9 @@ export function MessagingSection() {
         : composeChannels.includes('whatsapp') && !composeChannels.includes('email')
           ? messaging.stats.whatsappReachable
           : messaging.stats.emailReachable;
+  const canSendSelectedChannels =
+    (!composeChannels.includes('email') || messaging.providerHealth.emailConfigured) &&
+    (!composeChannels.includes('whatsapp') || messaging.providerHealth.whatsappConfigured);
 
   return (
     <div className="space-y-8">
@@ -390,10 +467,10 @@ export function MessagingSection() {
                   onChange={(e) =>
                     setComposeBrand(e.target.value as 'soouls' | 'soouls-studio' | 'founder-desk')
                   }
-                  className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white outline-none"
+                  className={SELECT_CLASS}
                 >
                   {messaging.brands.map((b) => (
-                    <option key={b.key} value={b.key}>
+                    <option key={b.key} value={b.key} className={OPTION_CLASS}>
                       {b.label}
                     </option>
                   ))}
@@ -418,10 +495,16 @@ export function MessagingSection() {
                   <button
                     key={sender.email}
                     type="button"
+                    disabled={!sender.default}
+                    title={
+                      sender.default
+                        ? 'Active sender configured on the backend'
+                        : 'Verify this sender in Resend and set MESSAGING_FROM_EMAIL before using it'
+                    }
                     className={`rounded-lg px-3 py-2 text-xs transition-all border ${
                       sender.default
                         ? 'border-amber-400/30 bg-amber-400/10 text-amber-300'
-                        : 'border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-white'
+                        : 'cursor-not-allowed border-white/[0.08] bg-white/[0.03] text-slate-500 opacity-70'
                     }`}
                   >
                     <span className="font-medium">{sender.label}</span>
@@ -429,8 +512,9 @@ export function MessagingSection() {
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-[10px] text-slate-600">
-                Requires verified domain on Resend. Currently active: {ACTIVE_SENDER_EMAIL}
+              <p className="mt-2 text-[10px] text-slate-500">
+                Actual sender is enforced by backend env MESSAGING_FROM_EMAIL after Resend domain
+                verification. Currently active: {ACTIVE_SENDER_EMAIL}
               </p>
             </div>
 
@@ -508,7 +592,7 @@ export function MessagingSection() {
                   className="rounded-md px-2 py-1 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors"
                   title="Bullet List"
                 >
-                  • List
+                  - List
                 </button>
                 <button
                   type="button"
@@ -525,7 +609,7 @@ export function MessagingSection() {
                   className="rounded-md px-2 py-1 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors"
                   title="Insert Link"
                 >
-                  🔗 Link
+                  Link
                 </button>
                 <button
                   type="button"
@@ -533,7 +617,7 @@ export function MessagingSection() {
                   className="rounded-md px-2 py-1 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors"
                   title="Horizontal Rule"
                 >
-                  ― HR
+                  HR
                 </button>
                 <button
                   type="button"
@@ -541,14 +625,20 @@ export function MessagingSection() {
                   className="rounded-md px-2 py-1 text-xs text-slate-400 hover:bg-white/[0.06] hover:text-white transition-colors"
                   title="Blockquote"
                 >
-                  ❝ Quote
+                  Quote
                 </button>
 
                 <div className="ml-auto flex items-center gap-2">
-                  <select className="rounded-md border border-white/[0.08] bg-transparent px-2 py-1 text-xs text-slate-400 outline-none">
-                    <option value="normal">Normal</option>
-                    <option value="large">Large Text</option>
-                    <option value="small">Small Text</option>
+                  <select className={SMALL_SELECT_CLASS}>
+                    <option value="normal" className={OPTION_CLASS}>
+                      Normal
+                    </option>
+                    <option value="large" className={OPTION_CLASS}>
+                      Large Text
+                    </option>
+                    <option value="small" className={OPTION_CLASS}>
+                      Small Text
+                    </option>
                   </select>
                 </div>
               </div>
@@ -558,7 +648,7 @@ export function MessagingSection() {
                 value={composeBody}
                 onChange={(e) => setComposeBody(e.target.value)}
                 placeholder={
-                  '# Hello 👋\n\nWrite your message here using **markdown** formatting...\n\nTry the toolbar above for quick formatting.'
+                  '# Hello\n\nWrite your message here using **markdown** formatting...\n\nTry the toolbar above for quick formatting.'
                 }
                 rows={12}
                 className="w-full resize-y rounded-b-xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm font-mono text-white placeholder:text-slate-600 outline-none transition-colors focus:border-amber-400/30"
@@ -568,7 +658,7 @@ export function MessagingSection() {
                   Supports: **bold**, *italic*, # headings, - lists, [links](url), &gt; quotes
                 </p>
                 <p className="text-[10px] text-slate-500">
-                  {composeBody.length} chars · ~{Math.ceil(composeBody.length / 250)} min read
+                  {composeBody.length} chars - ~{Math.ceil(composeBody.length / 250)} min read
                 </p>
               </div>
             </div>
@@ -620,14 +710,26 @@ export function MessagingSection() {
                     id="targetBillingTier"
                     value={targetBillingTier}
                     onChange={(e) => setTargetBillingTier(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none"
+                    className={SELECT_CLASS}
                   >
-                    <option value="all">All Users</option>
-                    <option value="waitlist">Signed-up waitlist users</option>
-                    <option value="waitlist_all">Full waitlist audience</option>
-                    <option value="premium">Premium Only</option>
-                    <option value="enterprise">Enterprise Only</option>
-                    <option value="free">Free Only</option>
+                    <option value="all" className={OPTION_CLASS}>
+                      All Users
+                    </option>
+                    <option value="waitlist" className={OPTION_CLASS}>
+                      Signed-up waitlist users
+                    </option>
+                    <option value="waitlist_all" className={OPTION_CLASS}>
+                      Full waitlist audience
+                    </option>
+                    <option value="premium" className={OPTION_CLASS}>
+                      Premium Only
+                    </option>
+                    <option value="enterprise" className={OPTION_CLASS}>
+                      Enterprise Only
+                    </option>
+                    <option value="free" className={OPTION_CLASS}>
+                      Free Only
+                    </option>
                   </select>
                 </div>
                 <div>
@@ -641,12 +743,20 @@ export function MessagingSection() {
                     id="targetSignupDate"
                     value={targetSignupDate}
                     onChange={(e) => setTargetSignupDate(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none"
+                    className={SELECT_CLASS}
                   >
-                    <option value="any">Any Time</option>
-                    <option value="last_7_days">Last 7 Days</option>
-                    <option value="last_30_days">Last 30 Days</option>
-                    <option value="older_than_30">Older than 30 Days</option>
+                    <option value="any" className={OPTION_CLASS}>
+                      Any Time
+                    </option>
+                    <option value="last_7_days" className={OPTION_CLASS}>
+                      Last 7 Days
+                    </option>
+                    <option value="last_30_days" className={OPTION_CLASS}>
+                      Last 30 Days
+                    </option>
+                    <option value="older_than_30" className={OPTION_CLASS}>
+                      Older than 30 Days
+                    </option>
                   </select>
                 </div>
                 <div>
@@ -660,12 +770,20 @@ export function MessagingSection() {
                     id="targetNodeCount"
                     value={targetNodeCount}
                     onChange={(e) => setTargetNodeCount(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white outline-none"
+                    className={SELECT_CLASS}
                   >
-                    <option value="any">Any</option>
-                    <option value="gt_5">More than 5 nodes</option>
-                    <option value="gt_50">Power users (&gt; 50)</option>
-                    <option value="eq_0">Zero nodes</option>
+                    <option value="any" className={OPTION_CLASS}>
+                      Any
+                    </option>
+                    <option value="gt_5" className={OPTION_CLASS}>
+                      More than 5 nodes
+                    </option>
+                    <option value="gt_50" className={OPTION_CLASS}>
+                      Power users (&gt; 50)
+                    </option>
+                    <option value="eq_0" className={OPTION_CLASS}>
+                      Zero nodes
+                    </option>
                   </select>
                 </div>
               </div>
@@ -679,6 +797,12 @@ export function MessagingSection() {
                   Estimated recipients: ~{estimatedAudience.toLocaleString()}
                 </span>
               </div>
+              {!canSendSelectedChannels && (
+                <div className="mt-3 rounded-lg border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs text-rose-200">
+                  Connect the selected provider first. Email requires Resend env values; WhatsApp
+                  requires Twilio WhatsApp env values.
+                </div>
+              )}
               <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-3">
                 <div className="rounded-lg bg-black/15 px-3 py-2">
                   <div className="text-slate-500">Email reachable</div>
@@ -748,7 +872,8 @@ export function MessagingSection() {
                       !composeTitle ||
                       !composeSubject ||
                       !composeBody ||
-                      composeChannels.length === 0
+                      composeChannels.length === 0 ||
+                      !canSendSelectedChannels
                     }
                   >
                     <div className="flex items-center gap-2">
@@ -833,7 +958,20 @@ export function MessagingSection() {
                         <div className="text-sm font-medium text-white">{campaign.title}</div>
                         <div className="mt-0.5 text-xs text-slate-400">{campaign.subject}</div>
                       </div>
-                      <StatusBadge status={campaign.status} />
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={campaign.status} />
+                        {(campaign.status === 'sending' || campaign.status === 'queued') && (
+                          <PermissionGate permission="mutate:messaging">
+                            <button
+                              type="button"
+                              onClick={() => handleStopCampaign(campaign.id)}
+                              className="rounded bg-rose-500/10 px-2 py-1 text-[10px] font-medium text-rose-400 transition-colors hover:bg-rose-500/20"
+                            >
+                              Stop
+                            </button>
+                          </PermissionGate>
+                        )}
+                      </div>
                     </div>
 
                     {/* Delivery Progress */}
@@ -854,16 +992,25 @@ export function MessagingSection() {
                       </div>
                     )}
 
-                    <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-500">
-                      <span className="flex items-center gap-1">
-                        {channels.includes('email') && <Mail className="h-3 w-3" />}
-                        {channels.includes('whatsapp') && (
-                          <MessageSquareShare className="h-3 w-3" />
-                        )}
-                        {channels.join(' + ')}
-                      </span>
-                      <span>·</span>
-                      <span>{formatRelativeTime(campaign.createdAt)}</span>
+                    <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          {channels.includes('email') && <Mail className="h-3 w-3" />}
+                          {channels.includes('whatsapp') && (
+                            <MessageSquareShare className="h-3 w-3" />
+                          )}
+                          {channels.join(' + ')}
+                        </span>
+                        <span>·</span>
+                        <span>{formatRelativeTime(campaign.createdAt)}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCampaignId(campaign.id)}
+                        className="text-amber-400 hover:text-amber-300 font-medium transition-colors"
+                      >
+                        View Details
+                      </button>
                     </div>
                   </div>
                 );
@@ -945,6 +1092,77 @@ export function MessagingSection() {
                   </div>
                 )}
               </ActionButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedCampaignId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl border border-white/[0.1] bg-[#0a0f1e] shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-white/[0.08] flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Campaign Details</h3>
+                <p className="text-sm text-slate-400">
+                  {campaignDetail?.campaign?.title || 'Loading...'}
+                </p>
+              </div>
+              <ActionButton onClick={() => setSelectedCampaignId(null)}>Close</ActionButton>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              {!campaignDetail ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-6 w-6 animate-spin text-amber-400" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <div className="text-xs text-slate-500 mb-1">Status</div>
+                      <div className="font-medium text-white capitalize">{campaignDetail.campaign.status}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <div className="text-xs text-slate-500 mb-1">Total Target</div>
+                      <div className="font-medium text-white">{campaignDetail.campaign.totalRecipients || 0}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                      <div className="text-xs text-slate-500 mb-1">Sent</div>
+                      <div className="font-medium text-white">{campaignDetail.campaign.sentCount || 0}</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold text-white mb-3">Delivery Logs</h4>
+                    {campaignDetail.deliveries?.length === 0 ? (
+                      <p className="text-sm text-slate-500">No deliveries recorded yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {campaignDetail.deliveries?.map((delivery: any) => (
+                          <div key={delivery.id} className="flex flex-col gap-1 rounded-lg border border-white/[0.04] bg-white/[0.01] p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {delivery.channel === 'email' ? <Mail className="h-3 w-3 text-slate-400" /> : <MessageSquareShare className="h-3 w-3 text-slate-400" />}
+                                <span className="text-sm text-white">{delivery.recipient}</span>
+                              </div>
+                              <StatusBadge status={delivery.status} />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-slate-500">
+                              <span>User ID: {delivery.userId || 'N/A'}</span>
+                              <span>{new Date(delivery.createdAt).toLocaleString()}</span>
+                            </div>
+                            {delivery.errorDetails && (
+                              <div className="mt-1 text-xs text-rose-400 bg-rose-500/10 p-2 rounded">
+                                {delivery.errorDetails}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

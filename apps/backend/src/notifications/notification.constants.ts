@@ -3,6 +3,20 @@ export const DEFAULT_FRONTEND_URL = process.env.FRONTEND_URL ?? '';
 export const DEFAULT_COMMAND_CENTER_URL = process.env.COMMAND_CENTER_URL ?? '';
 export const NOTIFICATION_BATCH_SIZE = 20;
 
+export const SOOULS_LINKS = {
+  website: process.env.SOOULS_WEBSITE_URL ?? 'https://soouls.in',
+  source: process.env.SOOULS_SOURCE_URL ?? 'https://source.in',
+  instagram: process.env.SOOULS_INSTAGRAM_URL ?? 'https://www.instagram.com/soouls.in/',
+  x: process.env.SOOULS_X_URL ?? 'https://x.com/Soouls_in',
+  linkedin:
+    process.env.SOOULS_LINKEDIN_URL ?? 'https://www.linkedin.com/company/soouls/?viewAsMember=true',
+  whatsappGroup:
+    process.env.SOOULS_WHATSAPP_GROUP_URL ?? 'https://chat.whatsapp.com/FbOlj3NEtbh3AsnIPRyYAd',
+  emailHeroImage:
+    process.env.SOOULS_EMAIL_HERO_IMAGE_URL ??
+    'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80',
+};
+
 export type NotificationJobMap = {
   'welcome-sequence': { userId: string };
   'secure-access': { email: string };

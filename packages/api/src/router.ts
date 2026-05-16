@@ -152,6 +152,9 @@ export type MessagingApi = {
     providerHealth: {
       emailConfigured: boolean;
       whatsappConfigured: boolean;
+      queueConfigured: boolean;
+      newsletterConfigured: boolean;
+      commandCenterConfigured: boolean;
     };
     templates: Array<{
       key: string;
@@ -162,6 +165,7 @@ export type MessagingApi = {
       totalUsers: number;
       emailReachable: number;
       whatsappReachable: number;
+      waitlistReachable: number;
       campaignsSent: number;
     } | null;
     brands: Array<{

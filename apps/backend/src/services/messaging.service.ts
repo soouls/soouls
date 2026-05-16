@@ -191,11 +191,11 @@ export class MessagingService {
     const [emailReachableRow] = await db
       .select({ count: sql<number>`count(*)` })
       .from(users)
-      .where(sql`${users.email} is not null`);
+      .where(and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)));
     const [whatsappReachableRow] = await db
       .select({ count: sql<number>`count(*)` })
       .from(users)
-      .where(sql`${users.phoneNumber} is not null`);
+      .where(and(sql`${users.phoneNumber} is not null`, eq(users.marketingWhatsappOptIn, true)));
     const [waitlistReachableRow] = await db
       .select({ count: sql<number>`count(*)` })
       .from(waitlistUsers);
@@ -294,6 +294,18 @@ export class MessagingService {
 
     if (sanitizedChannels.length === 0) {
       throw new Error('Choose at least one channel for the campaign.');
+    }
+
+    const providerHealth = this.getProviderHealth();
+    if (sanitizedChannels.includes('email') && !providerHealth.emailConfigured) {
+      throw new Error(
+        'Email provider is not configured. Set RESEND_API_KEY and MESSAGING_FROM_EMAIL before sending email campaigns.',
+      );
+    }
+    if (sanitizedChannels.includes('whatsapp') && !providerHealth.whatsappConfigured) {
+      throw new Error(
+        'WhatsApp provider is not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_FROM before sending WhatsApp campaigns.',
+      );
     }
 
     const template = buildCampaignTemplate({
@@ -613,5 +625,57 @@ export class MessagingService {
 
   async createAdminCampaign(input: CampaignInput) {
     return this.queueCampaign(input, null);
+  }
+
+  async stopCampaign(userId: string, campaignId: string) {
+    const sender = await this.getUserByDbId(userId);
+    if (!this.isAdmin(sender)) {
+      throw new Error('You are not allowed to stop campaigns.');
+    }
+
+    await this.notificationDispatch.stopCampaign(campaignId);
+    await this.redis.del('messaging:admin:center');
+    return { campaignId, status: 'stopped' as const };
+  }
+
+  async stopAdminCampaign(campaignId: string) {
+    await this.notificationDispatch.stopCampaign(campaignId);
+    await this.redis.del('messaging:admin:center');
+    return { campaignId, status: 'stopped' as const };
+  }
+
+  async getCampaignDetail(campaignId: string) {
+    const [campaign] = await db
+      .select({
+        id: messageCampaigns.id,
+        brandKey: messageCampaigns.brandKey,
+        title: messageCampaigns.title,
+        subject: messageCampaigns.subject,
+        status: messageCampaigns.status,
+        channels: messageCampaigns.channels,
+        totalRecipients: messageCampaigns.totalRecipients,
+        emailRecipients: messageCampaigns.emailRecipients,
+        whatsappRecipients: messageCampaigns.whatsappRecipients,
+        lastSentAt: messageCampaigns.lastSentAt,
+        createdAt: messageCampaigns.createdAt,
+        markdownBody: messageCampaigns.markdownBody,
+        whatsappBody: messageCampaigns.whatsappBody,
+        ctaLabel: messageCampaigns.ctaLabel,
+        ctaUrl: messageCampaigns.ctaUrl,
+      })
+      .from(messageCampaigns)
+      .where(eq(messageCampaigns.id, campaignId))
+      .limit(1);
+
+    if (!campaign) {
+      throw new Error('Campaign not found.');
+    }
+
+    const deliveryData = await this.notificationDispatch.getCampaignDeliveries(campaignId);
+
+    return {
+      campaign,
+      ...deliveryData,
+    };
   }
 }

@@ -1170,6 +1170,37 @@ export class CommandCenterService {
     return campaign;
   }
 
+  async stopMessagingCampaign(
+    clerkId: string,
+    campaignId: string,
+    ipAddress?: string | null,
+  ) {
+    const actor = await this.ensureAuthorizedAdmin(clerkId, ipAddress);
+    assertPermission(actor, 'mutate:messaging');
+    const result = await this.messagingService.stopAdminCampaign(campaignId);
+
+    await this.writeAuditLog({
+      actor,
+      action: 'messaging.campaign_stopped',
+      targetType: 'message_campaign',
+      targetId: campaignId,
+      ipAddress,
+      metadata: { campaignId },
+    });
+
+    return result;
+  }
+
+  async getMessagingCampaignDetail(
+    clerkId: string,
+    campaignId: string,
+    ipAddress?: string | null,
+  ) {
+    const actor = await this.ensureAuthorizedAdmin(clerkId, ipAddress);
+    assertPermission(actor, 'view:all');
+    return this.messagingService.getCampaignDetail(campaignId);
+  }
+
   async getBillingOverview(clerkId: string, ipAddress?: string | null) {
     const actor = await this.ensureAuthorizedAdmin(clerkId, ipAddress);
     assertPermission(actor, 'view:all');

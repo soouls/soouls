@@ -12,7 +12,7 @@ import {
 import { render } from '@react-email/render';
 import { buildExcerpt, markdownToHtml, markdownToText } from '@soouls/logic/messaging';
 import React from 'react';
-import { getCommandCenterUrl, makeAbsoluteUrl } from './notification.constants';
+import { SOOULS_LINKS, getCommandCenterUrl, makeAbsoluteUrl } from './notification.constants';
 import {
   BRAND_PRESETS,
   type MessageTemplate,
@@ -293,6 +293,48 @@ function TransactionalEmailShell(props: {
               : null,
           ),
           React.createElement(
+            Section,
+            {
+              style: {
+                marginTop: '22px',
+                padding: '16px 20px',
+                borderRadius: '18px',
+                background: 'rgba(250,204,21,0.06)',
+                border: '1px solid rgba(250,204,21,0.14)',
+              },
+            },
+            React.createElement(
+              Text,
+              {
+                style: {
+                  margin: '0 0 10px',
+                  color: '#fef3c7',
+                  fontSize: '12px',
+                  fontWeight: '800',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase' as const,
+                },
+              },
+              'Stay Connected',
+            ),
+            React.createElement(
+              Text,
+              {
+                style: {
+                  margin: '0',
+                  fontSize: '13px',
+                  lineHeight: '1.8',
+                  color: '#94a3b8',
+                },
+              },
+              React.createElement('a', { href: SOOULS_LINKS.website, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'Website'),
+              React.createElement('a', { href: SOOULS_LINKS.instagram, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'Instagram'),
+              React.createElement('a', { href: SOOULS_LINKS.x, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'X'),
+              React.createElement('a', { href: SOOULS_LINKS.linkedin, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'LinkedIn'),
+              React.createElement('a', { href: SOOULS_LINKS.whatsappGroup, style: { color: '#fde68a', textDecoration: 'none' } }, 'WhatsApp Group'),
+            ),
+          ),
+          React.createElement(
             Text,
             {
               style: {
@@ -361,9 +403,21 @@ export function buildCampaignTemplate(input: {
   const previewText = buildExcerpt(input.markdownBody, 120);
   const textBody = markdownToText(input.markdownBody);
   const htmlBody = markdownToHtml(input.markdownBody);
+  const socialLinkStyle =
+    'display:inline-block;margin:0 6px 8px 0;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:#fde68a;text-decoration:none;font-size:12px;font-weight:700;';
+  const socialLinksHtml = [
+    ['Website', SOOULS_LINKS.website],
+    ['Source', SOOULS_LINKS.source],
+    ['Instagram', SOOULS_LINKS.instagram],
+    ['X', SOOULS_LINKS.x],
+    ['LinkedIn', SOOULS_LINKS.linkedin],
+    ['WhatsApp Group', SOOULS_LINKS.whatsappGroup],
+  ]
+    .map(([label, href]) => `<a href="${href}" style="${socialLinkStyle}">${label}</a>`)
+    .join('');
   const ctaBlock =
     input.ctaLabel && input.ctaUrl
-      ? `<div style="margin-top:28px;"><a href="${input.ctaUrl}" style="display:inline-block;padding:14px 20px;border-radius:999px;background:linear-gradient(135deg,#f97316,#fb923c);color:#0f172a;text-decoration:none;font-weight:700;">${input.ctaLabel}</a></div>`
+      ? `<div style="margin-top:28px;"><a href="${input.ctaUrl}" style="display:inline-block;padding:15px 22px;border-radius:999px;background:linear-gradient(135deg,#facc15,#fb923c 45%,#f97316);color:#111827;text-decoration:none;font-weight:800;box-shadow:0 16px 34px rgba(249,115,22,0.28);">${input.ctaLabel}</a></div>`
       : '';
 
   const html = `
@@ -375,25 +429,29 @@ export function buildCampaignTemplate(input: {
         <title>${input.subject}</title>
         <meta name="description" content="${previewText}" />
       </head>
-      <body style="margin:0;padding:32px 16px;background:#020617;font-family:Inter,Arial,sans-serif;color:#e2e8f0;">
-        <div style="max-width:680px;margin:0 auto;background:radial-gradient(circle at top,#1e293b 0%,#0f172a 48%,#020617 100%);border:1px solid rgba(255,255,255,0.08);border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(15,23,42,0.45);">
-          <div style="padding:32px 32px 12px;background:linear-gradient(180deg,rgba(249,115,22,0.22),rgba(15,23,42,0));">
-            <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.08);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#fdba74;">
+      <body style="margin:0;padding:34px 14px;background:#08090c;font-family:Inter,Arial,sans-serif;color:#e5e7eb;">
+        <div style="max-width:720px;margin:0 auto;background:#111318;border:1px solid rgba(255,255,255,0.11);border-radius:30px;overflow:hidden;box-shadow:0 34px 90px rgba(0,0,0,0.46);">
+          <div style="padding:34px 34px 30px;background-image:linear-gradient(135deg,rgba(8,9,12,0.96),rgba(38,20,10,0.84)),url('${SOOULS_LINKS.emailHeroImage}');background-size:cover;background-position:center;">
+            <div style="display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(0,0,0,0.36);border:1px solid rgba(255,255,255,0.16);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#fcd34d;">
               ${brand.eyebrow}
             </div>
-            <h1 style="margin:22px 0 12px;font-size:34px;line-height:1.1;color:#fff7ed;font-family:Georgia,'Times New Roman',serif;">
+            <h1 style="margin:24px 0 14px;font-size:42px;line-height:1.02;color:#fff7ed;font-family:Georgia,'Times New Roman',serif;max-width:620px;">
               ${input.subject}
             </h1>
-            <p style="margin:0;color:#cbd5e1;font-size:16px;line-height:1.7;max-width:560px;">
+            <p style="margin:0;color:#fef3c7;font-size:17px;line-height:1.7;max-width:580px;">
               ${previewText}
             </p>
           </div>
-          <div style="padding:12px 32px 32px;">
-            <div style="padding:24px;border-radius:24px;background:rgba(15,23,42,0.55);border:1px solid rgba(255,255,255,0.08);">
+          <div style="padding:28px 34px 34px;background:linear-gradient(180deg,#14161c,#0b0d12);">
+            <div style="padding:26px;border-radius:24px;background:#181b22;border:1px solid rgba(255,255,255,0.09);">
               ${htmlBody}
               ${ctaBlock}
             </div>
-            <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;line-height:1.7;color:#94a3b8;">
+            <div style="margin-top:22px;padding:20px;border-radius:22px;background:rgba(250,204,21,0.06);border:1px solid rgba(250,204,21,0.14);">
+              <div style="margin:0 0 12px;color:#fef3c7;font-size:13px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;">Join the Soouls community</div>
+              ${socialLinksHtml}
+            </div>
+            <div style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;line-height:1.7;color:#a1a1aa;">
               ${brand.footer}
             </div>
           </div>
@@ -402,7 +460,16 @@ export function buildCampaignTemplate(input: {
     </html>
   `;
 
-  const whatsappBody = [input.whatsappBody?.trim() || textBody, input.ctaUrl]
+  const communityLinksText = [
+    `Website: ${SOOULS_LINKS.website}`,
+    `Source: ${SOOULS_LINKS.source}`,
+    `Instagram: ${SOOULS_LINKS.instagram}`,
+    `X: ${SOOULS_LINKS.x}`,
+    `LinkedIn: ${SOOULS_LINKS.linkedin}`,
+    `WhatsApp group: ${SOOULS_LINKS.whatsappGroup}`,
+  ].join('\n');
+
+  const whatsappBody = [input.whatsappBody?.trim() || textBody, input.ctaUrl, communityLinksText]
     .filter(Boolean)
     .join('\n\n');
 
@@ -411,8 +478,8 @@ export function buildCampaignTemplate(input: {
     previewText,
     html,
     text: input.ctaUrl
-      ? `${textBody}\n\n${input.ctaLabel ?? 'Open Soouls'}: ${input.ctaUrl}`
-      : textBody,
+      ? `${textBody}\n\n${input.ctaLabel ?? 'Open Soouls'}: ${input.ctaUrl}\n\n${communityLinksText}`
+      : `${textBody}\n\n${communityLinksText}`,
     whatsappBody,
   } satisfies MessageTemplate;
 }
@@ -421,29 +488,49 @@ export async function buildWelcomeTemplate(recipient: UserMessagingProfile) {
   const brand = BRAND_PRESETS.soouls;
   const firstName = recipient.name?.split(' ')[0] || 'there';
   const dashboardUrl = makeAbsoluteUrl('/home');
-  const markdownBody = `# Welcome to Soouls
+  const markdownBody = `# Thank You for Joining Soouls
 
 Hi **${firstName}**,
 
-Thank you for signing up. Your space is ready for reflective journaling, non-linear thinking, and the kind of product experience that feels calm instead of noisy.
+Thank you for signing up to Soouls — we're thrilled to have you on board. We've been working on something special, and we're almost ready to launch.
 
-- Start your first entry
-- Explore your dashboard
-- Capture ideas before they disappear
+Your early access means a lot to us. You're not just a user — you're part of the founding community that will shape how Soouls grows.
 
-We're glad you're here.`;
+## What's Next
+
+We're putting the finishing touches on the experience. You'll be among the first to know when we go live. In the meantime:
+
+- Follow us on social media for the latest updates and behind-the-scenes looks
+- Join our WhatsApp community to connect with other early members
+- Visit our website to stay in the loop
+
+## Stay Connected
+
+- **Website**: ${SOOULS_LINKS.website}
+- **Instagram**: ${SOOULS_LINKS.instagram}
+- **X (Twitter)**: ${SOOULS_LINKS.x}
+- **LinkedIn**: ${SOOULS_LINKS.linkedin}
+- **WhatsApp Group**: ${SOOULS_LINKS.whatsappGroup}
+- **Source**: ${SOOULS_LINKS.source}
+
+If you ever need to reach us, just reply to this email or connect with us on any of our socials. We read every message.
+
+We're building Soouls for people who value calm, depth, and meaningful digital experiences. Thank you for believing in that vision.
+
+With gratitude,
+The Soouls Team`;
 
   return renderTransactionalTemplate({
     brandKey: brand.key,
-    eyebrow: brand.eyebrow,
-    title: 'Welcome to Soouls',
-    previewText: 'Your Soouls account is live, and your reflective workspace is ready.',
+    eyebrow: 'Thank You',
+    title: 'Thank You for Joining Soouls',
+    previewText: 'You\'re in! Thank you for signing up to Soouls. We\'re almost ready to launch.',
     bodyMarkdown: markdownBody,
     bodyText: markdownToText(markdownBody),
-    ctaLabel: 'Open Your Dashboard',
-    ctaUrl: dashboardUrl,
-    footer: brand.footer,
-    whatsappBody: `Welcome to Soouls, ${firstName}. Your space is ready. Open your dashboard and start your first entry.`,
+    ctaLabel: 'Visit Soouls',
+    ctaUrl: SOOULS_LINKS.website,
+    footer: `${brand.footer}\n\nFollow us: Instagram (${SOOULS_LINKS.instagram}) · X (${SOOULS_LINKS.x}) · LinkedIn (${SOOULS_LINKS.linkedin}) · WhatsApp Group (${SOOULS_LINKS.whatsappGroup})`,
+    whatsappBody: `Hey ${firstName}! 👋 Thank you for signing up to Soouls — we're so glad you're here. We're almost ready to launch, and you'll be among the first to experience it.\n\n🔗 Stay connected:\n• Website: ${SOOULS_LINKS.website}\n• Instagram: ${SOOULS_LINKS.instagram}\n• X: ${SOOULS_LINKS.x}\n• LinkedIn: ${SOOULS_LINKS.linkedin}\n• Join our WhatsApp group: ${SOOULS_LINKS.whatsappGroup}\n\nWe're building something special. Thank you for being part of it. 🙏`,
   });
 }
 

@@ -248,6 +248,30 @@ export class CommandCenterController {
     );
   }
 
+  @Post('messaging/campaigns/:campaignId/stop')
+  async stopCampaign(
+    @Req() request: CommandCenterRequest,
+    @Param('campaignId') campaignId: string,
+  ) {
+    return this.commandCenterService.stopMessagingCampaign(
+      this.getClerkId(request),
+      campaignId,
+      request.ip,
+    );
+  }
+
+  @Get('messaging/campaigns/:campaignId')
+  async campaignDetail(
+    @Req() request: CommandCenterRequest,
+    @Param('campaignId') campaignId: string,
+  ) {
+    return this.commandCenterService.getMessagingCampaignDetail(
+      this.getClerkId(request),
+      campaignId,
+      request.ip,
+    );
+  }
+
   @Get('billing')
   async billing(@Req() request: CommandCenterRequest) {
     return this.commandCenterService.getBillingOverview(this.getClerkId(request), request.ip);

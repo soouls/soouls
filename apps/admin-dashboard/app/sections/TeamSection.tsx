@@ -249,10 +249,10 @@ export function TeamSection() {
                       id="invite-role"
                       value={inviteRole}
                       onChange={(e) => setInviteRole(e.target.value as AdminRole)}
-                      className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none"
+                      className="w-full rounded-xl border border-white/[0.08] bg-[#111827] px-4 py-3 text-sm text-slate-100 outline-none transition-colors focus:border-amber-400/30"
                     >
                       {assignableRoles.map((role) => (
-                        <option key={role} value={role}>
+                        <option key={role} value={role} className="bg-[#111827] text-slate-100">
                           {ROLE_LABELS[role]}
                         </option>
                       ))}
