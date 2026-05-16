@@ -162,7 +162,7 @@ function parseHighlightedText(text: string | undefined | null, fallback: string)
     if (part.startsWith('{ts1}')) {
       const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
       return (
-        <span key={i} style={{ color: 'var(--soouls-accent)' }}>
+        <span key={i} className="font-playfair italic" style={{ color: 'var(--soouls-accent)' }}>
           {innerText}
         </span>
       );
@@ -567,18 +567,10 @@ export default function HomePage() {
           Soouls
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/home/canvas"
-            className="flex items-center gap-2.5 rounded-full border px-5 py-2.5 text-sm shadow-md"
-            style={{
-              backgroundColor: 'rgba(17,17,17,0.86)',
-              borderColor: 'var(--soouls-border)',
-              color: 'var(--soouls-text-muted)',
-            }}
-          >
-            <CanvasLoopIcon className="h-[18px] w-[18px]" />
-            <span className="hidden font-medium tracking-wide sm:inline">Canvas</span>
-          </Link>
+        <Link href="/home/canvas" className="soouls-canvas-button px-5 py-2.5 text-sm">
+          <CanvasLoopIcon className="h-[18px] w-[18px]" />
+          <span className="hidden font-medium tracking-wide sm:inline">Canvas</span>
+        </Link>
           <button
             type="button"
             onClick={() => setIsOpen(true)}
@@ -600,14 +592,14 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-[2.5rem] font-light leading-[1.08] tracking-tight text-white md:text-[3.5rem]"
+            className="text-[2.5rem] font-light leading-[1.08] tracking-normal text-white md:text-[3.5rem]"
           >
             You do not need clarity to start. <br className="hidden md:block" />
             Clarity comes after you{' '}
             <Link
               href="/home/new-entry"
-              className="inline-flex items-center gap-1 font-playfair italic underline underline-offset-4"
-              style={{ color: 'var(--soouls-accent)' }}
+            className="inline-flex items-center gap-1 font-playfair italic underline underline-offset-4"
+            style={{ color: 'var(--soouls-accent)' }}
             >
               make entry
             </Link>
@@ -619,8 +611,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15 }}
-            className="w-full rounded-[2rem] p-4 md:p-8"
-            style={{ backgroundColor: 'var(--soouls-bg-surface)' }}
+            className="soouls-panel w-full rounded-[2rem] p-4 md:p-8"
           >
             <div className="flex justify-between items-center mb-6 px-2">
               <div className="flex justify-end gap-2 text-[11px] font-medium tracking-wider text-[var(--soouls-text-faint)]">

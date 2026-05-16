@@ -26,7 +26,7 @@ import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { clearQueryCache } from '../../../src/providers/trpc-provider';
 import { trpc } from '../../../src/utils/trpc';
 
-const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
+const FONT_URBANIST = 'var(--font-urbanist), system-ui, sans-serif';
 
 const ACCENT_OPTIONS: { value: HomeSettings['accentTheme']; label: string; hex: string }[] = [
   { value: 'ember', label: 'Ember', hex: '#F06F4F' },
@@ -228,7 +228,7 @@ export default function SettingsPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden select-none transition-colors duration-300"
+      className="soouls-page flex flex-col relative overflow-hidden select-none transition-colors duration-300"
       style={{
         backgroundColor: 'var(--soouls-bg)',
         color: 'var(--soouls-text)',
@@ -237,12 +237,7 @@ export default function SettingsPage() {
     >
       {/* Giant background "Soouls" watermark */}
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
-          style={{
-            WebkitTextStroke: '1px var(--soouls-overlay-strong)',
-          }}
-        >
+        <span className="soouls-watermark text-[18vw] leading-none">
           Soouls
         </span>
       </div>
@@ -295,9 +290,8 @@ export default function SettingsPage() {
       {/* Main content */}
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
         <section
-          className="flex-1 backdrop-blur-[48px] border-t rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-6"
+          className="soouls-panel flex-1 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-6"
           style={{
-            backgroundColor: 'var(--soouls-bg-panel)',
             borderColor: 'var(--soouls-border)',
             opacity: 0.96,
           }}

@@ -1,5 +1,6 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
+import { Playfair_Display, Urbanist } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/react';
@@ -9,23 +10,24 @@ import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
 import { UiThemeProvider } from '../src/providers/ui-theme-provider';
 import { GlobalMascot } from './components/GlobalMascot';
 
-const geistSans = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-geist-sans',
-});
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
 });
 
-const playfair = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-playfair',
+const urbanist = Urbanist({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-urbanist',
+  weight: ['300', '400', '500', '600', '700', '800'],
 });
 
-const urbanist = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-urbanist',
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-playfair',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
@@ -48,7 +50,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${urbanist.variable} font-urbanist`}
+          className={`${geistMono.variable} ${urbanist.variable} ${playfair.variable} font-urbanist`}
           suppressHydrationWarning
         >
           <CSPostHogProvider>

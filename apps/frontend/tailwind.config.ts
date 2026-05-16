@@ -34,7 +34,9 @@ const config: Config = {
       },
       fontFamily: {
         editorial: ['var(--font-playfair)', 'serif'],
-        clarity: ['var(--font-geist-sans)', 'sans-serif'],
+        clarity: ['var(--font-urbanist)', 'sans-serif'],
+        urbanist: ['var(--font-urbanist)', 'sans-serif'],
+        playfair: ['var(--font-playfair)', 'Georgia', 'serif'],
         mono: ['var(--font-geist-mono)', 'monospace'],
       },
       backgroundImage: {

@@ -8,7 +8,7 @@ import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { formatCurrentMonthRange } from '../../../src/utils/home';
 import { trpc } from '../../../src/utils/trpc';
 
-const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
+const FONT_URBANIST = 'var(--font-urbanist), system-ui, sans-serif';
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,e07a5f&radius=50`;
@@ -221,7 +221,7 @@ export default function InsightsPage() {
       if (part.startsWith('{ts1}')) {
         const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
         return (
-          <span key={i} style={{ color: 'var(--soouls-accent)' }}>
+          <span key={i} className="font-playfair italic" style={{ color: 'var(--soouls-accent)' }}>
             {innerText}
           </span>
         );
@@ -240,25 +240,15 @@ export default function InsightsPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden select-none transition-colors duration-300"
+      className="soouls-page flex flex-col relative overflow-hidden select-none transition-colors duration-300"
       style={{
         backgroundColor: 'var(--soouls-bg)',
         color: 'var(--soouls-text)',
         fontFamily: FONT_URBANIST,
       }}
     >
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-        .font-playfair { font-family: 'Playfair Display', serif; }
-      `}</style>
-
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.9] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[18vw] font-urbanist font-bold leading-none text-transparent tracking-widest"
-          style={{
-            WebkitTextStroke: '2.5px var(--soouls-overlay-strong)',
-          }}
-        >
+        <span className="soouls-watermark text-[18vw] leading-none">
           Soouls
         </span>
       </div>
@@ -297,11 +287,7 @@ export default function InsightsPage() {
         style={{ marginTop: 'calc(9vw - 4rem)' }}
       >
         <section
-          className="w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6"
-          style={{
-            backgroundColor: 'var(--soouls-bg-surface)',
-            border: '1px solid var(--soouls-border)',
-          }}
+          className="soouls-panel w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6"
         >
           <div className="flex justify-between items-center mb-6 px-2">
             <h1 className="text-[26px] font-light tracking-[-0.01em] text-[#f0ece6] font-sans">

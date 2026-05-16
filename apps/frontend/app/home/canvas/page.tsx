@@ -119,7 +119,7 @@ export default function CanvasPage() {
       <>
         {parts.map((part: string, i: number) =>
           part.toLowerCase() === query.toLowerCase() ? (
-            <span key={i} className="text-[var(--soouls-accent)]">
+            <span key={i} className="font-playfair italic text-[var(--soouls-accent)]">
               {part}
             </span>
           ) : (
@@ -170,30 +170,17 @@ export default function CanvasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1F1F1F] text-[#EFEDDD] flex flex-col relative overflow-hidden font-urbanist select-none">
-      {/* Playfair Display Import */}
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-        .font-playfair { font-family: 'Playfair Display', serif; }
-        
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); border-radius: 10px; }
-      `}</style>
-
+    <div className="soouls-page flex flex-col relative overflow-hidden select-none">
       {/* BACKGROUND WATERMARK */}
       <div className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none opacity-[0.4] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[14vw] font-urbanist font-light leading-none text-transparent tracking-widest uppercase"
-          style={{ WebkitTextStroke: '1px rgba(255,255,255,0.1)' }}
-        >
+        <span className="soouls-watermark text-[14vw] leading-none uppercase">
           Soouls in
         </span>
       </div>
 
       {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-10 flex justify-between items-center transition-all duration-300">
-        <div className="flex items-center gap-1 text-[22px] font-medium tracking-tight">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 transition-all duration-300 md:p-10">
+        <div className="flex min-w-0 items-center text-[16px] font-medium tracking-normal sm:text-[22px]">
           <button
             type="button"
             onClick={() => router.push('/home')}
@@ -201,20 +188,20 @@ export default function CanvasPage() {
           >
             Home
           </button>
-          <span className="text-white/30">/</span>
+          <span className="text-white/20">/</span>
           <button
             type="button"
             onClick={() => {
               setView('folders');
               setSelectedCluster(null);
             }}
-            className={`${!selectedCluster ? 'text-[var(--soouls-accent)]' : 'text-white/30'} hover:opacity-80 transition-all`}
+            className="text-[var(--soouls-accent)]"
           >
             Canvas
           </button>
           {selectedCluster && (
             <>
-              <span className="text-white/30">/</span>
+              <span className="text-white/20">/</span>
               <span className="text-[var(--soouls-accent)]">{selectedCluster.name}</span>
             </>
           )}
@@ -231,35 +218,36 @@ export default function CanvasPage() {
         </button>
       </header>
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col pt-32 pb-8 h-full">
-        <div className="flex-1 rounded-[40px] bg-[#0A0A0A]/40 backdrop-blur-[64px] border border-white/5 flex overflow-hidden">
+      <main className="flex-1 w-full max-w-[1700px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-24 md:pt-32 pb-8 h-full">
+        <div className="flex-1 flex flex-col lg:flex-row gap-8 min-h-0">
           {/* SIDEBAR */}
-          <div className="w-[420px] border-r border-white/5 flex flex-col bg-black/20">
-            <div className="p-10 space-y-10">
+          <aside className="flex w-full flex-col rounded-[32px] md:rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-6 md:p-10 shadow-2xl backdrop-blur-[60px] lg:w-[420px] shrink-0">
+            <div className="flex flex-col h-full space-y-8 md:space-y-10">
               {view !== 'folders' && (
                 <button
                   type="button"
                   onClick={handleBack}
                   className="flex items-center gap-2 text-white/40 hover:text-white transition-colors group"
                 >
-                  <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                  <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
+                  <span className="text-[20px] font-semibold text-white/90">{selectedCluster?.name}</span>
                 </button>
               )}
 
               <div className="relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                 <input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="search for entries"
-                  className="w-full bg-[#1A1A1A] border border-white/5 rounded-full py-4 pl-14 pr-8 text-white placeholder:text-white/20 focus:outline-none focus:ring-1 focus:ring-[var(--soouls-accent)]/20 shadow-inner transition-all"
+                  className="soouls-search w-full py-5 pl-16 pr-8 text-[18px] text-white placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-[var(--soouls-accent)]/20 transition-all"
                 />
               </div>
 
-              <div className="space-y-6">
+              <div className="flex-1 flex flex-col min-h-0 space-y-6">
                 <div className="flex items-center justify-between gap-3 px-2">
-                  <h3 className="text-white/20 text-[12px] font-bold uppercase tracking-[0.2em]">
-                    {view === 'folders' ? 'Clusters' : 'Entries'}
+                  <h3 className="text-white/20 text-[14px] font-bold uppercase tracking-[0.2em]">
+                    {view === 'folders' ? 'Folders' : 'Entries'}
                   </h3>
                   {view === 'folders' ? (
                     <button
@@ -276,12 +264,12 @@ export default function CanvasPage() {
                   ) : null}
                 </div>
 
-                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
                   {view === 'folders' ? (
                     filteredClusters.length === 0 ? (
                       <div className="rounded-[24px] border border-white/[0.06] bg-white/[0.03] p-6 text-sm leading-relaxed text-white/35">
                         {entries.length === 0
-                          ? 'No entries yet. Start writing to create your first cluster.'
+                          ? 'No entries yet. Start writing to create your first folder.'
                           : 'Smart clustering unavailable - showing by date soon.'}
                       </div>
                     ) : (
@@ -315,17 +303,18 @@ export default function CanvasPage() {
                           className={`p-6 rounded-[24px] border transition-all cursor-pointer group ${selectedEntry?.id === entry.id ? 'bg-[var(--soouls-accent)]/10 border-[var(--soouls-accent)]/40 shadow-[0_0_30px_rgba(var(--soouls-accent-rgb),0.15)]' : 'bg-[#111111]/40 border-white/[0.03] hover:border-white/10'}`}
                         >
                           <div className="flex justify-between items-start mb-3">
-                            <h4 className="text-[18px] font-playfair font-bold text-white/90 group-hover:text-white">
+                            <h4 className="text-[20px] font-playfair font-bold text-[#EFEBDD] group-hover:text-white leading-tight">
                               {getEntryTitle(entry)}
                             </h4>
-                            <span className="text-[9px] text-white/20 uppercase font-bold tracking-widest">
+                            <span className="text-[10px] text-white/20 uppercase font-bold tracking-widest pt-1">
                               {new Date(entry.createdAt)
                                 .toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: '2-digit',
                                   year: 'numeric',
                                 })
-                                .replace(/(\d+)/, '$1,')}
+                                .toUpperCase()
+                                .replace(' ', '. ')}
                             </span>
                           </div>
                           <p className="text-[14px] text-white/30 line-clamp-2 leading-relaxed font-light">
@@ -341,7 +330,7 @@ export default function CanvasPage() {
               {view === 'cluster' && (
                 <button
                   type="button"
-                  className="w-full py-5 rounded-full bg-[#1A1817] border border-[var(--soouls-accent)]/30 text-[var(--soouls-accent)] font-bold text-[14px] flex items-center justify-center gap-3 hover:bg-[var(--soouls-accent)] hover:text-white transition-all shadow-[0_10px_20px_rgba(0,0,0,0.3)] group"
+                  className="w-full py-5 rounded-full bg-[#1A1817] border border-[var(--soouls-accent)]/30 text-[var(--soouls-accent)] font-bold text-[16px] flex items-center justify-center gap-3 hover:bg-[var(--soouls-accent)] hover:text-white transition-all shadow-[0_10px_20px_rgba(0,0,0,0.3)] group mt-auto"
                 >
                   <div className="flex -space-x-1">
                     <div className="w-3.5 h-3.5 rounded-full border border-current opacity-40" />
@@ -352,10 +341,10 @@ export default function CanvasPage() {
                 </button>
               )}
             </div>
-          </div>
+          </aside>
 
           {/* MAIN CANVAS */}
-          <div className="flex-1 relative overflow-hidden bg-[#050505]/40">
+          <section className="relative flex-1 min-h-[60vh] rounded-[32px] md:rounded-[40px] border border-white/[0.04] bg-[#080808]/60 shadow-2xl backdrop-blur-[60px] overflow-hidden">
             {/* Background Rings */}
             <div className="absolute top-[-5%] left-[-5%] w-[500px] h-[500px] rounded-full border border-white/[0.02] pointer-events-none" />
             <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] rounded-full border border-white/[0.01] pointer-events-none" />
@@ -371,17 +360,17 @@ export default function CanvasPage() {
                   className="absolute inset-0 flex flex-col items-center justify-center text-center p-12"
                 >
                   <div className="space-y-12 max-w-3xl relative z-10">
-                    <h2 className="text-[54px] font-playfair italic text-white/95 leading-tight tracking-tight">
+                    <h2 className="text-[36px] font-playfair italic text-[#EFEBDD] leading-[1.1] tracking-normal md:text-[54px]">
                       “Your thoughts are not separate.
                       <br />
                       They are waiting to connect.”
                     </h2>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-center gap-4 text-white/20 font-bold tracking-[0.5em] uppercase text-[10px]">
-                        <MousePointer2 className="w-4 h-4 text-[var(--soouls-accent)] opacity-50" />
+                      <div className="flex items-center justify-center gap-4 text-white/20 font-bold tracking-[0.5em] uppercase text-[12px]">
+                        <MousePointer2 className="w-5 h-5 text-[var(--soouls-accent)] opacity-50" />
                         DOUBLE CLICK
                       </div>
-                      <p className="text-white/30 text-xl font-light">
+                      <p className="text-white/30 text-[22px] font-light">
                         Drag entries or double click to begin
                       </p>
                     </div>
@@ -441,7 +430,7 @@ export default function CanvasPage() {
                         <div className="text-[9px] text-white/20 font-bold uppercase tracking-widest mb-3">
                           {new Date(node.createdAt).toLocaleDateString()}
                         </div>
-                        <h5 className="text-[20px] font-playfair font-bold text-white mb-3 truncate">
+                        <h5 className="text-[22px] font-playfair font-bold text-[#EFEBDD] mb-3 truncate">
                           {getEntryTitle(node)}
                         </h5>
                         <p className="text-[14px] text-white/40 line-clamp-4 leading-relaxed font-light">
@@ -452,42 +441,42 @@ export default function CanvasPage() {
                   </div>
 
                   {/* FLOATING TOOLBAR */}
-                  <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-1 p-2 rounded-full bg-black/60 border border-white/10 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                  <div className="absolute bottom-8 left-1/2 flex max-w-[calc(100%-48px)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-[28px] border border-white/10 bg-[#44413D]/80 p-2 shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-3xl md:bottom-12">
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[11px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest whitespace-nowrap"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-5 h-5 text-[var(--soouls-accent)]" />
                       CREATE
                     </button>
-                    <div className="w-[1px] h-6 bg-white/10" />
+                    <div className="w-[1px] h-10 bg-white/10 mx-2" />
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[11px] font-bold text-[var(--soouls-accent)] uppercase tracking-widest"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-[var(--soouls-accent)] uppercase tracking-widest whitespace-nowrap"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-5 h-5" />
                       CONNECT
                     </button>
-                    <div className="w-[1px] h-6 bg-white/10" />
+                    <div className="w-[1px] h-10 bg-white/10 mx-2" />
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[11px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest whitespace-nowrap"
                     >
-                      <LayoutGrid className="w-4 h-4" />
+                      <LayoutGrid className="w-5 h-5" />
                       AUTO - ARRANGE
                     </button>
-                    <div className="w-[1px] h-6 bg-white/10" />
+                    <div className="w-[1px] h-10 bg-white/10 mx-2" />
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[11px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest whitespace-nowrap"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                       CLEAR
                     </button>
                   </div>
 
                   {/* ZOOM CONTROLS */}
-                  <div className="absolute right-12 bottom-12 flex flex-col gap-6">
+                  <div className="absolute right-10 bottom-12 flex flex-col gap-6">
                     <button
                       type="button"
                       className="w-14 h-14 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
@@ -505,7 +494,7 @@ export default function CanvasPage() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </section>
         </div>
       </main>
 

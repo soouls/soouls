@@ -28,7 +28,7 @@ function parseHighlightedText(text: string | undefined | null, fallback: string)
     if (part.startsWith('{ts1}')) {
       const innerText = part.replace(/\{ts1\}/g, '').replace(/\{\/ts1\}/g, '');
       return (
-        <span key={i} style={{ color: 'var(--soouls-accent)' }}>
+        <span key={i} className="font-playfair italic" style={{ color: 'var(--soouls-accent)' }}>
           {innerText}
         </span>
       );
@@ -162,27 +162,15 @@ const DashboardPage = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden select-none"
-      style={{ backgroundColor: '#1F1F1F', color: '#EFEDDD', fontFamily: "'Urbanist', sans-serif" }}
+      className="soouls-page flex flex-col relative overflow-hidden select-none"
+      style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)' }}
     >
       {/* BACKGROUND WATERMARK - Exact Design Parity */}
       <div className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none opacity-[0.5] select-none z-0 overflow-hidden whitespace-nowrap">
         <div className="relative">
-          <span
-            className="text-[14vw] font-urbanist font-light leading-none text-transparent tracking-widest uppercase"
-            style={{
-              WebkitTextStroke: '1px rgba(255,255,255,0.2)',
-            }}
-          >
+          <span className="soouls-watermark text-[14vw] leading-none uppercase">
             Soouls in
           </span>
-          {/* Floating Magenta 'R' Badge */}
-          <div className="absolute top-[20%] left-[24%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto">
-            <div className="w-10 h-10 rounded-full bg-[#FF0080] flex items-center justify-center shadow-[0_0_20px_rgba(255,0,128,0.4)] border-2 border-black/20">
-              <span className="text-white font-bold text-lg">R</span>
-            </div>
-            <div className="w-4 h-4 bg-black/80 rotate-45 -mt-2 border-r border-b border-white/5" />
-          </div>
         </div>
       </div>
 
@@ -217,10 +205,7 @@ const DashboardPage = () => {
 
       {/* MAIN CONTAINER - Standardized */}
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pt-32 pb-24 items-stretch">
-        <section
-          className="flex-1 backdrop-blur-[48px] rounded-[40px] overflow-hidden flex flex-col"
-          style={{ backgroundColor: 'rgba(10, 10, 10, 0.4)' }}
-        >
+        <section className="soouls-panel flex-1 rounded-[40px] overflow-hidden flex flex-col">
           <div className="flex-1 p-8 md:p-10 space-y-10 overflow-y-auto custom-scrollbar">
             {/* WRITING SECTION - Matching Design Exactly */}
             <div className="space-y-6">

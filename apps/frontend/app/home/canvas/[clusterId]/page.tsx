@@ -28,12 +28,14 @@ import {
   Link as LinkIcon,
   Loader2,
   Maximize2,
+  MousePointer2,
   Plus,
   RefreshCw,
   Save,
   Search,
   Sparkles,
   Trash2,
+  Minus,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -66,8 +68,8 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
         background: card.color || '#141111',
         borderColor: isWarning ? '#F5A524' : card.border_color || 'var(--soouls-accent)',
         boxShadow: selected
-          ? '0 0 0 1px rgba(224,122,95,0.55), 0 0 42px rgba(224,122,95,0.22)'
-          : undefined,
+          ? '0 0 0 2px var(--soouls-accent), 0 0 40px rgba(var(--soouls-accent-rgb), 0.25)'
+          : '0 20px 40px rgba(0,0,0,0.3)',
       }}
     >
       <NodeResizer
@@ -135,7 +137,7 @@ function makeCanvasEdges(connections: EntryCanvasConnection[]): Edge[] {
     type: 'smoothstep',
     animated: false,
     markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--soouls-accent)' },
-    style: { stroke: 'rgba(224,122,95,0.55)', strokeWidth: 1.2 },
+    style: { stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 },
     labelStyle: { fill: '#E6E2D6', fontSize: 11 },
   }));
 }
@@ -346,25 +348,25 @@ export default function CanvasClusterPage() {
 
       <header className="relative z-20 mx-auto flex w-full max-w-[1700px] items-center justify-between px-8 py-9">
         <div className="flex items-center text-[24px] font-light tracking-[-0.04em]">
-          <button type="button" onClick={() => router.push('/home')} className="text-white/35">
+          <button type="button" onClick={() => router.push('/home')} className="text-white/35 hover:text-white transition-colors">
             Home
           </button>
-          <span className="text-white/35">/</span>
+          <span className="text-white/35 mx-2">/</span>
           <button
             type="button"
             onClick={() => router.push('/home/canvas')}
-            className="text-white/35"
+            className="text-white/35 hover:text-white transition-colors"
           >
             Canvas
           </button>
-          <span className="text-white/35">/</span>
-          <span className="text-[var(--soouls-accent)]">
+          <span className="text-white/35 mx-2">/</span>
+          <span className="text-[var(--soouls-accent)] font-medium">
             {clusterDetail?.cluster.name ?? 'Cluster'}
           </span>
         </div>
         <button
           type="button"
-          className="h-11 w-11 overflow-hidden rounded-full border border-white/10"
+          className="h-11 w-11 overflow-hidden rounded-full border border-white/10 shadow-2xl"
         >
           {user?.imageUrl ? (
             <img src={user.imageUrl} alt="" className="h-full w-full object-cover" />
@@ -372,40 +374,43 @@ export default function CanvasClusterPage() {
         </button>
       </header>
 
-      <main className="relative z-10 mx-auto flex h-[calc(100vh-118px)] w-full max-w-[1700px] gap-6 px-8 pb-8">
-        <aside className="flex w-[440px] shrink-0 flex-col rounded-[30px] border border-white/[0.04] bg-[#0B0B0B]/70 p-7 shadow-2xl backdrop-blur-[60px]">
-          <div className="mb-8 flex items-center gap-4">
+      <main className="relative z-10 mx-auto flex h-[calc(100vh-118px)] w-full max-w-[1700px] gap-8 px-8 pb-8">
+        <aside className="flex w-[440px] shrink-0 flex-col rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-8 shadow-2xl backdrop-blur-[60px]">
+          <div className="mb-10 flex items-center gap-4">
             <button
               type="button"
               onClick={() => router.push('/home/canvas')}
-              className="text-white/50 transition hover:text-white"
+              className="text-white/50 transition hover:text-white group"
             >
-              <ChevronLeft className="h-8 w-8" />
+              <ChevronLeft className="h-10 w-10 group-hover:-translate-x-1 transition-transform" />
             </button>
-            <h1 className="truncate text-[30px] font-semibold">
+            <h1 className="truncate text-[32px] font-semibold text-[#EFEBDD]">
               {clusterDetail?.cluster.name ?? 'Cluster'}
             </h1>
           </div>
 
-          <div className="relative mb-8">
-            <Search className="absolute left-5 top-1/2 h-6 w-6 -translate-y-1/2 text-white/35" />
+          <div className="relative mb-10 group">
+            <Search className="absolute left-6 top-1/2 h-6 w-6 -translate-y-1/2 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="search for entries"
-              className="h-[62px] w-full rounded-full border border-white/10 bg-[#44423F]/90 pl-14 pr-5 text-[21px] text-white outline-none placeholder:text-white/32 shadow-inner"
+              className="soouls-search h-[64px] w-full rounded-full border border-white/10 bg-[#44423F]/90 pl-16 pr-6 text-[20px] text-white outline-none placeholder:text-white/35 shadow-inner transition-all focus:ring-1 focus:ring-[var(--soouls-accent)]/20"
             />
           </div>
 
-          <h2 className="mb-5 text-[22px] text-white/80">Entries</h2>
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[14px] font-bold uppercase tracking-[0.2em] text-white/20">Entries</h2>
+          </div>
+          
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
             {entriesLoading ? (
-              <div className="flex items-center gap-3 text-white/35">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading entries
+              <div className="flex items-center gap-3 text-white/35 p-4">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Loading entries...
               </div>
             ) : entries.length === 0 ? (
-              <p className="rounded-[20px] border border-white/5 p-5 text-sm text-white/35">
+              <p className="rounded-[24px] border border-white/5 bg-white/[0.02] p-6 text-sm text-white/35">
                 No entries match your search.
               </p>
             ) : (
@@ -414,25 +419,28 @@ export default function CanvasClusterPage() {
                   key={entry.id}
                   type="button"
                   onClick={() => setSelectedEntryId(entry.id)}
-                  className={`w-full rounded-[24px] border p-5 text-left transition ${
+                  className={`w-full rounded-[28px] border p-6 text-left transition-all group ${
                     selectedEntryId === entry.id
-                      ? 'border-[var(--soouls-accent)]/70 bg-[var(--soouls-accent)]/10'
-                      : 'border-white/[0.04] bg-[#0F0F0F]/70 hover:border-white/10'
+                      ? 'border-[var(--soouls-accent)]/50 bg-[var(--soouls-accent)]/10 shadow-[0_0_30px_rgba(var(--soouls-accent-rgb),0.12)]'
+                      : 'border-white/[0.04] bg-[#0F0F0F]/60 hover:border-white/10'
                   }`}
                 >
                   <div className="mb-3 flex items-start justify-between gap-4">
-                    <h3 className="font-playfair text-[26px] leading-none text-[#EFEBDD]">
+                    <h3 className="font-playfair text-[24px] font-bold leading-tight text-[#EFEBDD] group-hover:text-white">
                       {getEntryTitle(entry)}
                     </h3>
-                    <span className="shrink-0 font-playfair text-[13px] uppercase text-white/30">
-                      {new Date(entry.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: '2-digit',
-                        year: 'numeric',
-                      })}
+                    <span className="shrink-0 font-bold text-[10px] uppercase tracking-widest text-white/20 pt-1.5">
+                      {new Date(entry.createdAt)
+                        .toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                        .toUpperCase()
+                        .replace(' ', '. ')}
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-[15px] leading-snug text-white/48">
+                  <p className="line-clamp-2 text-[15px] leading-relaxed text-white/30 font-light">
                     {truncateText(getEntryPlainText(entry), 120)}
                   </p>
                 </button>
@@ -443,48 +451,58 @@ export default function CanvasClusterPage() {
           <button
             type="button"
             onClick={() => setShowInsights(true)}
-            className="mt-6 flex items-center justify-center gap-3 rounded-full border border-[var(--soouls-accent)]/50 bg-[#191312] px-5 py-4 text-[18px] font-semibold text-[#EFEBDD] shadow-[0_0_24px_rgba(var(--soouls-accent-rgb),0.16)]"
+            className="mt-8 flex items-center justify-center gap-3 rounded-full border border-[var(--soouls-accent)]/40 bg-[#1A1312] px-6 py-5 text-[18px] font-bold text-[#EFEBDD] shadow-[0_12px_32px_rgba(var(--soouls-accent-rgb),0.16)] transition-all hover:bg-[var(--soouls-accent)] hover:text-white group"
           >
-            <Sparkles className="h-5 w-5 text-[var(--soouls-accent)]" />
+            <div className="flex -space-x-1">
+              <div className="w-3.5 h-3.5 rounded-full border border-current opacity-40 group-hover:opacity-100" />
+              <div className="w-3.5 h-3.5 rounded-full border border-current group-hover:opacity-100" />
+              <div className="w-3.5 h-3.5 rounded-full border border-current opacity-40 group-hover:opacity-100" />
+            </div>
             Cluster Insights
           </button>
         </aside>
 
-        <section className="relative min-w-0 flex-1 overflow-hidden rounded-[30px] border border-white/[0.04] bg-[#080808]/68 shadow-2xl backdrop-blur-[60px]">
+        <section className="relative min-w-0 flex-1 overflow-hidden rounded-[40px] border border-white/[0.04] bg-[#080808]/60 shadow-2xl backdrop-blur-[60px]">
           {!selectedEntryId ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center px-10 text-center">
-              <p className="font-playfair text-[48px] italic leading-[1.08] text-[#EFEBDD]">
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center z-10">
+              <p className="font-playfair text-[54px] italic leading-[1.1] text-[#EFEBDD]">
                 “Your thoughts are not separate.
                 <br />
                 They are waiting to connect.”
               </p>
-              <p className="mt-10 text-[22px] text-white/45">
-                Drag entries or double click to begin
-              </p>
+              <div className="mt-12 space-y-4">
+                <div className="flex items-center justify-center gap-4 text-white/20 font-bold tracking-[0.5em] uppercase text-[12px]">
+                  <MousePointer2 className="w-5 h-5 text-[var(--soouls-accent)] opacity-50" />
+                  DOUBLE CLICK
+                </div>
+                <p className="text-[22px] text-white/35 font-light">
+                  Drag entries or double click to begin
+                </p>
+              </div>
             </div>
           ) : canvasLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center gap-3 text-white/50">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Generating canvas
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-white/40 z-10">
+              <Loader2 className="h-8 w-8 animate-spin text-[var(--soouls-accent)]" />
+              <span className="text-lg font-light tracking-wide">Generating canvas...</span>
             </div>
           ) : (
             <>
-              <div className="absolute left-8 right-8 top-6 z-20 flex items-center justify-between gap-5">
-                <div className="min-w-0">
+              <div className="absolute left-10 right-10 top-8 z-30 flex items-center justify-between gap-6 pointer-events-none">
+                <div className="min-w-0 pointer-events-auto">
                   <input
                     value={canvasTitle}
                     onChange={(event) => setCanvasTitle(event.target.value)}
-                    className="w-full bg-transparent font-playfair text-[30px] text-[#EFEBDD] outline-none"
+                    className="w-full bg-transparent font-playfair text-[36px] font-bold text-[#EFEBDD] outline-none"
                   />
-                  <p className="mt-1 text-xs uppercase tracking-[0.24em] text-white/25">
+                  <p className="mt-1 text-[11px] uppercase tracking-[0.3em] text-[var(--soouls-accent)] font-bold opacity-70">
                     {selectedEntry ? getEntryTitle(selectedEntry as UserEntry) : 'Entry Canvas'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-4 py-2 text-xs uppercase tracking-[0.14em] text-white/50">
+                <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/50 px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 shadow-xl backdrop-blur-md pointer-events-auto">
                   {saveState === 'saving' ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--soouls-accent)]" />
                   ) : (
-                    <Save className="h-3.5 w-3.5" />
+                    <Save className="h-4 w-4" />
                   )}
                   {saveState === 'saving'
                     ? 'Saving'
@@ -507,35 +525,49 @@ export default function CanvasClusterPage() {
                 minZoom={0.2}
                 maxZoom={1.5}
                 deleteKeyCode={['Backspace', 'Delete']}
-                className="bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:28px_28px]"
+                className="bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:32px_32px]"
               >
-                <Background color="rgba(255,255,255,0.08)" gap={28} size={1} />
-                <Controls
-                  showInteractive={false}
-                  className="!bottom-28 !right-8 !left-auto !bg-black/60 !backdrop-blur-xl"
-                />
+                <Background color="rgba(255,255,255,0.03)" gap={32} size={1} />
               </ReactFlow>
+
+              {/* CUSTOM ZOOM CONTROLS */}
+              <div className="absolute right-10 bottom-32 flex flex-col gap-4 z-30">
+                <button
+                  type="button"
+                  onClick={() => reactFlowInstance?.zoomIn()}
+                  className="w-12 h-12 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => reactFlowInstance?.zoomOut()}
+                  className="w-12 h-12 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
+                >
+                  <Minus className="w-5 h-5" />
+                </button>
+              </div>
 
               {nodes.length === 0 ? (
                 <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-8 text-center">
-                  <div className="rounded-[28px] border border-white/10 bg-black/55 px-8 py-6 backdrop-blur-2xl">
-                    <p className="font-playfair text-[30px] italic text-[#EFEBDD]">
+                  <div className="rounded-[32px] border border-white/10 bg-black/60 px-10 py-8 backdrop-blur-3xl shadow-2xl">
+                    <p className="font-playfair text-[32px] italic text-[#EFEBDD]">
                       Canvas cleared.
                     </p>
-                    <p className="mt-2 text-sm text-white/40">Add a card or regenerate.</p>
+                    <p className="mt-3 text-[16px] text-white/30 font-light">Add a card or regenerate to start fresh.</p>
                   </div>
                 </div>
               ) : null}
 
-              <div className="absolute bottom-9 left-1/2 z-30 flex -translate-x-1/2 items-center overflow-hidden rounded-[28px] border border-white/15 bg-[#44413D]/88 shadow-[0_24px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+              <div className="absolute bottom-10 left-1/2 z-30 flex -translate-x-1/2 items-center overflow-hidden rounded-[32px] border border-white/15 bg-[#44413D]/85 shadow-[0_32px_80px_rgba(0,0,0,0.6)] backdrop-blur-3xl">
                 <ToolbarButton icon={<Plus />} label="Create" onClick={addCard} />
                 <ToolbarDivider />
-                <ToolbarButton icon={<LinkIcon />} label="Connect" />
+                <ToolbarButton icon={<LinkIcon />} label="Connect" active />
                 <ToolbarDivider />
                 <ToolbarButton
                   icon={<Grid2X2 />}
                   label="Auto-arrange"
-                  onClick={() => reactFlowInstance?.fitView({ padding: 0.2, duration: 500 })}
+                  onClick={() => reactFlowInstance?.fitView({ padding: 0.2, duration: 600 })}
                 />
                 <ToolbarDivider />
                 <ToolbarButton icon={<Trash2 />} label="Clear" onClick={deleteSelection} />
@@ -644,18 +676,20 @@ function ToolbarButton({
   icon,
   label,
   onClick,
+  active,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick?: () => void;
+  active?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex min-w-[112px] flex-col items-center gap-1 px-5 py-3 text-[#EFEBDD]/80 transition hover:bg-white/10 hover:text-white"
+      className={`flex min-w-[112px] flex-col items-center gap-1 px-5 py-3 transition hover:bg-white/10 ${active ? 'text-[var(--soouls-accent)]' : 'text-[#EFEBDD]/80 hover:text-white'}`}
     >
-      <span className="h-5 w-5 text-[var(--soouls-accent)] [&>svg]:h-5 [&>svg]:w-5">{icon}</span>
+      <span className={`h-5 w-5 [&>svg]:h-5 [&>svg]:w-5 ${active ? 'text-[var(--soouls-accent)]' : 'text-white/40 group-hover:text-white'}`}>{icon}</span>
       <span className="text-[12px] uppercase tracking-[0.08em]">{label}</span>
     </button>
   );

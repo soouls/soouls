@@ -57,24 +57,15 @@ export default function ClustersPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden select-none"
+      className="soouls-page flex flex-col relative overflow-hidden select-none"
       style={{
         backgroundColor: 'var(--soouls-bg)',
         color: 'var(--soouls-text)',
-        fontFamily: "'Urbanist', sans-serif",
       }}
     >
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-        .font-playfair { font-family: 'Playfair Display', serif; }
-      `}</style>
-
       {/* Hero watermark */}
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.85] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[18vw] font-urbanist font-bold leading-none text-transparent tracking-widest"
-          style={{ WebkitTextStroke: '2px var(--soouls-overlay-strong)' }}
-        >
+        <span className="soouls-watermark text-[18vw] leading-none">
           Soouls
         </span>
       </div>
@@ -112,11 +103,7 @@ export default function ClustersPage() {
         style={{ marginTop: 'calc(9vw - 4rem)' }}
       >
         <section
-          className="w-full rounded-[2rem] flex flex-col overflow-hidden"
-          style={{
-            backgroundColor: 'var(--soouls-bg-surface)',
-            border: '1px solid var(--soouls-border)',
-          }}
+          className="soouls-panel w-full rounded-[2rem] flex flex-col overflow-hidden"
         >
           {/* Card header row */}
           <div className="p-8 md:p-12 flex flex-col xl:flex-row justify-between items-start gap-8">
@@ -136,13 +123,7 @@ export default function ClustersPage() {
             {/* Right: search + filters */}
             <div className="flex flex-col gap-4 items-start xl:items-end w-full xl:w-auto shrink-0">
               {/* Search */}
-              <div
-                className="flex items-center gap-3 px-5 py-3 rounded-full w-full xl:w-[380px]"
-                style={{
-                  backgroundColor: 'rgba(230,226,214,0.12)',
-                  border: '1px solid rgba(230,226,214,0.1)',
-                }}
-              >
+              <div className="soouls-search flex items-center gap-3 px-5 py-3 w-full xl:w-[380px]">
                 <Search className="w-5 h-5 shrink-0" style={{ color: 'rgba(230,226,214,0.4)' }} />
                 <input
                   type="text"
