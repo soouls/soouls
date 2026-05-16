@@ -25,8 +25,8 @@ import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { downloadJson } from '../../../src/utils/home';
 import { getTRPCClient, trpc } from '../../../src/utils/trpc';
 
-const FONT_PLAYFAIR = "'Playfair Display', Georgia, serif";
-const FONT_URBANIST = "'Urbanist', system-ui, sans-serif";
+const FONT_PLAYFAIR = 'var(--font-playfair), Georgia, serif';
+const FONT_URBANIST = 'var(--font-urbanist), system-ui, sans-serif';
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,e07a5f&radius=50`;
@@ -222,7 +222,7 @@ export default function AccountPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative overflow-hidden select-none"
+      className="soouls-page flex flex-col relative overflow-hidden select-none"
       style={{
         backgroundColor: 'var(--soouls-bg)',
         color: 'var(--soouls-text)',
@@ -230,12 +230,7 @@ export default function AccountPage() {
       }}
     >
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
-          style={{
-            WebkitTextStroke: '1px var(--soouls-text-faint)',
-          }}
-        >
+        <span className="soouls-watermark text-[18vw] leading-none">
           Soouls
         </span>
       </div>
@@ -264,8 +259,7 @@ export default function AccountPage() {
 
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
         <section
-          className="flex-1 backdrop-blur-[48px] border-t border-[var(--soouls-border)] rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
-          style={{ backgroundColor: 'var(--soouls-bg-panel)' }}
+          className="soouls-panel flex-1 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
         >
           <motion.div
             initial={{ opacity: 0, y: 15 }}

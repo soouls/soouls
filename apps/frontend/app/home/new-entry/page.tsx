@@ -1884,14 +1884,14 @@ function NewEntryContent() {
   }, [composerLayout, metadata.composerLayout, setMetadata]);
 
   // Don't render blocks until localStorage is hydrated (avoids flash)
-  if (!hydrated) return <div className="min-h-screen bg-[#0a0a0a]" />;
+  if (!hydrated) return <div className="soouls-page" />;
 
   return (
-    <div className="min-h-screen bg-[#1F1F1F] text-white flex flex-col relative overflow-hidden font-urbanist">
+    <div className="soouls-page flex flex-col relative overflow-hidden">
       {/* Background watermark */}
       <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
         <span
-          className="text-[18vw] font-urbanist font-light leading-none text-transparent tracking-widest"
+          className="soouls-watermark text-[18vw] leading-none"
           style={{
             WebkitTextStroke: '1px rgba(255,255,255,0.7)',
           }}
@@ -1901,8 +1901,8 @@ function NewEntryContent() {
       </div>
 
       {/* Header */}
-      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-10">
-        <div className="flex items-center text-[22px] font-light tracking-wide">
+      <header className="w-full max-w-[1600px] mx-auto px-5 md:px-12 py-6 md:py-8 flex justify-between items-center relative z-10">
+        <div className="flex items-center text-[15px] font-light tracking-normal sm:text-[22px]">
           <button
             type="button"
             onClick={handleHome}
@@ -1989,13 +1989,13 @@ function NewEntryContent() {
       </header>
 
       {/* ── THE CANVAS PANEL ─────────────────────────────────────────────────── */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-24 pb-0 items-stretch h-full">
-        <div className="flex-1 rounded-t-[32px] bg-[#0F0F0F]/60 backdrop-blur-[48px] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden relative border-t border-white/10">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-2 md:px-12 relative z-10 flex flex-col mt-24 pb-0 items-stretch h-full">
+        <div className="soouls-panel flex-1 rounded-t-[24px] md:rounded-t-[32px] flex flex-col overflow-hidden relative">
           {/* Scrollable writing + blocks - everything lives here */}
-          <div className="flex-1 overflow-y-auto pt-6 px-10 pb-40 flex flex-col gap-5">
+          <div className="flex-1 overflow-y-auto pt-6 px-4 pb-40 flex flex-col gap-5 md:px-10">
             {composerLayout.length === 0 && blocks.length === 0 ? (
               <div className="grid w-full auto-rows-[minmax(160px,auto)] grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="sm:col-span-2 xl:col-span-4 min-h-[320px] rounded-[32px] border border-white/[0.04] bg-[#1d1d1d]/82 p-7 shadow-[0_26px_60px_rgba(0,0,0,0.24)] backdrop-blur-2xl">
+                <div className="soouls-card sm:col-span-2 xl:col-span-4 min-h-[320px] rounded-[32px] p-7 shadow-[0_26px_60px_rgba(0,0,0,0.24)] backdrop-blur-2xl">
                   <textarea
                     value={newThoughtDraft}
                     onChange={(e) => setNewThoughtDraft(e.target.value)}
@@ -2170,15 +2170,15 @@ function NewEntryContent() {
           </div>
 
           {/* Floating Horizontal Toolbar fixed to the bottom right of the main panel */}
-          <div className="absolute bottom-8 right-8 flex flex-col items-start gap-4 z-50">
+          <div className="absolute bottom-5 left-1/2 z-50 flex w-[calc(100%-24px)] -translate-x-1/2 flex-col items-center gap-3 md:bottom-8 md:left-auto md:right-8 md:w-auto md:translate-x-0 md:items-start">
             {/* Tooltip */}
-            <div className="bg-[#1C1C1C] border border-white/5 rounded-full px-5 py-2.5 text-[14px] font-light text-white/60 relative shadow-2xl ml-8">
+            <div className="relative rounded-full border border-white/5 bg-[#1C1C1C] px-5 py-2.5 text-[12px] font-light text-white/60 shadow-2xl md:ml-8 md:text-[14px]">
               Add if it helps you remember
               <div className="absolute -bottom-1.5 right-[20%] w-3 h-3 bg-[#1C1C1C] border-b border-r border-white/5 rotate-45 shadow-sm" />
             </div>
 
             {/* Toolbar Buttons */}
-            <div className="flex items-center rounded-full border border-white/20 bg-[#1C1C1C]/90 backdrop-blur-xl overflow-hidden shadow-2xl">
+            <div className="flex max-w-full items-center overflow-x-auto rounded-full border border-white/20 bg-[#1C1C1C]/90 shadow-2xl backdrop-blur-xl">
               <button
                 type="button"
                 onClick={() => setModal('image')}
