@@ -39,7 +39,9 @@
         "MESSAGING_ADMIN_EMAILS",
         "MESSAGING_ADMIN_CLERK_IDS",
         "LOG_LEVEL",
-        "NODE_ENV"
+        "NODE_ENV",
+        "CORS_ALLOWED_ORIGINS",
+        "ALLOW_VERCEL_PREVIEW_ORIGINS"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]

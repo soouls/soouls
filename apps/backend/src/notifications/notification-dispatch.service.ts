@@ -767,7 +767,7 @@ export class NotificationDispatchService {
     let emailRecipients = 0;
     let whatsappRecipients = 0;
     let failedCount = 0;
-    let skippedCount = 0;
+    let _skippedCount = 0;
 
     try {
       const recipients = await this.listCampaignRecipients({
@@ -804,7 +804,7 @@ export class NotificationDispatchService {
 
           for (const channel of sanitizedChannels) {
             try {
-              let effectiveChannel = channel;
+              const effectiveChannel = channel;
 
               const result = await this.deliverTemplate({
                 user: recipient,
@@ -826,7 +826,7 @@ export class NotificationDispatchService {
               } else if (result.status === 'failed') {
                 failedCount += 1;
               } else if (result.status === 'skipped') {
-                skippedCount += 1;
+                _skippedCount += 1;
               }
             } catch (error) {
               failedCount += 1;
@@ -837,7 +837,7 @@ export class NotificationDispatchService {
                 error: error instanceof Error ? error.message : String(error),
               });
             }
-            
+
             // Wait 600ms between each single dispatch to stay under Resend's 2 requests/sec limit
             await new Promise((resolve) => setTimeout(resolve, 600));
           }

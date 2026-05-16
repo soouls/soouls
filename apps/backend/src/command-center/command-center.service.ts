@@ -1170,11 +1170,7 @@ export class CommandCenterService {
     return campaign;
   }
 
-  async stopMessagingCampaign(
-    clerkId: string,
-    campaignId: string,
-    ipAddress?: string | null,
-  ) {
+  async stopMessagingCampaign(clerkId: string, campaignId: string, ipAddress?: string | null) {
     const actor = await this.ensureAuthorizedAdmin(clerkId, ipAddress);
     assertPermission(actor, 'mutate:messaging');
     const result = await this.messagingService.stopAdminCampaign(campaignId);
@@ -1191,11 +1187,7 @@ export class CommandCenterService {
     return result;
   }
 
-  async getMessagingCampaignDetail(
-    clerkId: string,
-    campaignId: string,
-    ipAddress?: string | null,
-  ) {
+  async getMessagingCampaignDetail(clerkId: string, campaignId: string, ipAddress?: string | null) {
     const actor = await this.ensureAuthorizedAdmin(clerkId, ipAddress);
     assertPermission(actor, 'view:all');
     return this.messagingService.getCampaignDetail(campaignId);

@@ -2,8 +2,10 @@ import { Queue } from 'bullmq';
 import postgres from 'postgres';
 
 async function main() {
-  const dbUrl = 'postgresql://neondb_owner:npg_MrSnAKQ23DGF@ep-aged-feather-a1jp54mb-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-  const redisUrl = 'rediss://default:gQAAAAAAAR-vAAIncDJhNDQ5MjllOTVjMmQ0ODU5OGVjZWUzMjcwZTU3ZjNjNXAyNzM2NDc@fast-gannet-73647.upstash.io:6379';
+  const dbUrl =
+    'postgresql://neondb_owner:npg_MrSnAKQ23DGF@ep-aged-feather-a1jp54mb-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+  const redisUrl =
+    'rediss://default:gQAAAAAAAR-vAAIncDJhNDQ5MjllOTVjMmQ0ODU5OGVjZWUzMjcwZTU3ZjNjNXAyNzM2NDc@fast-gannet-73647.upstash.io:6379';
 
   console.log('Connecting to database...');
   const sql = postgres(dbUrl);
@@ -35,7 +37,7 @@ async function main() {
           jobId: `campaign_dispatch_${campaign.id}_retry_${Date.now()}`,
           removeOnComplete: true,
           removeOnFail: false,
-        }
+        },
       );
     }
     console.log('All campaigns queued for delivery!');

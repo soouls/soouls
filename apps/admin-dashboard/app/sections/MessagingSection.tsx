@@ -1109,7 +1109,7 @@ export function MessagingSection() {
               </div>
               <ActionButton onClick={() => setSelectedCampaignId(null)}>Close</ActionButton>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-6">
               {!campaignDetail ? (
                 <div className="flex items-center justify-center py-12">
@@ -1120,15 +1120,21 @@ export function MessagingSection() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <div className="text-xs text-slate-500 mb-1">Status</div>
-                      <div className="font-medium text-white capitalize">{campaignDetail.campaign.status}</div>
+                      <div className="font-medium text-white capitalize">
+                        {campaignDetail.campaign.status}
+                      </div>
                     </div>
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <div className="text-xs text-slate-500 mb-1">Total Target</div>
-                      <div className="font-medium text-white">{campaignDetail.campaign.totalRecipients || 0}</div>
+                      <div className="font-medium text-white">
+                        {campaignDetail.campaign.totalRecipients || 0}
+                      </div>
                     </div>
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
                       <div className="text-xs text-slate-500 mb-1">Sent</div>
-                      <div className="font-medium text-white">{campaignDetail.campaign.sentCount || 0}</div>
+                      <div className="font-medium text-white">
+                        {campaignDetail.campaign.sentCount || 0}
+                      </div>
                     </div>
                   </div>
 
@@ -1139,10 +1145,17 @@ export function MessagingSection() {
                     ) : (
                       <div className="space-y-2">
                         {campaignDetail.deliveries?.map((delivery: any) => (
-                          <div key={delivery.id} className="flex flex-col gap-1 rounded-lg border border-white/[0.04] bg-white/[0.01] p-3">
+                          <div
+                            key={delivery.id}
+                            className="flex flex-col gap-1 rounded-lg border border-white/[0.04] bg-white/[0.01] p-3"
+                          >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                {delivery.channel === 'email' ? <Mail className="h-3 w-3 text-slate-400" /> : <MessageSquareShare className="h-3 w-3 text-slate-400" />}
+                                {delivery.channel === 'email' ? (
+                                  <Mail className="h-3 w-3 text-slate-400" />
+                                ) : (
+                                  <MessageSquareShare className="h-3 w-3 text-slate-400" />
+                                )}
                                 <span className="text-sm text-white">{delivery.recipient}</span>
                               </div>
                               <StatusBadge status={delivery.status} />

@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    ".": {
+      "types": "./src/client.ts",
+      "default": "./dist/client.js"
+    },
     "./schema": {
       "types": "./src/schema/index.ts",
       "default": "./dist/schema/index.js"

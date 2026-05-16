@@ -1,6 +1,5 @@
-import { db } from '@soouls/database';
+import { db, eq, inArray } from '@soouls/database/client';
 import { messageCampaigns } from '@soouls/database/schema';
-import { inArray, eq } from 'drizzle-orm';
 import { Queue } from 'bullmq';
 
 async function main() {
@@ -15,7 +14,7 @@ async function main() {
   const campaignsToRun = await db
     .select()
     .from(messageCampaigns)
-    .where(inArray(messageCampaigns.status, ['failed', 'partially_sent', 'queued', 'stopped']));
+    .where(inArray(messageCampaigns.status, ['failed', 'partially_sent', 'sending']));
 
   if (campaignsToRun.length === 0) {
     console.log('No failed or pending campaigns found.');
@@ -23,11 +22,11 @@ async function main() {
 
   for (const campaign of campaignsToRun) {
     console.log(`Re-queueing campaign: [${campaign.id}] ${campaign.title}`);
-    
+
     // Update status to queued
     await db
       .update(messageCampaigns)
-      .set({ status: 'queued', updatedAt: new Date() })
+      .set({ status: 'sending', updatedAt: new Date() })
       .where(eq(messageCampaigns.id, campaign.id));
 
     // Add to bullmq
@@ -38,7 +37,7 @@ async function main() {
         jobId: `campaign_dispatch_${campaign.id}_retry_${Date.now()}`,
         removeOnComplete: true,
         removeOnFail: false,
-      }
+      },
     );
   }
 

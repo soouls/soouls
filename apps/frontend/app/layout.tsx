@@ -9,7 +9,6 @@ import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
 import { UiThemeProvider } from '../src/providers/ui-theme-provider';
 import { GlobalMascot } from './components/GlobalMascot';
 
-
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -54,9 +53,7 @@ export default function RootLayout({
         >
           <CSPostHogProvider>
             <PersistedTRPCProvider>
-              <UiThemeProvider>
-                {children}
-              </UiThemeProvider>
+              <UiThemeProvider>{children}</UiThemeProvider>
             </PersistedTRPCProvider>
             <GlobalMascot />
             <Analytics />

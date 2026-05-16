@@ -9,6 +9,7 @@
     "incremental": true,
     "paths": {
       "@soouls/api/*": ["../../packages/api/src/*"],
+      "@soouls/database": ["../../packages/database/src/client.ts"],
       "@soouls/database/*": ["../../packages/database/src/*"],
       "@soouls/ai-engine/*": ["../../packages/ai-engine/src/*"]
     },

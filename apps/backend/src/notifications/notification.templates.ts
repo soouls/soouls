@@ -327,11 +327,46 @@ function TransactionalEmailShell(props: {
                   color: '#94a3b8',
                 },
               },
-              React.createElement('a', { href: SOOULS_LINKS.website, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'Website'),
-              React.createElement('a', { href: SOOULS_LINKS.instagram, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'Instagram'),
-              React.createElement('a', { href: SOOULS_LINKS.x, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'X'),
-              React.createElement('a', { href: SOOULS_LINKS.linkedin, style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' } }, 'LinkedIn'),
-              React.createElement('a', { href: SOOULS_LINKS.whatsappGroup, style: { color: '#fde68a', textDecoration: 'none' } }, 'WhatsApp Group'),
+              React.createElement(
+                'a',
+                {
+                  href: SOOULS_LINKS.website,
+                  style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' },
+                },
+                'Website',
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: SOOULS_LINKS.instagram,
+                  style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' },
+                },
+                'Instagram',
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: SOOULS_LINKS.x,
+                  style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' },
+                },
+                'X',
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: SOOULS_LINKS.linkedin,
+                  style: { color: '#fde68a', textDecoration: 'none', marginRight: '12px' },
+                },
+                'LinkedIn',
+              ),
+              React.createElement(
+                'a',
+                {
+                  href: SOOULS_LINKS.whatsappGroup,
+                  style: { color: '#fde68a', textDecoration: 'none' },
+                },
+                'WhatsApp Group',
+              ),
             ),
           ),
           React.createElement(
@@ -487,7 +522,7 @@ export function buildCampaignTemplate(input: {
 export async function buildWelcomeTemplate(recipient: UserMessagingProfile) {
   const brand = BRAND_PRESETS.soouls;
   const firstName = recipient.name?.split(' ')[0] || 'there';
-  const dashboardUrl = makeAbsoluteUrl('/home');
+  const _dashboardUrl = makeAbsoluteUrl('/home');
   const markdownBody = `# Thank You for Joining Soouls
 
 Hi **${firstName}**,
@@ -524,7 +559,7 @@ The Soouls Team`;
     brandKey: brand.key,
     eyebrow: 'Thank You',
     title: 'Thank You for Joining Soouls',
-    previewText: 'You\'re in! Thank you for signing up to Soouls. We\'re almost ready to launch.',
+    previewText: "You're in! Thank you for signing up to Soouls. We're almost ready to launch.",
     bodyMarkdown: markdownBody,
     bodyText: markdownToText(markdownBody),
     ctaLabel: 'Visit Soouls',
