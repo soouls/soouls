@@ -1,0 +1,248 @@
+# Soouls Multi-Platform Offline-First Architecture Plan
+
+This document outlines the technical blueprint to package the **Soouls Next.js Web App** into high-performance, low-memory native applications for **Desktop** (Windows, macOS) and **Mobile** (iOS, Android) with **100% offline capability** and automatic background synchronization.
+
+---
+
+## 🏗️ Technical Architecture Overview
+
+To achieve a **"Write Once, Run Everywhere"** workflow where a single change to the React frontend simultaneously updates all platforms, we will leverage **Tauri v2** for Desktop and **Capacitor** for Mobile.
+
+```mermaid
+graph TD
+    subgraph Frontend Core [apps/frontend (Next.js App Router)]
+        React[React / TypeScript Components]
+        State[React Query & Offline Queue]
+        IDB[(IndexedDB Cache)]
+    end
+
+    subgraph Native Wrappers
+        Tauri[Tauri v2 Shell] -->|Rust Bridge| Desktop[Windows / macOS App]
+        Capacitor[Capacitor Shell] -->|Web Native Bridge| Mobile[iOS / Android App]
+    end
+
+    React -.-> Tauri
+    React -.-> Capacitor
+    Desktop -->|Low RAM < 40MB| WinMac[Windows / macOS Native Webview]
+    Mobile -->|Native Webview| iOSAndroid[iOS / Android WebView]
+```
+
+### Key Architectural Pillars:
+
+1. **Lightweight & High Performance (Tauri v2)**:
+   - Unlike Electron (which bundles a full Chromium instance and consumes 500MB+ RAM), **Tauri** is written in **Rust** and utilizes the operating system's native webview (WebView2 on Windows, WebKit on macOS).
+   - This keeps memory usage extremely low (**typically 30–50MB of RAM**) and ensures lightning-fast startup times.
+2. **Instant Cross-Platform Updates**:
+   - Both Tauri and Capacitor load the static files built from your Next.js application.
+   - During development, they connect to `http://localhost:3000` with **Hot Module Replacement (HMR)** enabled. If you change a component in `apps/frontend`, the change renders instantly in your browser, your Windows app, your macOS app, and mobile simulators!
+3. **Offline-First Security & Autonomy**:
+   - The UI is statically exported using Next.js Static Exports (`output: 'export'`). The HTML, CSS, and JS files are bundled directly *inside* the native app.
+   - The app can load, run, and display your entries **completely offline without any internet connection**.
+
+---
+
+## 💾 Offline-First Sync Engine Design
+
+To support seamless offline writing and automatic syncing, we will implement a lightweight **IndexedDB Sync Queue** using `idb-keyval` (already a dependency in the frontend!).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User
+    participant App as App Frontend (IndexedDB)
+    participant Net as Connection Monitor
+    participant API as tRPC Backend API
+    participant AI as AI Engine (Clustering)
+
+    User->>App: Writes new journal entry
+    App->>App: Saves entry to IndexedDB ("local_entries")
+    App->>App: Adds item to "sync_queue"
+    App->>User: Shows "Stored locally (Offline)" badge
+    
+    Note over Net, API: Internet connection is restored
+    Net->>App: Triggers "online" event
+    App->>App: Processes "sync_queue" sequentially
+    App->>API: Sends offline entries to backend
+    API->>AI: Triggers background clustering & insights
+    API-->>App: Confirms save & returns updated database entry
+    App->>App: Removes item from "sync_queue"
+    App->>User: Shows "Synced with cloud" + new AI Insights!
+```
+
+### Step 1: Client-Side Connection Monitoring
+
+We will create a custom React hook `useOfflineStatus` to listen to the browser's connectivity events:
+
+```typescript
+import { useEffect, useState } from 'react';
+
+export function useOfflineStatus() {
+  const [isOffline, setIsOffline] = useState(
+    typeof window !== 'undefined' ? !navigator.onLine : false
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOffline;
+}
+```
+
+### Step 2: The IndexedDB Storage Engine
+
+When the user is writing offline, we bypass direct backend tRPC calls and save entries to a local IndexedDB buffer. 
+
+We will create a synchronization manager `src/utils/sync-manager.ts`:
+
+```typescript
+import { get, set, del, keys } from 'idb-keyval';
+
+export interface PendingSyncEntry {
+  id: string; // Unique client-side uuid
+  title: string;
+  content: string;
+  createdAt: string;
+  isDeleted?: boolean;
+}
+
+const SYNC_QUEUE_KEY = 'soouls_sync_queue';
+const LOCAL_ENTRIES_KEY = 'soouls_local_entries';
+
+// Save entry locally when offline
+export async function saveEntryOffline(entry: PendingSyncEntry) {
+  // 1. Update local cache for instant UI rendering
+  const localEntries = (await get<PendingSyncEntry[]>(LOCAL_ENTRIES_KEY)) || [];
+  const updatedLocal = [entry, ...localEntries.filter(e => e.id !== entry.id)];
+  await set(LOCAL_ENTRIES_KEY, updatedLocal);
+
+  // 2. Add to sync queue
+  const queue = (await get<PendingSyncEntry[]>(SYNC_QUEUE_KEY)) || [];
+  const updatedQueue = [...queue.filter(e => e.id !== entry.id), entry];
+  await set(SYNC_QUEUE_KEY, updatedQueue);
+}
+
+// Synchronize queue with NestJS backend when online
+export async function syncOfflineQueue(createEntryMutation: any) {
+  const queue = await get<PendingSyncEntry[]>(SYNC_QUEUE_KEY);
+  if (!queue || queue.length === 0) return;
+
+  for (const entry of queue) {
+    try {
+      // Send to server
+      await createEntryMutation.mutateAsync({
+        title: entry.title,
+        content: entry.content,
+        createdAt: entry.createdAt,
+      });
+
+      // Remove from sync queue upon success
+      const currentQueue = (await get<PendingSyncEntry[]>(SYNC_QUEUE_KEY)) || [];
+      const updatedQueue = currentQueue.filter(e => e.id !== entry.id);
+      await set(SYNC_QUEUE_KEY, updatedQueue);
+    } catch (error) {
+      console.error('Failed to sync entry, retrying later:', error);
+      break; // Stop queue processing if server fails (e.g. timeout)
+    }
+  }
+}
+```
+
+---
+
+## 🛠️ Step-by-Step Native Wrapping Setup
+
+Here are the minimal commands and configurations required to wrap the Next.js frontend into desktop and mobile packages.
+
+### 💻 1. Desktop Apps Setup (Tauri v2)
+
+1. **Initialize Tauri in the root or frontend workspace**:
+   ```bash
+   bun x tauri init
+   ```
+   * Tauri will prompt you for:
+     - **Window title**: `Soouls`
+     - **Web assets path**: `../out` (pointing to the Next.js build output)
+     - **Dev server URL**: `http://localhost:3000`
+
+2. **Configure Next.js Static Export (`apps/frontend/next.config.js`)**:
+   ```javascript
+   /** @type {import('next').NextConfig} */
+   const nextConfig = {
+     output: 'export', // Enables static HTML/CSS/JS export
+     images: {
+       unoptimized: true, // Required for static exports
+     },
+   };
+   module.exports = nextConfig;
+   ```
+
+3. **Run Tauri in Development (HMR)**:
+   ```bash
+   bun tauri dev
+   ```
+   * This boots your Rust native shell, opening a beautiful desktop window displaying your app instantly with full developer tools support.
+
+4. **Build Production Executable (.msi for Windows, .app/.dmg for macOS)**:
+   ```bash
+   bun tauri build
+   ```
+
+---
+
+### 📱 2. Mobile Apps Setup (Capacitor)
+
+1. **Install Capacitor CLI and Core**:
+   ```bash
+   bun add @capacitor/core
+   bun add -D @capacitor/cli
+   ```
+
+2. **Initialize Capacitor**:
+   ```bash
+   bun x cap init Soouls com.soouls.app --web-dir=out
+   ```
+
+3. **Add iOS and Android Platforms**:
+   ```bash
+   bun add @capacitor/ios @capacitor/android
+   bun x cap add ios
+   bun x cap add android
+   ```
+
+4. **Synchronize and Open IDEs**:
+   ```bash
+   bun x cap sync
+   bun x cap open ios      # Opens Xcode
+   bun x cap open android  # Opens Android Studio
+   ```
+   * Any change inside the web workspace is packaged into the native apps instantly by running `bun run build && bun x cap sync`.
+
+---
+
+## 🌟 Premium UX Enhancements for Offline Mode
+
+To make the app feel incredibly premium when offline, we will add subtle, magical visual cues:
+
+1. **Offline Status Badge**:
+   - A soft, pulsing amber dot in the corner: `"Offline Mode"` or `"Local Cache Active"`.
+   - Bypasses blocking error modals; the user is allowed to navigate the entire journal seamlessly.
+
+2. **AI Clustering Graceful Deactivation**:
+   - When offline, the "Insights", "Canvas", and "Cluster Map" pages will show a beautiful, glassmorphic card:
+     > **💡 Reflection Syncing**
+     > Your thoughts are securely cached on this device. AI mapping and emotional insights will update automatically once you connect to the network.
+
+3. **Micro-Animations on Sync**:
+   - When connection is restored and the queue is syncing, the offline badge transitions smoothly into a green checkmark with a circular pulse: `"All entries synced successfully!"`.
