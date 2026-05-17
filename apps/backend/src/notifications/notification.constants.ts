@@ -37,12 +37,13 @@ export function createRedisConnection() {
 }
 
 export function getFrontendUrl() {
-  return (
+  const raw =
     process.env.NEXT_PUBLIC_APP_URL ??
     process.env.NEXT_PUBLIC_FRONTEND_URL ??
     process.env.FRONTEND_URL ??
-    DEFAULT_FRONTEND_URL
-  );
+    DEFAULT_FRONTEND_URL;
+  if (!raw) return '';
+  return raw.split(',')[0].trim();
 }
 
 export function getCommandCenterUrl() {

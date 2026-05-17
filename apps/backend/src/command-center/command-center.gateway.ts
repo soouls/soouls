@@ -12,9 +12,21 @@ import { db, sql } from '@soouls/database/client';
 import type { Server, Socket } from 'socket.io';
 import { NotificationQueueService } from '../notifications/notification.queue';
 
+const getGatewayOrigins = (): string[] => {
+  const cc = process.env.COMMAND_CENTER_URL ?? '';
+  const frontend = process.env.FRONTEND_URL ?? '';
+  const allowed = (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .concat(frontend.split(','))
+    .concat([cc])
+    .map((o) => o.trim())
+    .filter(Boolean);
+  return Array.from(new Set(allowed));
+};
+
 @WebSocketGateway({
   cors: {
-    origin: [process.env.COMMAND_CENTER_URL ?? '', process.env.FRONTEND_URL ?? ''],
+    origin: getGatewayOrigins(),
     credentials: true,
   },
   namespace: '/command-center',
