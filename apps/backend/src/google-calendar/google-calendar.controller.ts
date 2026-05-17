@@ -14,7 +14,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import type { GoogleCalendarService } from './google-calendar.service';
+import { GoogleCalendarService } from './google-calendar.service';
 
 /**
  * Google Calendar OAuth2 endpoints.
@@ -37,7 +37,7 @@ import type { GoogleCalendarService } from './google-calendar.service';
 export class GoogleCalendarController {
   private readonly logger = new Logger(GoogleCalendarController.name);
 
-  constructor(private readonly gcalService: GoogleCalendarService) {}
+  constructor(@Inject(GoogleCalendarService) private readonly gcalService: GoogleCalendarService) {}
 
   // ─── Helper: verify Clerk JWT from Authorization header or query param ────
 
