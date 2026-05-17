@@ -34,6 +34,7 @@ import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { decodeEntryContent } from '../../../src/utils/entries';
 import { getOptimizedImageUrl } from '../../../src/utils/images';
 import { trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 
 const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 const gf = new GiphyFetch(
@@ -1888,17 +1889,7 @@ function NewEntryContent() {
 
   return (
     <div className="soouls-page flex flex-col relative overflow-hidden">
-      {/* Background watermark */}
-      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="soouls-watermark text-[18vw] leading-none"
-          style={{
-            WebkitTextStroke: '1px rgba(255,255,255,0.7)',
-          }}
-        >
-          Soouls
-        </span>
-      </div>
+      <BackgroundText />
 
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-5 md:px-12 py-6 md:py-8 flex justify-between items-center relative z-10">

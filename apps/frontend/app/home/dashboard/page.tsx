@@ -18,6 +18,7 @@ import React, { useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { getEntryPlainText, getEntryTitle, parseEntryData } from '../../../src/utils/entries';
 import { trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 import { LeafIcon } from '../../components/Icons';
 
 function parseHighlightedText(text: string | undefined | null, fallback: string) {
@@ -165,15 +166,7 @@ const DashboardPage = () => {
       className="soouls-page flex flex-col relative overflow-hidden select-none"
       style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text)' }}
     >
-      {/* BACKGROUND WATERMARK - Exact Design Parity */}
-      <div className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none opacity-[0.5] select-none z-0 overflow-hidden whitespace-nowrap">
-        <div className="relative">
-          <span className="soouls-watermark text-[14vw] leading-none uppercase">
-            Soouls in
-          </span>
-        </div>
-      </div>
-
+      <BackgroundText />
       {/* HEADER - Exact Design Parity */}
       <header className="fixed top-0 left-0 right-0 z-50 p-10 flex justify-between items-center transition-all duration-300">
         <div className="flex items-center gap-1 text-[22px] font-medium tracking-tight">
@@ -204,7 +197,7 @@ const DashboardPage = () => {
       </header>
 
       {/* MAIN CONTAINER - Standardized */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pt-32 pb-24 items-stretch">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pt-36 md:pt-48 lg:pt-[12vw] pb-24 items-stretch">
         <section className="soouls-panel flex-1 rounded-[40px] overflow-hidden flex flex-col">
           <div className="flex-1 p-8 md:p-10 space-y-10 overflow-y-auto custom-scrollbar">
             {/* WRITING SECTION - Matching Design Exactly */}
@@ -346,7 +339,15 @@ const DashboardPage = () => {
                       router.push('/home/clusters');
                     }
                   }}
-                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
+                  variants={{
+                    hidden: { opacity: 0, y: 30, scale: 0.95 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                    },
+                  }}
                   className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
                 >
                   <div className="flex items-center justify-between">

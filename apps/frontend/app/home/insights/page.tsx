@@ -7,6 +7,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { formatCurrentMonthRange } from '../../../src/utils/home';
 import { trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 
 const FONT_URBANIST = 'var(--font-urbanist), system-ui, sans-serif';
 
@@ -247,11 +248,7 @@ export default function InsightsPage() {
         fontFamily: FONT_URBANIST,
       }}
     >
-      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.9] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span className="soouls-watermark text-[18vw] leading-none">
-          Soouls
-        </span>
-      </div>
+      <BackgroundText />
 
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
@@ -286,12 +283,10 @@ export default function InsightsPage() {
         className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28"
         style={{ marginTop: 'calc(9vw - 4rem)' }}
       >
-        <section
-          className="soouls-panel w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6"
-        >
+        <section className="soouls-panel w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6">
           <div className="flex justify-between items-center mb-6 px-2">
             <h1 className="text-[26px] font-light tracking-[-0.01em] text-[#f0ece6] font-sans">
-              Soulcanvas Insights
+              Soouls Insights
             </h1>
             <div className="flex items-center gap-[12px]">
               <span className="flex items-center gap-[8px] text-[13px] font-light tracking-[0.02em] text-[rgba(240,236,230,0.6)]">

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,e07a5f&radius=50`;
@@ -63,12 +64,7 @@ export default function ClustersPage() {
         color: 'var(--soouls-text)',
       }}
     >
-      {/* Hero watermark */}
-      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.85] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span className="soouls-watermark text-[18vw] leading-none">
-          Soouls
-        </span>
-      </div>
+      <BackgroundText />
 
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
@@ -102,9 +98,7 @@ export default function ClustersPage() {
         className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28"
         style={{ marginTop: 'calc(9vw - 4rem)' }}
       >
-        <section
-          className="soouls-panel w-full rounded-[2rem] flex flex-col overflow-hidden"
-        >
+        <section className="soouls-panel w-full rounded-[2rem] flex flex-col overflow-hidden">
           {/* Card header row */}
           <div className="p-8 md:p-12 flex flex-col xl:flex-row justify-between items-start gap-8">
             {/* Left: title + subtitle */}

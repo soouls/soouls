@@ -8,6 +8,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { CSPostHogProvider } from '../src/providers/posthog-provider';
 import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
 import { UiThemeProvider } from '../src/providers/ui-theme-provider';
+import { BackgroundText } from './components/BackgroundText';
 import { GlobalMascot } from './components/GlobalMascot';
 
 const geistMono = localFont({

@@ -3,11 +3,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import { db, eq } from '@soouls/database/client';
 import { users, waitlistUsers } from '@soouls/database/schema';
 import { getWaitlistEntry, isWaitlistEmail } from '@soouls/database/waitlist-data';
+import { GoogleIntegrationService } from '../integrations/google.service';
 import { MessagingService } from '../services/messaging.service';
 
 @Injectable()
 export class UsersService {
-  constructor(@Inject(MessagingService) private readonly messagingService: MessagingService) {}
+  constructor(
+    @Inject(MessagingService) private readonly messagingService: MessagingService,
+    @Inject(GoogleIntegrationService)
+    private readonly googleIntegrationService: GoogleIntegrationService,
+  ) {}
 
   async ensureUser(clerkId: string): Promise<string> {
     // 1. Check if user exists in DB
@@ -103,6 +108,13 @@ export class UsersService {
     void this.messagingService.sendWelcomeSequence(newUser.id).catch((err) => {
       console.error('[Users] Welcome sequence background failure:', err);
     });
+
+    // 6. Try to sync phone number from Google if it was missing
+    if (!phoneNumber && !waitlistEntry?.phoneNumber) {
+      void this.googleIntegrationService.syncGoogleProfileData(newUser.id, clerkId).catch((err) => {
+        console.error('[Users] Google profile sync background failure:', err);
+      });
+    }
 
     return newUser.id;
   }

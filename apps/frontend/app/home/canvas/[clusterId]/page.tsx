@@ -28,6 +28,7 @@ import {
   Link as LinkIcon,
   Loader2,
   Maximize2,
+  Minus,
   MousePointer2,
   Plus,
   RefreshCw,
@@ -35,7 +36,6 @@ import {
   Search,
   Sparkles,
   Trash2,
-  Minus,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -44,6 +44,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getEntryPlainText } from '../../../../src/utils/entries';
 import { clusterMatchesEntry, getEntryTitle, truncateText } from '../../../../src/utils/home';
 import { trpc } from '../../../../src/utils/trpc';
+import { BackgroundText } from '../../../components/BackgroundText';
 import { ConfirmModal } from '../../../components/ConfirmModal';
 
 type CanvasNodeData = {
@@ -336,19 +337,16 @@ export default function CanvasClusterPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#1F1F1F] text-[#EFEBDD] font-urbanist">
-      <div className="pointer-events-none absolute left-0 right-0 top-14 z-0 flex justify-center overflow-hidden opacity-50">
-        <span
-          className="text-[18vw] font-light leading-none tracking-widest text-transparent"
-          style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.26)' }}
-        >
-          Soouls in
-        </span>
-      </div>
+    <div className="min-h-screen overflow-hidden bg-[#1F1F1F] text-[#EFEBDD] font-urbanist relative">
+      <BackgroundText />
 
       <header className="relative z-20 mx-auto flex w-full max-w-[1700px] items-center justify-between px-8 py-9">
         <div className="flex items-center text-[24px] font-light tracking-[-0.04em]">
-          <button type="button" onClick={() => router.push('/home')} className="text-white/35 hover:text-white transition-colors">
+          <button
+            type="button"
+            onClick={() => router.push('/home')}
+            className="text-white/35 hover:text-white transition-colors"
+          >
             Home
           </button>
           <span className="text-white/35 mx-2">/</span>
@@ -374,8 +372,8 @@ export default function CanvasClusterPage() {
         </button>
       </header>
 
-      <main className="relative z-10 mx-auto flex h-[calc(100vh-118px)] w-full max-w-[1700px] gap-8 px-8 pb-8">
-        <aside className="flex w-[440px] shrink-0 flex-col rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-8 shadow-2xl backdrop-blur-[60px]">
+      <main className="relative z-10 mx-auto flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-118px)] w-full max-w-[1700px] gap-8 px-4 md:px-8 pb-8">
+        <aside className="flex w-full lg:w-[440px] shrink-0 flex-col rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-6 md:p-8 shadow-2xl backdrop-blur-[60px]">
           <div className="mb-10 flex items-center gap-4">
             <button
               type="button"
@@ -400,9 +398,11 @@ export default function CanvasClusterPage() {
           </div>
 
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-[14px] font-bold uppercase tracking-[0.2em] text-white/20">Entries</h2>
+            <h2 className="text-[14px] font-bold uppercase tracking-[0.2em] text-white/20">
+              Entries
+            </h2>
           </div>
-          
+
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
             {entriesLoading ? (
               <div className="flex items-center gap-3 text-white/35 p-4">
@@ -462,7 +462,7 @@ export default function CanvasClusterPage() {
           </button>
         </aside>
 
-        <section className="relative min-w-0 flex-1 overflow-hidden rounded-[40px] border border-white/[0.04] bg-[#080808]/60 shadow-2xl backdrop-blur-[60px]">
+        <section className="relative min-w-0 flex-1 min-h-[500px] lg:min-h-0 overflow-hidden rounded-[40px] border border-white/[0.04] bg-[#080808]/60 shadow-2xl backdrop-blur-[60px]">
           {!selectedEntryId ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center z-10">
               <p className="font-playfair text-[54px] italic leading-[1.1] text-[#EFEBDD]">
@@ -554,7 +554,9 @@ export default function CanvasClusterPage() {
                     <p className="font-playfair text-[32px] italic text-[#EFEBDD]">
                       Canvas cleared.
                     </p>
-                    <p className="mt-3 text-[16px] text-white/30 font-light">Add a card or regenerate to start fresh.</p>
+                    <p className="mt-3 text-[16px] text-white/30 font-light">
+                      Add a card or regenerate to start fresh.
+                    </p>
                   </div>
                 </div>
               ) : null}
@@ -689,7 +691,11 @@ function ToolbarButton({
       onClick={onClick}
       className={`flex min-w-[112px] flex-col items-center gap-1 px-5 py-3 transition hover:bg-white/10 ${active ? 'text-[var(--soouls-accent)]' : 'text-[#EFEBDD]/80 hover:text-white'}`}
     >
-      <span className={`h-5 w-5 [&>svg]:h-5 [&>svg]:w-5 ${active ? 'text-[var(--soouls-accent)]' : 'text-white/40 group-hover:text-white'}`}>{icon}</span>
+      <span
+        className={`h-5 w-5 [&>svg]:h-5 [&>svg]:w-5 ${active ? 'text-[var(--soouls-accent)]' : 'text-white/40 group-hover:text-white'}`}
+      >
+        {icon}
+      </span>
       <span className="text-[12px] uppercase tracking-[0.08em]">{label}</span>
     </button>
   );

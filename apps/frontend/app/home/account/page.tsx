@@ -24,6 +24,7 @@ import { useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { downloadJson } from '../../../src/utils/home';
 import { getTRPCClient, trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 
 const FONT_PLAYFAIR = 'var(--font-playfair), Georgia, serif';
 const FONT_URBANIST = 'var(--font-urbanist), system-ui, sans-serif';
@@ -229,12 +230,7 @@ export default function AccountPage() {
         fontFamily: FONT_URBANIST,
       }}
     >
-      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span className="soouls-watermark text-[18vw] leading-none">
-          Soouls
-        </span>
-      </div>
-
+      <BackgroundText />
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
           <Link
@@ -258,9 +254,7 @@ export default function AccountPage() {
       </header>
 
       <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
-        <section
-          className="soouls-panel flex-1 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar"
-        >
+        <section className="soouls-panel flex-1 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}

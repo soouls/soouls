@@ -16,7 +16,11 @@ import {
   NOTIFICATION_BATCH_SIZE,
   asWhatsappRecipient,
   compactPreview,
+  getBackendPublicUrl,
+  getConfiguredResendSegments,
+  makeAbsoluteUrl,
   normalizePhoneNumber,
+  parseEnvList,
 } from './notification.constants';
 import {
   buildAdminInviteTemplate,
@@ -40,6 +44,28 @@ type CampaignRecipient = UserMessagingProfile & {
   userIdForDelivery?: string | null;
 };
 
+type ResendWebhookPayload = {
+  type?: string;
+  data?: {
+    email_id?: string;
+    to?: string[];
+    subject?: string;
+    bounce?: { message?: string };
+    failed?: { reason?: string };
+    suppressed?: { message?: string };
+  };
+};
+
+type TwilioStatusPayload = {
+  MessageSid?: string;
+  SmsSid?: string;
+  MessageStatus?: string;
+  SmsStatus?: string;
+  ErrorCode?: string;
+  ErrorMessage?: string;
+  To?: string;
+};
+
 @Injectable()
 export class NotificationDispatchService {
   private async getUserByDbId(userId: string) {
@@ -50,6 +76,8 @@ export class NotificationDispatchService {
         email: users.email,
         name: users.name,
         phoneNumber: users.phoneNumber,
+        isWaitlistUser: users.isWaitlistUser,
+        billingTier: users.billingTier,
         marketingEmailOptIn: users.marketingEmailOptIn,
         marketingWhatsappOptIn: users.marketingWhatsappOptIn,
         transactionalEmailOptIn: users.transactionalEmailOptIn,
@@ -77,6 +105,8 @@ export class NotificationDispatchService {
         email: users.email,
         name: users.name,
         phoneNumber: users.phoneNumber,
+        isWaitlistUser: users.isWaitlistUser,
+        billingTier: users.billingTier,
         marketingEmailOptIn: users.marketingEmailOptIn,
         marketingWhatsappOptIn: users.marketingWhatsappOptIn,
         transactionalEmailOptIn: users.transactionalEmailOptIn,
@@ -140,6 +170,8 @@ export class NotificationDispatchService {
         email: users.email,
         name: users.name,
         phoneNumber: users.phoneNumber,
+        isWaitlistUser: users.isWaitlistUser,
+        billingTier: users.billingTier,
         marketingEmailOptIn: users.marketingEmailOptIn,
         marketingWhatsappOptIn: users.marketingWhatsappOptIn,
         transactionalEmailOptIn: users.transactionalEmailOptIn,
@@ -186,6 +218,8 @@ export class NotificationDispatchService {
         email: entry.email,
         name: null,
         phoneNumber: entry.phoneNumber,
+        isWaitlistUser: true,
+        billingTier: 'waitlist',
         marketingEmailOptIn: true,
         marketingWhatsappOptIn: Boolean(normalizePhoneNumber(entry.phoneNumber)),
         transactionalEmailOptIn: true,
@@ -237,12 +271,107 @@ export class NotificationDispatchService {
     return user.userIdForDelivery === null ? undefined : (user.userIdForDelivery ?? user.id);
   }
 
-  private async sendEmail(message: EmailMessage): Promise<TransportResult> {
+  private getResend() {
     const apiKey = process.env.RESEND_API_KEY;
+    return apiKey ? new Resend(apiKey) : null;
+  }
+
+  private getNameParts(name: string | null | undefined) {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    return {
+      firstName: parts[0] ?? null,
+      lastName: parts.length > 1 ? parts.slice(1).join(' ') : null,
+    };
+  }
+
+  private getResendSegmentIds(user: UserMessagingProfile) {
+    const segmentIds = new Set(getConfiguredResendSegments());
+
+    if (user.isWaitlistUser) {
+      for (const segmentId of parseEnvList(process.env.RESEND_WAITLIST_SEGMENT_IDS)) {
+        segmentIds.add(segmentId);
+      }
+      if (process.env.RESEND_WAITLIST_SEGMENT_ID) {
+        segmentIds.add(process.env.RESEND_WAITLIST_SEGMENT_ID);
+      }
+    }
+
+    if (user.billingTier === 'premium' && process.env.RESEND_PREMIUM_SEGMENT_ID) {
+      segmentIds.add(process.env.RESEND_PREMIUM_SEGMENT_ID);
+    }
+
+    if (user.billingTier === 'enterprise' && process.env.RESEND_ENTERPRISE_SEGMENT_ID) {
+      segmentIds.add(process.env.RESEND_ENTERPRISE_SEGMENT_ID);
+    }
+
+    return Array.from(segmentIds);
+  }
+
+  private async syncResendContact(user: UserMessagingProfile) {
+    const resend = this.getResend();
+    if (!resend) {
+      console.log('[Messaging] Resend contact sync skipped', {
+        userId: user.id,
+        email: user.email,
+      });
+      return;
+    }
+
+    const { firstName, lastName } = this.getNameParts(user.name);
+    const segmentIds = this.getResendSegmentIds(user);
+    const contact = {
+      email: user.email,
+      firstName: firstName ?? undefined,
+      lastName: lastName ?? undefined,
+      unsubscribed: !user.marketingEmailOptIn,
+      properties: {
+        userId: user.id,
+        clerkId: user.clerkId,
+        phoneNumber: user.phoneNumber,
+        isWaitlistUser: String(Boolean(user.isWaitlistUser)),
+        billingTier: user.billingTier ?? 'free',
+        marketingEmailOptIn: String(user.marketingEmailOptIn),
+        marketingWhatsappOptIn: String(user.marketingWhatsappOptIn),
+        transactionalEmailOptIn: String(user.transactionalEmailOptIn),
+        transactionalWhatsappOptIn: String(user.transactionalWhatsappOptIn),
+      },
+    };
+
+    const update = await resend.contacts.update(contact);
+
+    if (update.error) {
+      const create = await resend.contacts.create({
+        ...contact,
+        segments: segmentIds.map((id) => ({ id })),
+      });
+
+      if (create.error) {
+        throw new Error(`Resend contact sync failed: ${create.error.message}`);
+      }
+
+      return;
+    }
+
+    await Promise.all(
+      segmentIds.map(async (segmentId) => {
+        const result = await resend.contacts.segments.add({ email: user.email, segmentId });
+        if (result.error) {
+          console.warn('[Messaging] Resend segment sync failed', {
+            userId: user.id,
+            segmentId,
+            error: result.error.message,
+          });
+        }
+      }),
+    );
+  }
+
+  private async sendEmail(message: EmailMessage): Promise<TransportResult> {
+    const resend = this.getResend();
     const fromEmail = process.env.MESSAGING_FROM_EMAIL;
     const fromName = process.env.MESSAGING_FROM_NAME ?? 'Soouls';
 
-    if (!apiKey || !fromEmail) {
+    if (!resend || !fromEmail) {
       console.log('[Messaging] Email preview', {
         to: message.to,
         subject: message.subject,
@@ -254,15 +383,17 @@ export class NotificationDispatchService {
       };
     }
 
-    const resend = new Resend(apiKey);
-    const response = await resend.emails.send({
-      from: `${fromName} <${fromEmail}>`,
-      to: [message.to],
-      subject: message.subject,
-      html: message.html,
-      text: message.text,
-      replyTo: process.env.MESSAGING_REPLY_TO_EMAIL || undefined,
-    });
+    const response = await resend.emails.send(
+      {
+        from: `${fromName} <${fromEmail}>`,
+        to: [message.to],
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+        replyTo: process.env.MESSAGING_REPLY_TO_EMAIL || undefined,
+      },
+      message.idempotencyKey ? { idempotencyKey: message.idempotencyKey } : undefined,
+    );
 
     if (response.error) {
       return {
@@ -283,11 +414,13 @@ export class NotificationDispatchService {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = process.env.TWILIO_WHATSAPP_FROM;
+    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
 
-    if (!accountSid || !authToken || !fromNumber) {
+    if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
       console.log('[Messaging] WhatsApp preview', {
         to: message.to,
         body: message.body.slice(0, 120),
+        contentSid: message.contentSid,
       });
 
       return {
@@ -298,10 +431,27 @@ export class NotificationDispatchService {
 
     const encodedAuth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
     const form = new URLSearchParams({
-      From: asWhatsappRecipient(fromNumber),
       To: asWhatsappRecipient(message.to),
-      Body: message.body,
     });
+
+    if (messagingServiceSid) {
+      form.set('MessagingServiceSid', messagingServiceSid);
+    } else if (fromNumber) {
+      form.set('From', asWhatsappRecipient(fromNumber));
+    }
+
+    if (message.statusCallbackUrl) {
+      form.set('StatusCallback', message.statusCallbackUrl);
+    }
+
+    if (message.contentSid) {
+      form.set('ContentSid', message.contentSid);
+      if (message.contentVariables) {
+        form.set('ContentVariables', JSON.stringify(message.contentVariables));
+      }
+    } else {
+      form.set('Body', message.body);
+    }
 
     const response = (await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
@@ -419,6 +569,7 @@ export class NotificationDispatchService {
         subject: input.template.subject,
         html: input.template.html,
         text: input.template.text,
+        idempotencyKey: `${input.templateKey}:email:${this.getDeliveryUserId(user) ?? user.email}:${input.campaignId ?? 'single'}`,
       });
 
       await this.recordDelivery({
@@ -481,9 +632,20 @@ export class NotificationDispatchService {
       return { status: 'skipped' as const };
     }
 
+    const firstName = user.name?.split(' ')[0] || 'there';
+    const statusCallbackUrl = getBackendPublicUrl()
+      ? new URL('/notifications/webhooks/twilio/status', getBackendPublicUrl()).toString()
+      : undefined;
+    const welcomeContentSid =
+      input.templateKey === 'welcome' ? process.env.TWILIO_WELCOME_TEMPLATE_SID : undefined;
     const result = await this.sendWhatsApp({
       to: phoneNumber,
       body: input.template.whatsappBody,
+      contentSid: welcomeContentSid,
+      contentVariables: welcomeContentSid
+        ? { '1': firstName, '2': this.getDashboardUrl() }
+        : undefined,
+      statusCallbackUrl,
     });
 
     await this.recordDelivery({
@@ -510,6 +672,9 @@ export class NotificationDispatchService {
   async processWelcomeSequence(userId: string) {
     const user = await this.getUserByDbId(userId);
     const template = await buildWelcomeTemplate(user);
+    const failedProviders: string[] = [];
+
+    await this.syncResendContact(user);
 
     if (!user.welcomeEmailSentAt) {
       const emailResult = await this.deliverTemplate({
@@ -529,6 +694,8 @@ export class NotificationDispatchService {
             updatedAt: new Date(),
           })
           .where(eq(users.id, user.id));
+      } else if (emailResult.status === 'failed') {
+        failedProviders.push('resend');
       }
     }
 
@@ -550,6 +717,8 @@ export class NotificationDispatchService {
             updatedAt: new Date(),
           })
           .where(eq(users.id, user.id));
+      } else if (whatsappResult.status === 'failed') {
+        failedProviders.push('twilio-whatsapp');
       }
     }
 
@@ -557,6 +726,110 @@ export class NotificationDispatchService {
       await this.syncNewsletterUser(user);
     } catch (error) {
       console.error('[Messaging] Newsletter sync failed', error);
+    }
+
+    if (failedProviders.length > 0) {
+      throw new Error(`Welcome sequence failed for: ${failedProviders.join(', ')}`);
+    }
+  }
+
+  async processJob(name: string, data: unknown) {
+    switch (name) {
+      case 'welcome-sequence':
+        await this.processWelcomeSequence((data as { userId: string }).userId);
+        return;
+      case 'secure-access':
+        await this.processSecureAccess((data as { email: string }).email);
+        return;
+      case 'admin-invite':
+        await this.processAdminInvite((data as { inviteId: string }).inviteId);
+        return;
+      case 'campaign-dispatch':
+        await this.processCampaignDispatch((data as { campaignId: string }).campaignId);
+        return;
+      case 'gdpr-export':
+        await this.processGdprExport(
+          (data as { userId: string; requestorEmail: string }).userId,
+          (data as { userId: string; requestorEmail: string }).requestorEmail,
+        );
+        return;
+      default:
+        throw new Error(`Unsupported notification job: ${name}`);
+    }
+  }
+
+  async processResendWebhook(event: ResendWebhookPayload) {
+    const emailId = event.data?.email_id;
+    if (!emailId) {
+      return;
+    }
+
+    const isFailure =
+      event.type === 'email.bounced' ||
+      event.type === 'email.complained' ||
+      event.type === 'email.failed' ||
+      event.type === 'email.suppressed';
+    const status = isFailure ? 'failed' : 'sent';
+    const errorMessage =
+      event.data?.bounce?.message ?? event.data?.failed?.reason ?? event.data?.suppressed?.message;
+
+    await db
+      .update(messageDeliveries)
+      .set({
+        status,
+        errorMessage,
+        payload: compactPreview({
+          providerEvent: event.type,
+          subject: event.data?.subject,
+          to: event.data?.to,
+        }),
+        updatedAt: new Date(),
+      })
+      .where(eq(messageDeliveries.providerMessageId, emailId));
+
+    if (event.type === 'email.complained' || event.type === 'email.suppressed') {
+      for (const recipient of event.data?.to ?? []) {
+        await db
+          .update(users)
+          .set({
+            marketingEmailOptIn: false,
+            ...(event.type === 'email.suppressed' ? { transactionalEmailOptIn: false } : {}),
+            updatedAt: new Date(),
+          })
+          .where(eq(users.email, recipient.toLowerCase()));
+      }
+    }
+  }
+
+  async processTwilioStatusWebhook(payload: TwilioStatusPayload) {
+    const sid = payload.MessageSid ?? payload.SmsSid;
+    if (!sid) {
+      return;
+    }
+
+    const providerStatus = payload.MessageStatus ?? payload.SmsStatus;
+    const failed = ['failed', 'undelivered'].includes(providerStatus ?? '');
+
+    await db
+      .update(messageDeliveries)
+      .set({
+        status: failed ? 'failed' : 'sent',
+        errorMessage: payload.ErrorMessage ?? payload.ErrorCode,
+        payload: compactPreview({
+          providerStatus,
+          errorCode: payload.ErrorCode,
+          to: payload.To,
+        }),
+        updatedAt: new Date(),
+      })
+      .where(eq(messageDeliveries.providerMessageId, sid));
+  }
+
+  private getDashboardUrl() {
+    try {
+      return makeAbsoluteUrl('/home');
+    } catch {
+      return '/home';
     }
   }
 

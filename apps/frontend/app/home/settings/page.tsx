@@ -25,6 +25,7 @@ import {
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { clearQueryCache } from '../../../src/providers/trpc-provider';
 import { trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 
 const FONT_URBANIST = 'var(--font-urbanist), system-ui, sans-serif';
 
@@ -235,12 +236,7 @@ export default function SettingsPage() {
         fontFamily: FONT_URBANIST,
       }}
     >
-      {/* Giant background "Soouls" watermark */}
-      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.7] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span className="soouls-watermark text-[18vw] leading-none">
-          Soouls
-        </span>
-      </div>
+      <BackgroundText />
 
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">

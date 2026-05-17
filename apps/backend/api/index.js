@@ -1,5 +1,3 @@
-'use strict';
-
 let cachedHandler = null;
 let bootstrapError = null;
 

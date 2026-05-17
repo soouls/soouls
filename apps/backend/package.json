@@ -40,6 +40,7 @@
     "@soouls/database": "*",
     "@soouls/logic": "*",
     "@trpc/server": "^11.0.0-rc.710",
+    "@upstash/qstash": "^2.11.0",
     "bullmq": "^5.71.0",
     "cache-manager": "^7.2.8",
     "cron": "^4.3.5",

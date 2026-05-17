@@ -5,6 +5,7 @@ import { FileText, Mic, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '../../../../src/utils/trpc';
+import { BackgroundText } from '../../../components/BackgroundText';
 
 function HighlightIcon({ type }: { type: 'entry' | 'task' }) {
   if (type === 'task') return <Mic className="w-4 h-4" style={{ color: 'var(--soouls-accent)' }} />;
@@ -85,17 +86,7 @@ export default function ClusterDetailPage() {
       className="min-h-screen flex flex-col relative overflow-hidden"
       style={{ backgroundColor: 'var(--soouls-bg)', color: 'var(--soouls-text-strong)' }}
     >
-      <div className="absolute top-10 left-0 right-0 flex justify-center pointer-events-none opacity-10 select-none z-0 overflow-hidden whitespace-nowrap">
-        <span
-          className="text-[20vw] leading-none text-transparent tracking-tighter"
-          style={{
-            fontFamily: 'serif',
-            WebkitTextStroke: '1px rgba(255,255,255,0.35)',
-          }}
-        >
-          Soouls in
-        </span>
-      </div>
+      <BackgroundText />
 
       <header className="px-8 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)]">

@@ -1,11 +1,14 @@
-import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
+import { Injectable, type OnModuleDestroy } from '@nestjs/common';
+import { Client } from '@upstash/qstash';
 import { type JobsOptions, Queue } from 'bullmq';
 import { isVercelRuntime } from '../runtime';
 import {
   NOTIFICATIONS_QUEUE,
   type NotificationJobData,
   type NotificationJobName,
+  QSTASH_RETRY_COUNT,
   createRedisConnection,
+  getBackendPublicUrl,
 } from './notification.constants';
 
 const DEFAULT_JOB_OPTIONS: JobsOptions = {
@@ -29,14 +32,33 @@ export class NotificationQueueService implements OnModuleDestroy {
         defaultJobOptions: DEFAULT_JOB_OPTIONS,
       })
     : null;
+  private readonly qstash =
+    process.env.QSTASH_TOKEN && getBackendPublicUrl()
+      ? new Client({ token: process.env.QSTASH_TOKEN })
+      : null;
 
   isConfigured() {
-    return this.queue !== null;
+    return this.queue !== null || this.qstash !== null;
   }
 
   async add(name: NotificationJobName, data: NotificationJobData) {
+    if (this.qstash) {
+      const backendUrl = getBackendPublicUrl();
+      const url = new URL(`/notifications/jobs/${name}`, backendUrl).toString();
+
+      return this.qstash.publishJSON({
+        url,
+        body: data,
+        deduplicationId: `${name}:${JSON.stringify(data)}`,
+        retries: QSTASH_RETRY_COUNT,
+        label: `notifications:${name}`,
+      });
+    }
+
     if (!this.queue) {
-      throw new Error('REDIS_URL is not configured for the notifications queue.');
+      throw new Error(
+        'Notifications queue is not configured. Set QSTASH_TOKEN and BACKEND_PUBLIC_URL, or REDIS_URL.',
+      );
     }
 
     return this.queue.add(name, data, {
@@ -65,6 +87,15 @@ export class NotificationQueueService implements OnModuleDestroy {
   }
 
   async getCounts() {
+    if (this.qstash && !this.queue) {
+      return {
+        waiting: 0,
+        active: 0,
+        delayed: 0,
+        failed: 0,
+      };
+    }
+
     if (!this.queue) {
       return {
         waiting: 0,

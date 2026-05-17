@@ -1,0 +1,48 @@
+# Google OAuth Scope Setup Instructions
+
+The code for extracting phone numbers and handling Google OAuth profile syncing is now live in the backend! 
+
+However, because Clerk manages the OAuth flow, you **must** manually configure Clerk and Google Cloud to request the `Calendar` and `Phone Number` permissions from the user. You cannot do this in code; it has to be configured in their dashboards.
+
+Please follow these exact steps to complete the setup:
+
+## 1. Google Cloud Console Configuration
+
+Before Clerk can request these permissions, your Google Cloud OAuth app must be allowed to ask for them.
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Select the project you use for Soouls authentication.
+3. Go to **APIs & Services** > **Library**.
+   - Search for **Google People API** and click **Enable**.
+   - Search for **Google Calendar API** and click **Enable**.
+4. Go to **APIs & Services** > **OAuth consent screen**.
+5. Click **Edit App** and navigate to the **Scopes** step.
+6. Click **Add or Remove Scopes**.
+7. Manually paste the following two scopes into the input field at the bottom of the drawer and click Add:
+   - `https://www.googleapis.com/auth/user.phonenumbers.read`
+   - `https://www.googleapis.com/auth/calendar.events`
+8. Save and continue.
+
+> [!WARNING]  
+> Because Calendar access is a **Sensitive Scope**, Google will require you to submit your app for verification before you can remove the "Unverified App" warning for your users.
+
+## 2. Clerk Dashboard Configuration
+
+Now that Google allows these scopes, you need to tell Clerk to request them when a user clicks "Sign in with Google".
+
+1. Go to your [Clerk Dashboard](https://dashboard.clerk.com/).
+2. Navigate to **User & Authentication** > **Social Connections**.
+3. Click the gear icon (Settings) next to **Google**.
+4. Scroll down to the **Custom Scopes** section.
+5. Add the following two scopes, exactly as written (usually space-separated or comma-separated depending on the Clerk UI):
+   - `https://www.googleapis.com/auth/user.phonenumbers.read`
+   - `https://www.googleapis.com/auth/calendar.events`
+6. Click **Save**.
+
+## What happens next?
+
+Once you complete these steps:
+1. When a user clicks "Sign up with Google", they will be prompted to grant access to their Calendar and their Phone Number.
+2. After they agree and return to Soouls, the backend's `UsersService` will automatically trigger the `GoogleIntegrationService` to grab their Google token from Clerk.
+3. The service will fetch their phone number via the Google People API and save it to the database (`users.phoneNumber`), opting them into WhatsApp notifications automatically.
+4. (Optional) You can now use the `GoogleIntegrationService` to manage their calendar events by passing their Clerk ID!

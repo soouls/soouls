@@ -54,11 +54,19 @@ mock.module('@soouls/database/schema', () => ({
   messageDeliveries: {
     id: 'message_deliveries.id',
   },
+  waitlistUsers: {
+    id: 'waitlist_users.id',
+    email: 'waitlist_users.email',
+    phoneNumber: 'waitlist_users.phone_number',
+    createdAt: 'waitlist_users.created_at',
+  },
   users: {
     clerkId: 'users.clerk_id',
     createdAt: 'users.created_at',
     email: 'users.email',
     id: 'users.id',
+    billingTier: 'users.billing_tier',
+    isWaitlistUser: 'users.is_waitlist_user',
     lastSecureAccessSentAt: 'users.last_secure_access_sent_at',
     marketingEmailOptIn: 'users.marketing_email_opt_in',
     marketingWhatsappOptIn: 'users.marketing_whatsapp_opt_in',
@@ -81,6 +89,7 @@ mock.module('@soouls/database/client', () => ({
   and: (...args: unknown[]) => args,
   desc: (value: unknown) => value,
   eq: (...args: unknown[]) => args,
+  or: (...args: unknown[]) => args,
   sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({ strings, values }),
 }));
 

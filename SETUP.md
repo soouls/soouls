@@ -88,9 +88,17 @@ All apps read from the root `.env` file via `bun run --env-file=../../.env`.
 
 | Variable | Description |
 |----------|-------------|
-| `REDIS_URL` | Redis connection for BullMQ worker queues |
-| `RESEND_API_KEY` | Resend transactional email |
-| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | WhatsApp messaging |
+| `QSTASH_TOKEN` | Upstash QStash token for production notification jobs on Vercel |
+| `QSTASH_CURRENT_SIGNING_KEY` / `QSTASH_NEXT_SIGNING_KEY` | QStash webhook verification keys |
+| `BACKEND_PUBLIC_URL` | Public backend URL that QStash, Resend, and Twilio can call |
+| `REDIS_URL` | Local/worker BullMQ fallback queue |
+| `RESEND_API_KEY` / `RESEND_WEBHOOK_SECRET` | Resend sending, contact sync, and webhook verification |
+| `MESSAGING_FROM_EMAIL` / `MESSAGING_FROM_NAME` / `MESSAGING_REPLY_TO_EMAIL` | Verified sender and reply routing for Resend |
+| `RESEND_ALL_USERS_SEGMENT_ID` / `RESEND_SIGNUPS_SEGMENT_ID` | Resend Segments for external broadcasts and automations |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | Twilio messaging credentials |
+| `TWILIO_MESSAGING_SERVICE_SID` / `TWILIO_WHATSAPP_FROM` | Preferred Messaging Service SID and fallback WhatsApp sender |
+| `TWILIO_WELCOME_TEMPLATE_SID` | Approved Twilio Content Template SID for WhatsApp welcome messages |
+| `TWILIO_VALIDATE_WEBHOOK_SIGNATURE` | Set to `true` to enforce Twilio status webhook signatures |
 
 ### Media & Billing (Optional)
 
@@ -183,25 +191,30 @@ Follow these steps to acquire every API key needed for the `.env` file.
 5. Copy `Secret Key` to `CLERK_SECRET_KEY`.
 6. Copy the Frontend API URL (usually `clerk-xxx.accounts.dev`) to `NEXT_PUBLIC_CLERK_FRONTEND_API`.
 
-### 3. Background Queues (Upstash Redis)
-Required for sending emails, WhatsApp messages, and GDPR exports securely without blocking the API.
-1. Go to [upstash.com](https://upstash.com) and create a free Redis database.
-2. Enable **TLS (SSL)** and **Eviction**.
-3. Scroll down to "Node.js (ioredis)" and copy the Rediss URL (starts with `rediss://`).
-4. Paste it as `REDIS_URL` in `.env`.
+### 3. Background Queues (Upstash QStash)
+Required in production for sending emails, syncing Resend contacts, WhatsApp messages, and GDPR exports without blocking signup.
+1. Go to [upstash.com](https://upstash.com) and create a QStash project.
+2. Copy the token to `QSTASH_TOKEN`.
+3. Copy the signing keys to `QSTASH_CURRENT_SIGNING_KEY` and `QSTASH_NEXT_SIGNING_KEY`.
+4. Set `BACKEND_PUBLIC_URL` to the public backend URL QStash can call.
+5. For local non-serverless workers, `REDIS_URL` can still be used as the BullMQ fallback.
 
 ### 4. Emails & Broadcasts (Resend)
 1. Go to [resend.com](https://resend.com) and create an account.
 2. Go to **API Keys** and click "Create API Key". Give it "Full Access".
 3. Paste it as `RESEND_API_KEY`.
-4. (Optional) Verify your sending domain in Resend to send emails from your own address, then update `MESSAGING_FROM_EMAIL`.
+4. Verify your sending domain in Resend, then set `MESSAGING_FROM_EMAIL`, `MESSAGING_FROM_NAME`, and `MESSAGING_REPLY_TO_EMAIL`.
+5. Create Segments for signups/all users, then set `RESEND_ALL_USERS_SEGMENT_ID` and `RESEND_SIGNUPS_SEGMENT_ID`.
+6. Add a Resend webhook pointing to `/notifications/webhooks/resend`, then set `RESEND_WEBHOOK_SECRET`.
 
 ### 5. WhatsApp Integration (Twilio)
 1. Go to [twilio.com](https://twilio.com) and create an account.
-2. Search for "WhatsApp Sandbox" to get started immediately without business verification.
+2. Use the WhatsApp Sandbox for local testing, but use an approved WhatsApp Business sender for production.
 3. On the Twilio Console homepage, copy your `Account SID` and `Auth Token`.
 4. Paste them into `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN`.
-5. Enter the sandbox number in `TWILIO_WHATSAPP_FROM` (e.g., `whatsapp:+14155238886`).
+5. Configure a Messaging Service and paste it into `TWILIO_MESSAGING_SERVICE_SID`; keep `TWILIO_WHATSAPP_FROM` as fallback.
+6. Create and approve a WhatsApp Content Template for welcome messages, then set `TWILIO_WELCOME_TEMPLATE_SID`.
+7. Set the Twilio status callback URL to `/notifications/webhooks/twilio/status`.
 
 ### 6. Observability (Sentry & PostHog)
 **Sentry (Error Tracking):**
