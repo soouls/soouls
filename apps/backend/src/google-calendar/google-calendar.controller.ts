@@ -67,12 +67,30 @@ export class GoogleCalendarController {
    *
    * Usage: window.location.href = `${BACKEND_URL}/google-calendar/connect?clerk_token=${token}`
    */
+  private getFrontendBase(req: Request): string {
+    const frontendUrls = (process.env.FRONTEND_URL ?? '')
+      .split(',')
+      .map((url) => url.trim())
+      .filter(Boolean);
+    const referer = req.headers.referer || (req.headers.origin as string);
+    let frontendBase = frontendUrls[0] ?? '';
+
+    if (referer) {
+      const matched = frontendUrls.find((url) => referer.startsWith(url));
+      if (matched) {
+        frontendBase = matched;
+      }
+    }
+    return frontendBase;
+  }
+
   @Get('connect')
   @Redirect()
   async connect(@Req() req: Request) {
     if (!this.gcalService.isConfigured) {
+      const frontendBase = this.getFrontendBase(req);
       return {
-        url: `${process.env.FRONTEND_URL ?? ''}/home?gcal_error=not_configured`,
+        url: `${frontendBase}/home?gcal_error=not_configured`,
         statusCode: 302,
       };
     }
@@ -88,12 +106,13 @@ export class GoogleCalendarController {
    */
   @Get('callback')
   async callback(
+    @Req() req: Request,
     @Query('code') code: string,
     @Query('state') clerkUserId: string,
     @Query('error') error: string,
     @Res() res: Response,
   ) {
-    const frontendBase = process.env.FRONTEND_URL ?? '';
+    const frontendBase = this.getFrontendBase(req);
     const calendarUrl = `${frontendBase}/home`;
 
     if (error || !code) {
