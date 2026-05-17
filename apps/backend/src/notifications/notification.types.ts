@@ -9,6 +9,8 @@ export type UserMessagingProfile = {
   email: string;
   name: string | null;
   phoneNumber: string | null;
+  isWaitlistUser?: boolean;
+  billingTier?: string;
   marketingEmailOptIn: boolean;
   marketingWhatsappOptIn: boolean;
   transactionalEmailOptIn: boolean;
@@ -23,11 +25,15 @@ export type EmailMessage = {
   subject: string;
   html: string;
   text: string;
+  idempotencyKey?: string;
 };
 
 export type WhatsAppMessage = {
   to: string;
   body: string;
+  contentSid?: string;
+  contentVariables?: Record<string, string>;
+  statusCallbackUrl?: string;
 };
 
 export type TransportResult = {

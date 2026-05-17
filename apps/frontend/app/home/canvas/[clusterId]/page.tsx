@@ -44,6 +44,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getEntryPlainText } from '../../../../src/utils/entries';
 import { clusterMatchesEntry, getEntryTitle, truncateText } from '../../../../src/utils/home';
 import { trpc } from '../../../../src/utils/trpc';
+import { BackgroundText } from '../../../components/BackgroundText';
 import { ConfirmModal } from '../../../components/ConfirmModal';
 
 type CanvasNodeData = {
@@ -336,15 +337,9 @@ export default function CanvasClusterPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#1F1F1F] text-[#EFEBDD] font-urbanist">
-      <div className="pointer-events-none absolute left-0 right-0 top-14 z-0 flex justify-center overflow-hidden opacity-50">
-        <span
-          className="text-[18vw] font-light leading-none tracking-widest text-transparent"
-          style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.26)' }}
-        >
-          Soouls in
-        </span>
-      </div>
+    <div className="min-h-screen overflow-hidden bg-[#1F1F1F] text-[#EFEBDD] font-urbanist relative">
+      <BackgroundText />
+
 
       <header className="relative z-20 mx-auto flex w-full max-w-[1700px] items-center justify-between px-8 py-9">
         <div className="flex items-center text-[24px] font-light tracking-[-0.04em]">
@@ -374,8 +369,8 @@ export default function CanvasClusterPage() {
         </button>
       </header>
 
-      <main className="relative z-10 mx-auto flex h-[calc(100vh-118px)] w-full max-w-[1700px] gap-8 px-8 pb-8">
-        <aside className="flex w-[440px] shrink-0 flex-col rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-8 shadow-2xl backdrop-blur-[60px]">
+      <main className="relative z-10 mx-auto flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-118px)] w-full max-w-[1700px] gap-8 px-4 md:px-8 pb-8">
+        <aside className="flex w-full lg:w-[440px] shrink-0 flex-col rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-6 md:p-8 shadow-2xl backdrop-blur-[60px]">
           <div className="mb-10 flex items-center gap-4">
             <button
               type="button"
@@ -462,7 +457,7 @@ export default function CanvasClusterPage() {
           </button>
         </aside>
 
-        <section className="relative min-w-0 flex-1 overflow-hidden rounded-[40px] border border-white/[0.04] bg-[#080808]/60 shadow-2xl backdrop-blur-[60px]">
+        <section className="relative min-w-0 flex-1 min-h-[500px] lg:min-h-0 overflow-hidden rounded-[40px] border border-white/[0.04] bg-[#080808]/60 shadow-2xl backdrop-blur-[60px]">
           {!selectedEntryId ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center z-10">
               <p className="font-playfair text-[54px] italic leading-[1.1] text-[#EFEBDD]">

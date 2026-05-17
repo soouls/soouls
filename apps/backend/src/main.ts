@@ -10,6 +10,9 @@ import { createTrpcContext } from './trpc/trpc.context';
 import { TrpcRouter } from './trpc/trpc.router';
 
 const isVercel = process.env.VERCEL === '1';
+type RawBodyRequest = Parameters<NonNullable<Parameters<typeof json>[0]>['verify']>[0] & {
+  rawBody?: string;
+};
 
 export async function createApp(): Promise<INestApplication> {
   Sentry.init({
@@ -109,8 +112,23 @@ export async function createApp(): Promise<INestApplication> {
     }),
   );
 
-  app.use(json({ limit: '60mb' }));
-  app.use(urlencoded({ extended: true, limit: '60mb' }));
+  app.use(
+    json({
+      limit: '60mb',
+      verify: (req: RawBodyRequest, _res, buf) => {
+        req.rawBody = buf.toString('utf8');
+      },
+    }),
+  );
+  app.use(
+    urlencoded({
+      extended: true,
+      limit: '60mb',
+      verify: (req: RawBodyRequest, _res, buf) => {
+        req.rawBody = buf.toString('utf8');
+      },
+    }),
+  );
 
   console.log(`[Soouls API] CORS allowed origins: ${allowedOrigins.join(', ')}`);
   return app;

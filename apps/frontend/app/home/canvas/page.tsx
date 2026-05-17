@@ -21,6 +21,7 @@ import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { getEntryPlainText, getEntryTitle } from '../../../src/utils/entries';
 import { trpc } from '../../../src/utils/trpc';
 import { ConfirmModal } from '../../components/ConfirmModal';
+import { BackgroundText } from '../../components/BackgroundText';
 
 type ViewState = 'folders' | 'list' | 'cluster';
 
@@ -171,12 +172,7 @@ export default function CanvasPage() {
 
   return (
     <div className="soouls-page flex flex-col relative overflow-hidden select-none">
-      {/* BACKGROUND WATERMARK */}
-      <div className="absolute top-24 left-0 right-0 flex justify-center pointer-events-none opacity-[0.4] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span className="soouls-watermark text-[14vw] leading-none uppercase">
-          Soouls in
-        </span>
-      </div>
+      <BackgroundText />
 
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 transition-all duration-300 md:p-10">
@@ -218,7 +214,7 @@ export default function CanvasPage() {
         </button>
       </header>
 
-      <main className="flex-1 w-full max-w-[1700px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-24 md:pt-32 pb-8 h-full">
+      <main className="flex-1 w-full max-w-[1700px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-36 md:pt-48 lg:pt-[12vw] pb-8 h-full">
         <div className="flex-1 flex flex-col lg:flex-row gap-8 min-h-0">
           {/* SIDEBAR */}
           <aside className="flex w-full flex-col rounded-[32px] md:rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-6 md:p-10 shadow-2xl backdrop-blur-[60px] lg:w-[420px] shrink-0">

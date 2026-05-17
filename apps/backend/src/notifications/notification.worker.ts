@@ -1,5 +1,6 @@
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { type Job, Worker } from 'bullmq';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
 import { NotificationDispatchService } from './notification-dispatch.service';
 import {
   NOTIFICATIONS_QUEUE,
@@ -13,7 +14,7 @@ export class NotificationWorker implements OnModuleInit, OnModuleDestroy {
   private readonly connection = createRedisConnection();
   private worker: Worker<NotificationJobData, void, NotificationJobName> | null = null;
 
-  constructor(private readonly dispatcher: NotificationDispatchService) { }
+  constructor(private readonly dispatcher: NotificationDispatchService) {}
 
   onModuleInit() {
     if (!this.connection) {
@@ -40,30 +41,7 @@ export class NotificationWorker implements OnModuleInit, OnModuleDestroy {
   }
 
   private async processJob(job: Job<NotificationJobData, void, NotificationJobName>) {
-    switch (job.name) {
-      case 'welcome-sequence':
-        await this.dispatcher.processWelcomeSequence((job.data as { userId: string }).userId);
-        return;
-      case 'secure-access':
-        await this.dispatcher.processSecureAccess((job.data as { email: string }).email);
-        return;
-      case 'admin-invite':
-        await this.dispatcher.processAdminInvite((job.data as { inviteId: string }).inviteId);
-        return;
-      case 'campaign-dispatch':
-        await this.dispatcher.processCampaignDispatch(
-          (job.data as { campaignId: string }).campaignId,
-        );
-        return;
-      case 'gdpr-export':
-        await this.dispatcher.processGdprExport(
-          (job.data as { userId: string; requestorEmail: string }).userId,
-          (job.data as { userId: string; requestorEmail: string }).requestorEmail,
-        );
-        return;
-      default:
-        throw new Error(`Unsupported notification job: ${job.name}`);
-    }
+    await this.dispatcher.processJob(job.name, job.data);
   }
 
   async onModuleDestroy() {

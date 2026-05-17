@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { trpc } from '../../../src/utils/trpc';
+import { BackgroundText } from '../../components/BackgroundText';
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,e07a5f&radius=50`;
@@ -63,12 +64,8 @@ export default function ClustersPage() {
         color: 'var(--soouls-text)',
       }}
     >
-      {/* Hero watermark */}
-      <div className="absolute top-12 left-0 right-0 flex justify-center pointer-events-none opacity-[0.85] select-none z-0 overflow-hidden whitespace-nowrap">
-        <span className="soouls-watermark text-[18vw] leading-none">
-          Soouls
-        </span>
-      </div>
+      <BackgroundText />
+
 
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">

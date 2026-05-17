@@ -57,12 +57,20 @@ We recommend deploying the **Backend** first, then the **Frontend**.
 - **Environment Variables**:
   - `DATABASE_URL`
   - `CLERK_SECRET_KEY`
-  - `REDIS_URL` (From Upstash)
+  - `QSTASH_TOKEN`
+  - `QSTASH_CURRENT_SIGNING_KEY`, `QSTASH_NEXT_SIGNING_KEY`
+  - `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`
+  - `MESSAGING_FROM_EMAIL`, `MESSAGING_FROM_NAME`, `MESSAGING_REPLY_TO_EMAIL`
+  - `RESEND_ALL_USERS_SEGMENT_ID`, `RESEND_SIGNUPS_SEGMENT_ID`
+  - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`
+  - `TWILIO_MESSAGING_SERVICE_SID`, `TWILIO_WHATSAPP_FROM`, `TWILIO_WELCOME_TEMPLATE_SID`
+  - `REDIS_URL` (Optional local/worker BullMQ fallback)
   - `ENCRYPTION_SECRET` (A long random string)
   - `OPENAI_API_KEY`
   - `GEMINI_API_KEY`
   - `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`
   - `BACKEND_URL` (Your backend's Vercel URL)
+  - `BACKEND_PUBLIC_URL` (Same public backend URL used by QStash/provider webhooks)
   - `FRONTEND_URL` (Your frontend's Vercel URL)
 
 ### 2. Frontend (@soouls/frontend)

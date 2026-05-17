@@ -1,4 +1,20 @@
 /* ── Google Fonts ── */
+@font-face {
+  font-family: 'ABC Whyte Inktrap';
+  src: url('/fonts/whyte-inktrap-font-family-1766786697-0/ABCWhyteInktrap-Regular-Trial.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ABC Whyte Inktrap';
+  src: url('/fonts/whyte-inktrap-font-family-1766786697-0/ABCWhyteInktrap-Bold-Trial.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 @tailwind base;
 @tailwind components;

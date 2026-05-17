@@ -2,6 +2,7 @@ export const NOTIFICATIONS_QUEUE = 'notifications';
 export const DEFAULT_FRONTEND_URL = process.env.FRONTEND_URL ?? '';
 export const DEFAULT_COMMAND_CENTER_URL = process.env.COMMAND_CENTER_URL ?? '';
 export const NOTIFICATION_BATCH_SIZE = 20;
+export const QSTASH_RETRY_COUNT = 5;
 
 export type NotificationJobMap = {
   'welcome-sequence': { userId: string };
@@ -48,6 +49,15 @@ export function getCommandCenterUrl() {
   return process.env.COMMAND_CENTER_URL ?? DEFAULT_COMMAND_CENTER_URL;
 }
 
+export function getBackendPublicUrl() {
+  return (
+    process.env.BACKEND_PUBLIC_URL ??
+    process.env.NEXT_PUBLIC_BACKEND_URL ??
+    process.env.BACKEND_URL ??
+    ''
+  );
+}
+
 export function makeAbsoluteUrl(path: string) {
   return new URL(path, getFrontendUrl()).toString();
 }
@@ -87,4 +97,12 @@ export function parseEnvList(value: string | undefined) {
 export function countValue(raw: unknown) {
   const value = typeof raw === 'number' ? raw : Number(raw ?? 0);
   return Number.isFinite(value) ? value : 0;
+}
+
+export function getConfiguredResendSegments() {
+  return [
+    process.env.RESEND_ALL_USERS_SEGMENT_ID,
+    process.env.RESEND_DEFAULT_SEGMENT_ID,
+    process.env.RESEND_SIGNUPS_SEGMENT_ID,
+  ].filter((segmentId): segmentId is string => Boolean(segmentId));
 }
