@@ -66,7 +66,6 @@ export default function ClustersPage() {
     >
       <BackgroundText />
 
-
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
@@ -99,9 +98,7 @@ export default function ClustersPage() {
         className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28"
         style={{ marginTop: 'calc(9vw - 4rem)' }}
       >
-        <section
-          className="soouls-panel w-full rounded-[2rem] flex flex-col overflow-hidden"
-        >
+        <section className="soouls-panel w-full rounded-[2rem] flex flex-col overflow-hidden">
           {/* Card header row */}
           <div className="p-8 md:p-12 flex flex-col xl:flex-row justify-between items-start gap-8">
             {/* Left: title + subtitle */}

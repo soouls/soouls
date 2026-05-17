@@ -220,7 +220,7 @@ export function GlobalMascot() {
       dragMomentum={false}
       dragElastic={0}
       onDragStart={() => setIsRoaming(false)}
-      onDragEnd={(e, info) => {
+      onDragEnd={(_e, info) => {
         setPosition((prev) => ({
           x: prev.x + info.offset.x,
           y: prev.y + info.offset.y,
@@ -241,8 +241,12 @@ export function GlobalMascot() {
         type: 'spring',
         damping: 35,
         stiffness: 40,
-        x: isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
-        y: isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
+        x: isRoaming
+          ? { duration: 5, ease: 'easeInOut' }
+          : { type: 'spring', damping: 30, stiffness: 300 },
+        y: isRoaming
+          ? { duration: 5, ease: 'easeInOut' }
+          : { type: 'spring', damping: 30, stiffness: 300 },
         scale: { type: 'spring', stiffness: 200, damping: 20 },
       }}
       onHoverStart={() => {

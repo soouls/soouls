@@ -88,7 +88,6 @@ export default function ClusterDetailPage() {
     >
       <BackgroundText />
 
-
       <header className="px-8 py-6 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)]">
           <button

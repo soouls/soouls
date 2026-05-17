@@ -18,10 +18,7 @@ export class GoogleIntegrationService {
         return null;
       }
       const clerk = createClerkClient({ secretKey });
-      const response = await clerk.users.getUserOauthAccessToken(
-        userId,
-        'oauth_google',
-      );
+      const response = await clerk.users.getUserOauthAccessToken(userId, 'oauth_google');
 
       // Clerk returns an array of tokens (in case of multiple Google connections)
       const tokenObj = response.data?.[0] || response[0];
@@ -60,7 +57,7 @@ export class GoogleIntegrationService {
 
       const data = (await response.json()) as any;
       const phoneNumbers = data.phoneNumbers || [];
-      
+
       // Try to find a verified or primary phone number
       if (phoneNumbers.length > 0) {
         const primary = phoneNumbers.find((p: any) => p.metadata?.primary) || phoneNumbers[0];
@@ -79,28 +76,28 @@ export class GoogleIntegrationService {
    */
   async syncGoogleProfileData(userId: string, clerkId: string) {
     this.logger.log(`Attempting to sync Google profile data for user ${userId}`);
-    
+
     const accessToken = await this.getGoogleAccessToken(clerkId);
     if (!accessToken) {
       return { success: false, reason: 'no_token' };
     }
 
     const phoneNumber = await this.extractPhoneNumber(accessToken);
-    
+
     if (phoneNumber) {
       this.logger.log(`Found phone number for user ${userId}`);
-      
+
       // Update database
       await db
         .update(users)
-        .set({ 
+        .set({
           phoneNumber,
-          marketingWhatsappOptIn: true, 
+          marketingWhatsappOptIn: true,
           transactionalWhatsappOptIn: true,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(users.id, userId));
-        
+
       return { success: true, phoneNumber };
     }
 

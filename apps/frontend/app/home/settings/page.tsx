@@ -238,7 +238,6 @@ export default function SettingsPage() {
     >
       <BackgroundText />
 
-
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">

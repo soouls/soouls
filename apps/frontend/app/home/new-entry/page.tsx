@@ -1891,7 +1891,6 @@ function NewEntryContent() {
     <div className="soouls-page flex flex-col relative overflow-hidden">
       <BackgroundText />
 
-
       {/* Header */}
       <header className="w-full max-w-[1600px] mx-auto px-5 md:px-12 py-6 md:py-8 flex justify-between items-center relative z-10">
         <div className="flex items-center text-[15px] font-light tracking-normal sm:text-[22px]">

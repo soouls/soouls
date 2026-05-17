@@ -10,7 +10,8 @@ import { MessagingService } from '../services/messaging.service';
 export class UsersService {
   constructor(
     @Inject(MessagingService) private readonly messagingService: MessagingService,
-    @Inject(GoogleIntegrationService) private readonly googleIntegrationService: GoogleIntegrationService,
+    @Inject(GoogleIntegrationService)
+    private readonly googleIntegrationService: GoogleIntegrationService,
   ) {}
 
   async ensureUser(clerkId: string): Promise<string> {

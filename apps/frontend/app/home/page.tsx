@@ -30,11 +30,11 @@ import { decodeEntryContent, getEntryPlainText, getEntryTitle } from '../../src/
 import { buildActivityBars, formatCurrentMonthRange } from '../../src/utils/home';
 import { getOptimizedImageUrl } from '../../src/utils/images';
 import { trpc } from '../../src/utils/trpc';
+import { BackgroundText } from '../components/BackgroundText';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { CanvasLoopIcon, LeafIcon } from '../components/Icons';
 import { SymbolLogo } from '../components/SymbolLogo';
 import { CalendarModal } from './components/CalendarModal';
-import { BackgroundText } from '../components/BackgroundText';
 
 function avatarFor(seed?: string | null) {
   return `https://api.dicebear.com/9.x/glass/svg?seed=${encodeURIComponent(seed || 'Soouls')}&backgroundColor=1c1c1c,var(--soouls-accent)&radius=50`;
@@ -510,28 +510,30 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
 }
 
 const INSPIRATIONAL_QUOTES = [
-  "You do not need clarity to start. Clarity comes after you",
-  "Your thoughts are a wild river. Find the quiet stones where you",
-  "The page is a mirror waiting for your breath. Come inside and",
-  "Some feelings can only be understood once you lay them down. Ready to",
-  "Before the day becomes a memory, capture its soul. Pause and",
-  "You are more than the sum of your worries. Let them go when you",
+  'You do not need clarity to start. Clarity comes after you',
+  'Your thoughts are a wild river. Find the quiet stones where you',
+  'The page is a mirror waiting for your breath. Come inside and',
+  'Some feelings can only be understood once you lay them down. Ready to',
+  'Before the day becomes a memory, capture its soul. Pause and',
+  'You are more than the sum of your worries. Let them go when you',
   "Truth isn't found in thinking, it is found in expressing. Speak now and",
-  "A quiet mind is not one without thoughts, but one that has let them be. Come",
-  "Your future self is listening to the whispers of today. Speak to them and",
-  "Every storm becomes a gentle rain once you write it down. Let it fall as you",
-  "The most important conversations are the ones you have with yourself. Begin and",
+  'A quiet mind is not one without thoughts, but one that has let them be. Come',
+  'Your future self is listening to the whispers of today. Speak to them and',
+  'Every storm becomes a gentle rain once you write it down. Let it fall as you',
+  'The most important conversations are the ones you have with yourself. Begin and',
   "Clarity doesn't demand perfect words, only honest ones. Take a breath and",
-  "Leave behind what no longer serves your peace. Close the door and",
-  "Within every silent moment lies a story waiting to be told. Let it out and",
-  "You are the author of your own healing. Turn the page and"
+  'Leave behind what no longer serves your peace. Close the door and',
+  'Within every silent moment lies a story waiting to be told. Let it out and',
+  'You are the author of your own healing. Turn the page and',
 ];
 
 export default function HomePage() {
   const { user } = useUser();
   const { setIsOpen } = useSidebar();
   const [scrolled, setScrolled] = useState(false);
-  const [quoteText, setQuoteText] = useState("You do not need clarity to start. Clarity comes after you");
+  const [quoteText, setQuoteText] = useState(
+    'You do not need clarity to start. Clarity comes after you',
+  );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -555,7 +557,10 @@ export default function HomePage() {
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * INSPIRATIONAL_QUOTES.length);
-    setQuoteText(INSPIRATIONAL_QUOTES[randomIndex] || "You do not need clarity to start. Clarity comes after you");
+    setQuoteText(
+      INSPIRATIONAL_QUOTES[randomIndex] ||
+        'You do not need clarity to start. Clarity comes after you',
+    );
   }, []);
 
   const thoughtThemes = insights?.thoughtThemes ?? [];
@@ -592,10 +597,10 @@ export default function HomePage() {
           Soouls
         </Link>
         <div className="flex items-center gap-4">
-        <Link href="/home/canvas" className="soouls-canvas-button px-5 py-2.5 text-sm">
-          <CanvasLoopIcon className="h-[18px] w-[18px]" />
-          <span className="hidden font-medium tracking-wide sm:inline">Canvas</span>
-        </Link>
+          <Link href="/home/canvas" className="soouls-canvas-button px-5 py-2.5 text-sm">
+            <CanvasLoopIcon className="h-[18px] w-[18px]" />
+            <span className="hidden font-medium tracking-wide sm:inline">Canvas</span>
+          </Link>
           <button
             type="button"
             onClick={() => setIsOpen(true)}

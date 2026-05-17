@@ -250,7 +250,6 @@ export default function InsightsPage() {
     >
       <BackgroundText />
 
-
       <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
         <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
           <Link
@@ -284,9 +283,7 @@ export default function InsightsPage() {
         className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28"
         style={{ marginTop: 'calc(9vw - 4rem)' }}
       >
-        <section
-          className="soouls-panel w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6"
-        >
+        <section className="soouls-panel w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6">
           <div className="flex justify-between items-center mb-6 px-2">
             <h1 className="text-[26px] font-light tracking-[-0.01em] text-[#f0ece6] font-sans">
               Soouls Insights

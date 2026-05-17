@@ -20,8 +20,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { getEntryPlainText, getEntryTitle } from '../../../src/utils/entries';
 import { trpc } from '../../../src/utils/trpc';
-import { ConfirmModal } from '../../components/ConfirmModal';
 import { BackgroundText } from '../../components/BackgroundText';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 type ViewState = 'folders' | 'list' | 'cluster';
 
@@ -226,7 +226,9 @@ export default function CanvasPage() {
                   className="flex items-center gap-2 text-white/40 hover:text-white transition-colors group"
                 >
                   <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
-                  <span className="text-[20px] font-semibold text-white/90">{selectedCluster?.name}</span>
+                  <span className="text-[20px] font-semibold text-white/90">
+                    {selectedCluster?.name}
+                  </span>
                 </button>
               )}
 

@@ -18,8 +18,8 @@ import React, { useMemo, useState } from 'react';
 import { useSidebar } from '../../../src/providers/sidebar-provider';
 import { getEntryPlainText, getEntryTitle, parseEntryData } from '../../../src/utils/entries';
 import { trpc } from '../../../src/utils/trpc';
-import { LeafIcon } from '../../components/Icons';
 import { BackgroundText } from '../../components/BackgroundText';
+import { LeafIcon } from '../../components/Icons';
 
 function parseHighlightedText(text: string | undefined | null, fallback: string) {
   if (!text) return fallback;
@@ -339,7 +339,15 @@ const DashboardPage = () => {
                       router.push('/home/clusters');
                     }
                   }}
-                  variants={{ hidden: { opacity: 0, y: 30, scale: 0.95 }, visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
+                  variants={{
+                    hidden: { opacity: 0, y: 30, scale: 0.95 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                    },
+                  }}
                   className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
                 >
                   <div className="flex items-center justify-between">
