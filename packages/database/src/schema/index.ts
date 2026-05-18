@@ -152,7 +152,7 @@ export const folders = pgTable('folders', {
 export const journalEntries = pgTable('journal_entries', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id')
-    .references(() => users.id)
+    .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
   content: text('content').notNull(), // Encrypted content
   type: entryTypeEnum('type').default('entry').notNull(),
@@ -190,7 +190,7 @@ export const journalEntries = pgTable('journal_entries', {
 export const canvasNodes = pgTable('canvas_nodes', {
   id: uuid('id').primaryKey().defaultRandom(),
   entryId: uuid('entry_id')
-    .references(() => journalEntries.id)
+    .references(() => journalEntries.id, { onDelete: 'cascade' })
     .notNull(),
   x: real('x').notNull(), // Changed to real for smoother positioning
   y: real('y').notNull(),
