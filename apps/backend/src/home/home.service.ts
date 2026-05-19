@@ -472,10 +472,8 @@ export class HomeService implements HomeApi {
     const lockKey = `home:enrichment-lock:${userId}`;
     const lockToken = Math.random().toString(36).substring(2);
 
-    const isLocked = await this.redis.exists(lockKey);
-    if (isLocked) return;
-
-    await this.redis.set(lockKey, lockToken, 45); // 45s TTL for background enrichment
+    const acquired = await this.redis.acquireLock(lockKey, lockToken, 45);
+    if (!acquired) return;
     try {
       await this.getSnapshot(userId, true);
     } catch (err) {
