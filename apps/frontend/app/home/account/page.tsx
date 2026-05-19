@@ -231,21 +231,19 @@ export default function AccountPage() {
       }}
     >
       <BackgroundText />
-      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
-        <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
-          <Link
-            href="/home"
-            className="text-[var(--soouls-text-faint)] hover:text-[var(--soouls-text)] transition-colors"
-          >
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-all duration-300">
+        <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
+          <Link href="/home" className="text-white/30 hover:text-white/60 transition-all">
             Home
           </Link>
-          <span className="text-[var(--soouls-accent)] ml-2">/ Account</span>
+          <span className="text-white/20">/</span>
+          <span className="text-[var(--soouls-accent)] truncate">Account</span>
         </div>
 
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 rounded-full border-2 border-[var(--soouls-border)] hover:border-[var(--soouls-text-faint)] transition-all cursor-pointer overflow-hidden shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 transition-all cursor-pointer overflow-hidden shadow-2xl shrink-0"
         >
           {user?.imageUrl && (
             <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
@@ -253,8 +251,8 @@ export default function AccountPage() {
         </button>
       </header>
 
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
-        <section className="soouls-panel flex-1 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-[120px] md:pt-48 lg:pt-[12vw] pb-8 items-stretch">
+        <section className="soouls-panel flex-1 rounded-[24px] sm:rounded-t-[32px] overflow-hidden flex flex-col p-5 sm:p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}

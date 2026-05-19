@@ -2,7 +2,7 @@
 
 export function BackgroundText() {
   return (
-    <div className="absolute top-12 left-0 right-0 z-0 flex justify-center overflow-hidden pointer-events-none select-none whitespace-nowrap">
+    <div className="absolute left-0 right-0 z-0 flex justify-center overflow-hidden pointer-events-none select-none whitespace-nowrap top-[calc(120px-9vw)] md:top-[calc(192px-9vw)] lg:top-[3vw]">
       <div
         className="text-transparent"
         style={{

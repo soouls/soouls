@@ -239,21 +239,16 @@ export default function SettingsPage() {
       <BackgroundText />
 
       {/* Header */}
-      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
-        <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
-          <Link
-            href="/home"
-            className="transition-colors hover:opacity-80"
-            style={{ color: 'var(--soouls-text-faint)' }}
-          >
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-all duration-300">
+        <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
+          <Link href="/home" className="text-white/30 hover:text-white/60 transition-all">
             Home
           </Link>
-          <span style={{ color: 'var(--soouls-accent)' }} className="ml-2">
-            / Settings
-          </span>
+          <span className="text-white/20">/</span>
+          <span className="text-[var(--soouls-accent)] truncate">Settings</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           {feedback === 'saving' ? (
             <Loader2
               className="h-4 w-4 animate-spin"
@@ -268,11 +263,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="w-10 h-10 rounded-full border-2 transition-all cursor-pointer overflow-hidden"
-            style={{
-              borderColor: 'var(--soouls-overlay-muted)',
-              boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-            }}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 transition-all cursor-pointer overflow-hidden shadow-2xl"
           >
             <img
               src={user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id)}
@@ -284,9 +275,9 @@ export default function SettingsPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-6 md:px-12 relative z-10 flex flex-col mt-12 pb-0 items-stretch">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-[120px] md:pt-48 lg:pt-[12vw] pb-8 items-stretch">
         <section
-          className="soouls-panel flex-1 rounded-t-[32px] overflow-hidden flex flex-col p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-6"
+          className="soouls-panel flex-1 rounded-[24px] sm:rounded-t-[32px] overflow-hidden flex flex-col p-5 sm:p-6 md:p-12 pb-32 overflow-y-auto custom-scrollbar gap-4 sm:gap-6"
           style={{
             borderColor: 'var(--soouls-border)',
             opacity: 0.96,
@@ -295,12 +286,15 @@ export default function SettingsPage() {
           {/* Title */}
           <div className="mb-2">
             <h1
-              className="font-playfair text-4xl italic leading-tight sm:text-5xl"
+              className="font-playfair text-3xl sm:text-4xl italic leading-tight sm:text-5xl"
               style={{ color: 'var(--soouls-accent)' }}
             >
               Settings
             </h1>
-            <p className="mt-2 text-[20px]" style={{ color: 'var(--soouls-text-faint)' }}>
+            <p
+              className="mt-2 text-[16px] sm:text-[20px]"
+              style={{ color: 'var(--soouls-text-faint)' }}
+            >
               Control how Soouls works for you.
             </p>
           </div>

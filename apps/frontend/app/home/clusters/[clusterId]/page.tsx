@@ -88,58 +88,64 @@ export default function ClusterDetailPage() {
     >
       <BackgroundText />
 
-      <header className="px-8 py-6 flex justify-between items-center relative z-20">
-        <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)]">
-          <button
-            type="button"
-            onClick={() => router.push('/home/clusters')}
-            className="transition duration-300 hover:text-[var(--soouls-accent)]"
-          >
-            Home
-          </button>
-          <span>/</span>
-          <button
-            type="button"
-            className="hover:text-[var(--soouls-accent)]"
-            onClick={() => router.push('/home/clusters')}
-          >
-            Clusters
-          </button>
-          <span>/</span>
-          <span style={{ color: 'var(--soouls-accent)' }}>{cluster.name}</span>
-        </div>
+      {/* fixed responsive header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#202020]/40 backdrop-blur-md border-b border-white/[0.04]">
+        <div className="w-full max-w-5xl mx-auto px-6 h-20 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-sm font-medium text-[var(--soouls-text-muted)] min-w-0 pr-4">
+            <button
+              type="button"
+              onClick={() => router.push('/home/clusters')}
+              className="transition duration-300 hover:text-[var(--soouls-accent)] shrink-0"
+            >
+              Home
+            </button>
+            <span className="shrink-0">/</span>
+            <button
+              type="button"
+              className="hover:text-[var(--soouls-accent)] shrink-0"
+              onClick={() => router.push('/home/clusters')}
+            >
+              Clusters
+            </button>
+            <span className="shrink-0">/</span>
+            <span style={{ color: 'var(--soouls-accent)' }} className="truncate font-sans">
+              {cluster.name}
+            </span>
+          </div>
 
-        <div
-          className="w-9 h-9 rounded-full border overflow-hidden ring-2 ring-white/5"
-          style={{
-            borderColor: 'var(--soouls-border)',
-            backgroundColor: 'var(--soouls-bg-elevated)',
-          }}
-        >
-          {user?.imageUrl && (
-            <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
-          )}
+          <div
+            className="w-10 h-10 rounded-full border overflow-hidden shrink-0 border-white/[0.08]"
+            style={{
+              backgroundColor: 'var(--soouls-bg-elevated)',
+              boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+            }}
+          >
+            {user?.imageUrl && (
+              <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+            )}
+          </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto w-full px-6 flex justify-end mb-2">
-        <Link
-          href={`/home/canvas/${clusterId}`}
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 active:scale-95"
-          style={{
-            backgroundColor: 'var(--soouls-bg-surface)',
-            border: '1px solid var(--soouls-border)',
-            color: 'var(--soouls-accent)',
-          }}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Explore on Canvas
-        </Link>
-      </div>
+      {/* Main card panel */}
+      <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-col pt-[120px] md:pt-48 lg:pt-[12vw] pb-20 gap-4">
+        <div className="flex justify-end">
+          <Link
+            href={`/home/canvas/${clusterId}`}
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 active:scale-95"
+            style={{
+              backgroundColor: 'var(--soouls-bg-surface)',
+              border: '1px solid var(--soouls-border)',
+              color: 'var(--soouls-accent)',
+            }}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Explore on Canvas
+          </Link>
+        </div>
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-6 relative z-10 flex flex-col pt-4 pb-20">
         <div
-          className="rounded-[2.5rem] border p-8 md:p-12 shadow-2xl"
+          className="rounded-[1.5rem] sm:rounded-[2.5rem] border p-5 sm:p-12 shadow-2xl"
           style={{
             backgroundColor: 'var(--soouls-bg-surface)',
             borderColor: 'var(--soouls-border)',

@@ -176,11 +176,11 @@ export default function CanvasPage() {
 
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 transition-all duration-300 md:p-10">
-        <div className="flex min-w-0 items-center text-[16px] font-medium tracking-normal sm:text-[22px]">
+        <div className="flex min-w-0 items-center text-[16px] font-medium tracking-normal sm:text-[22px] gap-1">
           <button
             type="button"
             onClick={() => router.push('/home')}
-            className="text-white/30 hover:text-white/60 transition-all"
+            className="text-white/30 hover:text-white/60 transition-all cursor-pointer"
           >
             Home
           </button>
@@ -191,14 +191,14 @@ export default function CanvasPage() {
               setView('folders');
               setSelectedCluster(null);
             }}
-            className="text-[var(--soouls-accent)]"
+            className="text-[var(--soouls-accent)] cursor-pointer"
           >
             Canvas
           </button>
           {selectedCluster && (
             <>
               <span className="text-white/20">/</span>
-              <span className="text-[var(--soouls-accent)]">{selectedCluster.name}</span>
+              <span className="text-[var(--soouls-accent)] truncate">{selectedCluster.name}</span>
             </>
           )}
         </div>
@@ -206,7 +206,7 @@ export default function CanvasPage() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-12 h-12 rounded-full border border-white/10 overflow-hidden shadow-2xl"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 overflow-hidden shadow-2xl shrink-0 cursor-pointer"
         >
           {user?.imageUrl && (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -214,7 +214,7 @@ export default function CanvasPage() {
         </button>
       </header>
 
-      <main className="flex-1 w-full max-w-[1700px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-36 md:pt-48 lg:pt-[12vw] pb-8 h-full">
+      <main className="flex-1 w-full max-w-[1700px] mx-auto px-4 md:px-12 relative z-10 flex flex-col pt-[120px] md:pt-48 lg:pt-[12vw] pb-8 h-full">
         <div className="flex-1 flex flex-col lg:flex-row gap-8 min-h-0">
           {/* SIDEBAR */}
           <aside className="flex w-full flex-col rounded-[32px] md:rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-6 md:p-10 shadow-2xl backdrop-blur-[60px] lg:w-[420px] shrink-0">
