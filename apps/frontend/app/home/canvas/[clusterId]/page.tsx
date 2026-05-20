@@ -340,39 +340,42 @@ export default function CanvasClusterPage() {
     <div className="min-h-screen overflow-hidden bg-[#1F1F1F] text-[#EFEBDD] font-urbanist relative">
       <BackgroundText />
 
-      <header className="relative z-20 mx-auto flex w-full max-w-[1700px] items-center justify-between px-8 py-9">
-        <div className="flex items-center text-[24px] font-light tracking-[-0.04em]">
+      {/* fixed responsive header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#202020]/40 backdrop-blur-md border-b border-white/[0.04]">
+        <div className="w-full max-w-[1700px] mx-auto px-6 md:px-8 h-20 flex justify-between items-center">
+          <div className="flex items-center text-[18px] sm:text-[22px] font-light tracking-[-0.04em] min-w-0 pr-4">
+            <button
+              type="button"
+              onClick={() => router.push('/home')}
+              className="text-white/35 hover:text-white transition-colors shrink-0"
+            >
+              Home
+            </button>
+            <span className="text-white/35 mx-2 shrink-0">/</span>
+            <button
+              type="button"
+              onClick={() => router.push('/home/canvas')}
+              className="text-white/35 hover:text-white transition-colors shrink-0"
+            >
+              Canvas
+            </button>
+            <span className="text-white/35 mx-2 shrink-0">/</span>
+            <span className="text-[var(--soouls-accent)] font-medium truncate font-sans">
+              {clusterDetail?.cluster.name ?? 'Cluster'}
+            </span>
+          </div>
           <button
             type="button"
-            onClick={() => router.push('/home')}
-            className="text-white/35 hover:text-white transition-colors"
+            className="h-10 w-10 overflow-hidden rounded-full border border-white/10 shadow-2xl shrink-0"
           >
-            Home
+            {user?.imageUrl ? (
+              <img src={user.imageUrl} alt="" className="h-full w-full object-cover" />
+            ) : null}
           </button>
-          <span className="text-white/35 mx-2">/</span>
-          <button
-            type="button"
-            onClick={() => router.push('/home/canvas')}
-            className="text-white/35 hover:text-white transition-colors"
-          >
-            Canvas
-          </button>
-          <span className="text-white/35 mx-2">/</span>
-          <span className="text-[var(--soouls-accent)] font-medium">
-            {clusterDetail?.cluster.name ?? 'Cluster'}
-          </span>
         </div>
-        <button
-          type="button"
-          className="h-11 w-11 overflow-hidden rounded-full border border-white/10 shadow-2xl"
-        >
-          {user?.imageUrl ? (
-            <img src={user.imageUrl} alt="" className="h-full w-full object-cover" />
-          ) : null}
-        </button>
       </header>
 
-      <main className="relative z-10 mx-auto flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-118px)] w-full max-w-[1700px] gap-8 px-4 md:px-8 pb-8">
+      <main className="relative z-10 mx-auto flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-100px)] w-full max-w-[1700px] gap-8 px-4 md:px-8 pt-[120px] md:pt-48 lg:pt-[12vw] pb-8">
         <aside className="flex w-full lg:w-[440px] shrink-0 flex-col rounded-[40px] border border-white/[0.04] bg-[#0B0B0B]/70 p-6 md:p-8 shadow-2xl backdrop-blur-[60px]">
           <div className="mb-10 flex items-center gap-4">
             <button

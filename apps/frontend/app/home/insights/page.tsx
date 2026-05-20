@@ -250,40 +250,39 @@ export default function InsightsPage() {
     >
       <BackgroundText />
 
-      <header className="w-full max-w-[1600px] mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
-        <div className="flex items-center gap-2 text-[22px] font-light tracking-wide">
-          <Link
-            href="/home"
-            className="transition-colors hover:opacity-80"
-            style={{ color: 'var(--soouls-text-faint)' }}
-          >
-            Home
-          </Link>
-          <span style={{ color: 'var(--soouls-accent)' }} className="ml-2">
-            / Insights
-          </span>
-        </div>
+      {/* fixed responsive header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#202020]/40 backdrop-blur-md border-b border-white/[0.04]">
+        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 h-20 flex justify-between items-center">
+          <div className="flex items-center gap-2 text-[20px] sm:text-[22px] font-light tracking-wide min-w-0 pr-4">
+            <Link
+              href="/home"
+              className="transition-colors hover:opacity-80 shrink-0"
+              style={{ color: 'var(--soouls-text-faint)' }}
+            >
+              Home
+            </Link>
+            <span style={{ color: 'var(--soouls-accent)' }} className="ml-2 truncate font-sans">
+              / Insights
+            </span>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            className="w-10 h-10 rounded-full border-2 transition-all cursor-pointer overflow-hidden"
-            style={{
-              borderColor: 'var(--soouls-overlay-muted)',
-              boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-            }}
-          >
-            <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsOpen(true)}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all cursor-pointer overflow-hidden border-white/[0.08]"
+              style={{
+                boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+              }}
+            >
+              <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+            </button>
+          </div>
         </div>
       </header>
 
-      <main
-        className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pb-28"
-        style={{ marginTop: 'calc(9vw - 4rem)' }}
-      >
-        <section className="soouls-panel w-full rounded-[2rem] p-4 md:p-12 flex flex-col gap-6">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pt-[120px] md:pt-48 lg:pt-[12vw] pb-28 items-stretch">
+        <section className="soouls-panel w-full rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-12 flex flex-col gap-6">
           <div className="flex justify-between items-center mb-6 px-2">
             <h1 className="text-[26px] font-light tracking-[-0.01em] text-[#f0ece6] font-sans">
               Soouls Insights

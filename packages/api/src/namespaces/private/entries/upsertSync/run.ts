@@ -7,7 +7,7 @@ type UpsertSyncInput = z.infer<typeof schema> & { content: string };
 
 export async function run(input: z.infer<typeof schema>, ctx: TrpcContext, services: Services) {
   if (!ctx.userId) {
-    throw new Error('Unauthorized');
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Unauthorized' });
   }
 
   if (typeof input.content !== 'string') {

@@ -168,8 +168,8 @@ const DashboardPage = () => {
     >
       <BackgroundText />
       {/* HEADER - Exact Design Parity */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-10 flex justify-between items-center transition-all duration-300">
-        <div className="flex items-center gap-1 text-[22px] font-medium tracking-tight">
+      <header className="fixed top-0 left-0 right-0 z-50 p-5 md:p-10 flex justify-between items-center transition-all duration-300">
+        <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
           <button
             type="button"
             onClick={() => router.push('/home')}
@@ -178,13 +178,13 @@ const DashboardPage = () => {
             Home
           </button>
           <span className="text-white/30">/</span>
-          <span className="text-[var(--soouls-accent)]">Dashboard</span>
+          <span className="text-[var(--soouls-accent)] truncate">Dashboard</span>
         </div>
 
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-12 h-12 rounded-full border border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-2xl"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-2xl shrink-0"
         >
           {user?.imageUrl ? (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -197,12 +197,14 @@ const DashboardPage = () => {
       </header>
 
       {/* MAIN CONTAINER - Standardized */}
-      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pt-36 md:pt-48 lg:pt-[12vw] pb-24 items-stretch">
-        <section className="soouls-panel flex-1 rounded-[40px] overflow-hidden flex flex-col">
-          <div className="flex-1 p-8 md:p-10 space-y-10 overflow-y-auto custom-scrollbar">
+      <main className="flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-8 relative z-10 flex flex-col pt-[120px] md:pt-48 lg:pt-[12vw] pb-24 items-stretch">
+        <section className="soouls-panel flex-1 rounded-[24px] sm:rounded-[40px] overflow-hidden flex flex-col">
+          <div className="flex-1 p-5 sm:p-8 md:p-10 space-y-6 sm:space-y-10 overflow-y-auto custom-scrollbar">
             {/* WRITING SECTION - Matching Design Exactly */}
             <div className="space-y-6">
-              <h2 className="text-[20px] font-medium text-white/90 px-2">Let's start New Entry</h2>
+              <h2 className="text-[18px] sm:text-[20px] font-medium text-white/90 px-2">
+                Let's start New Entry
+              </h2>
               <div
                 role="button"
                 tabIndex={0}
@@ -213,23 +215,23 @@ const DashboardPage = () => {
                     router.push('/home/new-entry');
                   }
                 }}
-                className="w-full bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col min-h-[220px] transition-all group relative cursor-pointer hover:border-white/20"
+                className="w-full bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col min-h-[140px] sm:min-h-[220px] transition-all group relative cursor-pointer hover:border-white/20"
               >
-                <span className="text-[24px] text-white/20 font-light mb-auto">
+                <span className="text-[16px] sm:text-[24px] text-white/20 font-light mb-auto">
                   Write something to start
                 </span>
-                <div className="flex items-center justify-between mt-10">
-                  <div className="flex items-center gap-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-5 sm:mt-10 gap-4">
+                  <div className="flex items-center gap-4 sm:gap-10 flex-wrap">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push('/home/new-entry');
                       }}
-                      className="flex items-center gap-2.5 text-[#A78BFA] hover:opacity-80 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 sm:gap-2.5 text-[#A78BFA] hover:opacity-80 transition-all cursor-pointer"
                     >
-                      <Mic className="w-5 h-5" />
-                      <span className="text-[16px] font-medium">Voice note</span>
+                      <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-[13px] sm:text-[16px] font-medium">Voice note</span>
                     </button>
                     <button
                       type="button"
@@ -237,10 +239,10 @@ const DashboardPage = () => {
                         e.stopPropagation();
                         router.push('/home/new-entry');
                       }}
-                      className="flex items-center gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 sm:gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-all cursor-pointer"
                     >
-                      <ImageIcon className="w-5 h-5" />
-                      <span className="text-[16px] font-medium">Image</span>
+                      <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-[13px] sm:text-[16px] font-medium">Image</span>
                     </button>
                     <button
                       type="button"
@@ -248,10 +250,10 @@ const DashboardPage = () => {
                         e.stopPropagation();
                         router.push('/home/new-entry');
                       }}
-                      className="flex items-center gap-2.5 text-[#34D399] hover:opacity-80 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 sm:gap-2.5 text-[#34D399] hover:opacity-80 transition-all cursor-pointer"
                     >
-                      <CheckSquare className="w-5 h-5" />
-                      <span className="text-[16px] font-medium">Task</span>
+                      <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-[13px] sm:text-[16px] font-medium">Task</span>
                     </button>
                   </div>
                   <button
@@ -260,7 +262,7 @@ const DashboardPage = () => {
                       e.stopPropagation();
                       router.push('/home/new-entry');
                     }}
-                    className="px-8 py-3 rounded-full border border-white/10 text-white/90 text-[16px] font-medium hover:bg-white/5 transition-all flex items-center gap-2"
+                    className="w-full sm:w-auto px-5 sm:px-8 py-2.5 sm:py-3 rounded-full border border-white/10 text-white/90 text-[14px] sm:text-[16px] font-medium hover:bg-white/5 transition-all flex items-center justify-center gap-2"
                     style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
                   >
                     <Plus className="w-4 h-4" />
@@ -271,11 +273,11 @@ const DashboardPage = () => {
             </div>
 
             {/* BENTO GRID - Matching Design Spacing */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
               {/* COLUMN 1 & 2 AREA (Left + Middle) */}
-              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
                 {/* 1. MEDITATION STREAK */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
+                <div className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
                       60 Reflection Challenge
@@ -301,7 +303,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* 2. JOURNAL GOAL */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6">
+                <div className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
                       30 Reflection Challenge
@@ -348,7 +350,7 @@ const DashboardPage = () => {
                       transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
                     },
                   }}
-                  className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
+                  className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
@@ -582,13 +584,15 @@ const DashboardPage = () => {
                 </motion.div>
 
                 {/* 4. TODAY'S TASKS */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col">
-                  <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-[18px] font-medium text-white/90">Today's Tasks</h3>
+                <div className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col">
+                  <div className="flex items-center justify-between mb-4 sm:mb-8">
+                    <h3 className="text-[16px] sm:text-[18px] font-medium text-white/90">
+                      Today's Tasks
+                    </h3>
                     <ChevronRight className="w-4 h-4 text-white/40" />
                   </div>
 
-                  <div className="flex gap-6 mb-8 min-h-[350px]">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-4 sm:mb-8 sm:min-h-[350px]">
                     <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
                       {processedTasks.length > 0 ? (
                         processedTasks.map((task) => (
@@ -624,25 +628,25 @@ const DashboardPage = () => {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-2 shrink-0">
+                    <div className="flex flex-row sm:flex-col gap-2 shrink-0 order-first sm:order-none">
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('today')}
-                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'today' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
+                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-all ${activeTaskTab === 'today' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
                       >
                         Today
                       </button>
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('yesterday')}
-                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'yesterday' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
+                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-all ${activeTaskTab === 'yesterday' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
                       >
                         Yesterday
                       </button>
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('search')}
-                        className={`w-full px-6 py-3 rounded-xl text-[14px] font-bold transition-all ${activeTaskTab === 'search' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
+                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-all ${activeTaskTab === 'search' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
                       >
                         <Search className="w-4 h-4" />
                         Search
@@ -660,21 +664,21 @@ const DashboardPage = () => {
                 </div>
 
                 {/* 5. REFLECTION HIGHLIGHT (Wide) */}
-                <div className="md:col-span-2 bg-[#1A1817] border border-[var(--soouls-accent)]/10 rounded-[24px] p-10 relative overflow-hidden group">
-                  <div className="flex items-center gap-8 relative z-10 mb-6">
-                    <div className="w-20 h-20 rounded-[24px] bg-[var(--soouls-accent)]/5 border border-[var(--soouls-accent)]/10 flex items-center justify-center shrink-0">
-                      <LeafIcon className="w-12 h-12 text-[var(--soouls-accent)]" />
+                <div className="md:col-span-2 bg-[#1A1817] border border-[var(--soouls-accent)]/10 rounded-[18px] sm:rounded-[24px] p-5 sm:p-10 relative overflow-hidden group">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 relative z-10 mb-4 sm:mb-6">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-[16px] sm:rounded-[24px] bg-[var(--soouls-accent)]/5 border border-[var(--soouls-accent)]/10 flex items-center justify-center shrink-0">
+                      <LeafIcon className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--soouls-accent)]" />
                     </div>
-                    <div className="space-y-2">
-                      <h2 className="text-[28px] leading-tight text-white/95 font-medium">
+                    <div className="space-y-1 sm:space-y-2">
+                      <h2 className="text-[18px] sm:text-[28px] leading-tight text-white/95 font-medium">
                         You reflected{' '}
                         <span className="text-[var(--soouls-accent)] font-bold">
                           {weeklyReflections} times
                         </span>{' '}
                         this week.
                       </h2>
-                      <h3 className="text-[22px] text-white/80">
-                        Top pattern detected:{' '}
+                      <h3 className="text-[14px] sm:text-[22px] text-white/80">
+                        Top pattern:{' '}
                         <span className="text-[var(--soouls-accent)] font-bold italic">
                           "{topTheme}"
                         </span>
@@ -682,8 +686,8 @@ const DashboardPage = () => {
                     </div>
                   </div>
 
-                  <div className="relative z-10 p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-sm">
-                    <p className="text-[18px] text-white/50 font-light leading-relaxed italic">
+                  <div className="relative z-10 p-4 sm:p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-sm">
+                    <p className="text-[13px] sm:text-[18px] text-white/50 font-light leading-relaxed italic">
                       {insights?.monthlyAnalysis
                         ? parseHighlightedText(insights.monthlyAnalysis, '')
                         : `You've shown strong alignment with "${topTheme.toLowerCase()}" lately. Your entries suggest a ${growthPercent > 0 ? 'growing' : 'stable'} focus on this area, with an increase of ${Math.abs(growthPercent)}% in recurring patterns compared to last month.`}
@@ -693,16 +697,16 @@ const DashboardPage = () => {
               </div>
 
               {/* COLUMN 3 AREA (Right) */}
-              <div className="lg:col-span-1 flex flex-col gap-8">
+              <div className="lg:col-span-1 flex flex-col gap-4 sm:gap-8">
                 {/* 6. RECENT ENTRIES */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8 flex-1">
+                <div className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-8 flex-1">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">Recent Entries</h3>
                     <ChevronRight className="w-4 h-4 text-white/40" />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center gap-6">
-                    <p className="text-[20px] font-urbanist italic leading-[1.6] text-white/50 font-light">
+                    <p className="text-[15px] sm:text-[20px] font-urbanist italic leading-[1.6] text-white/50 font-light">
                       {firstEntry
                         ? `"${getEntryPlainText(firstEntry).slice(0, 200)}..."`
                         : '"Start your journey by writing your first entry. Every thought counts towards your personal growth."'}
@@ -721,7 +725,7 @@ const DashboardPage = () => {
                 </div>
 
                 {/* 7. RECENT ACTIVITY (Graph) */}
-                <div className="bg-[#111111] border border-white/[0.05] rounded-[24px] p-8 flex flex-col gap-8">
+                <div className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-8">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">Recent Activity</h3>
                     <div className="flex items-center gap-2 text-white/40 text-[12px] bg-white/[0.03] px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/[0.08] transition-all">
