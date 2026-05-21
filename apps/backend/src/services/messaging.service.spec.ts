@@ -97,6 +97,7 @@ let MessagingService: typeof import('./messaging.service.js').MessagingService;
 
 describe('MessagingService.sendWelcomeSequence', () => {
   const queue = {
+    enqueueSecureAccess: mock(async (_email: string) => undefined),
     enqueueWelcomeSequence: mock(async (_userId: string) => undefined),
     getCounts: mock(async () => ({ waiting: 0, active: 0, delayed: 0, failed: 0 })),
     isConfigured: mock(() => true),
@@ -109,7 +110,9 @@ describe('MessagingService.sendWelcomeSequence', () => {
   };
 
   const dispatcher = {
+    processSecureAccess: mock(async (_email: string) => undefined),
     processWelcomeSequence: mock(async (_userId: string) => undefined),
+    syncResendContactByUserId: mock(async (_userId: string) => undefined),
   };
 
   beforeAll(async () => {
@@ -117,14 +120,18 @@ describe('MessagingService.sendWelcomeSequence', () => {
   });
 
   beforeEach(() => {
+    queue.enqueueSecureAccess.mockReset();
     queue.enqueueWelcomeSequence.mockReset();
     queue.getCounts.mockReset();
     queue.isConfigured.mockReset();
     redis.del.mockReset();
     redis.get.mockReset();
     redis.set.mockReset();
+    dispatcher.processSecureAccess.mockReset();
     dispatcher.processWelcomeSequence.mockReset();
+    dispatcher.syncResendContactByUserId.mockReset();
 
+    queue.enqueueSecureAccess.mockImplementation(async (_email: string) => undefined);
     queue.enqueueWelcomeSequence.mockImplementation(async (_userId: string) => undefined);
     queue.getCounts.mockImplementation(async () => ({
       waiting: 0,
@@ -136,7 +143,9 @@ describe('MessagingService.sendWelcomeSequence', () => {
     redis.del.mockImplementation(async (_key: string) => undefined);
     redis.get.mockImplementation(async (_key: string) => null);
     redis.set.mockImplementation(async (_key: string, _value: unknown, _ttl: number) => undefined);
+    dispatcher.processSecureAccess.mockImplementation(async (_email: string) => undefined);
     dispatcher.processWelcomeSequence.mockImplementation(async (_userId: string) => undefined);
+    dispatcher.syncResendContactByUserId.mockImplementation(async (_userId: string) => undefined);
   });
 
   it('falls back to direct welcome dispatch when queueing fails', async () => {
@@ -149,5 +158,25 @@ describe('MessagingService.sendWelcomeSequence', () => {
 
     expect(queue.enqueueWelcomeSequence).toHaveBeenCalledWith('user-123');
     expect(dispatcher.processWelcomeSequence).toHaveBeenCalledWith('user-123');
+  });
+
+  it('falls back to direct secure access email when queueing fails', async () => {
+    const service = new (MessagingService as any)(queue, dispatcher, redis);
+    queue.enqueueSecureAccess.mockRejectedValueOnce(new Error('queue offline'));
+
+    await service.requestSecureAccessLink('USER@EXAMPLE.COM');
+
+    expect(queue.enqueueSecureAccess).toHaveBeenCalledWith('user@example.com');
+    expect(dispatcher.processSecureAccess).toHaveBeenCalledWith('user@example.com');
+  });
+
+  it('passes signup automation trigger intent to the notification dispatcher', async () => {
+    const service = new (MessagingService as any)(queue, dispatcher, redis);
+
+    await service.syncSignupContact('user-123', { triggerSignupEvent: true });
+
+    expect(dispatcher.syncResendContactByUserId).toHaveBeenCalledWith('user-123', {
+      triggerSignupEvent: true,
+    });
   });
 });

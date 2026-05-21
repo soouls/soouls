@@ -146,11 +146,6 @@ export function HealthSection() {
               details="Transactional & campaign emails"
             />
             <ServiceStatus
-              name="WhatsApp (Twilio)"
-              healthy={messaging.providerHealth.whatsappConfigured}
-              details="SMS & WhatsApp messaging"
-            />
-            <ServiceStatus
               name="Newsletter Sync"
               healthy={messaging.providerHealth.newsletterConfigured}
               details="Audience synchronization"

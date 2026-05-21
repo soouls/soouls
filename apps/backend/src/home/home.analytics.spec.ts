@@ -20,13 +20,20 @@ describe('home analytics', () => {
     ).toEqual(
       expect.objectContaining({
         themeMode: 'light',
-        accentTheme: 'green',
+        accentTheme: 'sage',
         defaultView: 'calendar',
         writingMode: 'minimal',
         insightDepth: 'balanced',
         autoClustering: true,
         suggestions: true,
         autosave: true,
+        dailyReminder: false,
+        dataStorage: 'local',
+        dataUsage: 'anonymous',
+        focusMode: false,
+        reflectionPrompts: false,
+        reminderTime: '20:00',
+        sessionTracking: true,
       }),
     );
   });

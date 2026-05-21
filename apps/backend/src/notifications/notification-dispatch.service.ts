@@ -14,11 +14,9 @@ import {
 import { Resend } from 'resend';
 import {
   NOTIFICATION_BATCH_SIZE,
-  asWhatsappRecipient,
   compactPreview,
-  getBackendPublicUrl,
   getConfiguredResendSegments,
-  makeAbsoluteUrl,
+  getFrontendUrl,
   normalizePhoneNumber,
   parseEnvList,
 } from './notification.constants';
@@ -36,7 +34,6 @@ import {
   type MessageTemplate,
   type TransportResult,
   type UserMessagingProfile,
-  type WhatsAppMessage,
   getBrandPreset,
 } from './notification.types';
 
@@ -56,18 +53,22 @@ type ResendWebhookPayload = {
   };
 };
 
-type TwilioStatusPayload = {
-  MessageSid?: string;
-  SmsSid?: string;
-  MessageStatus?: string;
-  SmsStatus?: string;
-  ErrorCode?: string;
-  ErrorMessage?: string;
-  To?: string;
+type ResendEventClient = {
+  events?: {
+    send: (input: {
+      event: string;
+      email: string;
+      payload?: Record<string, unknown>;
+    }) => Promise<{
+      error?: { message?: string } | null;
+    }>;
+  };
 };
 
 @Injectable()
 export class NotificationDispatchService {
+  private warnedAboutRestrictedResendKey = false;
+
   private async getUserByDbId(userId: string) {
     const [user] = await db
       .select({
@@ -132,11 +133,6 @@ export class NotificationDispatchService {
     if (options.channels.includes('email')) {
       channelConditions.push(
         and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)),
-      );
-    }
-    if (options.channels.includes('whatsapp')) {
-      channelConditions.push(
-        and(sql`${users.phoneNumber} is not null`, eq(users.marketingWhatsappOptIn, true)),
       );
     }
     if (channelConditions.length > 0) {
@@ -208,9 +204,7 @@ export class NotificationDispatchService {
       .filter((entry) => !signedUpEmails.has(entry.email.toLowerCase()))
       .filter((entry) => {
         const canEmail = options.channels.includes('email') && Boolean(entry.email);
-        const canWhatsapp =
-          options.channels.includes('whatsapp') && Boolean(normalizePhoneNumber(entry.phoneNumber));
-        return canEmail || canWhatsapp;
+        return canEmail;
       })
       .map((entry) => ({
         id: entry.id,
@@ -276,6 +270,40 @@ export class NotificationDispatchService {
     return apiKey ? new Resend(apiKey) : null;
   }
 
+  private getResendContactSync() {
+    const apiKey =
+      process.env.RESEND_MARKETING_API_KEY ??
+      process.env.RESEND_CONTACTS_API_KEY ??
+      process.env.RESEND_AUTOMATION_API_KEY;
+    return apiKey ? new Resend(apiKey) : null;
+  }
+
+  private getResendApiKey() {
+    return (
+      process.env.RESEND_AUTOMATION_API_KEY ??
+      process.env.RESEND_MARKETING_API_KEY ??
+      process.env.RESEND_CONTACTS_API_KEY
+    );
+  }
+
+  private isRestrictedResendKeyError(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error ?? '');
+    return (
+      message.toLowerCase().includes('restricted') && message.toLowerCase().includes('send email')
+    );
+  }
+
+  private warnRestrictedResendKey(feature: string) {
+    if (this.warnedAboutRestrictedResendKey) {
+      return;
+    }
+
+    this.warnedAboutRestrictedResendKey = true;
+    console.warn(
+      `[Messaging] Resend ${feature} skipped because the configured key can only send emails. Create a Resend API key with Contacts/Segments/Events permissions and set RESEND_MARKETING_API_KEY.`,
+    );
+  }
+
   private getNameParts(name: string | null | undefined) {
     const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
     return {
@@ -308,13 +336,9 @@ export class NotificationDispatchService {
   }
 
   private async syncResendContact(user: UserMessagingProfile) {
-    const resend = this.getResend();
+    const resend = this.getResendContactSync();
     if (!resend) {
-      console.log('[Messaging] Resend contact sync skipped', {
-        userId: user.id,
-        email: user.email,
-      });
-      return;
+      return false;
     }
 
     const { firstName, lastName } = this.getNameParts(user.name);
@@ -337,33 +361,159 @@ export class NotificationDispatchService {
       },
     };
 
-    const update = await resend.contacts.update(contact);
+    try {
+      const update = await resend.contacts.update(contact);
 
-    if (update.error) {
-      const create = await resend.contacts.create({
-        ...contact,
-        segments: segmentIds.map((id) => ({ id })),
-      });
+      if (update.error) {
+        if (this.isRestrictedResendKeyError(update.error.message)) {
+          this.warnRestrictedResendKey('contact sync');
+          return false;
+        }
 
-      if (create.error) {
-        throw new Error(`Resend contact sync failed: ${create.error.message}`);
+        const create = await resend.contacts.create({
+          ...contact,
+          segments: segmentIds.map((id) => ({ id })),
+        });
+
+        if (create.error) {
+          if (this.isRestrictedResendKeyError(create.error.message)) {
+            this.warnRestrictedResendKey('contact sync');
+            return false;
+          }
+
+          throw new Error(`Resend contact sync failed: ${create.error.message}`);
+        }
+
+        return true;
       }
 
+      await Promise.all(
+        segmentIds.map(async (segmentId) => {
+          const result = await resend.contacts.segments.add({ email: user.email, segmentId });
+          if (result.error) {
+            if (this.isRestrictedResendKeyError(result.error.message)) {
+              this.warnRestrictedResendKey('segment sync');
+              return;
+            }
+
+            console.warn('[Messaging] Resend segment sync failed', {
+              userId: user.id,
+              segmentId,
+              error: result.error.message,
+            });
+          }
+        }),
+      );
+
+      return true;
+    } catch (error) {
+      if (this.isRestrictedResendKeyError(error)) {
+        this.warnRestrictedResendKey('contact sync');
+        return false;
+      }
+
+      throw error;
+    }
+  }
+
+  private getSignupEventPayload(user: UserMessagingProfile) {
+    const { firstName, lastName } = this.getNameParts(user.name);
+    const appUrl = getFrontendUrl() || 'https://soouls.in';
+    const dashboardUrl = new URL('/home', appUrl).toString();
+    const calendlyLink =
+      process.env.RESEND_CALENDLY_LINK ||
+      process.env.CALENDLY_LINK ||
+      'https://cal.com/nava-mcarro';
+
+    return {
+      userId: user.id,
+      clerkId: user.clerkId,
+      email: user.email,
+      firstName,
+      lastName,
+      phoneNumber: user.phoneNumber,
+      isWaitlistUser: Boolean(user.isWaitlistUser),
+      billingTier: user.billingTier ?? 'free',
+      marketingEmailOptIn: user.marketingEmailOptIn,
+      transactionalEmailOptIn: user.transactionalEmailOptIn,
+      appUrl,
+      dashboardUrl,
+      calendlyLink,
+      calendly_link: calendlyLink,
+      supportEmail: process.env.MESSAGING_REPLY_TO_EMAIL || process.env.MESSAGING_FROM_EMAIL,
+      source: user.isWaitlistUser ? 'waitlist_signup' : 'signup',
+      signedUpAt: new Date().toISOString(),
+    };
+  }
+
+  private async triggerResendEvent(input: {
+    event: string;
+    email: string;
+    payload: Record<string, unknown>;
+  }) {
+    const resend = this.getResend();
+    const apiKey = this.getResendApiKey();
+
+    if (!resend || !apiKey) {
+      console.log('[Messaging] Resend automation event skipped', {
+        event: input.event,
+        email: input.email,
+      });
       return;
     }
 
-    await Promise.all(
-      segmentIds.map(async (segmentId) => {
-        const result = await resend.contacts.segments.add({ email: user.email, segmentId });
-        if (result.error) {
-          console.warn('[Messaging] Resend segment sync failed', {
-            userId: user.id,
-            segmentId,
-            error: result.error.message,
-          });
+    const sdkEvents = (resend as unknown as ResendEventClient).events;
+
+    if (sdkEvents?.send) {
+      const response = await sdkEvents.send(input);
+      if (response.error) {
+        if (this.isRestrictedResendKeyError(response.error.message)) {
+          this.warnRestrictedResendKey('automation event');
+          return;
         }
-      }),
-    );
+
+        throw new Error(`Resend automation event failed: ${response.error.message}`);
+      }
+      return;
+    }
+
+    const baseUrl = process.env.RESEND_BASE_URL ?? 'https://api.resend.com';
+    const response = (await fetch(new URL('/events/send', baseUrl), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    })) as any;
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      if (this.isRestrictedResendKeyError(errorText)) {
+        this.warnRestrictedResendKey('automation event');
+        return;
+      }
+
+      throw new Error(`Resend automation event failed: ${errorText}`);
+    }
+  }
+
+  async triggerSignupAutomation(user: UserMessagingProfile) {
+    const event = process.env.RESEND_SIGNUP_EVENT_NAME?.trim() || 'user.signed_up';
+    await this.triggerResendEvent({
+      event,
+      email: user.email,
+      payload: this.getSignupEventPayload(user),
+    });
+  }
+
+  async syncResendContactByUserId(userId: string, options: { triggerSignupEvent?: boolean } = {}) {
+    const user = await this.getUserByDbId(userId);
+    const contactSynced = await this.syncResendContact(user);
+
+    if (options.triggerSignupEvent && contactSynced) {
+      await this.triggerSignupAutomation(user);
+    }
   }
 
   private async sendEmail(message: EmailMessage): Promise<TransportResult> {
@@ -407,78 +557,6 @@ export class NotificationDispatchService {
       status: 'sent',
       provider: 'resend',
       providerMessageId: response.data?.id,
-    };
-  }
-
-  private async sendWhatsApp(message: WhatsAppMessage): Promise<TransportResult> {
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber = process.env.TWILIO_WHATSAPP_FROM;
-    const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
-
-    if (!accountSid || !authToken || (!fromNumber && !messagingServiceSid)) {
-      console.log('[Messaging] WhatsApp preview', {
-        to: message.to,
-        body: message.body.slice(0, 120),
-        contentSid: message.contentSid,
-      });
-
-      return {
-        status: 'sent',
-        provider: 'dev-log',
-      };
-    }
-
-    const encodedAuth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
-    const form = new URLSearchParams({
-      To: asWhatsappRecipient(message.to),
-    });
-
-    if (messagingServiceSid) {
-      form.set('MessagingServiceSid', messagingServiceSid);
-    } else if (fromNumber) {
-      form.set('From', asWhatsappRecipient(fromNumber));
-    }
-
-    if (message.statusCallbackUrl) {
-      form.set('StatusCallback', message.statusCallbackUrl);
-    }
-
-    if (message.contentSid) {
-      form.set('ContentSid', message.contentSid);
-      if (message.contentVariables) {
-        form.set('ContentVariables', JSON.stringify(message.contentVariables));
-      }
-    } else {
-      form.set('Body', message.body);
-    }
-
-    const response = (await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${encodedAuth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: form,
-      },
-    )) as any;
-
-    if (!response.ok) {
-      return {
-        status: 'failed',
-        provider: 'twilio-whatsapp',
-        errorMessage: await response.text(),
-      };
-    }
-
-    const payload = (await response.json()) as { sid?: string };
-
-    return {
-      status: 'sent',
-      provider: 'twilio-whatsapp',
-      providerMessageId: payload.sid,
     };
   }
 
@@ -593,61 +671,6 @@ export class NotificationDispatchService {
       return result;
     }
 
-    const phoneNumber = normalizePhoneNumber(user.phoneNumber);
-
-    if (!phoneNumber) {
-      await this.recordDelivery({
-        userId: this.getDeliveryUserId(user),
-        campaignId: input.campaignId,
-        channel: 'whatsapp',
-        category: input.category,
-        brandKey: input.brandKey,
-        templateKey: input.templateKey,
-        subject: input.template.subject,
-        recipient: 'missing-whatsapp',
-        provider: 'system',
-        status: 'skipped',
-        errorMessage: 'User has no WhatsApp-capable phone number.',
-      });
-      return { status: 'skipped' as const };
-    }
-
-    if (
-      (!respectMarketing && !user.transactionalWhatsappOptIn) ||
-      (respectMarketing && !user.marketingWhatsappOptIn)
-    ) {
-      await this.recordDelivery({
-        userId: this.getDeliveryUserId(user),
-        campaignId: input.campaignId,
-        channel: 'whatsapp',
-        category: input.category,
-        brandKey: input.brandKey,
-        templateKey: input.templateKey,
-        subject: input.template.subject,
-        recipient: phoneNumber,
-        provider: 'system',
-        status: 'skipped',
-        errorMessage: 'User has opted out of this WhatsApp channel.',
-      });
-      return { status: 'skipped' as const };
-    }
-
-    const firstName = user.name?.split(' ')[0] || 'there';
-    const statusCallbackUrl = getBackendPublicUrl()
-      ? new URL('/notifications/webhooks/twilio/status', getBackendPublicUrl()).toString()
-      : undefined;
-    const welcomeContentSid =
-      input.templateKey === 'welcome' ? process.env.TWILIO_WELCOME_TEMPLATE_SID : undefined;
-    const result = await this.sendWhatsApp({
-      to: phoneNumber,
-      body: input.template.whatsappBody,
-      contentSid: welcomeContentSid,
-      contentVariables: welcomeContentSid
-        ? { '1': firstName, '2': this.getDashboardUrl() }
-        : undefined,
-      statusCallbackUrl,
-    });
-
     await this.recordDelivery({
       userId: this.getDeliveryUserId(user),
       campaignId: input.campaignId,
@@ -656,17 +679,16 @@ export class NotificationDispatchService {
       brandKey: input.brandKey,
       templateKey: input.templateKey,
       subject: input.template.subject,
-      recipient: phoneNumber,
-      provider: result.provider,
-      providerMessageId: result.providerMessageId,
-      status: result.status,
-      errorMessage: result.errorMessage,
+      recipient: normalizePhoneNumber(user.phoneNumber) ?? 'whatsapp-disabled',
+      provider: 'system',
+      status: 'skipped',
+      errorMessage: 'WhatsApp delivery is disabled. Use Resend email segments and automations.',
       payload: {
         whatsappPreview: input.template.whatsappBody.slice(0, 200),
       },
     });
 
-    return result;
+    return { status: 'skipped' as const };
   }
 
   async processWelcomeSequence(userId: string) {
@@ -696,29 +718,6 @@ export class NotificationDispatchService {
           .where(eq(users.id, user.id));
       } else if (emailResult.status === 'failed') {
         failedProviders.push('resend');
-      }
-    }
-
-    if (!user.welcomeWhatsappSentAt) {
-      const whatsappResult = await this.deliverTemplate({
-        user,
-        channel: 'whatsapp',
-        category: 'transactional',
-        brandKey: 'soouls',
-        templateKey: 'welcome',
-        template,
-      });
-
-      if (whatsappResult.status === 'sent') {
-        await db
-          .update(users)
-          .set({
-            welcomeWhatsappSentAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, user.id));
-      } else if (whatsappResult.status === 'failed') {
-        failedProviders.push('twilio-whatsapp');
       }
     }
 
@@ -801,38 +800,6 @@ export class NotificationDispatchService {
     }
   }
 
-  async processTwilioStatusWebhook(payload: TwilioStatusPayload) {
-    const sid = payload.MessageSid ?? payload.SmsSid;
-    if (!sid) {
-      return;
-    }
-
-    const providerStatus = payload.MessageStatus ?? payload.SmsStatus;
-    const failed = ['failed', 'undelivered'].includes(providerStatus ?? '');
-
-    await db
-      .update(messageDeliveries)
-      .set({
-        status: failed ? 'failed' : 'sent',
-        errorMessage: payload.ErrorMessage ?? payload.ErrorCode,
-        payload: compactPreview({
-          providerStatus,
-          errorCode: payload.ErrorCode,
-          to: payload.To,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(messageDeliveries.providerMessageId, sid));
-  }
-
-  private getDashboardUrl() {
-    try {
-      return makeAbsoluteUrl('/home');
-    } catch {
-      return '/home';
-    }
-  }
-
   async processSecureAccess(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await this.getUserByEmail(normalizedEmail);
@@ -857,15 +824,6 @@ export class NotificationDispatchService {
     await this.deliverTemplate({
       user,
       channel: 'email',
-      category: 'security',
-      brandKey: 'soouls',
-      templateKey: 'secure-access',
-      template,
-    });
-
-    await this.deliverTemplate({
-      user,
-      channel: 'whatsapp',
       category: 'security',
       brandKey: 'soouls',
       templateKey: 'secure-access',
@@ -967,11 +925,11 @@ export class NotificationDispatchService {
     }
 
     const sanitizedChannels = Array.from(new Set(campaign.channels ?? [])).filter(
-      (channel): channel is Channel => channel === 'email' || channel === 'whatsapp',
+      (channel): channel is Channel => channel === 'email',
     );
 
     if (sanitizedChannels.length === 0) {
-      throw new Error('Campaign has no sendable channels.');
+      throw new Error('Campaign has no sendable email channel.');
     }
 
     const recipients = await this.listCampaignRecipients({
