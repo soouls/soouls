@@ -23,6 +23,9 @@ export class UsersService {
       .limit(1);
 
     if (existingUser) {
+      void this.messagingService.syncSignupContact(existingUser.id).catch((err) => {
+        console.error('[Users] Resend contact sync background failure:', err);
+      });
       return existingUser.id;
     }
 
@@ -104,10 +107,12 @@ export class UsersService {
       }
     }
 
-    // 5. Welcome sequence should not block user creation
-    void this.messagingService.sendWelcomeSequence(newUser.id).catch((err) => {
-      console.error('[Users] Welcome sequence background failure:', err);
-    });
+    // 5. Resend owns the welcome flow. The app only syncs the contact and fires the signup event.
+    void this.messagingService
+      .syncSignupContact(newUser.id, { triggerSignupEvent: true })
+      .catch((err) => {
+        console.error('[Users] Resend signup automation event failure:', err);
+      });
 
     // 6. Try to sync phone number from Google if it was missing
     if (!phoneNumber && !waitlistEntry?.phoneNumber) {

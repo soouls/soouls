@@ -418,33 +418,187 @@ export function buildCampaignTemplate(input: {
 }
 
 export async function buildWelcomeTemplate(recipient: UserMessagingProfile) {
-  const brand = BRAND_PRESETS.soouls;
-  const firstName = recipient.name?.split(' ')[0] || 'there';
-  const dashboardUrl = makeAbsoluteUrl('/home');
-  const markdownBody = `# Welcome to Soouls
+  void recipient;
 
-Hi **${firstName}**,
+  const subject = 'Welcome to Soouls';
+  const calendlyLink =
+    process.env.RESEND_CALENDLY_LINK || process.env.CALENDLY_LINK || 'https://cal.com/nava-mcarro';
+  const previewText =
+    'You are in the first circle. Your Soouls sanctuary is ready, and we would love your feedback.';
+  const html = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+  <head>
+    <meta content="width=device-width" name="viewport" />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta content="IE=edge" http-equiv="X-UA-Compatible" />
+    <meta content="telephone=no,address=no,email=no,date=no,url=no" name="format-detection" />
+    <title>Welcome to Soouls</title>
+    <style>
+      body, table, td { margin:0; padding:0; }
+      img { border:0; display:block; }
+      body { background-color:#111010 !important; }
+      u + #body { background-color:#111010 !important; }
+      #MessageViewBody { background-color:#111010 !important; }
+    </style>
+  </head>
+  <body id="body" style="margin:0;padding:0;background-color:#111010;min-width:100%;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#111010" style="background-color:#111010;width:100%;min-width:100%;">
+      <tr>
+        <td align="center" bgcolor="#111010" style="background-color:#111010;padding:0;">
+          <table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;">
+            <tr>
+              <td bgcolor="#0d0c0c" style="background-color:#0d0c0c;padding:16px 36px;border-bottom:1px solid #1e1c1b;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td>
+                      <a href="https://soouls.in" style="text-decoration:none;">
+                        <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#c4bcb4;letter-spacing:0.05em;">Soouls</span>
+                      </a>
+                    </td>
+                    <td align="right">
+                      <span style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#3a3530;letter-spacing:0.1em;text-transform:uppercase;">Welcome &nbsp;/&nbsp; </span><span style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#e8602c;letter-spacing:0.1em;text-transform:uppercase;">First Circle</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#111010" style="background-color:#111010;padding:28px 24px 0 24px;">
+                <p style="margin:0 0 -14px 8px;font-family:Georgia,'Times New Roman',serif;font-size:80px;font-weight:700;color:#191716;line-height:1;letter-spacing:-0.03em;">Soouls</p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1e1c1b;border-radius:22px;">
+                  <tr>
+                    <td style="padding:40px 40px 36px 40px;">
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+                        <tr>
+                          <td bgcolor="#2a1508" style="background-color:#2a1508;border:1px solid #5a2e18;border-radius:30px;padding:5px 16px;">
+                            <span style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:0.14em;color:#e8602c;text-transform:uppercase;font-weight:700;">You're In</span>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin:0 0 2px 0;font-family:Georgia,'Times New Roman',serif;font-size:40px;font-weight:700;line-height:1.12;color:#f0ebe4;letter-spacing:-0.025em;">Welcome to Soouls,</p>
+                      <p style="margin:0 0 16px 0;font-family:Georgia,'Times New Roman',serif;font-size:40px;font-weight:700;font-style:italic;line-height:1.12;color:#e8602c;letter-spacing:-0.025em;">.</p>
+                      <p style="margin:0 0 28px 0;font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#6b6560;line-height:1.85;">We are so incredibly grateful to have you in our digital sanctuary. You're part of something intentional, privacy-first, and built with real care.</p>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td bgcolor="#e8602c" style="background-color:#e8602c;border-radius:100px;">
+                            <a href="https://soouls.in" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;padding:15px 32px;letter-spacing:0.03em;">Open Your Sanctuary</a>
+                          </td>
+                        </tr>
+                      </table>
+                      <p style="margin:10px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#3a3530;">Available on desktop &amp; mobile &nbsp;&middot;&nbsp; <a href="https://soouls.in" style="color:#3a3530;text-decoration:none;">soouls.in</a></p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#111010" style="background-color:#111010;padding:10px 24px 0 24px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#181614" style="background-color:#181614;border-radius:18px;border:1px solid #1e1c1b;">
+                  <tr>
+                    <td style="padding:32px 36px;text-align:center;">
+                      <p style="margin:0 0 12px 0;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-style:italic;color:#d4ccc4;">We built this for you.</p>
+                      <p style="margin:0 auto;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#5a5450;line-height:1.85;max-width:460px;">Soouls is a deeply personal, privacy-first 3D journaling space, and the best way for us to make it perfect is by listening to the people using it. That's you. We literally can't do this without you.</p>
+                      <p style="margin:14px 0 0 0;font-family:Georgia,serif;font-size:17px;font-style:italic;color:#8a8278;">Welcome home.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#111010" style="background-color:#111010;padding:32px 36px 14px 36px;">
+                <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#3a3530;">A small ask &middot; Big impact</p>
+                <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-style:italic;color:#c4bcb4;">Can we hop on a quick call?</p>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#111010" style="background-color:#111010;padding:0 24px 0 24px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td width="49%" valign="top" bgcolor="#1e1c1b" style="background-color:#1e1c1b;border-radius:18px;padding:26px 22px;vertical-align:top;">
+                      <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#3a3530;">10-15 mins. No agenda.</p>
+                      <p style="margin:0 0 10px 0;font-family:Georgia,serif;font-size:16px;color:#d4ccc4;line-height:1.3;">Quick chat with us?</p>
+                      <p style="margin:0 0 16px 0;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;color:#5a5450;line-height:1.8;">No rigid surveys, just a friendly conversation to understand your routine and hear your honest feedback.</p>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td bgcolor="#e8602c" style="background-color:#e8602c;border-radius:100px;">
+                            <a href="${calendlyLink}" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;padding:10px 20px;letter-spacing:0.03em;">Schedule a Call</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td width="2%">&nbsp;</td>
+                    <td width="49%" valign="top" bgcolor="#1e1c1b" style="background-color:#1e1c1b;border-radius:18px;padding:26px 22px;vertical-align:top;">
+                      <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#3a3530;">Share the love</p>
+                      <p style="margin:0 0 10px 0;font-family:Georgia,serif;font-size:16px;color:#d4ccc4;line-height:1.3;">Show your sanctuary</p>
+                      <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;color:#5a5450;line-height:1.8;">Screenshot your favourite view and share it on X, Instagram, or LinkedIn. Tag <strong style="color:#e8602c;">@Soouls_in</strong>. We amplify every post.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#190e07" style="background-color:#190e07;padding:44px 40px;text-align:center;">
+                <p style="margin:0 0 8px 0;font-family:Georgia,'Times New Roman',serif;font-size:22px;font-style:italic;color:#b8a898;line-height:1.55;">Your feedback shapes <span style="color:#e8602c;">everything we build.</span></p>
+                <p style="margin:0 0 20px 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#5a4a3a;line-height:1.8;max-width:400px;margin-left:auto;margin-right:auto;">Tell us what works, what doesn't, and what you wish Soouls could do. Every message goes straight to the founders.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                  <tr>
+                    <td style="background-color:#2a1508;border:1px solid #5a2e18;border-radius:100px;">
+                      <a href="mailto:team@soouls.in" style="display:inline-block;font-family:Arial,Helvetica,sans-serif;font-size:13px;font-weight:700;color:#e8602c;text-decoration:none;padding:12px 28px;letter-spacing:0.03em;">team@soouls.in</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#111010" style="background-color:#111010;padding:10px 24px 0 24px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1e1c1b" style="background-color:#1e1c1b;border-radius:20px;">
+                  <tr>
+                    <td style="padding:32px 28px;text-align:center;">
+                      <p style="margin:0 0 4px 0;font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#3a3530;">Stay Connected</p>
+                      <p style="margin:0 0 22px 0;font-family:Georgia,serif;font-size:20px;font-style:italic;color:#d4ccc4;">Come say hi everywhere</p>
+                      <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:2;">
+                        <a href="https://www.instagram.com/soouls.in/" style="color:#c4bcb4;text-decoration:none;">Instagram</a>
+                        &nbsp;&middot;&nbsp;
+                        <a href="https://x.com/Soouls_in" style="color:#c4bcb4;text-decoration:none;">X / Twitter</a>
+                        &nbsp;&middot;&nbsp;
+                        <a href="https://www.linkedin.com/company/soouls/" style="color:#c4bcb4;text-decoration:none;">LinkedIn</a>
+                        &nbsp;&middot;&nbsp;
+                        <a href="https://chat.whatsapp.com/FbOlj3NEtbh3AsnIPRyYAd" style="color:#c4bcb4;text-decoration:none;">WhatsApp Circle</a>
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#0d0c0c" style="background-color:#0d0c0c;padding:40px 36px;text-align:center;">
+                <p style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:16px;font-style:italic;color:#6b6560;line-height:1.9;">Thank you for being part of the <strong style="color:#8a8278;font-style:normal;">first circle</strong>.</p>
+                <p style="margin:0 0 6px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#5a5450;">We can't wait to grow with you inside.</p>
+                <p style="margin:16px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#4a4540;line-height:1.8;">Warmly,<br/><strong style="color:#6b6560;font-size:16px;font-family:Georgia,serif;font-style:italic;">Rudra &amp; Bhargav</strong><br/><span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#3a3530;">Founders, Soouls</span></p>
+              </td>
+            </tr>
+            <tr>
+              <td bgcolor="#080807" style="background-color:#080807;padding:24px 36px 32px 36px;text-align:center;border-top:1px solid #181614;">
+                <p style="margin:0 0 12px 0;font-family:Georgia,serif;font-size:18px;color:#2e2b28;letter-spacing:0.06em;">Soouls</p>
+                <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#222020;line-height:1.8;">You received this because you signed up at Soouls.<br/><a href="https://soouls.in/privacy" style="color:#2e2b28;text-decoration:underline;">Privacy Policy</a></p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+  const text = `Welcome to Soouls.\n\nYou are in the first circle. Your Soouls sanctuary is ready.\n\nSchedule a quick call: ${calendlyLink}\n\nSend feedback to team@soouls.in`;
 
-Thank you for signing up. Your space is ready for reflective journaling, non-linear thinking, and the kind of product experience that feels calm instead of noisy.
-
-- Start your first entry
-- Explore your dashboard
-- Capture ideas before they disappear
-
-We're glad you're here.`;
-
-  return renderTransactionalTemplate({
-    brandKey: brand.key,
-    eyebrow: brand.eyebrow,
-    title: 'Welcome to Soouls',
-    previewText: 'Your Soouls account is live, and your reflective workspace is ready.',
-    bodyMarkdown: markdownBody,
-    bodyText: markdownToText(markdownBody),
-    ctaLabel: 'Open Your Dashboard',
-    ctaUrl: dashboardUrl,
-    footer: brand.footer,
-    whatsappBody: `Welcome to Soouls, ${firstName}. Your space is ready. Open your dashboard and start your first entry.`,
-  });
+  return {
+    subject,
+    previewText,
+    html,
+    text,
+    whatsappBody: text,
+  } satisfies MessageTemplate;
 }
 
 export async function buildSecureAccessTemplate(

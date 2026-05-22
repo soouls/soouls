@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Eye, Mail, MessageSquareShare, RefreshCw, Search, Send, Zap } from 'lucide-react';
+import { Eye, Mail, RefreshCw, Search, Send, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useShell } from '../components/ClientShell';
 import { PermissionGate } from '../components/PermissionGate';
@@ -28,8 +28,6 @@ Thank you for signing up and trusting Soouls with your reflective space. We are 
 - More thoughtful updates are coming soon
 
 We are grateful you are here.`,
-    whatsapp:
-      'Thank you for joining Soouls. Your reflective workspace is ready, and we are grateful you are here.',
     ctaLabel: 'Open Soouls',
     ctaUrl: 'https://soouls.in/home',
   },
@@ -49,7 +47,6 @@ You joined the Soouls waitlist early, and that means a lot. The first version is
 - Tell us what feels magical and what feels rough
 
 Thank you for being part of the beginning.`,
-    whatsapp: 'Your Soouls early access is ready. Thank you for being part of the beginning.',
     ctaLabel: 'Start Early Access',
     ctaUrl: 'https://soouls.in/sign-up',
   },
@@ -69,7 +66,6 @@ We are sharing a short update from the Soouls team.
 - What you need to do:
 
 Reply to this email if you need help. We will take care of it.`,
-    whatsapp: 'A quick Soouls support update: reply if you need help and we will take care of it.',
     ctaLabel: 'Contact Support',
     ctaUrl: 'mailto:support@soouls.in',
   },
@@ -97,10 +93,8 @@ export function MessagingSection() {
   const [composeTitle, setComposeTitle] = useState('');
   const [composeSubject, setComposeSubject] = useState('');
   const [composeBody, setComposeBody] = useState('');
-  const [composeWhatsappBody, setComposeWhatsappBody] = useState('');
   const [composeCtaLabel, setComposeCtaLabel] = useState('');
   const [composeCtaUrl, setComposeCtaUrl] = useState('');
-  const [composeChannels, setComposeChannels] = useState<Array<'email' | 'whatsapp'>>(['email']);
   const [targetNodeCount, setTargetNodeCount] = useState<string>('any');
   const [targetSignupDate, setTargetSignupDate] = useState<string>('any');
   const [targetBillingTier, setTargetBillingTier] = useState<string>('all');
@@ -113,7 +107,6 @@ export function MessagingSection() {
     setComposeTitle(preset.title);
     setComposeSubject(preset.subject);
     setComposeBody(preset.body);
-    setComposeWhatsappBody(preset.whatsapp);
     setComposeCtaLabel(preset.ctaLabel);
     setComposeCtaUrl(preset.ctaUrl);
     setIsComposing(true);
@@ -158,10 +151,9 @@ export function MessagingSection() {
           title: composeTitle,
           subject: composeSubject,
           markdownBody: composeBody,
-          whatsappBody: composeWhatsappBody || undefined,
           ctaLabel: composeCtaLabel || undefined,
           ctaUrl: composeCtaUrl || undefined,
-          channels: composeChannels,
+          channels: ['email'],
           targeting: {
             nodeCount: targetNodeCount,
             signupDate: targetSignupDate,
@@ -175,7 +167,6 @@ export function MessagingSection() {
       setComposeTitle('');
       setComposeSubject('');
       setComposeBody('');
-      setComposeWhatsappBody('');
       setComposeCtaLabel('');
       setComposeCtaUrl('');
       invalidate();
@@ -198,9 +189,7 @@ export function MessagingSection() {
       ? messaging.stats.waitlistReachable
       : targetBillingTier === 'waitlist'
         ? Math.min(messaging.stats.waitlistReachable, messaging.stats.totalUsers)
-        : composeChannels.includes('whatsapp') && !composeChannels.includes('email')
-          ? messaging.stats.whatsappReachable
-          : messaging.stats.emailReachable;
+        : messaging.stats.emailReachable;
 
   return (
     <div className="space-y-8">
@@ -228,7 +217,7 @@ export function MessagingSection() {
             {!isComposing && (
               <ActionButton variant="primary" onClick={() => setIsComposing(true)}>
                 <div className="flex items-center gap-2">
-                  <MessageSquareShare className="h-4 w-4" />
+                  <Send className="h-4 w-4" />
                   New Campaign
                 </div>
               </ActionButton>
@@ -237,7 +226,7 @@ export function MessagingSection() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
           <div className="mb-4 flex items-center gap-2">
             <Mail className="h-5 w-5 text-emerald-400" />
@@ -260,26 +249,6 @@ export function MessagingSection() {
             <br />
             Sender: {ACTIVE_SENDER_EMAIL}
           </div>
-        </div>
-
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <Mail className="h-5 w-5 text-blue-400" />
-            <h3 className="text-sm font-semibold text-white">WhatsApp Status</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className={`h-2.5 w-2.5 rounded-full ${
-                messaging.providerHealth.whatsappConfigured
-                  ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50'
-                  : 'bg-slate-400 shadow-sm shadow-slate-400/50'
-              }`}
-            />
-            <span className="text-xs text-slate-400">
-              {messaging.providerHealth.whatsappConfigured ? 'Connected' : 'Not configured'}
-            </span>
-          </div>
-          <div className="mt-3 text-[10px] text-slate-500">Via Twilio</div>
         </div>
 
         <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
@@ -339,28 +308,6 @@ export function MessagingSection() {
       {isComposing && (
         <Panel title="Compose Campaign">
           <div className="grid gap-6">
-            <div>
-              <label
-                htmlFor="composeWhatsappBody"
-                className="mb-1.5 block text-xs font-medium text-slate-400"
-              >
-                WhatsApp Body{' '}
-                <span className="text-slate-500">(optional channel-specific copy)</span>
-              </label>
-              <textarea
-                id="composeWhatsappBody"
-                value={composeWhatsappBody}
-                onChange={(e) => setComposeWhatsappBody(e.target.value)}
-                placeholder="Short version for WhatsApp. If empty, Soouls will use the email text."
-                rows={4}
-                className="w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm text-white placeholder:text-slate-600 outline-none transition-colors focus:border-amber-400/30"
-              />
-              <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
-                <span>Keep it short, direct, and reply-friendly.</span>
-                <span>{composeWhatsappBody.length} chars</span>
-              </div>
-            </div>
-
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label
@@ -679,17 +626,11 @@ export function MessagingSection() {
                   Estimated recipients: ~{estimatedAudience.toLocaleString()}
                 </span>
               </div>
-              <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-3">
+              <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2">
                 <div className="rounded-lg bg-black/15 px-3 py-2">
                   <div className="text-slate-500">Email reachable</div>
                   <div className="font-mono text-slate-200">
                     {messaging.stats.emailReachable.toLocaleString()}
-                  </div>
-                </div>
-                <div className="rounded-lg bg-black/15 px-3 py-2">
-                  <div className="text-slate-500">WhatsApp reachable</div>
-                  <div className="font-mono text-slate-200">
-                    {messaging.stats.whatsappReachable.toLocaleString()}
                   </div>
                 </div>
                 <div className="rounded-lg bg-black/15 px-3 py-2">
@@ -703,30 +644,10 @@ export function MessagingSection() {
 
             <div className="flex items-center justify-between border-t border-white/[0.06] pt-5">
               <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={composeChannels.includes('email')}
-                    onChange={(e) => {
-                      if (e.target.checked) setComposeChannels((prev) => [...prev, 'email']);
-                      else setComposeChannels((prev) => prev.filter((c) => c !== 'email'));
-                    }}
-                    className="accent-amber-400"
-                  />
+                <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <Mail className="h-4 w-4 text-amber-300" />
                   Email
-                </label>
-                <label className="flex items-center gap-2 text-sm text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={composeChannels.includes('whatsapp')}
-                    onChange={(e) => {
-                      if (e.target.checked) setComposeChannels((prev) => [...prev, 'whatsapp']);
-                      else setComposeChannels((prev) => prev.filter((c) => c !== 'whatsapp'));
-                    }}
-                    className="accent-amber-400"
-                  />
-                  WhatsApp
-                </label>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <ActionButton onClick={() => setIsComposing(false)}>Cancel</ActionButton>
@@ -744,12 +665,7 @@ export function MessagingSection() {
                   <ActionButton
                     variant="primary"
                     onClick={handleQueue}
-                    disabled={
-                      !composeTitle ||
-                      !composeSubject ||
-                      !composeBody ||
-                      composeChannels.length === 0
-                    }
+                    disabled={!composeTitle || !composeSubject || !composeBody}
                   >
                     <div className="flex items-center gap-2">
                       <Send className="h-4 w-4" />
@@ -822,6 +738,7 @@ export function MessagingSection() {
                 const channels = (campaign as unknown as { channels?: string[] }).channels ?? [
                   'email',
                 ];
+                const visibleChannels = channels.filter((channel) => channel === 'email');
 
                 return (
                   <div
@@ -856,11 +773,8 @@ export function MessagingSection() {
 
                     <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-500">
                       <span className="flex items-center gap-1">
-                        {channels.includes('email') && <Mail className="h-3 w-3" />}
-                        {channels.includes('whatsapp') && (
-                          <MessageSquareShare className="h-3 w-3" />
-                        )}
-                        {channels.join(' + ')}
+                        <Mail className="h-3 w-3" />
+                        {(visibleChannels.length > 0 ? visibleChannels : ['email']).join(' + ')}
                       </span>
                       <span>·</span>
                       <span>{formatRelativeTime(campaign.createdAt)}</span>
@@ -893,11 +807,7 @@ export function MessagingSection() {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      {delivery.channel === 'email' ? (
-                        <Mail className="h-3 w-3 text-slate-400" />
-                      ) : (
-                        <MessageSquareShare className="h-3 w-3 text-slate-400" />
-                      )}
+                      <Mail className="h-3 w-3 text-slate-400" />
                       <span className="text-xs text-white">{delivery.recipient}</span>
                     </div>
                     <div className="mt-0.5 text-[10px] text-slate-500">
