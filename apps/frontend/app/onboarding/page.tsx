@@ -42,9 +42,8 @@ type Stage =
   | 'place'
   | 'rhythm'
   | 'voice'
+  | 'about'
   | 'mascot'
-  | 'name'
-  | 'galaxy'
   | 'entry'
   | 'done';
 
@@ -55,8 +54,6 @@ type FlowAnswers = {
   rhythm?: string;
   voice?: string;
   about?: string;
-  userName?: string;
-  galaxyName?: string;
 };
 
 type Option = {
@@ -76,9 +73,8 @@ const FLOW_SEQUENCE: Stage[] = [
   'place',
   'rhythm',
   'voice',
+  'about',
   'mascot',
-  'name',
-  'galaxy',
   'entry',
   'done',
 ];
@@ -342,15 +338,19 @@ function BackgroundField({ theme, emptied }: { theme: ThemeColor; emptied: boole
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{ background: emptied ? '#000' : current.bg }}
+      style={{
+        background: emptied
+          ? '#000'
+          : `${current.bg}, radial-gradient(circle at 50% 38%, rgba(var(--soouls-accent-rgb), .1), transparent 34%), #050505`,
+      }}
     >
       <motion.div
         className="absolute inset-0"
-        animate={{ opacity: emptied ? 0 : 0.68 }}
+        animate={{ opacity: emptied ? 0.28 : 0.78 }}
         transition={{ duration: 1.6 }}
         style={{
           background:
-            'linear-gradient(90deg, rgba(0,0,0,.96), rgba(0,0,0,.72) 44%, rgba(0,0,0,.9)), radial-gradient(circle at 50% 50%, rgba(255,255,255,.06), transparent 52%)',
+            'linear-gradient(90deg, rgba(0,0,0,.98), rgba(0,0,0,.58) 46%, rgba(0,0,0,.92)), radial-gradient(ellipse at 50% 42%, rgba(255,255,255,.075), transparent 58%)',
         }}
       />
       {STAR_FIELD.map((star) => (
@@ -375,7 +375,8 @@ function BackgroundField({ theme, emptied }: { theme: ThemeColor; emptied: boole
           }}
         />
       ))}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(0,0,0,.88)_72%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,.54)_55%,rgba(0,0,0,.92)_82%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,.76))]" />
     </div>
   );
 }
@@ -408,21 +409,25 @@ function ChoiceCard({
   selected,
   onClick,
   onHover,
+  onHoverEnd,
 }: {
   option: Option;
   selected: boolean;
   onClick: () => void;
   onHover?: () => void;
+  onHoverEnd?: () => void;
 }) {
   return (
     <motion.button
       type="button"
       onClick={onClick}
       onMouseEnter={onHover}
+      onMouseLeave={onHoverEnd}
       onFocus={onHover}
+      onBlur={onHoverEnd}
       whileHover={{ y: -3, scale: 1.01 }}
       whileTap={{ scale: 0.985 }}
-      className="group relative min-h-[154px] overflow-hidden rounded-[8px] border p-4 text-left transition-colors"
+      className="group relative min-h-[154px] overflow-hidden rounded-[8px] border p-4 text-left transition-colors hover:border-[rgba(var(--soouls-accent-rgb),.46)] hover:bg-[rgba(var(--soouls-accent-rgb),.08)]"
       style={{
         borderColor: selected ? 'rgba(var(--soouls-accent-rgb), .74)' : 'rgba(255,255,255,.1)',
         background: selected
@@ -433,6 +438,7 @@ function ChoiceCard({
           : 'inset 0 1px 0 rgba(255,255,255,.035)',
       }}
     >
+      <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/14 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
       <div className="relative z-10 flex h-full gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[var(--soouls-accent)]">
           {option.icon}
@@ -445,10 +451,8 @@ function ChoiceCard({
             >
               {option.title}
             </h3>
-            {option.emotion ? (
-              <div className="-mt-5 hidden shrink-0 sm:block">
-                <MascotPreview emotion={option.emotion} label={`${option.title} mascot`} />
-              </div>
+            {selected ? (
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-[var(--soouls-accent)]" />
             ) : null}
           </div>
           <p className="max-w-[33rem] text-sm leading-relaxed text-white/62">
@@ -473,6 +477,7 @@ function QuestionScreen({
   selected,
   onSelect,
   onHover,
+  onHoverEnd,
 }: {
   kicker: string;
   title: string;
@@ -481,6 +486,7 @@ function QuestionScreen({
   selected?: string;
   onSelect: (option: Option) => void;
   onHover?: (option: Option) => void;
+  onHoverEnd?: () => void;
 }) {
   return (
     <section className="mx-auto w-full max-w-[980px]">
@@ -506,10 +512,131 @@ function QuestionScreen({
             selected={selected === option.id}
             onClick={() => onSelect(option)}
             onHover={onHover ? () => onHover(option) : undefined}
+            onHoverEnd={onHoverEnd}
           />
         ))}
       </div>
     </section>
+  );
+}
+
+function AboutStage({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <section className="mx-auto grid w-full max-w-[980px] items-center gap-8 lg:grid-cols-[.9fr_1.1fr]">
+      <div>
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.38em] text-[var(--soouls-accent)]">
+          Optional
+        </p>
+        <h1
+          className="text-[2.45rem] leading-[.98] text-white sm:text-[4.35rem]"
+          style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+        >
+          What would make this feel worth returning to?
+        </h1>
+        <p className="mt-4 max-w-[560px] text-sm leading-relaxed text-white/54 sm:text-base">
+          A short sentence is enough. Skip it if the answer needs to arrive later.
+        </p>
+      </div>
+
+      <div className="rounded-[8px] border border-white/10 bg-black/36 p-4 shadow-[0_24px_90px_rgba(0,0,0,.32)] backdrop-blur-xl sm:p-5">
+        <label
+          htmlFor="about"
+          className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/40"
+        >
+          I&apos;ll know this is working when I...
+        </label>
+        <textarea
+          id="about"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="stop losing the thoughts that actually matter to me"
+          className="mt-3 min-h-[180px] w-full resize-none rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-4 text-base leading-relaxed text-white outline-none placeholder:text-white/28 focus:border-[rgba(var(--soouls-accent-rgb),.65)]"
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          {ABOUT_CHIPS.map((chip) => (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => onChange(chip)}
+              className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[11px] text-white/48 transition hover:border-[rgba(var(--soouls-accent-rgb),.45)] hover:text-white"
+            >
+              ...{chip}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CelebrationModal({ title }: { title: string }) {
+  const confetti = Array.from({ length: 26 }).map((_, index) => ({
+    id: `confetti-${index}`,
+    left: `${(index * 37) % 100}%`,
+    delay: (index % 8) * 0.08,
+    color: ['#ee7a61', '#d8a23f', '#74ad86', '#8d79d6', '#ffffff'][index % 5],
+  }));
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-2xl sm:px-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {confetti.map((piece) => (
+        <motion.span
+          key={piece.id}
+          className="absolute top-[-24px] h-3 w-1.5 rounded-full"
+          style={{ left: piece.left, background: piece.color }}
+          animate={{ y: ['0vh', '104vh'], rotate: [0, 160, 330], opacity: [0, 1, 0] }}
+          transition={{
+            duration: 1.55,
+            delay: piece.delay,
+            ease: 'easeOut',
+          }}
+        />
+      ))}
+      <motion.div
+        className="relative w-full max-w-[560px] overflow-hidden rounded-[28px] border border-white/12 bg-[#080808]/92 p-6 text-center shadow-[0_42px_140px_rgba(0,0,0,.72),0_0_80px_rgba(var(--soouls-accent-rgb),.12)] backdrop-blur-2xl sm:p-9"
+        initial={{ scale: 0.82, y: 18, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.96, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[rgba(var(--soouls-accent-rgb),.9)] to-transparent" />
+        <div className="pointer-events-none absolute left-1/2 top-[-120px] h-[220px] w-[520px] -translate-x-1/2 bg-[radial-gradient(ellipse,rgba(var(--soouls-accent-rgb),.22),transparent_65%)] blur-2xl" />
+        <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/12 bg-[var(--soouls-accent)] text-black shadow-[0_0_44px_rgba(var(--soouls-accent-rgb),.36)]">
+          <Sparkles className="h-7 w-7" />
+        </div>
+        <p className="relative text-[11px] font-bold uppercase tracking-[0.34em] text-[var(--soouls-accent)]">
+          First entry saved
+        </p>
+        <h2
+          className="relative mt-4 text-[2.35rem] leading-[.96] text-white sm:text-[3.35rem]"
+          style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+        >
+          {title || 'Your universe'} is alive.
+        </h2>
+        <p className="relative mx-auto mt-5 max-w-[390px] text-sm leading-relaxed text-white/62 sm:text-base">
+          One honest thought is enough to open the door. Taking you home now.
+        </p>
+        <div className="relative mx-auto mt-7 h-1.5 w-40 overflow-hidden rounded-full bg-white/10">
+          <motion.div
+            className="h-full rounded-full bg-[var(--soouls-accent)]"
+            initial={{ width: '0%' }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 1.8, ease: 'easeOut' }}
+          />
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -523,44 +650,132 @@ function MascotStage({
   onWake: () => void;
 }) {
   const emotion = useMemo<MascotEmotion>(() => {
-    if (!awake) return 'sleepy';
     if (answers.reason === 'head-loud') return 'calm';
     if (answers.reason === 'pattern') return 'curious';
     if (answers.reason === 'changed') return 'excited';
     if (answers.reason === 'create') return 'happy';
     return 'neutral';
-  }, [answers.reason, awake]);
+  }, [answers.reason]);
+
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 18 }).map((_, index) => ({
+        id: `wake-particle-${index}`,
+        angle: index * 20,
+        radius: 90 + (index % 5) * 18,
+        delay: (index % 6) * 0.08,
+      })),
+    [],
+  );
 
   return (
-    <section className="flex min-h-[68vh] flex-col items-center justify-center text-center">
-      <motion.button
-        type="button"
-        onClick={onWake}
-        className="relative border-0 bg-transparent p-0"
-        animate={awake ? { scale: [1, 1.08, 1], filter: 'brightness(1.16)' } : { scale: 0.82 }}
-        transition={{ duration: awake ? 1.2 : 0.8 }}
-      >
-        <MascotPreview emotion={emotion} label="Wake the Soouls companion" />
-      </motion.button>
+    <section className="relative flex min-h-[68vh] flex-col items-center justify-center overflow-hidden px-3 text-center">
+      <motion.div
+        className="absolute h-[min(76vw,460px)] w-[min(76vw,460px)] rounded-full border border-white/10 bg-[radial-gradient(circle,rgba(var(--soouls-accent-rgb),.2),transparent_62%)]"
+        animate={{
+          scale: awake ? [0.72, 1.12, 0.96] : [0.86, 0.92, 0.86],
+          opacity: awake ? [0.18, 0.62, 0.28] : [0.14, 0.28, 0.14],
+          rotate: awake ? [0, 24, -8] : [0, 8, 0],
+        }}
+        transition={{ duration: awake ? 1.4 : 4, repeat: awake ? 0 : Number.POSITIVE_INFINITY }}
+      />
+      {particles.map((particle) => (
+        <motion.span
+          key={particle.id}
+          className="absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-[var(--soouls-accent)] shadow-[0_0_18px_rgba(var(--soouls-accent-rgb),.8)]"
+          initial={{ x: -3, y: -3, opacity: 0, scale: 0.4 }}
+          animate={
+            awake
+              ? {
+                  x: Math.cos((particle.angle * Math.PI) / 180) * particle.radius,
+                  y: Math.sin((particle.angle * Math.PI) / 180) * particle.radius,
+                  opacity: [0, 1, 0],
+                  scale: [0.4, 1.6, 0.2],
+                }
+              : {
+                  x: Math.cos((particle.angle * Math.PI) / 180) * (particle.radius * 0.34),
+                  y: Math.sin((particle.angle * Math.PI) / 180) * (particle.radius * 0.34),
+                  opacity: [0.08, 0.5, 0.08],
+                  scale: [0.4, 1, 0.4],
+                }
+          }
+          transition={{
+            duration: awake ? 1.2 : 3.6,
+            delay: particle.delay,
+            repeat: awake ? 0 : Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      <AnimatePresence mode="wait">
+        {awake ? (
+          <motion.div
+            key="awake-mascot"
+            className="relative z-10"
+            initial={{ opacity: 0, scale: 0.42, y: 24, filter: 'brightness(1.7)' }}
+            animate={{
+              opacity: 1,
+              scale: [0.82, 1.18, 0.92],
+              y: [0, -18, -28],
+              filter: [
+                'brightness(1.35) drop-shadow(0 0 42px rgba(var(--soouls-accent-rgb), .9))',
+                'brightness(1.12) drop-shadow(0 0 20px rgba(var(--soouls-accent-rgb), .45))',
+              ],
+            }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 1.7, ease: 'easeInOut' }}
+          >
+            <MascotPreview emotion={emotion} label="Soouls companion awakened" />
+          </motion.div>
+        ) : (
+          <motion.button
+            key="wake-control"
+            type="button"
+            onClick={onWake}
+            className="relative z-10 flex h-[min(58vw,260px)] w-[min(58vw,260px)] items-center justify-center rounded-full border border-white/12 bg-black/42 shadow-[0_30px_120px_rgba(0,0,0,.55),0_0_80px_rgba(var(--soouls-accent-rgb),.12)] backdrop-blur-2xl transition hover:border-[rgba(var(--soouls-accent-rgb),.55)]"
+            initial={{ opacity: 0, scale: 0.86 }}
+            animate={{ opacity: 1, scale: [0.96, 1.02, 0.96] }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 3.2, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+            aria-label="Wake the Soouls companion"
+          >
+            <span className="absolute inset-6 rounded-full border border-[rgba(var(--soouls-accent-rgb),.28)]" />
+            <span className="absolute h-20 w-20 rounded-full bg-[var(--soouls-accent)]/18 blur-2xl" />
+            <span className="relative flex flex-col items-center gap-3">
+              <span className="h-3 w-3 rounded-full bg-[var(--soouls-accent)] shadow-[0_0_28px_rgba(var(--soouls-accent-rgb),.85)]" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-[var(--soouls-accent)]">
+                Wake companion
+              </span>
+              <span className="max-w-[180px] text-sm leading-relaxed text-white/52">
+                Tap once. The mascot appears only after it wakes.
+              </span>
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {awake ? (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0 }}
-            className="mt-10 max-w-[620px]"
+            className="relative z-10 mt-8 max-w-[620px]"
           >
             <p
               className="text-[1.9rem] leading-tight text-white sm:text-[2.8rem]"
               style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
             >
-              I&apos;ve been calibrated to you.
+              There you are.
             </p>
             <p className="mt-4 text-base leading-relaxed text-white/58">
-              I know why you came. I know what kind of voice you want. I&apos;m ready when you are.
+              Your companion is awake now. It will stay placed and quiet across Soouls until you
+              interact with it.
             </p>
-            <p className="mt-8 text-xl text-white">What should I call you?</p>
+            <p className="mt-6 text-xs font-bold uppercase tracking-[0.28em] text-[var(--soouls-accent)]">
+              Opening your first page
+            </p>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -583,6 +798,7 @@ export default function OnboardingPage() {
   const [stage, setStage] = useState<Stage>('reason');
   const [answers, setAnswers] = useState<FlowAnswers>({});
   const [theme, setTheme] = useState<ThemeColor>('ember');
+  const [previewTone, setPreviewTone] = useState<ThemeColor>('ember');
   const [direction, setDirection] = useState(0);
   const [mascotAwake, setMascotAwake] = useState(false);
   const [firstEntry, setFirstEntry] = useState('');
@@ -590,13 +806,14 @@ export default function OnboardingPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [genesisStarted, setGenesisStarted] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const isWaitlistUser = Boolean(
     onboardingStatus?.isWaitlistUser || user?.publicMetadata?.isWaitlistUser,
   );
   const questionStep = QUESTION_STEPS.includes(stage) ? QUESTION_STEPS.indexOf(stage) + 1 : null;
-  const currentTone = PLACE_COPY[theme];
+  const visualTheme = stage === 'place' ? previewTone : theme;
+  const currentTone = PLACE_COPY[visualTheme];
 
   const previewTheme = useCallback(
     (accentTheme: ThemeColor, themeMode: 'dark' | 'light' = 'dark') => {
@@ -633,10 +850,6 @@ export default function OnboardingPage() {
         router.replace('/home');
       } else {
         setIsLoadingAuth(false);
-        setAnswers((current) => ({
-          ...current,
-          userName: current.userName ?? user.firstName ?? user.fullName ?? '',
-        }));
       }
     }
   }, [isLoaded, onboardingStatus, router, user]);
@@ -644,6 +857,12 @@ export default function OnboardingPage() {
   useEffect(() => {
     previewTheme(theme, 'dark');
   }, [previewTheme, theme]);
+
+  useEffect(() => {
+    if (stage !== 'place') {
+      setPreviewTone(theme);
+    }
+  }, [stage, theme]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -658,8 +877,7 @@ export default function OnboardingPage() {
     if (stage === 'place') return Boolean(answers.place);
     if (stage === 'rhythm') return Boolean(answers.rhythm);
     if (stage === 'voice') return Boolean(answers.voice);
-    if (stage === 'name') return Boolean(answers.userName?.trim());
-    if (stage === 'galaxy') return Boolean(answers.galaxyName?.trim());
+    if (stage === 'about') return true;
     return true;
   }, [answers, stage]);
 
@@ -687,6 +905,7 @@ export default function OnboardingPage() {
       if (key === 'place' && value) {
         const nextTheme = value as ThemeColor;
         setTheme(nextTheme);
+        setPreviewTone(nextTheme);
         previewTheme(nextTheme, 'dark');
       }
     },
@@ -696,30 +915,31 @@ export default function OnboardingPage() {
   const handleWake = useCallback(() => {
     if (mascotAwake) {
       setDirection(1);
-      setStage('name');
+      setStage('entry');
       return;
     }
 
     setMascotAwake(true);
     window.localStorage.setItem('soouls-orbi-awake', 'true');
+    window.dispatchEvent(new Event('soouls-orbi-awake'));
     setTimeout(() => {
       setDirection(1);
-      setStage('name');
-    }, 3200);
+      setStage('entry');
+    }, 2700);
   }, [mascotAwake]);
 
   const handleFinish = useCallback(
     async (skipEntry = false) => {
       if (!user) return;
 
-      const trimmedName = answers.userName?.trim() || user.firstName || user.fullName || 'Explorer';
-      const trimmedSpace = answers.galaxyName?.trim() || `${trimmedName}'s Mind`;
+      const trimmedName = user.firstName || user.fullName || 'Explorer';
+      const trimmedSpace = `${trimmedName}'s Mind`;
       const trimmedEntry = firstEntry.trim();
       const settingsPatch = deriveSettings(answers, theme);
 
       setIsFinishing(true);
       setSaveError(null);
-      setGenesisStarted(Boolean(trimmedEntry) && !skipEntry);
+      setShowCelebration(false);
 
       try {
         await updateSettings.mutateAsync(settingsPatch);
@@ -734,6 +954,8 @@ export default function OnboardingPage() {
             onboardingAbout: answers.about?.trim() || null,
             onboardingAnswers: {
               ...answers,
+              userName: trimmedName,
+              roomName: trimmedSpace,
               tone: theme,
             },
           },
@@ -758,6 +980,8 @@ export default function OnboardingPage() {
                 roomName: trimmedSpace,
                 answers: {
                   ...answers,
+                  userName: trimmedName,
+                  roomName: trimmedSpace,
                   tone: theme,
                 },
               },
@@ -780,15 +1004,17 @@ export default function OnboardingPage() {
           utils.private.home.getOnboardingStatus.invalidate(),
         ]);
 
-        setTimeout(
-          () => {
-            setStage('done');
-          },
-          trimmedEntry && !skipEntry ? 1500 : 0,
-        );
+        if (trimmedEntry && !skipEntry) {
+          setShowCelebration(true);
+          setTimeout(() => {
+            router.push('/home');
+          }, 1900);
+        } else {
+          setStage('done');
+        }
       } catch (error) {
         setSaveError(error instanceof Error ? error.message : 'We could not finish setup yet.');
-        setGenesisStarted(false);
+        setShowCelebration(false);
       } finally {
         setIsFinishing(false);
       }
@@ -799,6 +1025,7 @@ export default function OnboardingPage() {
       firstEntry,
       isWaitlistUser,
       previewTheme,
+      router,
       theme,
       updateSettings,
       updateUser,
@@ -823,7 +1050,7 @@ export default function OnboardingPage() {
 
   return (
     <div
-      className="relative h-[100dvh] w-full overflow-hidden bg-[#050505] text-white"
+      className="relative min-h-[100dvh] w-full overflow-hidden overflow-y-auto bg-[#050505] text-white"
       style={
         {
           '--soouls-accent': currentTone.accent,
@@ -831,9 +1058,9 @@ export default function OnboardingPage() {
         } as React.CSSProperties
       }
     >
-      <BackgroundField theme={theme} emptied={stage === 'mascot'} />
+      <BackgroundField theme={visualTheme} emptied={stage === 'mascot'} />
 
-      <div className="relative z-10 flex h-full flex-col px-4 pt-4 pb-24 sm:px-8 lg:px-10">
+      <div className="relative z-10 flex min-h-[100dvh] flex-col px-4 pt-4 pb-24 sm:px-8 lg:px-10">
         <div className="flex items-center justify-center">
           <Link
             href="/"
@@ -843,7 +1070,7 @@ export default function OnboardingPage() {
           </Link>
         </div>
 
-        <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col items-center justify-center">
+        <div className="mx-auto flex min-h-0 flex-1 w-full max-w-[1180px] flex-col items-center justify-center py-8">
           {questionStep ? <ProgressHeader step={questionStep} /> : null}
 
           <AnimatePresence mode="wait" custom={direction}>
@@ -887,7 +1114,10 @@ export default function OnboardingPage() {
                   selected={answers.place}
                   onSelect={(option) => chooseAnswer('place', option.tone ?? 'ember')}
                   onHover={(option) => {
-                    if (option.tone) setTheme(option.tone);
+                    if (option.tone) setPreviewTone(option.tone);
+                  }}
+                  onHoverEnd={() => {
+                    setPreviewTone((answers.place as ThemeColor | undefined) ?? theme);
                   }}
                 />
               ) : null}
@@ -904,167 +1134,76 @@ export default function OnboardingPage() {
               ) : null}
 
               {stage === 'voice' ? (
-                <div className="mx-auto w-full max-w-[980px]">
-                  <QuestionScreen
-                    kicker="Question 5"
-                    title="How should the app talk to you?"
-                    note="This sets the relationship, not just a setting."
-                    options={VOICE_OPTIONS}
-                    selected={answers.voice}
-                    onSelect={(option) => chooseAnswer('voice', option.id)}
-                  />
+                <QuestionScreen
+                  kicker="Question 5"
+                  title="How should the app talk to you?"
+                  note="This sets the relationship, not just a setting."
+                  options={VOICE_OPTIONS}
+                  selected={answers.voice}
+                  onSelect={(option) => chooseAnswer('voice', option.id)}
+                />
+              ) : null}
 
-                  <div className="mx-auto mt-5 max-w-[760px] rounded-[8px] border border-white/10 bg-black/30 p-4">
-                    <label
-                      htmlFor="about"
-                      className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/40"
-                    >
-                      Optional
-                    </label>
-                    <textarea
-                      id="about"
-                      value={answers.about ?? ''}
-                      onChange={(event) => chooseAnswer('about', event.target.value)}
-                      placeholder="I'll know this is working when I..."
-                      className="mt-3 min-h-[84px] w-full resize-none rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/28 focus:border-[rgba(var(--soouls-accent-rgb),.65)]"
-                    />
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {ABOUT_CHIPS.map((chip) => (
-                        <button
-                          key={chip}
-                          type="button"
-                          onClick={() => chooseAnswer('about', chip)}
-                          className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[11px] text-white/44 transition hover:text-white"
-                        >
-                          ...{chip}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+              {stage === 'about' ? (
+                <AboutStage
+                  value={answers.about ?? ''}
+                  onChange={(value) => chooseAnswer('about', value)}
+                />
               ) : null}
 
               {stage === 'mascot' ? (
                 <MascotStage answers={answers} awake={mascotAwake} onWake={handleWake} />
               ) : null}
 
-              {stage === 'name' ? (
-                <section className="mx-auto max-w-[680px] text-center">
-                  <MascotPreview emotion="happy" label="Happy Soouls mascot" />
-                  <p className="mt-4 text-lg text-white/68">
-                    Got it{answers.userName?.trim() ? `, ${answers.userName.trim()}` : ''}. One more
-                    thing.
-                  </p>
-                  <h1
-                    className="mt-3 text-[2.8rem] leading-none text-white sm:text-[4.4rem]"
-                    style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                  >
-                    What name do you carry?
-                  </h1>
-                  <input
-                    value={answers.userName ?? ''}
-                    onChange={(event) => chooseAnswer('userName', event.target.value)}
-                    placeholder="What name do you carry?"
-                    className="mt-8 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-5 py-4 text-center text-xl text-white outline-none placeholder:text-white/25 focus:border-[rgba(var(--soouls-accent-rgb),.7)]"
-                  />
-                  <p className="mt-3 text-xs uppercase tracking-[0.22em] text-white/34">
-                    The companion will use this. Nobody else will ever see it.
-                  </p>
-                </section>
-              ) : null}
-
-              {stage === 'galaxy' ? (
-                <section className="mx-auto max-w-[760px] text-center">
-                  <div className="fixed bottom-6 right-6 z-20 scale-[.72]">
-                    <MascotPreview emotion="curious" label="Curious Soouls mascot" />
-                  </div>
-                  <h1
-                    className="text-[2.8rem] leading-none text-white sm:text-[4.8rem]"
-                    style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                  >
-                    What do you want to call this place?
-                  </h1>
-                  <div className="mt-6 flex flex-wrap justify-center gap-2">
-                    {['The Vault', `${answers.userName?.trim() || 'My'}'s Mind`, 'The Unnamed'].map(
-                      (suggestion) => (
-                        <button
-                          key={suggestion}
-                          type="button"
-                          onClick={() => chooseAnswer('galaxyName', suggestion)}
-                          className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/44 transition hover:text-white"
-                        >
-                          {suggestion}
-                        </button>
-                      ),
-                    )}
-                  </div>
-                  <input
-                    value={answers.galaxyName ?? ''}
-                    onChange={(event) => chooseAnswer('galaxyName', event.target.value)}
-                    placeholder="Name it what it feels like."
-                    className="mt-8 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-5 py-4 text-center text-xl text-white outline-none placeholder:text-white/25 focus:border-[rgba(var(--soouls-accent-rgb),.7)]"
-                  />
-                </section>
-              ) : null}
-
               {stage === 'entry' ? (
-                <section className="mx-auto max-w-[840px] text-center">
-                  <div className="mb-8 text-[2rem] leading-none text-white/92 sm:text-[3rem]">
-                    {answers.galaxyName || `${answers.userName || 'Your'}'s Mind`}
+                <section className="mx-auto w-full max-w-[980px] px-1 text-center sm:px-4">
+                  <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-white/46 shadow-[0_18px_50px_rgba(0,0,0,.28)] backdrop-blur-xl">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--soouls-accent)] shadow-[0_0_16px_rgba(var(--soouls-accent-rgb),.8)]" />
+                    Genesis space
+                  </div>
+                  <div className="mb-5 text-[clamp(2rem,7vw,3.25rem)] leading-none text-white/92">
+                    {`${user?.firstName || user?.fullName || 'Your'}'s Mind`}
                   </div>
                   <p
-                    className="text-[1.65rem] leading-tight text-white sm:text-[2.5rem]"
-                    style={{ fontFamily: 'var(--font-playfair)' }}
+                    className="mx-auto max-w-[860px] text-[clamp(2rem,7vw,4rem)] leading-[.98] text-white"
+                    style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
                   >
                     Your universe is waiting.
                     <br />
-                    What&apos;s actually on your mind right now?
+                    <span className="text-white/82">What&apos;s actually on your mind?</span>
                   </p>
-                  <div className="relative mx-auto mt-8 max-w-[720px]">
-                    <textarea
-                      value={firstEntry}
-                      onChange={(event) => setFirstEntry(event.target.value)}
-                      onKeyDown={(event) => {
-                        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-                          void handleFinish(false);
-                        }
-                      }}
-                      placeholder={ENTRY_PLACEHOLDERS[entryPlaceholderIndex]}
-                      className="min-h-[190px] w-full resize-none rounded-[8px] border border-white/12 bg-black/42 px-5 py-5 text-lg leading-relaxed text-white shadow-[0_0_70px_rgba(var(--soouls-accent-rgb),.08)] outline-none placeholder:text-white/30 focus:border-[rgba(var(--soouls-accent-rgb),.7)]"
-                    />
-                    {genesisStarted ? (
-                      <motion.div
-                        className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8px] bg-black"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                      >
-                        <motion.div
-                          className="h-4 w-4 rounded-full bg-white shadow-[0_0_80px_30px_rgba(255,255,255,.45)]"
-                          animate={{ scale: [1, 46], opacity: [1, 0] }}
-                          transition={{ duration: 1.2, ease: 'easeOut' }}
-                        />
-                      </motion.div>
-                    ) : null}
+                  <div className="relative mx-auto mt-8 max-w-[780px] sm:mt-10">
+                    <div className="pointer-events-none absolute -inset-1 rounded-[30px] bg-[linear-gradient(135deg,rgba(var(--soouls-accent-rgb),.7),rgba(255,255,255,.08),rgba(var(--soouls-accent-rgb),.36))] opacity-80 blur-[1px]" />
+                    <div className="relative overflow-hidden rounded-[28px] border border-white/12 bg-[#151515]/82 shadow-[0_34px_120px_rgba(0,0,0,.55),0_0_80px_rgba(var(--soouls-accent-rgb),.1)] backdrop-blur-2xl">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/28 to-transparent" />
+                      <textarea
+                        value={firstEntry}
+                        onChange={(event) => setFirstEntry(event.target.value)}
+                        onKeyDown={(event) => {
+                          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                            void handleFinish(false);
+                          }
+                        }}
+                        placeholder={ENTRY_PLACEHOLDERS[entryPlaceholderIndex]}
+                        className="min-h-[190px] w-full resize-none bg-transparent px-5 py-5 text-left text-base leading-relaxed text-white outline-none placeholder:text-white/30 sm:min-h-[230px] sm:px-8 sm:py-7 sm:text-xl"
+                      />
+                      <div className="flex items-center justify-between border-t border-white/[0.06] px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-white/32 sm:px-8">
+                        <span>Private draft</span>
+                        <span>{firstEntry.trim().length} chars</span>
+                      </div>
+                    </div>
                   </div>
                   {saveError ? (
                     <div className="mx-auto mt-5 max-w-[620px] rounded-[8px] border border-red-300/25 bg-red-950/30 px-4 py-3 text-sm text-red-100">
                       {saveError}
                     </div>
                   ) : null}
-                  <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleFinish(true)}
-                      disabled={isFinishing}
-                      className="rounded-full border border-white/12 bg-white/[0.035] px-5 py-3 text-xs uppercase tracking-[0.2em] text-white/45 transition hover:text-white disabled:opacity-40"
-                    >
-                      Skip
-                    </button>
+                  <div className="mt-7 flex items-stretch justify-center gap-3 sm:items-center">
                     <button
                       type="button"
                       onClick={() => handleFinish(false)}
                       disabled={isFinishing}
-                      className="inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-3 text-sm font-bold uppercase tracking-[0.22em] text-black disabled:opacity-40"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-4 text-sm font-bold uppercase tracking-[0.18em] text-black shadow-[0_18px_48px_rgba(var(--soouls-accent-rgb),.26)] transition hover:scale-[1.02] disabled:opacity-40 sm:py-3 sm:tracking-[0.22em]"
                     >
                       {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                       {firstEntry.trim() ? 'Create Node #001' : 'Enter empty universe'}
@@ -1076,9 +1215,8 @@ export default function OnboardingPage() {
 
               {stage === 'done' ? (
                 <section className="mx-auto max-w-[760px] text-center">
-                  <MascotPreview emotion="atPeace" label="At peace Soouls mascot" />
-                  <div className="mt-3 text-xs uppercase tracking-[0.3em] text-white/42">
-                    {answers.galaxyName || 'Your Universe'} · Node #001 · Genesis Complete
+                  <div className="text-xs uppercase tracking-[0.3em] text-white/42">
+                    Genesis Complete
                   </div>
                   <h1
                     className="mt-5 text-[2.8rem] leading-none text-white sm:text-[4.4rem]"
@@ -1087,7 +1225,7 @@ export default function OnboardingPage() {
                     Your universe is alive.
                   </h1>
                   <p className="mx-auto mt-4 max-w-[560px] text-base leading-relaxed text-white/58">
-                    {answers.galaxyName || 'This place'}. Good. One thought was enough to start it.
+                    Good. One thought was enough to start it.
                   </p>
                   <button
                     type="button"
@@ -1104,7 +1242,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {questionStep || stage === 'name' || stage === 'galaxy' ? (
+      {questionStep || stage === 'about' ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-5">
           <div className="pointer-events-auto flex w-full max-w-[380px] items-center justify-between rounded-full border border-white/12 bg-black/70 px-2 py-2 shadow-[0_20px_70px_rgba(0,0,0,.5)] backdrop-blur-xl">
             <button
@@ -1122,12 +1260,18 @@ export default function OnboardingPage() {
               disabled={!canContinue}
               className="inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-6 py-3 text-xs font-bold uppercase tracking-[0.22em] text-black disabled:opacity-35"
             >
-              Next
+              {stage === 'about' ? 'Skip' : 'Next'}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         </div>
       ) : null}
+
+      <AnimatePresence>
+        {showCelebration ? (
+          <CelebrationModal title={`${user?.firstName || user?.fullName || 'Your'}'s Mind`} />
+        ) : null}
+      </AnimatePresence>
 
       <div className="sr-only">{currentTone.name}</div>
     </div>
