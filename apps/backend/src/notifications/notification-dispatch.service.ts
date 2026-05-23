@@ -272,17 +272,19 @@ export class NotificationDispatchService {
 
   private getResendContactSync() {
     const apiKey =
-      process.env.RESEND_MARKETING_API_KEY ??
-      process.env.RESEND_CONTACTS_API_KEY ??
-      process.env.RESEND_AUTOMATION_API_KEY;
+      process.env.RESEND_MARKETING_API_KEY ||
+      process.env.RESEND_CONTACTS_API_KEY ||
+      process.env.RESEND_AUTOMATION_API_KEY ||
+      process.env.RESEND_API_KEY;
     return apiKey ? new Resend(apiKey) : null;
   }
 
   private getResendApiKey() {
     return (
-      process.env.RESEND_AUTOMATION_API_KEY ??
-      process.env.RESEND_MARKETING_API_KEY ??
-      process.env.RESEND_CONTACTS_API_KEY
+      process.env.RESEND_AUTOMATION_API_KEY ||
+      process.env.RESEND_MARKETING_API_KEY ||
+      process.env.RESEND_CONTACTS_API_KEY ||
+      process.env.RESEND_API_KEY
     );
   }
 
@@ -451,10 +453,9 @@ export class NotificationDispatchService {
     email: string;
     payload: Record<string, unknown>;
   }) {
-    const resend = this.getResend();
     const apiKey = this.getResendApiKey();
 
-    if (!resend || !apiKey) {
+    if (!apiKey) {
       console.log('[Messaging] Resend automation event skipped', {
         event: input.event,
         email: input.email,
@@ -462,6 +463,7 @@ export class NotificationDispatchService {
       return;
     }
 
+    const resend = new Resend(apiKey);
     const sdkEvents = (resend as unknown as ResendEventClient).events;
 
     if (sdkEvents?.send) {
@@ -509,9 +511,9 @@ export class NotificationDispatchService {
 
   async syncResendContactByUserId(userId: string, options: { triggerSignupEvent?: boolean } = {}) {
     const user = await this.getUserByDbId(userId);
-    const contactSynced = await this.syncResendContact(user);
+    await this.syncResendContact(user);
 
-    if (options.triggerSignupEvent && contactSynced) {
+    if (options.triggerSignupEvent) {
       await this.triggerSignupAutomation(user);
     }
   }

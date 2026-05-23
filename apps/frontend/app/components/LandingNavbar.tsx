@@ -58,10 +58,10 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
           ${hidden ? '-translate-y-32 opacity-0' : 'translate-y-0 opacity-100'}
         `}
         style={{
-          top: scrolled ? '16px' : '36px',
-          width: scrolled ? 'min(880px, calc(100% - 32px))' : 'min(1239px, calc(100% - 48px))',
-          padding: scrolled ? '16px 32px' : '16px 24px',
-          borderRadius: scrolled ? '40px' : '16px',
+          top: scrolled ? '14px' : 'clamp(18px, 4vw, 36px)',
+          width: scrolled ? 'min(880px, calc(100% - 24px))' : 'min(1239px, calc(100% - 24px))',
+          padding: scrolled ? '12px clamp(12px, 3vw, 32px)' : '12px clamp(12px, 3vw, 24px)',
+          borderRadius: scrolled ? '28px' : '22px',
           background: scrolled ? 'rgba(42, 51, 53, 0.75)' : 'rgba(20, 20, 20, 0.15)',
           backdropFilter: 'blur(32px) saturate(1.2)',
           WebkitBackdropFilter: 'blur(32px) saturate(1.2)',
@@ -71,13 +71,13 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
           border: '1px solid rgba(255,255,255,0.06)',
         }}
       >
-        <nav className="flex items-center justify-between w-full h-full relative">
+        <nav className="grid w-full grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 md:flex md:h-full md:justify-between md:gap-6">
           {/* Mobile menu Button (Left) */}
-          <div className="flex md:hidden items-center justify-start w-[80px]">
+          <div className="flex md:hidden items-center justify-start">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="text-[#EFEBDD] p-2 hover:bg-white/10 rounded-full transition-colors flex items-center justify-center border border-white/5 bg-white/[0.02]"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[#EFEBDD] shadow-[inset_0_1px_0_rgba(255,255,255,.08)] transition-colors hover:bg-white/10"
               aria-label="Open Menu"
             >
               <Menu className="w-5 h-5" />
@@ -85,22 +85,22 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
           </div>
 
           {/* Logo */}
-          <div className="flex-shrink-0 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start w-auto md:w-[200px] h-[32px]">
+          <div className="flex h-[36px] min-w-0 flex-shrink-0 items-center justify-center md:w-[200px] md:justify-start">
             <Link
               href="/#hero"
               aria-label="Go to the Soouls landing page"
-              className="relative flex items-center justify-center w-full h-full"
+              className="relative flex h-full w-full items-center justify-center md:justify-start"
             >
               <span
-                className="absolute font-bold"
+                className="font-bold"
                 style={{
                   fontFamily: 'ABC Whyte Inktrap, sans-serif',
                   color: '#D6C2A3',
-                  fontSize: '24px',
+                  fontSize: scrolled ? '22px' : 'clamp(22px, 7vw, 28px)',
                   lineHeight: '1em',
-                  letterSpacing: '-0.035em',
+                  letterSpacing: '0',
                   opacity: scrolled ? 0 : 1,
-                  transform: scrolled ? 'translateX(-20px)' : 'translateX(0)',
+                  transform: scrolled ? 'translateX(-12px)' : 'translateX(0)',
                   pointerEvents: scrolled ? 'none' : 'auto',
                   transition: 'all 0.5s ease',
                 }}
@@ -108,12 +108,10 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
                 Soouls
               </span>
               <div
-                className="absolute"
+                className="absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0"
                 style={{
                   opacity: scrolled ? 1 : 0,
-                  transform: scrolled
-                    ? 'translateX(0) rotate(0deg)'
-                    : 'translateX(20px) rotate(-90deg)',
+                  transform: scrolled ? 'rotate(0deg)' : 'translateX(16px) rotate(-90deg)',
                   pointerEvents: scrolled ? 'auto' : 'none',
                   color: '#D6C2A3',
                   transition: 'all 0.5s ease',
@@ -155,19 +153,18 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
           </div>
 
           {/* Right side — CTA */}
-          <div className="flex-shrink-0 flex items-center justify-end w-auto md:w-[200px]">
+          <div className="flex min-w-0 flex-shrink-0 items-center justify-end md:w-[200px]">
             <Link
               href="/sign-up"
-              className="font-urbanist font-semibold transition-all duration-300 flex justify-center items-center hover:scale-105 active:scale-95 hover:shadow-[0_0_16px_rgba(224,122,95,0.4)]"
+              className="font-urbanist flex items-center justify-center whitespace-nowrap font-semibold transition-all duration-300 hover:scale-105 hover:shadow-[0_0_16px_rgba(224,122,95,0.4)] active:scale-95"
               style={{
                 backgroundColor: '#E07A5F',
                 color: '#111111',
-                padding: '8px 16px',
+                padding: 'clamp(9px, 2.6vw, 10px) clamp(12px, 3.2vw, 18px)',
                 borderRadius: '9999px',
-                fontSize: '11px',
+                fontSize: 'clamp(10px, 2.5vw, 11px)',
                 textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                whiteSpace: 'nowrap',
+                letterSpacing: '0.08em',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.backgroundColor = '#EFEBDD';
@@ -176,7 +173,8 @@ export default function LandingNavbar({ links = defaultLinks }: LandingNavbarPro
                 (e.currentTarget as HTMLElement).style.backgroundColor = '#E07A5F';
               }}
             >
-              Start Writing
+              <span className="sm:hidden">Start</span>
+              <span className="hidden sm:inline">Start Writing</span>
             </Link>
           </div>
         </nav>
