@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type MascotEmotion, OrbiMascotBase } from './OrbiMascotBase';
 
-const MESSAGES: Record<MascotEmotion, string[]> = {
+const MESSAGES: Partial<Record<MascotEmotion, string[]>> = {
   neutral: [
     'I am here.',
     'The silence is clear.',
@@ -68,7 +68,7 @@ export function GlobalMascot() {
       if (text) {
         setMessage(text);
       } else {
-        const possible = MESSAGES[emotion];
+        const possible = MESSAGES[emotion] ?? MESSAGES.neutral ?? ['I am here.'];
         setMessage(possible[Math.floor(Math.random() * possible.length)]);
       }
 

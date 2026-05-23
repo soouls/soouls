@@ -4,21 +4,23 @@ import { useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
-  BookOpenText,
   Brain,
   CheckCircle2,
   ChevronLeft,
-  Clock3,
   Flame,
+  Image as ImageIcon,
   Loader2,
   MessageCircleHeart,
   Mic,
   MoonStar,
-  PenSquare,
+  PenLine,
   Sparkles,
+  Sprout,
+  Sun,
   Sunrise,
   Sunset,
-  Wind,
+  Waves,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -29,109 +31,288 @@ import {
   applyHomeTheme,
 } from '../../src/hooks/use-home-theme';
 import { trpc } from '../../src/utils/trpc';
+import { type MascotEmotion, MascotPreview } from '../components/OrbiMascotBase';
 import { RoseLoader } from '../components/RoseLoader';
-import { SymbolLogo } from '../components/SymbolLogo';
-import { GuideMascot } from './guide-mascot';
 
 type ThemeColor = 'ember' | 'gold' | 'sage' | 'violet';
 
 type Stage =
   | 'reason'
-  | 'capture'
-  | 'tone'
+  | 'expression'
+  | 'place'
   | 'rhythm'
-  | 'support'
   | 'voice'
-  | 'wake'
+  | 'mascot'
+  | 'name'
+  | 'galaxy'
   | 'entry'
   | 'done';
 
 type FlowAnswers = {
   reason?: string;
-  capture?: string;
-  tone?: ThemeColor;
+  expression?: string;
+  place?: ThemeColor;
   rhythm?: string;
-  support?: string;
   voice?: string;
+  about?: string;
+  userName?: string;
+  galaxyName?: string;
 };
 
-type ChoiceCardProps = {
+type Option = {
+  id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  selected: boolean;
-  onClick: () => void;
-  eyebrow?: string;
-  mascot?: 'hello' | 'wake';
-  mascotAwake?: boolean;
+  emotion?: MascotEmotion;
+  tone?: ThemeColor;
+  sample?: string;
 };
 
-const QUESTION_STEPS: Stage[] = ['reason', 'capture', 'tone', 'rhythm', 'support', 'voice'];
+const QUESTION_STEPS: Stage[] = ['reason', 'expression', 'place', 'rhythm', 'voice'];
 const FLOW_SEQUENCE: Stage[] = [
   'reason',
-  'capture',
-  'tone',
+  'expression',
+  'place',
   'rhythm',
-  'support',
   'voice',
-  'wake',
+  'mascot',
+  'name',
+  'galaxy',
   'entry',
   'done',
 ];
 
-const EMBERS = [
-  { left: '4%', top: '10%', size: 4, duration: 8.4, delay: 0.2 },
-  { left: '14%', top: '82%', size: 5, duration: 10.2, delay: 0.4 },
-  { left: '22%', top: '26%', size: 6, duration: 9.4, delay: 1.1 },
-  { left: '36%', top: '74%', size: 7, duration: 8.8, delay: 0.8 },
-  { left: '48%', top: '15%', size: 8, duration: 11.2, delay: 0.5 },
-  { left: '59%', top: '57%', size: 5, duration: 9.8, delay: 1.7 },
-  { left: '74%', top: '35%', size: 6, duration: 10.8, delay: 0.9 },
-  { left: '84%', top: '18%', size: 5, duration: 8.6, delay: 1.5 },
-  { left: '91%', top: '67%', size: 7, duration: 9.6, delay: 0.3 },
-];
-
-const THEME_COPY: Record<
+const PLACE_COPY: Record<
   ThemeColor,
   {
-    label: string;
-    title: string;
-    description: string;
+    name: string;
+    headline: string;
+    rgb: string;
+    accent: string;
+    bg: string;
   }
 > = {
-  ember: {
-    label: 'Ember',
-    title: 'Signal fire',
-    description: 'Warm, direct, and alive. Best when you want clarity fast.',
-  },
   gold: {
-    label: 'Gold',
-    title: 'Clear horizon',
-    description: 'Brighter and lighter. Good for calm review and steady reflection.',
+    name: 'The Clear Horizon',
+    headline: 'Turn the noise into insight.',
+    rgb: '216, 162, 63',
+    accent: '#d8a23f',
+    bg: 'radial-gradient(circle at 70% 24%, rgba(216,162,63,.28), transparent 28%), radial-gradient(circle at 25% 75%, rgba(255,255,255,.06), transparent 32%), #050505',
   },
   sage: {
-    label: 'Sage',
-    title: 'Living archive',
-    description: 'Grounded, restorative, and growth-oriented.',
+    name: 'The Living Archive',
+    headline: 'Watch yourself grow over time.',
+    rgb: '116, 173, 134',
+    accent: '#74ad86',
+    bg: 'radial-gradient(circle at 72% 24%, rgba(116,173,134,.24), transparent 30%), radial-gradient(circle at 20% 78%, rgba(255,255,255,.05), transparent 35%), #050505',
+  },
+  ember: {
+    name: 'A Signal Tower',
+    headline: "Fast. Catch the spark before it's gone.",
+    rgb: '238, 122, 97',
+    accent: '#ee7a61',
+    bg: 'radial-gradient(circle at 72% 24%, rgba(238,122,97,.28), transparent 28%), radial-gradient(circle at 26% 76%, rgba(255,176,112,.08), transparent 34%), #050505',
   },
   violet: {
-    label: 'Violet',
-    title: 'Depth chamber',
-    description: 'Quiet, introspective, and made for slower inner work.',
+    name: 'A Depth Chamber',
+    headline: "Slow. Reflective. Somewhere you can't go out there.",
+    rgb: '141, 121, 214',
+    accent: '#8d79d6',
+    bg: 'radial-gradient(circle at 72% 24%, rgba(141,121,214,.3), transparent 30%), radial-gradient(circle at 22% 78%, rgba(255,255,255,.05), transparent 34%), #050505',
   },
 };
 
-const THEME_SWATCHES: Record<ThemeColor, string> = {
-  ember: '#f06f4f',
-  gold: '#d8a23f',
-  sage: '#74ad86',
-  violet: '#8d79d6',
-};
+const STAR_FIELD = Array.from({ length: 36 }).map((_, index) => ({
+  id: `star-${index}`,
+  left: `${(index * 47) % 100}%`,
+  top: `${(index * 83) % 100}%`,
+  size: 1 + (index % 3),
+  delay: (index % 9) * 0.38,
+}));
+
+const REASON_OPTIONS: Option[] = [
+  {
+    id: 'head-loud',
+    title: 'Clear my mind',
+    description:
+      'My head is too loud right now. I need to get something out before it swallows me.',
+    icon: <Waves className="h-5 w-5" />,
+    emotion: 'calm',
+  },
+  {
+    id: 'pattern',
+    title: 'Track habits and growth',
+    description:
+      "I don't understand why I keep doing this. I want to figure out a pattern in myself.",
+    icon: <Brain className="h-5 w-5" />,
+    emotion: 'curious',
+  },
+  {
+    id: 'changed',
+    title: 'Process emotion and reflection',
+    description: "Something just changed. I'm at a beginning and I want to document it properly.",
+    icon: <Sprout className="h-5 w-5" />,
+    emotion: 'excited',
+  },
+  {
+    id: 'create',
+    title: 'Creative writing',
+    description: "No reason. I just want to create something that's only mine.",
+    icon: <Sparkles className="h-5 w-5" />,
+    emotion: 'happy',
+  },
+];
+
+const EXPRESSION_OPTIONS: Option[] = [
+  {
+    id: 'stream',
+    title: 'In long, flowing streams',
+    description: "One thought leads to the next. I can't outline. I discover by writing.",
+    icon: <PenLine className="h-5 w-5" />,
+    emotion: 'content',
+  },
+  {
+    id: 'guided',
+    title: 'In structured, prompted steps',
+    description: 'I do better with a question to answer. Blank pages intimidate me.',
+    icon: <MessageCircleHeart className="h-5 w-5" />,
+    emotion: 'focused',
+  },
+  {
+    id: 'voice',
+    title: 'In short, voice notes',
+    description: 'I talk instead of typing. I think in bursts and need to catch them fast.',
+    icon: <Mic className="h-5 w-5" />,
+    emotion: 'energetic',
+  },
+  {
+    id: 'mixed',
+    title: 'In images, moods, and mixed forms',
+    description: 'Sometimes a drawing, sometimes three words. Never linear.',
+    icon: <ImageIcon className="h-5 w-5" />,
+    emotion: 'inspired',
+  },
+];
+
+const PLACE_OPTIONS: Option[] = [
+  {
+    id: 'gold',
+    title: 'The Clear Horizon',
+    description: 'Turn the noise into insight.',
+    icon: <Sun className="h-5 w-5" />,
+    emotion: 'thankful',
+    tone: 'gold',
+  },
+  {
+    id: 'sage',
+    title: 'The Living Archive',
+    description: 'Watch yourself grow over time.',
+    icon: <Sprout className="h-5 w-5" />,
+    emotion: 'hopeful',
+    tone: 'sage',
+  },
+  {
+    id: 'ember',
+    title: 'A Signal Tower',
+    description: "Fast. Frictionless. Capture the spark before it's gone.",
+    icon: <Zap className="h-5 w-5" />,
+    emotion: 'energetic',
+    tone: 'ember',
+  },
+  {
+    id: 'violet',
+    title: 'A Depth Chamber',
+    description: "Slow. Reflective. I come here when I want to go somewhere I can't go out there.",
+    icon: <Waves className="h-5 w-5" />,
+    emotion: 'atPeace',
+    tone: 'violet',
+  },
+];
+
+const RHYTHM_OPTIONS: Option[] = [
+  {
+    id: 'morning',
+    title: 'First thing every day',
+    description: 'Before the day touches me. Coffee, quiet, the hour that belongs only to me.',
+    icon: <Sunrise className="h-5 w-5" />,
+    emotion: 'thankful',
+  },
+  {
+    id: 'whenever',
+    title: 'Whenever it hits',
+    description: 'Unpredictable. Mid-meeting, mid-shower, 2pm on a Tuesday. I need speed.',
+    icon: <Zap className="h-5 w-5" />,
+    emotion: 'determined',
+  },
+  {
+    id: 'evening',
+    title: 'After the noise ends',
+    description: 'Evening. When I finally sit down and process what actually happened.',
+    icon: <Sunset className="h-5 w-5" />,
+    emotion: 'calm',
+  },
+  {
+    id: 'night',
+    title: "Late. When it's quiet enough.",
+    description: 'Night. When the day is finished and the real thoughts finally show up.',
+    icon: <MoonStar className="h-5 w-5" />,
+    emotion: 'sleepy',
+  },
+];
+
+const VOICE_OPTIONS: Option[] = [
+  {
+    id: 'quiet',
+    title: "Don't.",
+    description: "Give me a blank page. I don't want prompts or nudges.",
+    sample: 'The AI stays silent unless you ask it a direct question.',
+    icon: <MoonStar className="h-5 w-5" />,
+    emotion: 'calm',
+  },
+  {
+    id: 'gentle',
+    title: 'Gently.',
+    description: 'Occasionally ask me something soft that makes me think.',
+    sample: "What's something small that went better than you expected this week?",
+    icon: <MessageCircleHeart className="h-5 w-5" />,
+    emotion: 'happy',
+  },
+  {
+    id: 'honest',
+    title: 'Honestly.',
+    description: "Push past what's comfortable. Ask me what I'd rather not look at.",
+    sample: "What are you telling yourself that you already know isn't true?",
+    icon: <Flame className="h-5 w-5" />,
+    emotion: 'focused',
+  },
+  {
+    id: 'deep',
+    title: 'Deeply.',
+    description: 'Go all the way. I want to be genuinely challenged.',
+    sample: 'Your last four entries all circled the same thing. Do you want to name it?',
+    icon: <Waves className="h-5 w-5" />,
+    emotion: 'spectral',
+  },
+];
+
+const ABOUT_CHIPS = [
+  'stop losing the thoughts that actually matter to me',
+  'understand why I keep making the same choices',
+  'have proof of the life I actually lived',
+  'feel less alone inside my own head',
+];
+
+const ENTRY_PLACEHOLDERS = [
+  'Even "I have no idea why I am here" is the right answer.',
+  "Say the thing you'd only say here.",
+  'What do you refuse to forget today?',
+];
 
 function deriveSettings(answers: FlowAnswers, theme: ThemeColor) {
   const reminderByRhythm: Record<string, string> = {
     morning: '07:30',
-    midday: '13:00',
+    whenever: '13:00',
     evening: '20:00',
     night: '22:30',
   };
@@ -139,15 +320,15 @@ function deriveSettings(answers: FlowAnswers, theme: ThemeColor) {
   return {
     themeMode: 'dark' as const,
     accentTheme: theme,
-    writingMode: answers.capture === 'guided' ? ('guided' as const) : ('minimal' as const),
-    defaultView: answers.capture === 'voice' ? ('list' as const) : ('canvas' as const),
+    writingMode: answers.expression === 'guided' ? ('guided' as const) : ('minimal' as const),
+    defaultView: answers.expression === 'voice' ? ('list' as const) : ('canvas' as const),
     insightDepth:
       answers.voice === 'deep'
         ? ('deep' as const)
         : answers.voice === 'honest'
           ? ('balanced' as const)
           : ('minimal' as const),
-    dailyReminder: answers.rhythm !== 'random',
+    dailyReminder: answers.rhythm !== 'whenever',
     reflectionPrompts: answers.voice !== 'quiet',
     suggestions: answers.voice !== 'quiet',
     reminderTime:
@@ -155,208 +336,235 @@ function deriveSettings(answers: FlowAnswers, theme: ThemeColor) {
   };
 }
 
-function BackgroundField({ stage }: { stage: Stage }) {
-  const stageIndex = FLOW_SEQUENCE.indexOf(stage);
-  const progress = stageIndex / (FLOW_SEQUENCE.length - 1);
+function BackgroundField({ theme, emptied }: { theme: ThemeColor; emptied: boolean }) {
+  const current = PLACE_COPY[theme];
 
   return (
-    <>
-      <div className="absolute inset-0 bg-[#050505]" />
+    <div
+      className="absolute inset-0 overflow-hidden"
+      style={{ background: emptied ? '#000' : current.bg }}
+    >
       <motion.div
-        animate={{
-          x: -progress * 40,
-          opacity: 0.8 + progress * 0.2,
+        className="absolute inset-0"
+        animate={{ opacity: emptied ? 0 : 0.68 }}
+        transition={{ duration: 1.6 }}
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(0,0,0,.96), rgba(0,0,0,.72) 44%, rgba(0,0,0,.9)), radial-gradient(circle at 50% 50%, rgba(255,255,255,.06), transparent 52%)',
         }}
-        transition={{ type: 'spring', damping: 25, stiffness: 40 }}
-        className="absolute inset-0 bg-[radial-gradient(circle_at_76%_26%,rgba(94,18,10,0.58),transparent_32%),radial-gradient(circle_at_70%_66%,rgba(121,28,17,0.36),transparent_42%),linear-gradient(90deg,rgba(0,0,0,0.96)_0%,rgba(0,0,0,0.92)_42%,rgba(24,5,5,0.88)_100%)]"
       />
-      <motion.div
-        animate={{ x: progress * 20 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 40 }}
-        className="absolute inset-y-0 right-0 w-[48%] bg-[radial-gradient(circle_at_40%_50%,rgba(104,15,10,0.3),transparent_56%)] opacity-90"
-      />
-
-      {EMBERS.map((ember, i) => (
+      {STAR_FIELD.map((star) => (
         <motion.span
-          key={`${ember.left}-${ember.top}-${i}`}
-          className="absolute rounded-full bg-[rgba(236,140,102,0.9)] shadow-[0_0_18px_rgba(224,122,95,0.75)]"
+          key={star.id}
+          className="absolute rounded-full bg-white"
           style={{
-            left: ember.left,
-            top: ember.top,
-            width: ember.size,
-            height: ember.size,
+            left: star.left,
+            top: star.top,
+            width: star.size,
+            height: star.size,
           }}
           animate={{
-            opacity: [0.35, 0.95, 0.45],
-            scale: [0.88, 1.28, 0.9],
-            y: [0, -progress * 40 - 8, 0],
+            opacity: emptied ? [0, 0.12, 0] : [0.08, 0.64, 0.12],
+            scale: [0.8, 1.5, 0.8],
           }}
           transition={{
-            opacity: {
-              duration: ember.duration,
-              delay: ember.delay,
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: 'mirror',
-            },
-            scale: {
-              duration: ember.duration,
-              delay: ember.delay,
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: 'mirror',
-            },
-            y: {
-              type: 'spring',
-              damping: 20,
-            },
+            duration: 3.8,
+            delay: star.delay,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
           }}
         />
       ))}
-
-      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,rgba(var(--soouls-accent-rgb),0.08)_0,transparent_65%)]" />
-      <motion.div
-        animate={{
-          opacity: [0.1, 0.2, 0.1],
-          scale: [1, 1.1, 1],
-        }}
-        transition={{ duration: 8, repeat: Number.POSITIVE_INFINITY }}
-        className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--soouls-accent-rgb),0.04)_0,transparent_55%)]"
-      />
-    </>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(0,0,0,.88)_72%)]" />
+    </div>
   );
 }
 
-const slideVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 100 : -100,
-    opacity: 0,
-    scale: 0.98,
-  }),
-  center: {
-    zIndex: 1,
-    x: 0,
-    opacity: 1,
-    scale: 1,
-  },
-  exit: (direction: number) => ({
-    zIndex: 0,
-    x: direction < 0 ? 100 : -100,
-    opacity: 0,
-    scale: 0.98,
-  }),
-};
-
-function MiniMascot({ mode }: { mode: 'hello' | 'wake' }) {
+function ProgressHeader({ step }: { step: number }) {
   return (
-    <div
-      className="pointer-events-none absolute right-3 top-4 hidden h-24 w-24 sm:block lg:h-32 lg:w-32"
-      aria-hidden="true"
-    >
-      <div className="absolute inset-0 rounded-full bg-white/10 blur-2xl" />
-      <div className="absolute left-1/2 top-9 h-20 w-20 -translate-x-1/2 rounded-full border border-white/30 bg-[radial-gradient(circle_at_34%_28%,rgba(255,255,255,0.98),rgba(255,255,255,0.62)_48%,rgba(255,255,255,0.16))] shadow-[0_0_80px_rgba(255,255,255,0.24)] lg:h-24 lg:w-24">
-        <div className="absolute left-5 top-8 h-2 w-5 rounded-full bg-[#0f172a] lg:left-6 lg:top-9" />
-        <div className="absolute right-5 top-8 h-2 w-5 rounded-full bg-[#0f172a] lg:right-6 lg:top-9" />
-        <div className="absolute bottom-6 left-1/2 h-2 w-8 -translate-x-1/2 rounded-full border-b-[6px] border-[#0f172a]" />
+    <div className="mb-5 flex flex-col items-center gap-3">
+      <div className="text-[11px] font-bold uppercase tracking-[0.46em] text-white/38">
+        Calibration {String(step).padStart(2, '0')} / 05
       </div>
-      <div className="absolute -top-1 right-0 rounded-[18px] border border-white/15 bg-[rgba(74,45,42,0.92)] px-4 py-3 text-center text-[10px] font-bold uppercase leading-tight tracking-[0.16em] text-white shadow-[0_16px_30px_rgba(0,0,0,0.28)]">
-        {mode === 'hello' ? 'Oh! hello there!' : 'Tap to wake me.'}
+      <div className="flex items-center gap-2">
+        {QUESTION_STEPS.map((item, index) => (
+          <span
+            key={item}
+            className="h-[3px] rounded-full transition-all"
+            style={{
+              width: index < step ? 44 : 28,
+              background:
+                index < step ? 'rgba(var(--soouls-accent-rgb), .95)' : 'rgba(255,255,255,.14)',
+            }}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
 function ChoiceCard({
-  title,
-  description,
-  icon,
+  option,
   selected,
   onClick,
-  eyebrow,
-  mascot,
-  mascotAwake,
-}: ChoiceCardProps) {
+  onHover,
+}: {
+  option: Option;
+  selected: boolean;
+  onClick: () => void;
+  onHover?: () => void;
+}) {
   return (
     <motion.button
       type="button"
       onClick={onClick}
-      whileHover={{ scale: 1.01, y: -2 }}
-      whileTap={{ scale: 0.99 }}
-      className="group relative min-h-[100px] w-full overflow-hidden rounded-[20px] border p-3 text-left transition-all duration-300 sm:p-4 lg:rounded-[22px]"
+      onMouseEnter={onHover}
+      onFocus={onHover}
+      whileHover={{ y: -3, scale: 1.01 }}
+      whileTap={{ scale: 0.985 }}
+      className="group relative min-h-[154px] overflow-hidden rounded-[8px] border p-4 text-left transition-colors"
       style={{
-        borderColor: selected ? 'rgba(var(--soouls-accent-rgb), 0.65)' : 'rgba(255,255,255,0.04)',
-        backgroundColor: selected
-          ? 'rgba(var(--soouls-accent-rgb), 0.25)'
-          : 'rgba(28, 16, 14, 0.9)',
+        borderColor: selected ? 'rgba(var(--soouls-accent-rgb), .74)' : 'rgba(255,255,255,.1)',
+        background: selected
+          ? 'linear-gradient(135deg, rgba(var(--soouls-accent-rgb), .22), rgba(255,255,255,.055))'
+          : 'rgba(12,12,12,.76)',
         boxShadow: selected
-          ? '0 0 30px rgba(var(--soouls-accent-rgb), 0.18), inset 0 1px 0 rgba(var(--soouls-accent-rgb), 0.12), 0 14px 36px rgba(74, 22, 16, 0.38)'
-          : '0 10px 28px rgba(73, 20, 13, 0.18)',
+          ? '0 0 44px rgba(var(--soouls-accent-rgb), .16), inset 0 1px 0 rgba(255,255,255,.08)'
+          : 'inset 0 1px 0 rgba(255,255,255,.035)',
       }}
     >
-      <div
-        className={`absolute inset-0 transition-opacity duration-500 ${selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-        style={{
-          background: selected
-            ? 'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.22) 0%, transparent 70%)'
-            : 'radial-gradient(circle at center, rgba(var(--soouls-accent-rgb), 0.08) 0%, transparent 70%)',
-        }}
-      />
-      {mascot && mascotAwake ? <MiniMascot mode={mascot} /> : null}
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/5 bg-[rgba(255,255,255,0.04)]">
-        <span style={{ color: selected ? 'var(--soouls-accent)' : 'var(--soouls-accent)' }}>
-          {icon}
-        </span>
+      <div className="relative z-10 flex h-full gap-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[var(--soouls-accent)]">
+          {option.icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <h3
+              className="text-[1.28rem] leading-tight text-white"
+              style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+            >
+              {option.title}
+            </h3>
+            {option.emotion ? (
+              <div className="-mt-5 hidden shrink-0 sm:block">
+                <MascotPreview emotion={option.emotion} label={`${option.title} mascot`} />
+              </div>
+            ) : null}
+          </div>
+          <p className="max-w-[33rem] text-sm leading-relaxed text-white/62">
+            {option.description}
+          </p>
+          {option.sample ? (
+            <p className="mt-3 border-l border-white/16 pl-3 text-xs leading-relaxed text-white/42">
+              {option.sample}
+            </p>
+          ) : null}
+        </div>
       </div>
-
-      {eyebrow ? (
-        <p className="mb-1 text-[9px] uppercase tracking-[0.28em] text-[var(--soouls-text-faint)]">
-          {eyebrow}
-        </p>
-      ) : null}
-
-      <h3
-        className="max-w-[18rem] text-[1.1rem] leading-[1.08] text-white sm:text-[1.25rem] lg:text-[1.4rem]"
-        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-      >
-        {title}
-      </h3>
-      <p className="mt-1.5 max-w-[28rem] text-xs leading-relaxed text-[rgba(239,235,221,0.68)] sm:text-sm">
-        {description}
-      </p>
     </motion.button>
   );
 }
 
-function ProgressHeader({ step }: { step: number }) {
-  const markers = ['stage-1', 'stage-2', 'stage-3', 'stage-4', 'stage-5', 'stage-6', 'stage-7'];
-
+function QuestionScreen({
+  kicker,
+  title,
+  note,
+  options,
+  selected,
+  onSelect,
+  onHover,
+}: {
+  kicker: string;
+  title: string;
+  note: string;
+  options: Option[];
+  selected?: string;
+  onSelect: (option: Option) => void;
+  onHover?: (option: Option) => void;
+}) {
   return (
-    <div className="mb-4 flex flex-col items-center gap-3">
-      <div className="text-[12px] font-bold uppercase tracking-[0.5em] text-[var(--soouls-accent)] opacity-80">
-        {`Discovery Stage ${String(step).padStart(2, '0')}`}
+    <section className="mx-auto w-full max-w-[980px]">
+      <div className="mb-8 text-center">
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.38em] text-[var(--soouls-accent)]">
+          {kicker}
+        </p>
+        <h1
+          className="mx-auto max-w-[820px] text-[2.35rem] leading-[.98] text-white sm:text-[4.2rem]"
+          style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+        >
+          {title}
+        </h1>
+        <p className="mx-auto mt-4 max-w-[660px] text-sm leading-relaxed text-white/52 sm:text-base">
+          {note}
+        </p>
       </div>
-      <div className="flex items-center gap-3">
-        {markers.map((marker, index) => (
-          <div
-            key={marker}
-            className="h-[3px] rounded-full transition-all duration-300"
-            style={{
-              width: index < step ? 38 : 32,
-              backgroundColor:
-                index < step ? 'rgba(var(--soouls-accent-rgb), 0.96)' : 'rgba(255,255,255,0.14)',
-            }}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {options.map((option) => (
+          <ChoiceCard
+            key={option.id}
+            option={option}
+            selected={selected === option.id}
+            onClick={() => onSelect(option)}
+            onHover={onHover ? () => onHover(option) : undefined}
           />
         ))}
       </div>
-      <div
-        className="text-sm uppercase tracking-[0.22em]"
-        style={{
-          fontFamily: 'var(--font-playfair)',
-          fontStyle: 'italic',
-          color: 'rgba(var(--soouls-accent-rgb), 0.9)',
-        }}
+    </section>
+  );
+}
+
+function MascotStage({
+  answers,
+  awake,
+  onWake,
+}: {
+  answers: FlowAnswers;
+  awake: boolean;
+  onWake: () => void;
+}) {
+  const emotion = useMemo<MascotEmotion>(() => {
+    if (!awake) return 'sleepy';
+    if (answers.reason === 'head-loud') return 'calm';
+    if (answers.reason === 'pattern') return 'curious';
+    if (answers.reason === 'changed') return 'excited';
+    if (answers.reason === 'create') return 'happy';
+    return 'neutral';
+  }, [answers.reason, awake]);
+
+  return (
+    <section className="flex min-h-[68vh] flex-col items-center justify-center text-center">
+      <motion.button
+        type="button"
+        onClick={onWake}
+        className="relative border-0 bg-transparent p-0"
+        animate={awake ? { scale: [1, 1.08, 1], filter: 'brightness(1.16)' } : { scale: 0.82 }}
+        transition={{ duration: awake ? 1.2 : 0.8 }}
       >
-        The discovery
-      </div>
-    </div>
+        <MascotPreview emotion={emotion} label="Wake the Soouls companion" />
+      </motion.button>
+
+      <AnimatePresence>
+        {awake ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-10 max-w-[620px]"
+          >
+            <p
+              className="text-[1.9rem] leading-tight text-white sm:text-[2.8rem]"
+              style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+            >
+              I&apos;ve been calibrated to you.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-white/58">
+              I know why you came. I know what kind of voice you want. I&apos;m ready when you are.
+            </p>
+            <p className="mt-8 text-xl text-white">What should I call you?</p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </section>
   );
 }
 
@@ -375,17 +583,20 @@ export default function OnboardingPage() {
   const [stage, setStage] = useState<Stage>('reason');
   const [answers, setAnswers] = useState<FlowAnswers>({});
   const [theme, setTheme] = useState<ThemeColor>('ember');
+  const [direction, setDirection] = useState(0);
   const [mascotAwake, setMascotAwake] = useState(false);
   const [firstEntry, setFirstEntry] = useState('');
+  const [entryPlaceholderIndex, setEntryPlaceholderIndex] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isFinishing, setIsFinishing] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
-  const [direction, setDirection] = useState(0);
+  const [genesisStarted, setGenesisStarted] = useState(false);
 
   const isWaitlistUser = Boolean(
     onboardingStatus?.isWaitlistUser || user?.publicMetadata?.isWaitlistUser,
   );
   const questionStep = QUESTION_STEPS.includes(stage) ? QUESTION_STEPS.indexOf(stage) + 1 : null;
+  const currentTone = PLACE_COPY[theme];
 
   const previewTheme = useCallback(
     (accentTheme: ThemeColor, themeMode: 'dark' | 'light' = 'dark') => {
@@ -422,6 +633,10 @@ export default function OnboardingPage() {
         router.replace('/home');
       } else {
         setIsLoadingAuth(false);
+        setAnswers((current) => ({
+          ...current,
+          userName: current.userName ?? user.firstName ?? user.fullName ?? '',
+        }));
       }
     }
   }, [isLoaded, onboardingStatus, router, user]);
@@ -430,53 +645,46 @@ export default function OnboardingPage() {
     previewTheme(theme, 'dark');
   }, [previewTheme, theme]);
 
-  const canContinue = useMemo(() => {
-    switch (stage) {
-      case 'reason':
-        return Boolean(answers.reason);
-      case 'capture':
-        return Boolean(answers.capture);
-      case 'tone':
-        return Boolean(answers.tone);
-      case 'rhythm':
-        return Boolean(answers.rhythm);
-      case 'support':
-        return Boolean(answers.support);
-      case 'voice':
-        return Boolean(answers.voice);
-      default:
-        return true;
-    }
-  }, [answers, stage]);
-
-  const getStageNumber = useCallback((s: Stage) => {
-    return FLOW_SEQUENCE.indexOf(s) + 1;
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setEntryPlaceholderIndex((index) => (index + 1) % ENTRY_PLACEHOLDERS.length);
+    }, 4000);
+    return () => clearInterval(timer);
   }, []);
+
+  const canContinue = useMemo(() => {
+    if (stage === 'reason') return Boolean(answers.reason);
+    if (stage === 'expression') return Boolean(answers.expression);
+    if (stage === 'place') return Boolean(answers.place);
+    if (stage === 'rhythm') return Boolean(answers.rhythm);
+    if (stage === 'voice') return Boolean(answers.voice);
+    if (stage === 'name') return Boolean(answers.userName?.trim());
+    if (stage === 'galaxy') return Boolean(answers.galaxyName?.trim());
+    return true;
+  }, [answers, stage]);
 
   const goNext = useCallback(() => {
     const index = FLOW_SEQUENCE.indexOf(stage);
     const next = FLOW_SEQUENCE[index + 1];
-    if (next) {
-      setDirection(1);
-      setStage(next);
-      setSaveError(null);
-    }
+    if (!next) return;
+    setDirection(1);
+    setStage(next);
+    setSaveError(null);
   }, [stage]);
 
   const goBack = useCallback(() => {
     const index = FLOW_SEQUENCE.indexOf(stage);
     const previous = FLOW_SEQUENCE[index - 1];
-    if (previous) {
-      setDirection(-1);
-      setStage(previous);
-      setSaveError(null);
-    }
+    if (!previous) return;
+    setDirection(-1);
+    setStage(previous);
+    setSaveError(null);
   }, [stage]);
 
   const chooseAnswer = useCallback(
     <T extends keyof FlowAnswers>(key: T, value: FlowAnswers[T]) => {
       setAnswers((current) => ({ ...current, [key]: value }));
-      if (key === 'tone' && value) {
+      if (key === 'place' && value) {
         const nextTheme = value as ThemeColor;
         setTheme(nextTheme);
         previewTheme(nextTheme, 'dark');
@@ -486,36 +694,44 @@ export default function OnboardingPage() {
   );
 
   const handleWake = useCallback(() => {
+    if (mascotAwake) {
+      setDirection(1);
+      setStage('name');
+      return;
+    }
+
     setMascotAwake(true);
     window.localStorage.setItem('soouls-orbi-awake', 'true');
     setTimeout(() => {
-      setStage('entry');
-    }, 1200);
-  }, []);
+      setDirection(1);
+      setStage('name');
+    }, 3200);
+  }, [mascotAwake]);
 
   const handleFinish = useCallback(
     async (skipEntry = false) => {
       if (!user) return;
 
-      const trimmedName = user.firstName || user.fullName || 'Explorer';
-      const trimmedSpace = `${trimmedName}'s Room`;
+      const trimmedName = answers.userName?.trim() || user.firstName || user.fullName || 'Explorer';
+      const trimmedSpace = answers.galaxyName?.trim() || `${trimmedName}'s Mind`;
       const trimmedEntry = firstEntry.trim();
       const settingsPatch = deriveSettings(answers, theme);
 
       setIsFinishing(true);
       setSaveError(null);
+      setGenesisStarted(Boolean(trimmedEntry) && !skipEntry);
 
       try {
         await updateSettings.mutateAsync(settingsPatch);
         await updateUser.mutateAsync({
           name: trimmedName,
-          mascot: 'Orbi',
+          mascot: 'Soouls',
           themePreference: theme,
           preferences: {
             ...settingsPatch,
             onboardingCompleted: true,
             onboardingRoomName: trimmedSpace,
-            onboardingAbout: trimmedEntry || null,
+            onboardingAbout: answers.about?.trim() || null,
             onboardingAnswers: {
               ...answers,
               tone: theme,
@@ -538,7 +754,7 @@ export default function OnboardingPage() {
                 source: 'onboarding',
                 isGenesis: true,
                 isWaitlistUser,
-                guide: 'Orbi',
+                guide: 'Soouls',
                 roomName: trimmedSpace,
                 answers: {
                   ...answers,
@@ -564,9 +780,15 @@ export default function OnboardingPage() {
           utils.private.home.getOnboardingStatus.invalidate(),
         ]);
 
-        setStage('done');
+        setTimeout(
+          () => {
+            setStage('done');
+          },
+          trimmedEntry && !skipEntry ? 1500 : 0,
+        );
       } catch (error) {
         setSaveError(error instanceof Error ? error.message : 'We could not finish setup yet.');
+        setGenesisStarted(false);
       } finally {
         setIsFinishing(false);
       }
@@ -591,8 +813,6 @@ export default function OnboardingPage() {
     ],
   );
 
-  const titleTone = theme === 'ember' ? 'today' : THEME_COPY[theme].title.toLowerCase();
-
   if (isLoadingAuth || !isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050505]">
@@ -602,751 +822,314 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden bg-[#050505] text-white">
-      <BackgroundField stage={stage} />
+    <div
+      className="relative h-[100dvh] w-full overflow-hidden bg-[#050505] text-white"
+      style={
+        {
+          '--soouls-accent': currentTone.accent,
+          '--soouls-accent-rgb': currentTone.rgb,
+        } as React.CSSProperties
+      }
+    >
+      <BackgroundField theme={theme} emptied={stage === 'mascot'} />
 
-      <div className="relative z-10 flex h-full flex-col px-4 pt-4 pb-20 sm:px-8 lg:px-10">
-        <div className="mx-auto flex h-full w-full max-w-[1200px] flex-col items-center justify-center">
-          <div className="flex min-w-0 w-full flex-col items-center justify-center">
-            <div className="mb-4 flex w-full items-center justify-center">
-              <Link
-                href="/"
-                className="text-[42px] font-semibold leading-none tracking-[-0.06em] text-[#e8d5b4] sm:text-[52px]"
-              >
-                Soouls
-              </Link>
-            </div>
+      <div className="relative z-10 flex h-full flex-col px-4 pt-4 pb-24 sm:px-8 lg:px-10">
+        <div className="flex items-center justify-center">
+          <Link
+            href="/"
+            className="text-[34px] font-semibold leading-none tracking-[-0.06em] text-white/86 sm:text-[48px]"
+          >
+            Soouls
+          </Link>
+        </div>
 
-            {questionStep ? <ProgressHeader step={questionStep} /> : null}
+        <div className="mx-auto flex h-full w-full max-w-[1180px] flex-col items-center justify-center">
+          {questionStep ? <ProgressHeader step={questionStep} /> : null}
 
-            <div className="w-full max-w-[900px] xl:max-w-[1040px]">
-              <AnimatePresence mode="wait" custom={direction}>
-                {stage === 'reason' ? (
-                  <motion.section
-                    key="reason"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                  >
-                    <div className="mb-6 text-center">
-                      <h1
-                        className="text-[36px] leading-[0.98] text-white drop-shadow-[0_10px_26px_rgba(255,255,255,0.16)] sm:text-[50px] lg:text-[58px]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        Why are you here{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          today
-                        </span>
-                        ?
-                      </h1>
-                    </div>
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={stage}
+              custom={direction}
+              initial={{ opacity: 0, x: direction >= 0 ? 34 : -34, scale: 0.985 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: direction >= 0 ? -34 : 34, scale: 0.985 }}
+              transition={{ duration: 0.32, ease: 'easeOut' }}
+              className="w-full"
+            >
+              {stage === 'reason' ? (
+                <QuestionScreen
+                  kicker="Question 1"
+                  title="Why are you here today?"
+                  note="Not someday. Not in theory. Why did you open this today?"
+                  options={REASON_OPTIONS}
+                  selected={answers.reason}
+                  onSelect={(option) => chooseAnswer('reason', option.id)}
+                />
+              ) : null}
 
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      <ChoiceCard
-                        icon={<Wind className="h-7 w-7" />}
-                        title="clear my mind"
-                        description="My head is too loud right now and I need to get something out before it swallows me."
-                        selected={answers.reason === 'mind'}
-                        onClick={() => chooseAnswer('reason', 'mind')}
-                        mascot="hello"
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Brain className="h-7 w-7" />}
-                        title="track habits and growth"
-                        description="I do not understand why I keep doing this. I want to figure out a pattern in myself."
-                        selected={answers.reason === 'growth'}
-                        onClick={() => chooseAnswer('reason', 'growth')}
-                        mascot="wake"
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<BookOpenText className="h-7 w-7" />}
-                        title="process emotion and self reflection"
-                        description="Something just changed. I am at a beginning and want to document it properly."
-                        selected={answers.reason === 'reflection'}
-                        onClick={() => chooseAnswer('reason', 'reflection')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Sparkles className="h-7 w-7" />}
-                        title="creative writing"
-                        description="I just want to write. No reason. I just want to create something that is only mine."
-                        selected={answers.reason === 'writing'}
-                        onClick={() => chooseAnswer('reason', 'writing')}
-                        mascotAwake={mascotAwake}
-                      />
-                    </div>
-                  </motion.section>
-                ) : null}
+              {stage === 'expression' ? (
+                <QuestionScreen
+                  kicker="Question 2"
+                  title="How do you express yourself?"
+                  note="How does thought actually move through you before any app shapes it?"
+                  options={EXPRESSION_OPTIONS}
+                  selected={answers.expression}
+                  onSelect={(option) => chooseAnswer('expression', option.id)}
+                />
+              ) : null}
 
-                {stage === 'capture' ? (
-                  <motion.section
-                    key="capture"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                  >
-                    <div className="mb-6 text-center">
-                      <h1
-                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        How do you want to{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          capture it
-                        </span>
-                        ?
-                      </h1>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      <ChoiceCard
-                        icon={<PenSquare className="h-7 w-7" />}
-                        eyebrow="Minimal"
-                        title="blank page first"
-                        description="Let me write freely and shape it later."
-                        selected={answers.capture === 'minimal'}
-                        onClick={() => chooseAnswer('capture', 'minimal')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<MessageCircleHeart className="h-7 w-7" />}
-                        eyebrow="Guided"
-                        title="soft prompts"
-                        description="A few good questions help me say the real thing faster."
-                        selected={answers.capture === 'guided'}
-                        onClick={() => chooseAnswer('capture', 'guided')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Mic className="h-7 w-7" />}
-                        eyebrow="Quick capture"
-                        title="voice first"
-                        description="My thoughts land faster when I can speak them."
-                        selected={answers.capture === 'voice'}
-                        onClick={() => chooseAnswer('capture', 'voice')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Sparkles className="h-7 w-7" />}
-                        eyebrow="Mixed"
-                        title="a little of everything"
-                        description="Words, sketches, fragments, and patterns all belong in the same room."
-                        selected={answers.capture === 'mixed'}
-                        onClick={() => chooseAnswer('capture', 'mixed')}
-                        mascotAwake={mascotAwake}
-                      />
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'tone' ? (
-                  <motion.section
-                    key="tone"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                  >
-                    <div className="mb-6 text-center">
-                      <h1
-                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        Pick the room&apos;s{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          color signal
-                        </span>
-                        .
-                      </h1>
-                      <p className="mt-3 text-sm tracking-[0.14em] text-[rgba(239,235,221,0.62)] uppercase">
-                        This becomes your app accent everywhere.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      {(
-                        Object.entries(THEME_COPY) as Array<
-                          [ThemeColor, (typeof THEME_COPY)[ThemeColor]]
-                        >
-                      ).map(([key, item]) => {
-                        const selected = answers.tone === key;
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => chooseAnswer('tone', key)}
-                            className="rounded-[28px] border p-6 text-left transition-all duration-300"
-                            style={{
-                              borderColor: selected
-                                ? 'rgba(var(--soouls-accent-rgb), 0.48)'
-                                : 'rgba(255,255,255,0.04)',
-                              backgroundColor: selected
-                                ? 'rgba(43, 22, 18, 0.94)'
-                                : 'rgba(28, 16, 14, 0.9)',
-                              boxShadow: selected
-                                ? '0 0 0 1px rgba(var(--soouls-accent-rgb), 0.18), 0 18px 44px rgba(74, 22, 16, 0.38)'
-                                : '0 14px 38px rgba(73, 20, 13, 0.22)',
-                            }}
-                          >
-                            <div className="mb-6 flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span
-                                  className="h-4 w-4 rounded-full"
-                                  style={{
-                                    backgroundColor: THEME_SWATCHES[key],
-                                  }}
-                                />
-                                <span className="text-xs uppercase tracking-[0.32em] text-[rgba(239,235,221,0.58)]">
-                                  {item.label}
-                                </span>
-                              </div>
-                              <div
-                                className="rounded-full border px-3 py-1 text-[10px] uppercase tracking-[0.26em]"
-                                style={{
-                                  borderColor: 'rgba(var(--soouls-accent-rgb), 0.32)',
-                                  color: 'var(--soouls-accent)',
-                                }}
-                              >
-                                Main UI
-                              </div>
-                            </div>
-
-                            <h3
-                              className="text-[1.85rem] leading-[1.05] text-white sm:text-[2rem]"
-                              style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                            >
-                              {item.title}
-                            </h3>
-                            <p className="mt-3 text-base leading-relaxed text-[rgba(239,235,221,0.68)]">
-                              {item.description}
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'rhythm' ? (
-                  <motion.section
-                    key="rhythm"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                  >
-                    <div className="mb-6 text-center">
-                      <h1
-                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        When does the real{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          reflection
-                        </span>{' '}
-                        show up?
-                      </h1>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      <ChoiceCard
-                        icon={<Sunrise className="h-7 w-7" />}
-                        eyebrow="Reminder 7:30 AM"
-                        title="morning"
-                        description="Before the day reaches me."
-                        selected={answers.rhythm === 'morning'}
-                        onClick={() => chooseAnswer('rhythm', 'morning')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Clock3 className="h-7 w-7" />}
-                        eyebrow="No fixed reminder"
-                        title="whenever it hits"
-                        description="I need quick capture more than routine."
-                        selected={answers.rhythm === 'random'}
-                        onClick={() => chooseAnswer('rhythm', 'random')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Sunset className="h-7 w-7" />}
-                        eyebrow="Reminder 8:00 PM"
-                        title="evening"
-                        description="After the noise ends and I can look back clearly."
-                        selected={answers.rhythm === 'evening'}
-                        onClick={() => chooseAnswer('rhythm', 'evening')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<MoonStar className="h-7 w-7" />}
-                        eyebrow="Reminder 10:30 PM"
-                        title="late night"
-                        description="When it gets quiet enough to tell the truth."
-                        selected={answers.rhythm === 'night'}
-                        onClick={() => chooseAnswer('rhythm', 'night')}
-                        mascotAwake={mascotAwake}
-                      />
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'support' ? (
-                  <motion.section
-                    key="support"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                  >
-                    <div className="mb-6 text-center">
-                      <h1
-                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        What do you want this platform to{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          hold
-                        </span>{' '}
-                        for you?
-                      </h1>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      <ChoiceCard
-                        icon={<MessageCircleHeart className="h-7 w-7" />}
-                        eyebrow="Release"
-                        title="stress entries"
-                        description="A place to put the thing down before it becomes the whole day."
-                        selected={answers.support === 'stress'}
-                        onClick={() => chooseAnswer('support', 'stress')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Brain className="h-7 w-7" />}
-                        eyebrow="Patterns"
-                        title="self understanding"
-                        description="Help me notice loops, triggers, and progress I would otherwise miss."
-                        selected={answers.support === 'patterns'}
-                        onClick={() => chooseAnswer('support', 'patterns')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<BookOpenText className="h-7 w-7" />}
-                        eyebrow="Archive"
-                        title="life chapters"
-                        description="Keep a living record of what changes and what keeps returning."
-                        selected={answers.support === 'chapters'}
-                        onClick={() => chooseAnswer('support', 'chapters')}
-                        mascotAwake={mascotAwake}
-                      />
-                      <ChoiceCard
-                        icon={<Sparkles className="h-7 w-7" />}
-                        eyebrow="Creation"
-                        title="ideas and drafts"
-                        description="Catch fragments before they disappear and shape them into something."
-                        selected={answers.support === 'ideas'}
-                        onClick={() => chooseAnswer('support', 'ideas')}
-                        mascotAwake={mascotAwake}
-                      />
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'voice' ? (
-                  <motion.section
-                    key="voice"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                  >
-                    <div className="mb-6 text-center">
-                      <h1
-                        className="text-[32px] leading-[1] text-white sm:text-[44px] lg:text-[52px]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        How should Soouls{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          speak
-                        </span>{' '}
-                        back?
-                      </h1>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                      <ChoiceCard
-                        icon={<MoonStar className="h-7 w-7" />}
-                        eyebrow="Minimal AI"
-                        title="quiet"
-                        description="Stay out of my way unless I ask."
-                        selected={answers.voice === 'quiet'}
-                        onClick={() => chooseAnswer('voice', 'quiet')}
-                      />
-                      <ChoiceCard
-                        icon={<MessageCircleHeart className="h-7 w-7" />}
-                        eyebrow="Light prompts"
-                        title="gentle"
-                        description="Ask soft questions that help me open the door."
-                        selected={answers.voice === 'gentle'}
-                        onClick={() => chooseAnswer('voice', 'gentle')}
-                      />
-                      <ChoiceCard
-                        icon={<Flame className="h-7 w-7" />}
-                        eyebrow="Balanced insight"
-                        title="honest"
-                        description="Tell me the thing I am trying not to say."
-                        selected={answers.voice === 'honest'}
-                        onClick={() => chooseAnswer('voice', 'honest')}
-                      />
-                      <ChoiceCard
-                        icon={<Brain className="h-7 w-7" />}
-                        eyebrow="Deep analysis"
-                        title="deep"
-                        description="Pattern-match the whole room and push further."
-                        selected={answers.voice === 'deep'}
-                        onClick={() => chooseAnswer('voice', 'deep')}
-                      />
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'wake' ? (
-                  <motion.section
-                    key="wake"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                    className="mx-auto max-w-[760px]"
-                  >
-                    <div
-                      className="rounded-[32px] border px-7 py-10 text-center sm:px-10"
-                      style={{
-                        borderColor: 'rgba(255,255,255,0.06)',
-                        backgroundColor: 'rgba(28, 16, 14, 0.9)',
-                        boxShadow: '0 18px 48px rgba(74, 22, 16, 0.34)',
-                      }}
-                    >
-                      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(var(--soouls-accent-rgb),0.26)] bg-[rgba(var(--soouls-accent-rgb),0.08)]">
-                        <Sunrise className="h-7 w-7" style={{ color: 'var(--soouls-accent)' }} />
-                      </div>
-                      <h2
-                        className="text-[2.6rem] leading-[1] text-white sm:text-[3.2rem]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        Meet your companion.
-                      </h2>
-                      <p className="mx-auto mt-4 max-w-[34rem] text-base leading-relaxed text-[rgba(239,235,221,0.72)]">
-                        Orbi is your personal guide through the archive. It learns your rhythm,
-                        holds your thoughts, and keeps the light steady.
-                      </p>
-
-                      <div className="mt-8 flex flex-col items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={handleWake}
-                          className="inline-flex items-center gap-2 rounded-full border px-8 py-4 text-sm uppercase tracking-[0.26em] transition-all hover:scale-105 active:scale-95"
-                          style={{
-                            borderColor: 'rgba(var(--soouls-accent-rgb), 0.4)',
-                            backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.12)',
-                            color: 'var(--soouls-accent)',
-                            boxShadow: '0 0 20px rgba(var(--soouls-accent-rgb), 0.2)',
-                          }}
-                        >
-                          Wake Orbi
-                          <Sparkles className="h-4 w-4" />
-                        </button>
-                        <p className="text-xs uppercase tracking-[0.26em] text-[rgba(239,235,221,0.3)]">
-                          {mascotAwake ? 'Your companion has arrived' : 'Signal into the void'}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'entry' ? (
-                  <motion.section
-                    key="entry"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                    className="mx-auto max-w-[900px]"
-                  >
-                    <div className="text-center">
-                      <div className="mb-4 flex items-center justify-center gap-4">
-                        <div className="text-xs uppercase tracking-[0.34em] text-[rgba(239,235,221,0.46)]">
-                          The discovery
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleFinish(true)}
-                          disabled={isFinishing}
-                          className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/55 transition hover:text-white disabled:opacity-40"
-                        >
-                          Skip
-                        </button>
-                      </div>
-                      <h2
-                        className="mx-auto max-w-[46rem] text-[2.2rem] leading-[1.04] text-white sm:text-[3rem] lg:text-[3.4rem]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        Finish this: anything you would like your journal to know{' '}
-                        <span style={{ color: 'var(--soouls-accent)', fontStyle: 'italic' }}>
-                          about you
-                        </span>
-                        , I&apos;ll know this is working when I...
-                      </h2>
-
-                      <div className="mt-8">
-                        <textarea
-                          value={firstEntry}
-                          onChange={(event) => setFirstEntry(event.target.value)}
-                          placeholder="Write something about yourself"
-                          className="min-h-[220px] w-full rounded-[22px] border bg-[rgba(35,18,17,0.86)] px-5 py-5 text-base leading-relaxed text-white outline-none transition-all placeholder:text-[rgba(239,235,221,0.36)] sm:min-h-[260px] sm:px-6 sm:py-6"
-                          style={{
-                            borderColor: 'rgba(255,255,255,0.08)',
-                          }}
-                        />
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                        {[
-                          'stop giving the thoughts that actually matter names',
-                          'understand why I keep making the same choices',
-                        ].map((prompt) => (
-                          <button
-                            key={prompt}
-                            type="button"
-                            onClick={() => setFirstEntry(prompt)}
-                            className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] text-white/45 transition hover:text-white"
-                          >
-                            {prompt}
-                          </button>
-                        ))}
-                      </div>
-
-                      {saveError ? (
-                        <div
-                          className="mt-5 rounded-2xl border px-4 py-3 text-sm text-[#ffb6a0]"
-                          style={{
-                            borderColor: 'rgba(255, 136, 108, 0.32)',
-                            backgroundColor: 'rgba(124, 33, 19, 0.28)',
-                          }}
-                        >
-                          {saveError}
-                        </div>
-                      ) : null}
-
-                      <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <button
-                          type="button"
-                          onClick={() => setStage('wake')}
-                          className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-xs uppercase tracking-[0.24em] text-[rgba(239,235,221,0.55)]"
-                          style={{ borderColor: 'rgba(255,255,255,0.08)' }}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Back
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleFinish(false)}
-                          disabled={isFinishing}
-                          className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm uppercase tracking-[0.24em] text-white disabled:opacity-40"
-                          style={{
-                            backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.92)',
-                          }}
-                        >
-                          {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          {isFinishing
-                            ? 'Saving'
-                            : firstEntry.trim()
-                              ? 'Save and enter'
-                              : 'Enter home'}
-                          {!isFinishing ? <ArrowRight className="h-4 w-4" /> : null}
-                        </button>
-                      </div>
-                    </div>
-                  </motion.section>
-                ) : null}
-
-                {stage === 'done' ? (
-                  <motion.section
-                    key="done"
-                    custom={direction}
-                    variants={slideVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{
-                      x: { type: 'spring', stiffness: 300, damping: 30 },
-                      opacity: { duration: 0.2 },
-                    }}
-                    className="mx-auto max-w-[760px]"
-                  >
-                    <div
-                      className="rounded-[32px] border px-7 py-10 text-center sm:px-10"
-                      style={{
-                        borderColor: 'rgba(255,255,255,0.06)',
-                        backgroundColor: 'rgba(28, 16, 14, 0.9)',
-                        boxShadow: '0 18px 48px rgba(74, 22, 16, 0.34)',
-                      }}
-                    >
-                      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(var(--soouls-accent-rgb),0.26)] bg-[rgba(var(--soouls-accent-rgb),0.08)]">
-                        <CheckCircle2
-                          className="h-7 w-7"
-                          style={{ color: 'var(--soouls-accent)' }}
-                        />
-                      </div>
-                      <h2
-                        className="text-[2.6rem] leading-[1] text-white sm:text-[3.2rem]"
-                        style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
-                      >
-                        Your room is live.
-                      </h2>
-                      <p className="mx-auto mt-4 max-w-[35rem] text-base leading-relaxed text-[rgba(239,235,221,0.72)]">
-                        We saved your profile, synced your theme, and encrypted the first entry in
-                        your archive.
-                      </p>
-
-                      <div className="mt-8 grid grid-cols-1 gap-3 text-left sm:grid-cols-3">
-                        {[
-                          'Profile saved to your account',
-                          `Main UI color set to ${THEME_COPY[theme].label}`,
-                          'First entry encrypted and stored',
-                        ].map((item) => (
-                          <div
-                            key={item}
-                            className="rounded-2xl border px-4 py-4 text-sm text-[rgba(239,235,221,0.74)]"
-                            style={{
-                              borderColor: 'rgba(255,255,255,0.06)',
-                              backgroundColor: 'rgba(255,255,255,0.03)',
-                            }}
-                          >
-                            {item}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-8 flex items-center justify-center">
-                        <button
-                          type="button"
-                          onClick={() => router.push('/home')}
-                          className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm uppercase tracking-[0.24em] text-white"
-                          style={{
-                            backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.92)',
-                          }}
-                        >
-                          Enter home
-                          <ArrowRight className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.section>
-                ) : null}
-              </AnimatePresence>
-            </div>
-
-            {questionStep ? (
-              <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-5">
-                <div
-                  className="pointer-events-auto flex w-full max-w-[320px] items-center justify-between rounded-full border px-2 py-2 backdrop-blur-2xl sm:max-w-[360px]"
-                  style={{
-                    borderColor: 'rgba(255,255,255,0.12)',
-                    backgroundColor: 'rgba(20, 11, 10, 0.75)',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05)',
+              {stage === 'place' ? (
+                <QuestionScreen
+                  kicker="Question 3"
+                  title="What do you want this place to feel like?"
+                  note={`${currentTone.name}. ${currentTone.headline}`}
+                  options={PLACE_OPTIONS}
+                  selected={answers.place}
+                  onSelect={(option) => chooseAnswer('place', option.tone ?? 'ember')}
+                  onHover={(option) => {
+                    if (option.tone) setTheme(option.tone);
                   }}
-                >
+                />
+              ) : null}
+
+              {stage === 'rhythm' ? (
+                <QuestionScreen
+                  kicker="Question 4"
+                  title="When does your real thinking happen?"
+                  note="Not when you want to journal. When thought actually arrives."
+                  options={RHYTHM_OPTIONS}
+                  selected={answers.rhythm}
+                  onSelect={(option) => chooseAnswer('rhythm', option.id)}
+                />
+              ) : null}
+
+              {stage === 'voice' ? (
+                <div className="mx-auto w-full max-w-[980px]">
+                  <QuestionScreen
+                    kicker="Question 5"
+                    title="How should the app talk to you?"
+                    note="This sets the relationship, not just a setting."
+                    options={VOICE_OPTIONS}
+                    selected={answers.voice}
+                    onSelect={(option) => chooseAnswer('voice', option.id)}
+                  />
+
+                  <div className="mx-auto mt-5 max-w-[760px] rounded-[8px] border border-white/10 bg-black/30 p-4">
+                    <label
+                      htmlFor="about"
+                      className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/40"
+                    >
+                      Optional
+                    </label>
+                    <textarea
+                      id="about"
+                      value={answers.about ?? ''}
+                      onChange={(event) => chooseAnswer('about', event.target.value)}
+                      placeholder="I'll know this is working when I..."
+                      className="mt-3 min-h-[84px] w-full resize-none rounded-[8px] border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/28 focus:border-[rgba(var(--soouls-accent-rgb),.65)]"
+                    />
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {ABOUT_CHIPS.map((chip) => (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => chooseAnswer('about', chip)}
+                          className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[11px] text-white/44 transition hover:text-white"
+                        >
+                          ...{chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {stage === 'mascot' ? (
+                <MascotStage answers={answers} awake={mascotAwake} onWake={handleWake} />
+              ) : null}
+
+              {stage === 'name' ? (
+                <section className="mx-auto max-w-[680px] text-center">
+                  <MascotPreview emotion="happy" label="Happy Soouls mascot" />
+                  <p className="mt-4 text-lg text-white/68">
+                    Got it{answers.userName?.trim() ? `, ${answers.userName.trim()}` : ''}. One more
+                    thing.
+                  </p>
+                  <h1
+                    className="mt-3 text-[2.8rem] leading-none text-white sm:text-[4.4rem]"
+                    style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+                  >
+                    What name do you carry?
+                  </h1>
+                  <input
+                    value={answers.userName ?? ''}
+                    onChange={(event) => chooseAnswer('userName', event.target.value)}
+                    placeholder="What name do you carry?"
+                    className="mt-8 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-5 py-4 text-center text-xl text-white outline-none placeholder:text-white/25 focus:border-[rgba(var(--soouls-accent-rgb),.7)]"
+                  />
+                  <p className="mt-3 text-xs uppercase tracking-[0.22em] text-white/34">
+                    The companion will use this. Nobody else will ever see it.
+                  </p>
+                </section>
+              ) : null}
+
+              {stage === 'galaxy' ? (
+                <section className="mx-auto max-w-[760px] text-center">
+                  <div className="fixed bottom-6 right-6 z-20 scale-[.72]">
+                    <MascotPreview emotion="curious" label="Curious Soouls mascot" />
+                  </div>
+                  <h1
+                    className="text-[2.8rem] leading-none text-white sm:text-[4.8rem]"
+                    style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+                  >
+                    What do you want to call this place?
+                  </h1>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {['The Vault', `${answers.userName?.trim() || 'My'}'s Mind`, 'The Unnamed'].map(
+                      (suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => chooseAnswer('galaxyName', suggestion)}
+                          className="rounded-full border border-white/10 bg-white/[0.035] px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/44 transition hover:text-white"
+                        >
+                          {suggestion}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                  <input
+                    value={answers.galaxyName ?? ''}
+                    onChange={(event) => chooseAnswer('galaxyName', event.target.value)}
+                    placeholder="Name it what it feels like."
+                    className="mt-8 w-full rounded-[8px] border border-white/12 bg-white/[0.045] px-5 py-4 text-center text-xl text-white outline-none placeholder:text-white/25 focus:border-[rgba(var(--soouls-accent-rgb),.7)]"
+                  />
+                </section>
+              ) : null}
+
+              {stage === 'entry' ? (
+                <section className="mx-auto max-w-[840px] text-center">
+                  <div className="mb-8 text-[2rem] leading-none text-white/92 sm:text-[3rem]">
+                    {answers.galaxyName || `${answers.userName || 'Your'}'s Mind`}
+                  </div>
+                  <p
+                    className="text-[1.65rem] leading-tight text-white sm:text-[2.5rem]"
+                    style={{ fontFamily: 'var(--font-playfair)' }}
+                  >
+                    Your universe is waiting.
+                    <br />
+                    What&apos;s actually on your mind right now?
+                  </p>
+                  <div className="relative mx-auto mt-8 max-w-[720px]">
+                    <textarea
+                      value={firstEntry}
+                      onChange={(event) => setFirstEntry(event.target.value)}
+                      onKeyDown={(event) => {
+                        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+                          void handleFinish(false);
+                        }
+                      }}
+                      placeholder={ENTRY_PLACEHOLDERS[entryPlaceholderIndex]}
+                      className="min-h-[190px] w-full resize-none rounded-[8px] border border-white/12 bg-black/42 px-5 py-5 text-lg leading-relaxed text-white shadow-[0_0_70px_rgba(var(--soouls-accent-rgb),.08)] outline-none placeholder:text-white/30 focus:border-[rgba(var(--soouls-accent-rgb),.7)]"
+                    />
+                    {genesisStarted ? (
+                      <motion.div
+                        className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[8px] bg-black"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <motion.div
+                          className="h-4 w-4 rounded-full bg-white shadow-[0_0_80px_30px_rgba(255,255,255,.45)]"
+                          animate={{ scale: [1, 46], opacity: [1, 0] }}
+                          transition={{ duration: 1.2, ease: 'easeOut' }}
+                        />
+                      </motion.div>
+                    ) : null}
+                  </div>
+                  {saveError ? (
+                    <div className="mx-auto mt-5 max-w-[620px] rounded-[8px] border border-red-300/25 bg-red-950/30 px-4 py-3 text-sm text-red-100">
+                      {saveError}
+                    </div>
+                  ) : null}
+                  <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleFinish(true)}
+                      disabled={isFinishing}
+                      className="rounded-full border border-white/12 bg-white/[0.035] px-5 py-3 text-xs uppercase tracking-[0.2em] text-white/45 transition hover:text-white disabled:opacity-40"
+                    >
+                      Skip
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFinish(false)}
+                      disabled={isFinishing}
+                      className="inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-3 text-sm font-bold uppercase tracking-[0.22em] text-black disabled:opacity-40"
+                    >
+                      {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      {firstEntry.trim() ? 'Create Node #001' : 'Enter empty universe'}
+                      {!isFinishing ? <ArrowRight className="h-4 w-4" /> : null}
+                    </button>
+                  </div>
+                </section>
+              ) : null}
+
+              {stage === 'done' ? (
+                <section className="mx-auto max-w-[760px] text-center">
+                  <MascotPreview emotion="atPeace" label="At peace Soouls mascot" />
+                  <div className="mt-3 text-xs uppercase tracking-[0.3em] text-white/42">
+                    {answers.galaxyName || 'Your Universe'} · Node #001 · Genesis Complete
+                  </div>
+                  <h1
+                    className="mt-5 text-[2.8rem] leading-none text-white sm:text-[4.4rem]"
+                    style={{ fontFamily: 'var(--font-playfair)', fontWeight: 500 }}
+                  >
+                    Your universe is alive.
+                  </h1>
+                  <p className="mx-auto mt-4 max-w-[560px] text-base leading-relaxed text-white/58">
+                    {answers.galaxyName || 'This place'}. Good. One thought was enough to start it.
+                  </p>
                   <button
                     type="button"
-                    onClick={goBack}
-                    disabled={questionStep === 1}
-                    className="inline-flex items-center gap-2 px-4 text-xs uppercase tracking-[0.26em] text-[rgba(239,235,221,0.5)] disabled:opacity-30"
+                    onClick={() => router.push('/home')}
+                    className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-3 text-sm font-bold uppercase tracking-[0.22em] text-black"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    Back
+                    Enter home
+                    <CheckCircle2 className="h-4 w-4" />
                   </button>
-                  <motion.button
-                    type="button"
-                    onClick={goNext}
-                    disabled={!canContinue}
-                    whileHover={canContinue ? { scale: 1.02, x: 2 } : {}}
-                    whileTap={canContinue ? { scale: 0.98 } : {}}
-                    className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-xs font-bold uppercase tracking-[0.28em] text-white disabled:opacity-40 transition-shadow"
-                    style={{
-                      backgroundColor: 'rgba(var(--soouls-accent-rgb), 0.96)',
-                      boxShadow: canContinue
-                        ? '0 10px 20px rgba(var(--soouls-accent-rgb), 0.2)'
-                        : 'none',
-                    }}
-                  >
-                    Next
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.button>
-                </div>
-              </div>
-            ) : null}
-          </div>
+                </section>
+              ) : null}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
-      {mascotAwake && (
-        <GuideMascot
-          theme={theme}
-          step={getStageNumber(stage)}
-          awake={mascotAwake}
-          isWaitlistUser={isWaitlistUser}
-          name={user?.firstName || user?.fullName || undefined}
-          firstEntry={firstEntry.trim() || undefined}
-          onWake={undefined}
-          centered={stage === 'wake' || stage === 'entry'}
-        />
-      )}
+      {questionStep || stage === 'name' || stage === 'galaxy' ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-5">
+          <div className="pointer-events-auto flex w-full max-w-[380px] items-center justify-between rounded-full border border-white/12 bg-black/70 px-2 py-2 shadow-[0_20px_70px_rgba(0,0,0,.5)] backdrop-blur-xl">
+            <button
+              type="button"
+              onClick={goBack}
+              disabled={stage === 'reason'}
+              className="inline-flex items-center gap-2 px-4 text-xs uppercase tracking-[0.2em] text-white/48 disabled:opacity-25"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={!canContinue}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-6 py-3 text-xs font-bold uppercase tracking-[0.22em] text-black disabled:opacity-35"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
 
-      <div className="sr-only">{titleTone}</div>
+      <div className="sr-only">{currentTone.name}</div>
     </div>
   );
 }
