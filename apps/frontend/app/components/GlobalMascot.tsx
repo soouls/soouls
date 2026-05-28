@@ -221,7 +221,7 @@ export function GlobalMascot() {
         setIsDragging(true);
         dragDeltaRef.current = { x: 0, y: 0 };
       }}
-      onDrag={(e, info) => {
+      onDrag={(_e, info) => {
         dragDeltaRef.current.x += info.delta.x;
         dragDeltaRef.current.y += info.delta.y;
       }}
@@ -247,8 +247,16 @@ export function GlobalMascot() {
         type: 'spring',
         damping: 35,
         stiffness: 40,
-        x: isDragging ? { duration: 0 } : isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
-        y: isDragging ? { duration: 0 } : isRoaming ? { duration: 5, ease: 'easeInOut' } : { type: 'spring', damping: 30, stiffness: 300 },
+        x: isDragging
+          ? { duration: 0 }
+          : isRoaming
+            ? { duration: 5, ease: 'easeInOut' }
+            : { type: 'spring', damping: 30, stiffness: 300 },
+        y: isDragging
+          ? { duration: 0 }
+          : isRoaming
+            ? { duration: 5, ease: 'easeInOut' }
+            : { type: 'spring', damping: 30, stiffness: 300 },
         scale: { type: 'spring', stiffness: 200, damping: 20 },
       }}
       onHoverStart={() => {

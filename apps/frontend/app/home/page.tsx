@@ -562,17 +562,17 @@ export default function HomePage() {
       >
         <Link
           href="/home"
-          className="relative flex h-8 w-24 items-center text-xl font-bold text-white"
+          className="relative flex h-8 w-24 items-center text-[48px] font-bold text-white"
         >
           Soouls
         </Link>
         <div className="flex items-center gap-4">
           <Link
             href="/home/canvas"
-            className="flex items-center gap-2.5 rounded-full border px-5 py-2.5 text-sm shadow-md"
+            className="flex h-[48px] items-center gap-2.5 rounded-full border px-5 text-sm shadow-md"
             style={{
               backgroundColor: 'rgba(17,17,17,0.86)',
-              borderColor: 'var(--soouls-border)',
+              borderColor: 'var(--soouls-accent)',
               color: 'var(--soouls-text-muted)',
             }}
           >
@@ -582,7 +582,7 @@ export default function HomePage() {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="h-10 w-10 overflow-hidden rounded-full border-2 shadow-md"
+            className="h-[48px] w-[48px] overflow-hidden rounded-full border-2 shadow-md"
             style={{
               backgroundColor: 'var(--soouls-bg-elevated)',
               borderColor: 'rgba(255,255,255,0.12)',
@@ -601,6 +601,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="text-[2.5rem] font-light leading-[1.08] tracking-tight text-white md:text-[3.5rem]"
+            style={{ fontFamily: 'Urbanist, sans-serif' }}
           >
             You do not need clarity to start. <br className="hidden md:block" />
             Clarity comes after you{' '}
@@ -925,7 +926,9 @@ export default function HomePage() {
         </section>
       </main>
 
-      <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex w-full max-w-[1600px] -translate-x-1/2 items-center justify-between px-5 md:px-12">
+      {/* Fixed Bottom Navigation */}
+      <div className="pointer-events-none fixed bottom-6 left-1/2 z-[100] flex w-full max-w-[1600px] -translate-x-1/2 items-center justify-between px-5 md:px-12">
+        {/* Search Button (Bottom Left) */}
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
@@ -935,19 +938,23 @@ export default function HomePage() {
           <Search className="h-[18px] w-[18px]" />
           <span className="hidden font-light tracking-wide sm:inline">Search Entries</span>
         </button>
+
+        {/* Logo (Bottom Center) */}
         <Link
           href="/home"
           className="pointer-events-auto absolute left-1/2 flex -translate-x-1/2 items-center justify-center text-[#BDBBAF] transition-colors hover:text-white"
         >
-          <SymbolLogo className="h-14 w-14" variant="solid" />
+          <SymbolLogo className="h-24 w-24" variant="solid" />
         </Link>
+
+        {/* Calendar Button (Bottom Right) */}
         <button
           type="button"
           onClick={() => setIsCalendarOpen(true)}
           className="pointer-events-auto flex items-center gap-3 rounded-full border px-5 py-3 text-sm text-white shadow-[0_0_25px_rgba(212,107,78,0.15)]"
           style={{
             backgroundColor: 'rgba(17,17,17,0.9)',
-            borderColor: 'rgba(var(--soouls-accent-rgb),0.4)',
+            borderColor: 'var(--soouls-accent)',
           }}
         >
           <Calendar className="h-5 w-5" />

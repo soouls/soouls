@@ -35,14 +35,19 @@ export class AppService implements OnModuleInit {
 
     for (const col of userColumns) {
       try {
-        await db.execute(sql.raw(`
+        await db.execute(
+          sql.raw(`
           ALTER TABLE "users" 
           ADD COLUMN IF NOT EXISTS "${col.name}" ${col.type} 
           ${col.default ? `DEFAULT ${col.default}` : ''} 
           ${col.notNull ? 'NOT NULL' : ''};
-        `));
+        `),
+        );
       } catch (err) {
-        console.warn(`[AppService] Could not add column ${col.name} to users table:`, (err as Error).message);
+        console.warn(
+          `[AppService] Could not add column ${col.name} to users table:`,
+          (err as Error).message,
+        );
       }
     }
 
@@ -55,14 +60,19 @@ export class AppService implements OnModuleInit {
 
     for (const col of clusterColumns) {
       try {
-        await db.execute(sql.raw(`
+        await db.execute(
+          sql.raw(`
           ALTER TABLE "clusters" 
           ADD COLUMN IF NOT EXISTS "${col.name}" ${col.type} 
           ${col.default ? `DEFAULT ${col.default}` : ''} 
           ${col.notNull ? 'NOT NULL' : ''};
-        `));
+        `),
+        );
       } catch (err) {
-        console.warn(`[AppService] Could not add column ${col.name} to clusters table:`, (err as Error).message);
+        console.warn(
+          `[AppService] Could not add column ${col.name} to clusters table:`,
+          (err as Error).message,
+        );
       }
     }
 
@@ -101,13 +111,18 @@ export class AppService implements OnModuleInit {
 
     for (const col of canvasColumns) {
       try {
-        await db.execute(sql.raw(`
+        await db.execute(
+          sql.raw(`
           ALTER TABLE "entry_canvases" 
           ADD COLUMN IF NOT EXISTS "${col.name}" ${col.type} 
           ${col.default ? `DEFAULT ${col.default}` : ''};
-        `));
+        `),
+        );
       } catch (err) {
-        console.warn(`[AppService] Could not add column ${col.name} to entry_canvases table:`, (err as Error).message);
+        console.warn(
+          `[AppService] Could not add column ${col.name} to entry_canvases table:`,
+          (err as Error).message,
+        );
       }
     }
 
@@ -126,7 +141,10 @@ export class AppService implements OnModuleInit {
         END $$;
       `);
     } catch (err) {
-      console.warn('[AppService] Could not add unique constraint to entry_canvases:', (err as Error).message);
+      console.warn(
+        '[AppService] Could not add unique constraint to entry_canvases:',
+        (err as Error).message,
+      );
     }
   }
 }

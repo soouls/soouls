@@ -55,9 +55,7 @@ export default function RootLayout({
           <CSPostHogProvider>
             <PersistedTRPCProvider>
               <UiThemeProvider>
-                <PageTransition>
-                  {children}
-                </PageTransition>
+                <PageTransition>{children}</PageTransition>
               </UiThemeProvider>
             </PersistedTRPCProvider>
             <GlobalMascot />
