@@ -9,7 +9,7 @@ import { db } from '@soouls/database/client';
 import { and, desc, eq, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
 import LZString from 'lz-string';
-import type { RedisService } from '../redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 import { decryptData, encryptData } from '../utils/encryption';
 
 const s3 = new S3Client({
@@ -88,7 +88,7 @@ export class EntriesService {
     GALAXY: 3600,
   };
 
-  constructor(private readonly redis: RedisService) {}
+  constructor(private readonly redis: RedisService) { }
 
   private getCacheKey(prefix: string, ...parts: (string | number)[]): string {
     return `${prefix}:${parts.join(':')}`;
@@ -446,12 +446,12 @@ export class EntriesService {
           metadata: derived.metadata,
           ...(options.analyze
             ? {
-                status: 'published' as const,
-                sentimentScore: sentiment?.score ?? undefined,
-                sentimentLabel: sentiment?.label ?? undefined,
-                sentimentColor: sentiment?.color ?? undefined,
-                embedding: embedding ?? undefined,
-              }
+              status: 'published' as const,
+              sentimentScore: sentiment?.score ?? undefined,
+              sentimentLabel: sentiment?.label ?? undefined,
+              sentimentColor: sentiment?.color ?? undefined,
+              embedding: embedding ?? undefined,
+            }
             : {}),
         })
         .returning();
@@ -554,12 +554,12 @@ export class EntriesService {
           metadata: derived.metadata,
           ...(options.analyze
             ? {
-                status: 'published' as const,
-                sentimentScore: sentiment?.score ?? undefined,
-                sentimentLabel: sentiment?.label ?? undefined,
-                sentimentColor: sentiment?.color ?? undefined,
-                embedding: embedding ?? undefined,
-              }
+              status: 'published' as const,
+              sentimentScore: sentiment?.score ?? undefined,
+              sentimentLabel: sentiment?.label ?? undefined,
+              sentimentColor: sentiment?.color ?? undefined,
+              embedding: embedding ?? undefined,
+            }
             : {}),
           updatedAt: new Date(), // Explicitly update timestamp
         })

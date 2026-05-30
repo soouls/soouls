@@ -59,10 +59,12 @@ const nextConfig = {
 
 import { withSentryConfig } from '@sentry/nextjs';
 
-export default withSentryConfig(nextConfig, {
-  org: 'soouls',
-  project: 'frontend',
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  hideSourceMaps: true,
-});
+export default process.env.NODE_ENV === 'production'
+  ? withSentryConfig(nextConfig, {
+    org: 'soouls',
+    project: 'frontend',
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    hideSourceMaps: true,
+  })
+  : nextConfig;

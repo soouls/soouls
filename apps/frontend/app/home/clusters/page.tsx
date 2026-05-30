@@ -165,15 +165,15 @@ export default function ClustersPage() {
                     style={
                       filter === opt.key
                         ? {
-                            backgroundColor: 'rgba(var(--soouls-accent-rgb),0.15)',
-                            borderColor: 'var(--soouls-accent)',
-                            color: 'var(--soouls-accent)',
-                          }
+                          backgroundColor: 'rgba(var(--soouls-accent-rgb),0.15)',
+                          borderColor: 'var(--soouls-accent)',
+                          color: 'var(--soouls-accent)',
+                        }
                         : {
-                            backgroundColor: 'transparent',
-                            borderColor: 'rgba(230,226,214,0.25)',
-                            color: 'rgba(230,226,214,0.55)',
-                          }
+                          backgroundColor: 'transparent',
+                          borderColor: 'rgba(230,226,214,0.25)',
+                          color: 'rgba(230,226,214,0.55)',
+                        }
                     }
                   >
                     {opt.label}

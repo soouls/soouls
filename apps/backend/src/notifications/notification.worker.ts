@@ -1,6 +1,7 @@
 import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { type Job, Worker } from 'bullmq';
-import type { NotificationDispatchService } from './notification-dispatch.service';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
+import { NotificationDispatchService } from './notification-dispatch.service';
 import {
   NOTIFICATIONS_QUEUE,
   type NotificationJobData,

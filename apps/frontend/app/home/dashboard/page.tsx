@@ -822,8 +822,8 @@ const DashboardPage = () => {
                             new Date().toDateString()
                             ? 'Today'
                             : new Date(firstEntry.createdAt).toLocaleDateString('en-US', {
-                                weekday: 'long',
-                              })
+                              weekday: 'long',
+                            })
                           : 'Ready'}
                       </div>
                     </div>

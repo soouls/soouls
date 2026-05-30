@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import type { RedisService } from '../redis/redis.service';
+import { RedisService } from '../redis/redis.service';
 
 export interface GCalToken {
   access_token: string;
@@ -26,7 +26,7 @@ export class GoogleCalendarService {
   private readonly clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? '';
   private readonly redirectUri = process.env.GOOGLE_CALENDAR_REDIRECT_URI ?? '';
 
-  constructor(private readonly redis: RedisService) {}
+  constructor(private readonly redis: RedisService) { }
 
   // ─── Configured? ─────────────────────────────────────────────────────────
 
