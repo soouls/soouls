@@ -59,10 +59,10 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
 
   return (
     <div
-      className="group relative rounded-[24px] border p-5 shadow-[0_22px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+      className="group relative rounded-[24px] border p-5 shadow-[0_22px_50px_rgba(0,0,0,0.45)] backdrop-blur-2xl flex flex-col"
       style={{
         width: card.width,
-        minHeight: card.height,
+        height: card.height,
         background: card.color || '#141111',
         borderColor: isWarning ? '#F5A524' : card.border_color || 'var(--soouls-accent)',
         boxShadow: selected
@@ -92,7 +92,7 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
         className="!border-[var(--soouls-accent)] !bg-[#1C1C1C]"
       />
 
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center justify-between gap-3 shrink-0">
         <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--soouls-accent)]">
           {card.tag || card.type}
         </span>
@@ -101,12 +101,12 @@ function ThoughtCardNode({ id, data, selected }: NodeProps<CanvasNode>) {
       <input
         value={card.title}
         onChange={(event) => onPatch(id, { title: event.target.value })}
-        className="nodrag mb-3 w-full bg-transparent font-playfair text-[24px] leading-none text-[#EFEBDD] outline-none"
+        className="nodrag mb-3 w-full bg-transparent font-playfair text-[24px] leading-none text-[#EFEBDD] outline-none shrink-0"
       />
       <textarea
         value={card.body}
         onChange={(event) => onPatch(id, { body: event.target.value })}
-        className="nodrag min-h-[80px] w-full resize-none bg-transparent text-[14px] leading-relaxed text-white/55 outline-none"
+        className="nodrag flex-1 min-h-0 w-full resize-none bg-transparent text-[14px] leading-relaxed text-white/55 outline-none custom-scrollbar overflow-y-auto"
       />
     </div>
   );
@@ -140,6 +140,42 @@ function makeCanvasEdges(connections: EntryCanvasConnection[]): Edge[] {
   }));
 }
 
+const serializeCanvasState = (
+  title: string,
+  insight: string | undefined,
+  nodesList: CanvasNode[],
+  edgesList: Edge[],
+) => {
+  const cards = nodesList.map((node: CanvasNode) => ({
+    id: node.id,
+    type: node.data?.card?.type,
+    title: node.data?.card?.title,
+    body: node.data?.card?.body,
+    tag: node.data?.card?.tag,
+    color: node.data?.card?.color,
+    border_color: node.data?.card?.border_color,
+    width: node.data?.card?.width,
+    height: node.data?.card?.height,
+    x: Math.round(node.position.x),
+    y: Math.round(node.position.y),
+  }));
+  cards.sort((a, b) => a.id.localeCompare(b.id));
+
+  const connections = edgesList.map((edge: Edge) => ({
+    id: edge.id,
+    from: edge.source,
+    to: edge.target,
+    label: typeof edge.label === 'string' ? edge.label : undefined,
+  }));
+  connections.sort((a, b) => {
+    const aKey = `${a.from}_${a.to}`;
+    const bKey = `${b.from}_${b.to}`;
+    return aKey.localeCompare(bKey);
+  });
+
+  return JSON.stringify({ title, insight: insight ?? '', cards, connections });
+};
+
 export default function CanvasClusterPage() {
   const { user } = useUser();
   const router = useRouter();
@@ -160,6 +196,7 @@ export default function CanvasClusterPage() {
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hydratedRef = useRef(false);
+  const lastSavedStateRef = useRef<string>('');
 
   const { data: clusterDetail } = trpc.private.home.getClusterDetail.useQuery(
     { clusterId },
@@ -226,8 +263,16 @@ export default function CanvasClusterPage() {
     hydratedRef.current = false;
     setCanvasTitle(canvas.canvasTitle);
     setClusterInsight(canvas.clusterInsight);
-    setNodes(makeCanvasNodes(canvas.cards, patchCard));
-    setEdges(makeCanvasEdges(canvas.connections));
+    const initialNodes = makeCanvasNodes(canvas.cards, patchCard);
+    const initialEdges = makeCanvasEdges(canvas.connections);
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+    lastSavedStateRef.current = serializeCanvasState(
+      canvas.canvasTitle,
+      canvas.clusterInsight,
+      initialNodes,
+      initialEdges,
+    );
     setSaveState('saved');
     requestAnimationFrame(() => {
       reactFlowInstance?.fitView({ padding: 0.18, duration: 400 });
@@ -237,6 +282,14 @@ export default function CanvasClusterPage() {
 
   useEffect(() => {
     if (!selectedEntryId || !hydratedRef.current) return;
+
+    const currentTitle = canvasTitle.trim() || 'Untitled Canvas';
+    const currentState = serializeCanvasState(currentTitle, clusterInsight, nodes, edges);
+
+    if (currentState === lastSavedStateRef.current) {
+      return;
+    }
+
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     setSaveState('saving');
     saveTimerRef.current = setTimeout(async () => {
@@ -255,11 +308,12 @@ export default function CanvasClusterPage() {
       try {
         await saveCanvas.mutateAsync({
           entryId: selectedEntryId,
-          canvasTitle,
+          canvasTitle: currentTitle,
           cards,
           connections,
           clusterInsight,
         });
+        lastSavedStateRef.current = currentState;
         setSaveState('saved');
       } catch {
         setSaveState('error');

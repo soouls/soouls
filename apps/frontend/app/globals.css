@@ -421,3 +421,69 @@ a {
     opacity: 0;
   }
 }
+
+/* ── React Flow Custom Styling ── */
+.react-flow__controls {
+  background: rgba(10, 10, 10, 0.6) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  padding: 4px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden !important;
+}
+
+.react-flow__controls-button {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: rgba(239, 235, 221, 0.6) !important;
+  fill: rgba(239, 235, 221, 0.6) !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 38px !important;
+  height: 38px !important;
+}
+
+.react-flow__controls-button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.react-flow__controls-button svg {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.react-flow__attribution {
+  background: rgba(10, 10, 10, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-top-left-radius: 12px !important;
+  padding: 4px 10px !important;
+  margin: 0 !important;
+  font-family: var(--font-urbanist), sans-serif !important;
+  font-size: 10px !important;
+  color: rgba(239, 235, 221, 0.3) !important;
+}
+
+.react-flow__attribution a {
+  color: rgba(239, 235, 221, 0.3) !important;
+  transition: color 0.2s ease !important;
+}
+
+.react-flow__attribution a:hover {
+  color: var(--soouls-accent) !important;
+}
