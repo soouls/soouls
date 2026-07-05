@@ -1,0 +1,3 @@
+[submodule ".claude/skills/motion-dev-animations"]
+	path = .claude/skills/motion-dev-animations
+	url = https://github.com/199-biotechnologies/motion-dev-animations-skill.git
