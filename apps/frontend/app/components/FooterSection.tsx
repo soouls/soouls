@@ -1,206 +1,91 @@
 'use client';
 
 import Link from 'next/link';
-import { FaLinkedinIn } from 'react-icons/fa6';
-import { SiDiscord, SiInstagram, SiX } from 'react-icons/si';
-import { SymbolLogo } from './SymbolLogo';
+import { ButterflyLogo } from './ButterflyLogo';
 
 export default function FooterSection() {
   return (
-    <>
-      <footer
-        id="footer"
-        className="relative flex flex-col items-center justify-start w-full bg-[#161616] z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
-        style={{
-          paddingTop: '60px',
-        }}
-      >
-        {/* Noise Overlay */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E\")",
-            opacity: 0.08,
-            mixBlendMode: 'overlay',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Footer Content */}
-        <div className="relative z-20 w-full max-w-[1240px] mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-start pt-[60px] md:pt-[100px] pb-[40px]">
-          {/* Left: Brand & Socials */}
-          <div className="flex flex-col max-w-[380px] w-full mb-16 md:mb-0 items-center md:items-start text-center md:text-left">
-            <div className="mb-[20px]">
-              <SymbolLogo className="w-[60px] h-[60px] text-[#E6D3B8]" variant="solid" />
-            </div>
-            <span
-              className="font-urbanist tracking-tight mb-[40px] md:mb-[60px]"
-              style={{ fontSize: '32px', color: '#E0DECE', fontWeight: 500 }}
-            >
-              Soouls
-            </span>
-            <div className="flex items-center gap-[24px]">
-              <a
-                href="https://twitter.com/soouls_in"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="opacity-80 hover:opacity-100 transition-opacity hover:text-[#E07A5F] text-[#D8D8D8]"
-              >
-                <SiX size={20} />
-              </a>
-              <a
-                href="https://www.linkedin.com/company/111764372/admin/dashboard/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="opacity-80 hover:opacity-100 transition-opacity hover:text-[#E07A5F] text-[#D8D8D8]"
-              >
-                <FaLinkedinIn size={20} />
-              </a>
-              <a
-                href="https://www.instagram.com/soouls.in/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="opacity-80 hover:opacity-100 transition-opacity hover:text-[#E07A5F] text-[#D8D8D8]"
-              >
-                <SiInstagram size={20} />
-              </a>
-              <a
-                href="https://discord.gg/soouls"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="opacity-80 hover:opacity-100 transition-opacity hover:text-[#E07A5F] text-[#D8D8D8]"
-              >
-                <SiDiscord size={20} />
-              </a>
-            </div>
-          </div>
-
-          {/* Right side container for Links & Copyright */}
-          <div className="flex flex-col w-full md:w-auto items-start md:items-end">
-            {/* Links Grid */}
-            <div className="grid grid-cols-2 md:flex md:flex-row gap-x-[40px] gap-y-[40px] md:gap-[80px]">
-              {/* PRODUCT */}
-              <div className="flex flex-col gap-[16px]">
-                <span className="font-urbanist font-bold text-[#EFEBDD] text-[12px] tracking-widest mb-[4px] md:mb-[8px]">
-                  PRODUCT
-                </span>
-                {[
-                  { label: 'Features', href: '/features' },
-                  { label: 'Downloads', href: '/downloads' },
-                  { label: 'Release Notes', href: '/release-notes' },
-                ].map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="font-urbanist text-[#A8A8A8] hover:text-[#E07A5F] transition-colors duration-200"
-                    style={{ fontSize: '13px', fontWeight: 500 }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-              {/* COMPANY */}
-              <div className="flex flex-col gap-[16px]">
-                <span className="font-urbanist font-bold text-[#EFEBDD] text-[12px] tracking-widest mb-[4px] md:mb-[8px]">
-                  COMPANY
-                </span>
-                {[
-                  { label: 'About Us', href: '/about-us' },
-                  { label: 'Careers', href: '/careers' },
-                  { label: 'Contact', href: '/contact' },
-                ].map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="font-urbanist text-[#A8A8A8] hover:text-[#E07A5F] transition-colors duration-200"
-                    style={{ fontSize: '13px', fontWeight: 500 }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-              {/* RESOURCES */}
-              <div className="flex flex-col gap-[16px]">
-                <span className="font-urbanist font-bold text-[#EFEBDD] text-[12px] tracking-widest mb-[4px] md:mb-[8px]">
-                  RESOURCES
-                </span>
-                {[
-                  { label: 'Documentation', href: '/documentation' },
-                  { label: 'Blog', href: '/blog' },
-                  { label: 'Community', href: '/community' },
-                ].map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="font-urbanist text-[#A8A8A8] hover:text-[#E07A5F] transition-colors duration-200"
-                    style={{ fontSize: '13px', fontWeight: 500 }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-              {/* LEGAL & COMPLIANCE */}
-              <div className="flex flex-col gap-[16px]">
-                <span className="font-urbanist font-bold text-[#EFEBDD] text-[12px] tracking-widest mb-[4px] md:mb-[8px]">
-                  LEGAL & COMPLIANCE
-                </span>
-                {[
-                  { label: 'Privacy Policy', href: '/privacy-policy' },
-                  { label: 'Terms of Service', href: '/terms-of-service' },
-                  { label: 'Cookie Policy', href: '/cookie-policy' },
-                  { label: 'Security', href: '/security' },
-                ].map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="font-urbanist text-[#A8A8A8] hover:text-[#E07A5F] transition-colors duration-200"
-                    style={{ fontSize: '13px', fontWeight: 500 }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <span
-              className="font-urbanist mt-[64px] text-center md:text-right w-full md:w-auto"
-              style={{ fontSize: '12px', color: '#888888', fontStyle: 'italic' }}
-            >
-              All rights reserved © SOOULS 2026
-            </span>
+    <footer className="pt-28 overflow-hidden relative z-10 flex flex-col items-center border-t border-[var(--line)]">
+      <div className="w-full max-w-7xl mx-auto px-6 mb-24 flex flex-col lg:flex-row justify-between items-start gap-16 lg:gap-24">
+        
+        {/* Left Side */}
+        <div className="max-w-xs flex flex-col gap-6">
+          <Link href="/" className="flex items-center gap-2 text-[var(--soouls-accent)] hover:opacity-80 transition-opacity">
+            <ButterflyLogo className="w-6 h-6" />
+            <span className="font-playfair text-3xl text-[var(--ink)] italic">Soouls</span>
+          </Link>
+          <p className="text-[var(--ink-soft)] text-sm leading-relaxed">
+            A private, non-linear journal where your thoughts become a visual map of your mind. Stop scrolling, start reflecting.
+          </p>
+          
+          {/* Social Icons */}
+          <div className="flex gap-4 items-center mt-2">
+            <a href="https://x.com/sooulsapp" target="_blank" rel="noopener noreferrer" className="text-[var(--ink-faint)] hover:text-[#d98a4b] transition-all duration-300 hover:-translate-y-1" aria-label="X (Twitter)">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="https://instagram.com/sooulsapp" target="_blank" rel="noopener noreferrer" className="text-[var(--ink-faint)] hover:text-[#d98a4b] transition-all duration-300 hover:-translate-y-1" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </a>
+            <a href="https://linkedin.com/company/soouls" target="_blank" rel="noopener noreferrer" className="text-[var(--ink-faint)] hover:text-[#d98a4b] transition-all duration-300 hover:-translate-y-1" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+            </a>
+            <a href="mailto:hello@soouls.com" className="text-[var(--ink-faint)] hover:text-[#d98a4b] transition-all duration-300 hover:-translate-y-1" aria-label="Email">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </a>
           </div>
         </div>
-      </footer>
 
-      {/* Stacked Text block matching Figma - Overscroll / Bottom area */}
-      {/* This sits firmly behind the footer at the bottom of the viewport, revealed ONLY via overscroll */}
-      <div
-        className="fixed bottom-0 left-0 right-0 w-full overflow-hidden flex flex-col items-center justify-end pointer-events-none opacity-20 border-t border-white/5 py-10 z-[-1]"
-        style={{ backgroundColor: '#161616', height: '100vh' }}
-      >
-        {['top', 'middle', 'bottom'].map((layer, i) => {
-          return (
-            <span
-              key={`footer-txt-${layer}`}
-              className="font-playfair leading-none"
-              style={{
-                fontFamily: 'ABC Whyte Inktrap, sans-serif',
-                fontSize: 'clamp(120px, 20vw, 320px)',
-                letterSpacing: '-0.03em',
-                fontWeight: 700,
-                color: 'transparent',
-                WebkitTextStroke: '1px #FFFFFF',
-                userSelect: 'none',
-                textTransform: 'none',
-                marginTop: i === 0 ? '0px' : '-16%',
-              }}
-            >
-              Soouls
-            </span>
-          );
-        })}
+        {/* Right Side Columns */}
+        <div className="flex gap-12 md:gap-20 flex-wrap lg:flex-nowrap w-full lg:w-auto justify-between lg:justify-end">
+          
+          <div className="flex flex-col gap-5 min-w-[120px]">
+            <h4 className="text-[var(--ink)] text-[11px] uppercase tracking-widest font-bold mb-1">Product</h4>
+            <Link href="#features" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Features</Link>
+            <Link href="#features" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Spatial Canvas</Link>
+            <Link href="#features" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">River of Time</Link>
+            <Link href="#features" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Thought Clusters</Link>
+            <Link href="/pricing" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Pricing</Link>
+            <Link href="/changelog" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Changelog</Link>
+          </div>
+
+          <div className="flex flex-col gap-5 min-w-[120px]">
+            <h4 className="text-[var(--ink)] text-[11px] uppercase tracking-widest font-bold mb-1">Resources</h4>
+            <Link href="/help" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Help Center</Link>
+            <Link href="/guide" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Journaling Guide</Link>
+            <Link href="/community" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Community</Link>
+            <Link href="/blog" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Blog</Link>
+            <Link href="/signup" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Download App</Link>
+          </div>
+          
+          <div className="flex flex-col gap-5 min-w-[120px]">
+            <h4 className="text-[var(--ink)] text-[11px] uppercase tracking-widest font-bold mb-1">Company</h4>
+            <Link href="#founders" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">About Us</Link>
+            <Link href="/careers" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Careers</Link>
+            <Link href="#privacy" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Privacy Policy</Link>
+            <Link href="/terms" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Terms of Service</Link>
+            <a href="mailto:hello@soouls.com" className="text-sm text-[var(--ink-soft)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Contact</a>
+          </div>
+
+        </div>
       </div>
-    </>
+
+      {/* Footer Bottom Meta */}
+      <div className="w-full max-w-7xl mx-auto px-6 border-t border-[var(--line)] py-6 flex flex-col md:flex-row justify-between items-center text-xs text-[var(--ink-faint)] z-20 gap-4">
+        <span>© 2026 Soouls, Inc. All thoughts remain yours.</span>
+        <div className="flex gap-6 items-center">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500"></span> Systems Operational
+          </span>
+          <span>Made for quieter minds.</span>
+        </div>
+      </div>
+
+      {/* Giant Clipped Wordmark */}
+      <div className="w-full flex justify-center overflow-hidden -mt-16 -mb-[2%] pointer-events-none select-none z-10 opacity-60 mix-blend-multiply">
+        <span className="font-playfair italic font-medium text-[var(--paper-warm)] text-[clamp(10rem,28vw,30rem)] leading-[0.75] tracking-tight">
+          Soouls
+        </span>
+      </div>
+    </footer>
   );
 }
