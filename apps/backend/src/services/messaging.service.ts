@@ -142,11 +142,7 @@ export class MessagingService {
   private getProviderHealth() {
     return {
       emailConfigured: Boolean(process.env.RESEND_API_KEY && process.env.MESSAGING_FROM_EMAIL),
-      whatsappConfigured: Boolean(
-        process.env.TWILIO_ACCOUNT_SID &&
-          process.env.TWILIO_AUTH_TOKEN &&
-          process.env.TWILIO_WHATSAPP_FROM,
-      ),
+      whatsappConfigured: false,
       queueConfigured: this.notificationQueue.isConfigured(),
       newsletterConfigured: Boolean(process.env.NEWSLETTER_SYNC_URL),
       commandCenterConfigured: Boolean(
@@ -192,10 +188,6 @@ export class MessagingService {
       .select({ count: sql<number>`count(*)` })
       .from(users)
       .where(sql`${users.email} is not null`);
-    const [whatsappReachableRow] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users)
-      .where(sql`${users.phoneNumber} is not null`);
     const [waitlistReachableRow] = await db
       .select({ count: sql<number>`count(*)` })
       .from(waitlistUsers);
@@ -253,7 +245,7 @@ export class MessagingService {
       stats: {
         totalUsers: countValue(usersCountRow?.count),
         emailReachable: countValue(emailReachableRow?.count),
-        whatsappReachable: countValue(whatsappReachableRow?.count),
+        whatsappReachable: 0,
         waitlistReachable: countValue(waitlistReachableRow?.count),
         campaignsSent: campaigns.length,
       },
@@ -289,11 +281,11 @@ export class MessagingService {
 
   private async queueCampaign(input: CampaignInput, createdByUserId?: string | null) {
     const sanitizedChannels = Array.from(new Set(input.channels)).filter(
-      (channel): channel is Channel => channel === 'email' || channel === 'whatsapp',
+      (channel): channel is Channel => channel === 'email',
     );
 
     if (sanitizedChannels.length === 0) {
-      throw new Error('Choose at least one channel for the campaign.');
+      throw new Error('Choose email for the campaign. Email is the only enabled send channel.');
     }
 
     const template = buildCampaignTemplate({
@@ -312,11 +304,6 @@ export class MessagingService {
     if (sanitizedChannels.includes('email')) {
       channelConditions.push(
         and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)),
-      );
-    }
-    if (sanitizedChannels.includes('whatsapp')) {
-      channelConditions.push(
-        and(sql`${users.phoneNumber} is not null`, eq(users.marketingWhatsappOptIn, true)),
       );
     }
     if (channelConditions.length > 0) {
@@ -364,10 +351,7 @@ export class MessagingService {
         }
 
         const canEmail = sanitizedChannels.includes('email') && Boolean(entry.email);
-        const canWhatsapp =
-          sanitizedChannels.includes('whatsapp') &&
-          Boolean(normalizePhoneNumber(entry.phoneNumber));
-        return canEmail || canWhatsapp;
+        return canEmail;
       }).length;
 
       estimatedRecipients += externalWaitlistCount;
@@ -393,7 +377,19 @@ export class MessagingService {
       })
       .returning({ id: messageCampaigns.id });
 
-    await this.notificationQueue.enqueueCampaignDispatch(campaign.id);
+    if (!this.notificationQueue.isConfigured()) {
+      await this.notificationDispatch.processCampaignDispatch(campaign.id);
+    } else {
+      try {
+        await this.notificationQueue.enqueueCampaignDispatch(campaign.id);
+      } catch (error) {
+        console.error('[Messaging] Failed to enqueue campaign dispatch', {
+          campaignId: campaign.id,
+          error,
+        });
+        await this.notificationDispatch.processCampaignDispatch(campaign.id);
+      }
+    }
     await this.redis.del('messaging:admin:center');
 
     return {
@@ -422,7 +418,20 @@ export class MessagingService {
 
   async requestSecureAccessLink(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    await this.notificationQueue.enqueueSecureAccess(normalizedEmail);
+    if (!this.notificationQueue.isConfigured()) {
+      await this.notificationDispatch.processSecureAccess(normalizedEmail);
+      return { accepted: true };
+    }
+
+    try {
+      await this.notificationQueue.enqueueSecureAccess(normalizedEmail);
+    } catch (error) {
+      console.error('[Messaging] Failed to enqueue secure access email', {
+        email: normalizedEmail,
+        error,
+      });
+      await this.notificationDispatch.processSecureAccess(normalizedEmail);
+    }
     return { accepted: true };
   }
 
@@ -461,7 +470,7 @@ export class MessagingService {
           {
             key: 'secure-access',
             label: 'Secure Access',
-            description: 'Recovery email and WhatsApp flow that helps a user re-enter safely.',
+            description: 'Recovery email that helps a user re-enter safely.',
           },
           {
             key: 'campaign',
@@ -533,8 +542,20 @@ export class MessagingService {
       });
 
     await this.redis.del(`messaging:center:${userId}`);
+    await this.redis.del('messaging:admin:center');
+
+    void this.syncSignupContact(userId).catch((error) => {
+      console.error('[Messaging] Resend contact sync after preference update failed', {
+        userId,
+        error,
+      });
+    });
 
     return updated;
+  }
+
+  async syncSignupContact(userId: string, options: { triggerSignupEvent?: boolean } = {}) {
+    await this.notificationDispatch.syncResendContactByUserId(userId, options);
   }
 
   async sendCampaign(userId: string, input: CampaignInput) {

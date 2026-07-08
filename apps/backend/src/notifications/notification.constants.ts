@@ -77,10 +77,6 @@ export function normalizePhoneNumber(value: string | null | undefined) {
   return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
 }
 
-export function asWhatsappRecipient(value: string) {
-  return value.startsWith('whatsapp:') ? value : `whatsapp:${value}`;
-}
-
 export function compactPreview(payload: Record<string, unknown>) {
   return JSON.parse(JSON.stringify(payload)) as Record<string, unknown>;
 }

@@ -1,4 +1,3 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import {
   Body,
   Controller,
@@ -70,18 +69,6 @@ export class NotificationsController {
     return { received: true };
   }
 
-  @Post('webhooks/twilio/status')
-  @HttpCode(200)
-  async processTwilioStatusWebhook(
-    @Body() body: Record<string, string | undefined>,
-    @Header('x-twilio-signature') signature: string | undefined,
-    @Req() req: RawBodyRequest,
-  ) {
-    this.verifyTwilioWebhook(req, body, signature);
-    await this.dispatcher.processTwilioStatusWebhook(body);
-    return { received: true };
-  }
-
   private async verifyQstashRequest(name: string, signature: string | undefined, body: string) {
     const currentSigningKey = process.env.QSTASH_CURRENT_SIGNING_KEY;
     const nextSigningKey = process.env.QSTASH_NEXT_SIGNING_KEY;
@@ -128,41 +115,5 @@ export class NotificationsController {
       payload,
       headers: headerRecordToResendHeaders(headers),
     });
-  }
-
-  private verifyTwilioWebhook(
-    req: RawBodyRequest,
-    body: Record<string, string | undefined>,
-    signature: string | undefined,
-  ) {
-    if (process.env.TWILIO_VALIDATE_WEBHOOK_SIGNATURE !== 'true') {
-      return;
-    }
-
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    if (!authToken || !signature) {
-      throw new UnauthorizedException('Missing Twilio webhook signature.');
-    }
-
-    const baseUrl =
-      getBackendPublicUrl() || `${req.protocol ?? 'https'}://${req.get?.('host') ?? ''}`;
-    const url = new URL(
-      req.originalUrl ?? '/notifications/webhooks/twilio/status',
-      baseUrl,
-    ).toString();
-    const data = Object.entries(body)
-      .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
-      .sort(([left], [right]) => left.localeCompare(right))
-      .reduce((acc, [key, value]) => `${acc}${key}${value}`, url);
-    const expected = createHmac('sha1', authToken).update(data).digest('base64');
-    const actualBuffer = Buffer.from(signature);
-    const expectedBuffer = Buffer.from(expected);
-
-    if (
-      actualBuffer.length !== expectedBuffer.length ||
-      !timingSafeEqual(actualBuffer, expectedBuffer)
-    ) {
-      throw new UnauthorizedException('Invalid Twilio webhook signature.');
-    }
   }
 }

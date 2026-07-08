@@ -28,14 +28,6 @@ export type EmailMessage = {
   idempotencyKey?: string;
 };
 
-export type WhatsAppMessage = {
-  to: string;
-  body: string;
-  contentSid?: string;
-  contentVariables?: Record<string, string>;
-  statusCallbackUrl?: string;
-};
-
 export type TransportResult = {
   status: DeliveryStatus;
   provider: string;
