@@ -1,104 +1,127 @@
 'use client';
 
+import { ArrowRight, BookOpen } from 'lucide-react';
+
 export default function BlogSection() {
   const posts = [
     {
       title: 'The Eternal Solitude',
       category: 'PHILOSOPHY',
-      image: '/images/blog/books.jpg',
+      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1000&auto=format&fit=crop',
       date: 'MARCH 12, 2026',
     },
     {
-      title: 'Fluid Dynamics',
+      title: 'Fluid Dynamics of Thought',
       category: 'SCIENCE',
-      image: '/images/blog/water.jpg',
+      image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
       date: 'MARCH 08, 2026',
     },
     {
       title: 'Blindness of the North',
       category: 'CULTURE',
-      image: '/images/blog/candle.jpg',
+      image: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?q=80&w=1000&auto=format&fit=crop',
       date: 'FEB 28, 2026',
     },
     {
       title: 'Earth Metamorphosis',
       category: 'NATURE',
-      image: '/images/blog/stone.jpg',
+      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop',
       date: 'FEB 20, 2026',
     },
     {
       title: 'Cosmic Humidity',
       category: 'SPACE',
-      image: '/images/blog/telescope.jpg',
+      image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop',
       date: 'FEB 14, 2026',
     },
   ];
 
   return (
-    <section id="blog" className="relative w-full py-32 bg-[#161616] overflow-hidden">
-      <div className="relative z-10 max-w-[1240px] mx-auto px-6">
+    <section id="blog" className="relative w-full py-10 bg-transparent overflow-hidden">
+      <div className="relative z-10 max-w-[1240px] mx-auto">
+        
         {/* Header */}
-        <div className="mb-24 flex flex-col md:flex-row justify-between items-end gap-8">
+        <div className="mb-16 md:mb-24 flex flex-col md:flex-row justify-between items-end gap-8 reveal">
           <div className="max-w-2xl">
-            <h2 className="font-playfair text-[clamp(48px,6vw,96px)] font-bold text-[#D6C2A3] leading-[1] italic mb-6">
-              Thoughts on <br /> thinking
-            </h2>
-            <p className="font-urbanist text-lg text-[#888888] font-medium tracking-widest uppercase">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
+              <BookOpen className="w-6 h-6 text-[#E07A5F]" />
+            </div>
+            <p className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
               The Soouls Journal
             </p>
+            <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-[1.1] mb-6">
+              Thoughts on <br /> <em className="italic text-[#E07A5F]">thinking</em>
+            </h1>
           </div>
           <button
             type="button"
-            className="px-8 py-3 rounded-full border border-white/10 text-[#EFEBDD] font-urbanist font-bold text-sm hover:bg-white/5 transition-all"
+            className="group px-8 py-4 rounded-full border border-[#e3dbcd] bg-[#fdfaf6]/80 backdrop-blur-sm text-[var(--ink)] font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-white hover:border-[#E07A5F] hover:text-[#E07A5F] transition-all duration-300 shadow-sm flex items-center gap-2"
           >
             View All Articles
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 
         {/* Featured Post */}
-        <div className="group relative w-full h-[600px] mb-12 rounded-[56px] overflow-hidden cursor-pointer">
-          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-700 z-10" />
-          {/* Placeholder for real image */}
-          <div className="absolute inset-0 bg-[#2A3335] group-hover:scale-105 transition-transform duration-1000" />
-          <div className="absolute bottom-0 left-0 p-12 md:p-20 z-20 max-w-2xl">
+        <div className="group relative w-full h-[400px] md:h-[600px] mb-16 rounded-3xl md:rounded-[3rem] overflow-hidden cursor-pointer reveal border border-[#e3dbcd]/20 shadow-xl">
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-700 z-10" />
+          
+          <img 
+            src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2000&auto=format&fit=crop" 
+            alt="Featured Post"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+          />
+          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
+
+          <div className="absolute bottom-0 left-0 p-8 sm:p-12 md:p-20 z-20 max-w-3xl transform group-hover:-translate-y-2 transition-transform duration-500">
             <span className="font-urbanist text-xs font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
               Featured Thinking
             </span>
-            <h3 className="font-playfair text-4xl md:text-5xl font-bold text-white mb-6 group-hover:text-[#D6C2A3] transition-colors">
+            <h3 className="font-playfair text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-6 group-hover:text-[#fdfaf6] transition-colors leading-tight">
               The Art of Slow Living in a Fast World
             </h3>
-            <p className="font-urbanist text-[#A8A8A8] text-lg mb-8 line-clamp-2">
-              How to reclaim your attention and find stillness in a culture that rewards constant
-              motion.
+            <p className="font-urbanist text-white/80 text-xl mb-10 line-clamp-2 max-w-2xl leading-relaxed">
+              How to reclaim your attention and find stillness in a culture that rewards constant motion, infinite scrolling, and perpetual availability.
             </p>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20" />
-              <span className="font-urbanist text-[#EFEBDD] text-sm font-bold tracking-widest">
-                BY SOOULS EDITORS
-              </span>
+              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center">
+                <span className="font-playfair font-bold text-white">S</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-urbanist text-white text-sm font-bold tracking-widest uppercase">
+                  By Soouls Editors
+                </span>
+                <span className="font-urbanist text-white/60 text-xs tracking-widest uppercase">
+                  April 02, 2026
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Post Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
-          {posts.map((post) => (
-            <div key={post.title} className="group cursor-pointer">
-              <div className="relative h-[300px] rounded-[32px] overflow-hidden mb-6 bg-white/5 border border-white/5">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                {/* Placeholder for post image */}
-                <div className="absolute inset-0 bg-[#1D2122] group-hover:scale-110 transition-transform duration-700" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-20 md:mb-32">
+          {posts.map((post, idx) => (
+            <div key={post.title} className="group cursor-pointer reveal" style={{ transitionDelay: `${(idx % 3) * 100}ms` }}>
+              <div className="relative h-[320px] rounded-3xl md:rounded-[2.5rem] overflow-hidden mb-8 border border-[#e3dbcd]/50 shadow-sm group-hover:shadow-[0_20px_40px_rgba(224,122,95,0.1)] transition-all duration-500">
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10" />
+                <img 
+                  src={post.image} 
+                  alt={post.title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                />
               </div>
               <div className="px-2">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="font-urbanist text-[10px] font-bold text-[#E07A5F] tracking-[0.2em]">
+                  <span className="inline-block px-3 py-1 bg-[#E07A5F]/10 rounded-full font-urbanist text-[10px] font-bold text-[#E07A5F] tracking-widest uppercase">
                     {post.category}
                   </span>
-                  <span className="font-urbanist text-[10px] text-[#555555] font-bold">
+                  <span className="font-urbanist text-[10px] text-[var(--ink-soft)] font-bold tracking-widest uppercase">
                     {post.date}
                   </span>
                 </div>
-                <h4 className="font-urbanist text-xl font-bold text-[#EFEBDD] group-hover:text-[#D6C2A3] transition-colors mb-2">
+                <h4 className="font-playfair text-3xl font-bold text-[var(--ink)] group-hover:text-[#E07A5F] transition-colors duration-300 leading-tight">
                   {post.title}
                 </h4>
               </div>
@@ -107,29 +130,37 @@ export default function BlogSection() {
         </div>
 
         {/* Newsletter: The Weekly Whisper */}
-        <div className="relative p-20 rounded-[64px] bg-[#1D2122] border border-white/[0.05] overflow-hidden flex flex-col items-center text-center">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#E07A5F]/5 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
-          <h3 className="font-playfair text-4xl font-bold text-[#D6C2A3] mb-6">
-            The Weekly Whisper
-          </h3>
-          <p className="font-urbanist text-[#A8A8A8] text-lg mb-10 max-w-lg">
-            A curated collection of insights, art, and philosophy delivered to your inbox every
-            Sunday.
-          </p>
-          <form className="w-full max-w-md flex flex-col md:flex-row gap-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-[#EFEBDD] font-urbanist focus:outline-none focus:border-[#E07A5F]/50 transition-colors"
-            />
-            <button
-              type="submit"
-              className="px-8 py-4 bg-[#E07A5F] text-[#111111] font-urbanist font-bold rounded-2xl hover:bg-[#EFEBDD] transition-colors shadow-lg shadow-[#E07A5F]/10"
-            >
-              Whisper to me
-            </button>
-          </form>
+        <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '200ms' }}>
+          <div className="relative p-8 sm:p-12 md:p-24 rounded-3xl md:rounded-[2.5rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-white/60 backdrop-blur-3xl border border-[#e3dbcd]/60 overflow-hidden flex flex-col items-center text-center shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
+            
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#E07A5F]/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#6450d6]/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+            
+            <div className="relative z-10 w-full flex flex-col items-center">
+              <h3 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)] mb-6">
+                The Weekly <em className="italic text-[#E07A5F]">Whisper</em>
+              </h3>
+              <p className="font-urbanist text-[var(--ink-soft)] text-lg mb-12 max-w-lg leading-relaxed">
+                A curated collection of insights, art, and philosophy delivered to your inbox every Sunday. Quiet, ad-free, and always meaningful.
+              </p>
+              
+              <form className="w-full max-w-lg flex flex-col sm:flex-row gap-4 relative z-10">
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  className="flex-1 bg-white border border-[#e3dbcd] rounded-full px-8 py-5 text-[var(--ink)] font-urbanist focus:outline-none focus:border-[#E07A5F] focus:ring-4 focus:ring-[#E07A5F]/10 transition-all shadow-sm"
+                />
+                <button
+                  type="submit"
+                  className="px-10 py-5 bg-[var(--ink)] text-[#f7f3ec] font-urbanist font-bold text-sm tracking-widest uppercase rounded-full hover:bg-black hover:scale-105 transition-all duration-300 shadow-[0_10px_20px_rgba(22,19,15,0.15)] whitespace-nowrap"
+                >
+                  Subscribe
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
+
       </div>
     </section>
   );

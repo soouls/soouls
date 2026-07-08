@@ -41,7 +41,7 @@ export default function FloatingOrbs() {
   const orbElements = Array.from({ length: 15 }).map((_, i) => {
     // Generate unique varying colors for each orb using green, purple, yellow, and orange hues
     const baseHues = [110, 260, 45, 25]; // green, purple, yellow, orange
-    const hue = baseHues[i % baseHues.length] + (Math.random() * 20 - 10); // Slight random variance in color
+    const hue = (baseHues[i % baseHues.length] || 110) + (Math.random() * 20 - 10); // Slight random variance in color
     const color = `hsla(${hue}, 70%, 65%, 1)`; // Base color, transparency controlled by GSAP opacity
     
     return (

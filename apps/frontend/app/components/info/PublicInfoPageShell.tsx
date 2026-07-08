@@ -1,6 +1,10 @@
 import type { ComponentType } from 'react';
 import FooterSection from '../FooterSection';
 import LandingNavbar from '../LandingNavbar';
+import FloatingOrbs from '../FloatingOrbs';
+import RevealObserver from '../RevealObserver';
+import MotionEnhancer from '../MotionEnhancer';
+
 import AboutUsSection from './AboutUsSection';
 import BlogSection from './BlogSection';
 import CareersSection from './CareersSection';
@@ -14,6 +18,8 @@ import PrivacyPolicySection from './PrivacyPolicySection';
 import ReleaseNotesSection from './ReleaseNotesSection';
 import SecuritySection from './SecuritySection';
 import TermsOfServiceSection from './TermsOfServiceSection';
+import HelpSection from './HelpSection';
+import JournalGuideSection from './JournalGuideSection';
 
 const publicInfoPageSections: Record<string, ComponentType> = {
   about: AboutUsSection,
@@ -27,9 +33,13 @@ const publicInfoPageSections: Record<string, ComponentType> = {
   blog: BlogSection,
   community: CommunitySection,
   'privacy-policy': PrivacyPolicySection,
+  'privacy': PrivacyPolicySection,
   'terms-of-service': TermsOfServiceSection,
+  'terms': TermsOfServiceSection,
   'cookie-policy': CookiePolicySection,
   security: SecuritySection,
+  help: HelpSection,
+  'journal-guide': JournalGuideSection,
 };
 
 export default function PublicInfoPageShell({ slug }: { slug: string }) {
@@ -40,11 +50,38 @@ export default function PublicInfoPageShell({ slug }: { slug: string }) {
   }
 
   return (
-    <main className="bg-[#161616] min-h-screen">
-      <LandingNavbar />
-      <div className="h-32 md:h-40" />
-      <Section />
-      <FooterSection />
+    <main 
+      className="bg-[var(--soouls-bg)] min-h-screen relative overflow-hidden font-urbanist selection:bg-[#6450d6]/20"
+      style={{
+        backgroundColor: '#f7f3ec',
+        color: '#16130f',
+        '--soouls-bg': '#f7f3ec',
+        '--soouls-bg-elevated': '#fdfaf6',
+        '--soouls-card': '#fdfaf6',
+        '--soouls-border': '#e3dbcd',
+        '--soouls-text': '#4a4237',
+        '--soouls-text-strong': '#16130f',
+        '--soouls-text-muted': '#4a4237',
+        '--soouls-text-faint': '#928a7c',
+        '--soouls-accent': '#d98a4b',
+      } as React.CSSProperties}
+    >
+      <FloatingOrbs />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <RevealObserver />
+        <MotionEnhancer />
+        <LandingNavbar />
+        
+        {/* Spacer for Fixed Navbar */}
+        <div className="h-24 md:h-32" />
+        
+        {/* Render the section directly so it can expand and use its own layout rules */}
+        <div className="flex-grow w-full relative z-10 px-4 md:px-8 mb-20">
+          <Section />
+        </div>
+        
+        <FooterSection />
+      </div>
     </main>
   );
 }

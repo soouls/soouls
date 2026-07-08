@@ -16,17 +16,17 @@ export default function HeroSection() {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
       // Staggered entrance sequence
-      tl.from('.hero-pill', { y: 20, opacity: 0, duration: 0.8, delay: 0.2 })
-        .from('.hero-line-1', { y: 50, opacity: 0, duration: 0.9 }, '-=0.4')
-        .from('.hero-line-2', { y: 50, opacity: 0, duration: 0.9 }, '-=0.5')
-        .from('.hero-swash path', { strokeDashoffset: 320, duration: 1, ease: 'power2.inOut' }, '-=0.6')
-        .from('.hero-sub', { y: 30, opacity: 0, duration: 0.8 }, '-=0.5')
-        .from('.hero-cta-btn', { y: 20, opacity: 0, duration: 0.6, stagger: 0.12 }, '-=0.4')
-        .from('.hero-trust', { y: 15, opacity: 0, duration: 0.6 }, '-=0.3')
-        .from('.hero-stats-bar', { y: 20, opacity: 0, scale: 0.95, duration: 0.7 }, '-=0.3')
-        .from('.chip-f', { scale: 0, opacity: 0, duration: 0.6, stagger: 0.15, ease: 'back.out(2)' }, '-=0.5')
-        .from('.hero-deco', { scale: 0, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'back.out(3)' }, '-=0.6')
-        .from('.scroll-hint', { opacity: 0, y: -10, duration: 0.6 }, '-=0.2');
+      tl.fromTo('.hero-pill', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, delay: 0.2 })
+        .fromTo('.hero-line-1', { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9 }, '-=0.4')
+        .fromTo('.hero-line-2', { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9 }, '-=0.5')
+        .fromTo('.hero-swash path', { strokeDashoffset: 320 }, { strokeDashoffset: 0, duration: 1, ease: 'power2.inOut' }, '-=0.6')
+        .fromTo('.hero-sub', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, '-=0.5')
+        .fromTo('.hero-cta-btn', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.12 }, '-=0.4')
+        .fromTo('.hero-trust', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
+        .fromTo('.hero-stats-bar', { y: 20, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.7 }, '-=0.3')
+        .fromTo('.chip-f', { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, stagger: 0.15, ease: 'back.out(2)' }, '-=0.5')
+        .fromTo('.hero-deco', { scale: 0, opacity: 0 }, { scale: 1, opacity: 0.6, duration: 0.5, stagger: 0.1, ease: 'back.out(3)' }, '-=0.6')
+        .fromTo('.scroll-hint', { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.6 }, '-=0.2');
 
       // Continuous floating for decorative elements
       gsap.utils.toArray('.hero-deco').forEach((el, i) => {

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soouls — About</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F1E9; --paper-2:#EFE9DC;
+    --ink:#15131E; --ink-soft:#6B6879; --ink-faint:#9C98A8;
+    --violet:#6C5CE0; --violet-pale:#E7E1FB;
+    --ember:#FF6B35; --ember-pale:#FFE1CE;
+    --line:rgba(21,19,30,0.1); --line-2:rgba(21,19,30,0.18);
+    --serif:'Instrument Serif',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  html[data-theme="dark"]{
+    --paper:#100E1C; --paper-2:#1A1730;
+    --ink:#F5F1E9; --ink-soft:#B8B4C8; --ink-faint:#7A7690;
+    --line:rgba(245,241,233,0.1); --line-2:rgba(245,241,233,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .4s ease, color .4s ease;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  ::selection{background:var(--violet-pale);color:var(--ink);}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 40px;}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:22px 0;background:rgba(245,241,233,0.7);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  html[data-theme="dark"] nav{background:rgba(16,14,28,0.7);}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;max-width:1180px;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-style:italic;font-size:22px;}
+  .logo .bfly path{fill:var(--ember);}
+  .nav-links{display:flex;align-items:center;gap:30px;}
+  .nav-links a{font-size:14px;font-weight:500;color:var(--ink-soft);}
+  .nav-links a:hover{color:var(--ink);}
+  .nav-cta{display:flex;align-items:center;gap:16px;}
+  .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--ink);transition:transform .3s ease;}
+  .theme-toggle:hover{transform:rotate(20deg);}
+  .theme-toggle svg{width:15px;height:15px;}
+  .theme-toggle .moon-icon{display:none;}
+  html[data-theme="dark"] .theme-toggle .sun-icon{display:none;}
+  html[data-theme="dark"] .theme-toggle .moon-icon{display:block;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:100px;font-size:13.5px;font-weight:600;}
+  .btn-grad{background:linear-gradient(135deg,var(--violet),#5847c9);color:#fff;}
+  @media(max-width:820px){.nav-links{display:none;}}
+
+  .hero{padding:160px 0 70px;text-align:center;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-soft);padding:7px 15px;border:1px solid var(--line-2);border-radius:100px;margin-bottom:26px;}
+  h1{font-family:var(--sans);font-weight:800;font-size:clamp(34px,5vw,58px);letter-spacing:-0.02em;line-height:1.1;margin-bottom:18px;}
+  h1 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--violet);}
+  .hero p.sub{font-size:16px;color:var(--ink-soft);max-width:520px;margin:0 auto;}
+
+  section{padding:70px 0;}
+  .letter-card{
+    max-width:720px;margin:0 auto;background:var(--paper-2);border-radius:24px;padding:52px 56px;position:relative;
+  }
+  .letter-card p{font-size:16px;line-height:1.85;color:var(--ink-soft);margin-bottom:20px;}
+  .letter-card p:first-of-type::first-letter{font-family:var(--serif);font-style:italic;font-size:44px;color:var(--ember);float:left;line-height:0.7;margin:8px 8px 0 0;}
+  .letter-sign{text-align:right;font-family:var(--serif);font-style:italic;font-size:16px;margin-top:20px;}
+
+  .values-head{text-align:center;max-width:520px;margin:0 auto 46px;}
+  .values-head span{font-family:var(--mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--violet);}
+  .values-head h2{font-family:var(--serif);font-weight:400;font-size:clamp(26px,3vw,36px);margin-top:12px;}
+  .values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .value-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;transition:transform .25s ease;}
+  html[data-theme="dark"] .value-card{background:var(--paper-2);}
+  .value-card:hover{transform:translateY(-4px);}
+  .value-icon{width:38px;height:38px;border-radius:11px;background:var(--violet-pale);display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .value-icon svg{width:18px;height:18px;stroke:var(--violet);}
+  .value-card h4{font-size:15px;font-weight:600;margin-bottom:8px;}
+  .value-card p{font-size:13px;color:var(--ink-faint);line-height:1.6;}
+  @media(max-width:820px){.values-grid{grid-template-columns:1fr;}}
+
+  .timeline{max-width:640px;margin:0 auto;}
+  .tl-item{display:flex;gap:22px;padding-bottom:36px;position:relative;}
+  .tl-item::before{content:'';position:absolute;left:5px;top:20px;bottom:-16px;width:1px;background:var(--line-2);}
+  .tl-item:last-child::before{display:none;}
+  .tl-dot{width:11px;height:11px;border-radius:50%;background:var(--violet);flex-shrink:0;margin-top:4px;position:relative;z-index:1;}
+  .tl-content .tl-date{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;}
+  .tl-content h5{font-size:15px;font-weight:600;margin-bottom:4px;}
+  .tl-content p{font-size:13px;color:var(--ink-faint);line-height:1.5;}
+
+  .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+  .team-card{text-align:center;}
+  .team-card img{width:100%;aspect-ratio:1;border-radius:16px;object-fit:cover;margin-bottom:12px;}
+  .team-card h5{font-size:14px;font-weight:600;}
+  .team-card p{font-size:12px;color:var(--ink-faint);}
+  @media(max-width:820px){.team-grid{grid-template-columns:1fr 1fr;}}
+
+  .final-cta{background:linear-gradient(135deg, var(--violet-pale), #f3ecff);margin:0 auto;max-width:1000px;border-radius:28px;padding:56px;text-align:center;}
+  html[data-theme="dark"] .final-cta{background:linear-gradient(135deg, rgba(108,92,224,0.2), rgba(255,107,53,0.08));}
+  .final-cta h3{font-family:var(--serif);font-weight:400;font-size:clamp(24px,3vw,32px);margin-bottom:14px;}
+  .final-cta h3 em{font-style:italic;color:var(--violet);}
+  .final-cta p{font-size:14px;color:var(--ink-soft);margin-bottom:24px;}
+
+  footer{padding:40px 0;border-top:1px solid var(--line);text-align:center;font-size:12.5px;color:var(--ink-faint);}
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease, transform .6s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><svg class="bfly" viewBox="0 0 100 100" width="20" height="20"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>Soouls</div>
+    <div class="nav-links"><a href="#">Product</a><a href="#">Pricing</a><a href="#">About</a></div>
+    <div class="nav-cta">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="#" class="btn btn-grad">Get Soouls</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow reveal in">Our story</div>
+    <h1 class="reveal in">Built by people who couldn't <em>find this</em> anywhere else</h1>
+    <p class="sub reveal in">Soouls started as the tool two overwhelmed minds needed for themselves, before it was ever meant to be a company.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="letter-card reveal">
+      <p>We kept losing ourselves in productivity apps built for output — streaks, dashboards, guilt. Our thoughts deserved better than a to-do list with a diary bolted on.</p>
+      <p>So we built the thing we needed: a room with no audience, where a voice note at 3am and a doodle on a napkin matter as much as a perfect paragraph. Where a life doesn't have to be linear to make sense.</p>
+      <p>Soouls is our love letter to the wandering mind. We hope it becomes yours.</p>
+      <div class="letter-sign">— the Soouls team</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="values-head reveal">
+      <span>What we won't compromise on</span>
+      <h2>The rules we built the product around</h2>
+    </div>
+    <div class="values-grid reveal">
+      <div class="value-card">
+        <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h4>Private by default</h4>
+        <p>End-to-end encrypted, never sold, never used to train anything. Not a policy that can quietly change later — an architecture decision.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div>
+        <h4>Quiet, not addictive</h4>
+        <p>No streak-shaming, no infinite scroll, no push notification designed to make you anxious. If you leave for a month, we're just glad you're back.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7l7 9M16 7l-7 9"/></svg></div>
+        <h4>Non-linear on purpose</h4>
+        <p>Your mind doesn't file itself into folders and dates. We built the product around how thinking actually happens, not how filing cabinets work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="values-head reveal"><span>How we got here</span><h2>A short, honest timeline</h2></div>
+    <div class="timeline reveal">
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="tl-date">Early days</span><h5>A notes app that wouldn't stay organized</h5><p>The first version was a personal tool — scattered notes that refused to fit into folders, which turned out to be the point.</p></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="tl-date">First map</span><h5>The Spatial Canvas idea</h5><p>Instead of forcing entries into a list, we let them sit in space — and the shape of the canvas became the insight itself.</p></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="tl-date">Early access</span><h5>Sunday Review, and the first real users</h5><p>A handful of overthinkers, night writers, and one very patient therapist started using it weekly. Most of the product's honesty came from listening to them.</p></div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><span class="tl-date">Today</span><h5>10,000+ people mapping their minds</h5><p>Grown without ad spend, one quiet recommendation at a time.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="values-head reveal"><span>Who's building it</span><h2>A small, deliberately small team</h2></div>
+    <div class="team-grid reveal">
+      <div class="team-card"><img src="https://i.pravatar.cc/300?img=12" alt=""><h5>Founder</h5><p>Product & engineering</p></div>
+      <div class="team-card"><img src="https://i.pravatar.cc/300?img=47" alt=""><h5>Design lead</h5><p>Brand & interface</p></div>
+      <div class="team-card"><img src="https://i.pravatar.cc/300?img=33" alt=""><h5>Engineer</h5><p>Spatial Canvas & sync</p></div>
+      <div class="team-card"><img src="https://i.pravatar.cc/300?img=25" alt=""><h5>Engineer</h5><p>Insights & clustering</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="final-cta reveal">
+    <h3>Curious what we're <em>building next</em>?</h3>
+    <p>We post honestly about what's working and what isn't. No roadmap theater.</p>
+    <a href="#" class="btn btn-grad">Read the blog</a>
+  </div>
+</div>
+
+<footer>© 2026 Soouls. All thoughts remain yours.</footer>
+
+<script>
+var themeToggle = document.getElementById("themeToggle");
+if(themeToggle){
+  themeToggle.addEventListener("click", function(){
+    var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+}
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+}, {threshold:0.12});
+document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+</script>
+
+</body>
+</html>

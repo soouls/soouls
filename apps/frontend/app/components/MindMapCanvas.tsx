@@ -19,8 +19,8 @@ export default function MindMapCanvas() {
     let pulses: any[] = [];
     let mouse = { x: -9999, y: -9999 };
     
-    const P = ['#d98a4b', '#cf7b6e', '#7d9b76', '#6d7fa3', '#b7a98f'];
-    const LD = 150;
+    const P = ['#d98a4b', '#cf7b6e', '#7d9b76', '#7d9b76', '#6d7fa3', '#b7a98f'];
+    const LD = 180;
     const LINKC = '227,219,205'; // rgba for --soouls-border roughly
 
     const rs = () => {
@@ -30,16 +30,16 @@ export default function MindMapCanvas() {
       canvas.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       
-      const count = Math.max(26, Math.min(64, Math.floor((W * H) / 26000)));
+      const count = Math.max(15, Math.min(25, Math.floor((W * H) / 50000)));
       nodes = [];
       for (let i = 0; i < count; i++) {
         nodes.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          vx: (Math.random() - 0.5) * 0.28,
-          vy: (Math.random() - 0.5) * 0.28,
-          r: 2 + Math.random() * 4.5,
-          c: P[i % 5],
+          vx: (Math.random() - 0.5) * 0.85,
+          vy: (Math.random() - 0.5) * 0.85,
+          r: 3 + Math.random() * 9,
+          c: P[i % P.length],
           p: Math.random() * 6.28
         });
       }
