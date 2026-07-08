@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Soouls — Logo & App Icon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F1E9; --paper-2:#EFE9DC;
+    --ink:#15131E; --ink-soft:#6B6879; --ink-faint:#9C98A8;
+    --violet:#6C5CE0; --violet-deep:#2A2160;
+    --ember:#FF6B35;
+    --serif:'Instrument Serif', serif;
+    --sans:'Inter', sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--sans); padding:64px 24px 100px;}
+  .wrap{max-width:1080px; margin:0 auto;}
+  h1{font-family:var(--serif); font-style:italic; font-weight:400; font-size:42px; margin-bottom:6px;}
+  .sub{color:var(--ink-faint); font-size:14px; margin-bottom:56px;}
+  h2{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--violet); margin:64px 0 20px;}
+  h2:first-of-type{margin-top:0;}
+
+  /* ---- mark & lockup row ---- */
+  .row{display:flex; flex-wrap:wrap; gap:16px;}
+  .tile{
+    flex:1 1 200px; min-height:180px; border-radius:20px;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+    padding:24px; position:relative; overflow:hidden;
+  }
+  .tile span.label{position:absolute; bottom:14px; left:18px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; opacity:.55;}
+  .bg-cream{background:var(--paper-2); color:var(--ink);}
+  .bg-ink{background:var(--ink); color:var(--paper);}
+  .bg-violet{background:var(--violet); color:var(--paper);}
+  .bg-ember{background:var(--ember); color:var(--ink);}
+  .bg-grad{background:linear-gradient(135deg,var(--violet),var(--ember)); color:var(--paper);}
+
+  .mark{width:56px; height:56px;}
+  .mark path{fill:currentColor;}
+  .mark.duo path:nth-child(1),.mark.duo path:nth-child(4){fill:currentColor;}
+  .mark.duo path:nth-child(2),.mark.duo path:nth-child(3){fill:currentColor; opacity:.55;}
+
+  .lockup{display:flex; align-items:center; gap:10px; font-family:var(--serif); font-style:italic; font-size:26px;}
+  .lockup svg{width:26px; height:26px;}
+
+  /* ---- app icon grid ---- */
+  .icon-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:28px;}
+  .icon-card{display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .icon{
+    width:120px; height:120px; border-radius:27px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 30px -12px rgba(21,19,30,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .icon svg{width:56px; height:56px;}
+  .icon svg path{fill:currentColor;}
+  .icon-card small{font-family:var(--mono); font-size:10px; color:var(--ink-faint); text-align:center; letter-spacing:.03em;}
+
+  .icon-cream{background:var(--paper);}
+  .icon-ink{background:var(--ink);}
+  .icon-violet{background:var(--violet);}
+  .icon-ember{background:var(--ember);}
+  .icon-grad-ve{background:linear-gradient(135deg,var(--violet),var(--violet-deep));}
+  .icon-grad-eo{background:linear-gradient(135deg,var(--ember),#e8501a);}
+  .icon-grad-mix{background:linear-gradient(135deg,var(--violet),var(--ember));}
+
+  /* ---- home screen mock ---- */
+  .phone{
+    width:220px; background:#0d0c12; border-radius:34px; padding:16px 12px 20px; border:6px solid #26233a;
+    display:flex; flex-direction:column; align-items:center; gap:16px;
+  }
+  .phone-wall{width:100%; aspect-ratio:9/11; border-radius:22px; background:linear-gradient(160deg,#221d3a,#120f1e); display:flex; align-items:flex-end; padding:16px; }
+  .app-row{display:flex; gap:14px;}
+  .app-row .icon{width:52px; height:52px; border-radius:14px;}
+  .app-row .icon svg{width:26px; height:26px;}
+  .home-caption{font-family:var(--mono); font-size:10px; color:var(--ink-faint); text-align:center;}
+
+  /* ---- downloads ---- */
+  .dl-row{display:flex; flex-wrap:wrap; gap:12px;}
+  .dl{
+    font-family:var(--mono); font-size:12px; letter-spacing:.02em; text-decoration:none; color:var(--ink);
+    background:var(--paper-2); padding:12px 18px; border-radius:10px; border:1px solid rgba(21,19,30,0.08);
+    transition:background .2s ease;
+  }
+  .dl:hover{background:var(--violet); color:var(--paper);}
+
+  footer{margin-top:80px; font-family:var(--mono); font-size:11px; color:var(--ink-faint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Soouls — mark & icon</h1>
+  <p class="sub">Logomark pulled straight from the site build. Same four petals, recolored across the brand system — cream, ink, violet, ember.</p>
+
+  <h2>01 — The mark, on background</h2>
+  <div class="row">
+    <div class="tile bg-cream">
+      <svg class="mark" viewBox="0 0 100 100" style="color:var(--violet)"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      <span class="label">cream</span>
+    </div>
+    <div class="tile bg-ink">
+      <svg class="mark" viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      <span class="label">ink / black</span>
+    </div>
+    <div class="tile bg-violet">
+      <svg class="mark" viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      <span class="label">violet</span>
+    </div>
+    <div class="tile bg-ember">
+      <svg class="mark" viewBox="0 0 100 100" style="color:var(--ink)"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      <span class="label">ember / orange</span>
+    </div>
+    <div class="tile bg-grad">
+      <svg class="mark" viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      <span class="label">violet → ember</span>
+    </div>
+  </div>
+
+  <h2>02 — Full lockup (mark + wordmark)</h2>
+  <div class="row">
+    <div class="tile bg-cream" style="min-height:120px;">
+      <div class="lockup" style="color:var(--ink)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z" fill="#6C5CE0"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" fill="#FF6B35"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" fill="#FF6B35"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z" fill="#6C5CE0"/></svg>
+        Soouls.
+      </div>
+    </div>
+    <div class="tile bg-ink" style="min-height:120px;">
+      <div class="lockup" style="color:var(--paper)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z" fill="#6C5CE0"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" fill="#FF6B35"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" fill="#FF6B35"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z" fill="#6C5CE0"/></svg>
+        Soouls.
+      </div>
+    </div>
+  </div>
+
+  <h2>03 — App icon (squircle) treatments</h2>
+  <div class="icon-grid">
+    <div class="icon-card">
+      <div class="icon icon-cream" style="color:var(--violet)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Cream · violet mark</small>
+    </div>
+    <div class="icon-card">
+      <div class="icon icon-ink" style="color:var(--paper)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Black · cream mark</small>
+    </div>
+    <div class="icon-card">
+      <div class="icon icon-violet" style="color:var(--paper)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Violet · cream mark</small>
+    </div>
+    <div class="icon-card">
+      <div class="icon icon-ember" style="color:var(--ink)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Ember · black mark</small>
+    </div>
+    <div class="icon-card">
+      <div class="icon icon-grad-ve" style="color:var(--paper)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Violet gradient</small>
+    </div>
+    <div class="icon-card">
+      <div class="icon icon-grad-eo" style="color:var(--ink)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Ember gradient</small>
+    </div>
+    <div class="icon-card">
+      <div class="icon icon-grad-mix" style="color:var(--paper)">
+        <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+      </div>
+      <small>Violet → ember, full brand</small>
+    </div>
+  </div>
+
+  <h2>04 — On a home screen</h2>
+  <div class="row" style="align-items:flex-start;">
+    <div class="phone">
+      <div class="phone-wall">
+        <div class="app-row">
+          <div class="icon icon-cream" style="color:var(--violet)">
+            <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+          </div>
+          <div class="icon icon-grad-mix" style="color:var(--paper)">
+            <svg viewBox="0 0 100 100"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z" style="opacity:.5"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>
+          </div>
+        </div>
+      </div>
+      <p class="home-caption">cream vs. brand-gradient, side by side</p>
+    </div>
+  </div>
+
+  <h2>05 — Files</h2>
+  <div class="dl-row">
+    <a class="dl" href="soouls-logomark.svg" download>soouls-logomark.svg (brand colors)</a>
+    <a class="dl" href="soouls-logomark-mono.svg" download>soouls-logomark-mono.svg (single color, use currentColor)</a>
+  </div>
+
+  <footer>Soouls · logo system v1 · violet #6C5CE0 · ember #FF6B35 · cream #F5F1E9 · ink #15131E</footer>
+</div>
+</body>
+</html>

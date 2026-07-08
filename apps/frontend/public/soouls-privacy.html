@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soouls — Privacy Policy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F1E9; --paper-2:#EFE9DC;
+    --ink:#15131E; --ink-soft:#6B6879; --ink-faint:#9C98A8;
+    --violet:#6C5CE0; --violet-pale:#E7E1FB;
+    --ember:#FF6B35;
+    --line:rgba(21,19,30,0.1); --line-2:rgba(21,19,30,0.18);
+    --serif:'Instrument Serif',serif; --sans:'Inter',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  html[data-theme="dark"]{
+    --paper:#100E1C; --paper-2:#1A1730;
+    --ink:#F5F1E9; --ink-soft:#B8B4C8; --ink-faint:#7A7690;
+    --line:rgba(245,241,233,0.1); --line-2:rgba(245,241,233,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;transition:background .4s ease, color .4s ease;}
+  a{color:var(--violet);text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 40px;}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:22px 0;background:rgba(245,241,233,0.7);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  html[data-theme="dark"] nav{background:rgba(16,14,28,0.7);}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;max-width:1180px;}
+  .logo{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ink);}
+  .logo .bfly path{fill:var(--ember);}
+  .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .theme-toggle svg{width:15px;height:15px;}
+  .theme-toggle .moon-icon{display:none;}
+  html[data-theme="dark"] .theme-toggle .sun-icon{display:none;}
+  html[data-theme="dark"] .theme-toggle .moon-icon{display:block;}
+
+  .page-head{padding:150px 0 40px;}
+  .page-head span{font-family:var(--mono);font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--violet);}
+  .page-head h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,4vw,48px);margin:14px 0 10px;}
+  .page-head p{color:var(--ink-faint);font-size:13px;}
+
+  .doc-layout{display:grid;grid-template-columns:220px 1fr;gap:56px;padding-bottom:100px;align-items:start;}
+  .doc-nav{position:sticky;top:100px;}
+  .doc-nav a{display:block;font-size:13px;color:var(--ink-faint);padding:7px 0;border-left:2px solid transparent;padding-left:12px;transition:color .2s ease, border-color .2s ease;}
+  .doc-nav a:hover{color:var(--ink);}
+  .doc-nav a.active{color:var(--violet);border-left-color:var(--violet);font-weight:600;}
+
+  .doc-body h2{font-family:var(--serif);font-weight:400;font-size:24px;margin:44px 0 14px;scroll-margin-top:100px;}
+  .doc-body h2:first-child{margin-top:0;}
+  .doc-body p{font-size:14.5px;line-height:1.8;color:var(--ink-soft);margin-bottom:16px;max-width:680px;}
+  .doc-body ul{margin:0 0 16px 20px;max-width:660px;}
+  .doc-body li{font-size:14.5px;line-height:1.8;color:var(--ink-soft);margin-bottom:6px;}
+  .doc-body strong{color:var(--ink);}
+  .callout{background:var(--paper-2);border-left:3px solid var(--violet);border-radius:10px;padding:16px 20px;margin:20px 0;max-width:660px;}
+  .callout p{margin-bottom:0;font-size:13.5px;}
+
+  @media(max-width:820px){.doc-layout{grid-template-columns:1fr;}.doc-nav{display:none;}}
+
+  footer{padding:40px 0;border-top:1px solid var(--line);text-align:center;font-size:12.5px;color:var(--ink-faint);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><svg class="bfly" viewBox="0 0 100 100" width="20" height="20"><path d="M50,50 C50,50 38,20 22,24 C6,28 8,52 50,50 Z"/><path d="M50,50 C50,50 62,20 78,24 C94,28 92,52 50,50 Z"/><path d="M50,50 C50,50 38,80 22,76 C6,72 8,48 50,50 Z"/><path d="M50,50 C50,50 62,80 78,76 C94,72 92,48 50,50 Z"/></svg>Soouls</div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-head">
+    <span>Legal</span>
+    <h1>Privacy Policy</h1>
+    <p>Last updated July 1, 2026 · Plain-language summaries in each callout box, full detail in the text.</p>
+  </div>
+
+  <div class="doc-layout">
+    <div class="doc-nav" id="docNav">
+      <a href="#what-we-collect">What we collect</a>
+      <a href="#how-we-use-it">How we use it</a>
+      <a href="#encryption">Encryption & storage</a>
+      <a href="#sharing">Sharing & third parties</a>
+      <a href="#ai-processing">AI & insight processing</a>
+      <a href="#your-rights">Your rights & controls</a>
+      <a href="#retention">Retention & deletion</a>
+      <a href="#children">Children's privacy</a>
+      <a href="#changes">Changes to this policy</a>
+      <a href="#contact">Contact us</a>
+    </div>
+
+    <div class="doc-body">
+      <h2 id="what-we-collect">What we collect</h2>
+      <div class="callout"><p>Short version: your entries, your account details, and basic usage data. Nothing more than we need to run the product.</p></div>
+      <p>When you create an account, we collect your email address, a display name if you choose to set one, and authentication data. When you use Soouls, we store the entries you write, record, or draw, along with metadata like timestamps and which capture method you used.</p>
+      <ul>
+        <li>Account information: email, display name, password hash (we never store your plaintext password)</li>
+        <li>Content you create: text entries, voice recordings, images, doodles, and tasks</li>
+        <li>Usage data: feature interactions, crash logs, and performance metrics, collected in aggregate</li>
+        <li>Device information: operating system and app version, used only for compatibility and support</li>
+      </ul>
+
+      <h2 id="how-we-use-it">How we use it</h2>
+      <p>We use your account information to operate your account and communicate with you about your subscription, security, and product updates you've opted into. We use your content strictly to power the features you've asked for: displaying your Spatial Canvas, generating your Sunday Review, and surfacing Thought Clusters.</p>
+      <p>We use aggregate, de-identified usage data to understand which features are helpful and which aren't — for example, knowing that voice capture is used heavily late at night helps us prioritize improvements there, without us ever reading what was said in any specific recording.</p>
+
+      <h2 id="encryption">Encryption & storage</h2>
+      <div class="callout"><p>Entries are encrypted at rest and in transit. We built the system so that even we can't casually browse your journal.</p></div>
+      <p>All entries are encrypted using industry-standard AES-256 encryption at rest, and TLS 1.3 in transit between your device and our servers. Access to production data is restricted to a small number of engineers under audit-logged, time-boxed access for the specific purpose of debugging a reported issue — never for browsing.</p>
+
+      <h2 id="sharing">Sharing & third parties</h2>
+      <p>We do not sell your personal data or your entries, under any circumstance, to anyone. We do not share your content with advertisers, and Soouls has no advertising product to sell it to. We use a small number of infrastructure vendors (cloud hosting, email delivery, payment processing) who process data strictly on our behalf under data processing agreements, and who are contractually barred from using it for their own purposes.</p>
+      <ul>
+        <li><strong>Cloud hosting:</strong> stores encrypted data; cannot read entry content</li>
+        <li><strong>Payment processor:</strong> receives billing information only, never journal content</li>
+        <li><strong>Email delivery:</strong> receives your email address only, for transactional messages</li>
+      </ul>
+
+      <h2 id="ai-processing">AI & insight processing</h2>
+      <div class="callout"><p>Your entries are never used to train any AI model — ours or anyone else's.</p></div>
+      <p>Sunday Review, Thought Clusters, and Emotional Insights are generated by processing your entries through language and pattern-recognition models to produce output shown only to you. This processing happens within our infrastructure under the same access restrictions as the rest of your data, and the output is never retained by any underlying model provider beyond the single request needed to generate your insight.</p>
+
+      <h2 id="your-rights">Your rights & controls</h2>
+      <p>From Settings → Data & Ownership, you can export a full copy of your entries in an open format at any time, and request permanent deletion of your account and all associated content. Deletion requests are processed within 30 days, including removal from backups.</p>
+      <p>Depending on where you live, you may have additional rights under laws like the GDPR or CCPA, including the right to object to certain processing and the right to lodge a complaint with a supervisory authority. Contact us using the details below to exercise any of these rights.</p>
+
+      <h2 id="retention">Retention & deletion</h2>
+      <p>We retain your content for as long as your account is active. If you delete your account, your content is removed from active systems within 30 days and from backup systems within 90 days. If you downgrade a paid plan rather than delete your account, your existing entries remain fully intact and exportable.</p>
+
+      <h2 id="children">Children's privacy</h2>
+      <p>Soouls is not directed at children under 16, and we do not knowingly collect data from anyone under that age. If you believe a child has created an account, contact us and we will remove it.</p>
+
+      <h2 id="changes">Changes to this policy</h2>
+      <p>If we make material changes to this policy, we'll notify you by email and display a notice in the app before the changes take effect. Continued use of Soouls after changes take effect constitutes acceptance of the revised policy.</p>
+
+      <h2 id="contact">Contact us</h2>
+      <p>Questions about this policy or your data can be sent to <a href="mailto:privacy@soouls.in">privacy@soouls.in</a>. We aim to respond within 5 business days.</p>
+    </div>
+  </div>
+</div>
+
+<footer>© 2026 Soouls. All thoughts remain yours.</footer>
+
+<script>
+var themeToggle = document.getElementById("themeToggle");
+if(themeToggle){
+  themeToggle.addEventListener("click", function(){
+    var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+    document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+}
+
+var sections = document.querySelectorAll(".doc-body h2");
+var navLinks = document.querySelectorAll("#docNav a");
+var sectionIo = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){
+      var id = entry.target.getAttribute("id");
+      navLinks.forEach(function(link){
+        link.classList.toggle("active", link.getAttribute("href") === "#" + id);
+      });
+    }
+  });
+}, {rootMargin: "-20% 0px -70% 0px"});
+sections.forEach(function(s){ sectionIo.observe(s); });
+</script>
+
+</body>
+</html>
