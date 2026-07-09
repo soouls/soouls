@@ -56,7 +56,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section ref={containerRef} className="relative pt-40 pb-20 px-6 w-full text-center z-10 min-h-screen flex flex-col justify-center items-center overflow-hidden">
+    <section ref={containerRef} className="relative pt-28 md:pt-40 pb-20 px-6 w-full text-center z-10 min-h-screen flex flex-col justify-center items-center overflow-hidden">
       
       {/* Background Mindmap Canvas */}
       <MindMapCanvas />
@@ -151,6 +151,11 @@ export default function HeroSection() {
         .hero-stat { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--ink-soft); }
         .hero-stat strong { font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--ink); font-weight: 500; }
         .hero-stat-divider { width: 1px; height: 24px; background: var(--line); }
+
+        @media (max-width: 640px) {
+          .hero-stats-bar { flex-direction: column; gap: 16px; border-radius: 24px; padding: 24px; }
+          .hero-stat-divider { width: 100%; height: 1px; }
+        }
       `}</style>
 
       {/* Decorative floating shapes */}
@@ -210,7 +215,7 @@ export default function HeroSection() {
       <div className="hero-inner max-w-4xl relative z-10 flex flex-col items-center">
         <div className="hero-pill"><span className="dot"></span> Private · Non-linear · Yours</div>
         
-        <h1 className="hero-title font-fraunces text-6xl md:text-[5.5rem] font-light tracking-tight mb-2 text-[var(--soouls-text-strong)] leading-[1.08]">
+        <h1 className="hero-title font-fraunces text-5xl sm:text-6xl md:text-[5.5rem] font-light tracking-tight mb-2 text-[var(--soouls-text-strong)] leading-[1.08]">
           <span className="hero-line-1 inline-block">Your thoughts,</span><br />
           <span className="hero-line-2 inline-block"><em>finally on a map.</em></span>
         </h1>

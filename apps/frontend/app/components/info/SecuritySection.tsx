@@ -63,7 +63,7 @@ export default function SecuritySection() {
             return (
               <div
                 key={item.title}
-                className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-3xl md:rounded-[2.5rem] p-10 transition-all duration-700 hover:bg-white hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 reveal overflow-hidden"
+                className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 transition-all duration-700 hover:bg-white hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 reveal overflow-hidden"
                 style={{ transitionDelay: `${(idx % 3) * 150}ms` }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07A5F]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
@@ -82,7 +82,7 @@ export default function SecuritySection() {
 
         {/* We don't monetize your mind */}
         <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '300ms' }}>
-          <div className="relative p-8 sm:p-12 md:p-24 rounded-3xl md:rounded-[2.5rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 flex flex-col items-center text-center overflow-hidden shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
+          <div className="relative p-8 sm:p-12 md:p-24 rounded-[2rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 flex flex-col items-center text-center overflow-hidden shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
             
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E07A5F]/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-1000" />
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[var(--soouls-accent)]/10 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-1000" />

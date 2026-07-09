@@ -97,7 +97,7 @@ export default function FeaturesSection() {
 
         {/* Massive Interactive CTA Block */}
         <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '300ms' }}>
-          <div className="relative bg-gradient-to-br from-[var(--ink)] to-[#2a251e] border border-[#e3dbcd]/20 shadow-[0_20px_60px_rgba(22,19,15,0.3)] rounded-3xl md:rounded-[2.5rem] md:rounded-[4rem] p-8 sm:p-12 md:p-24 overflow-hidden group">
+          <div className="relative bg-gradient-to-br from-[var(--ink)] to-[#2a251e] border border-[#e3dbcd]/20 shadow-[0_20px_60px_rgba(22,19,15,0.3)] rounded-[2rem] md:rounded-[4rem] p-8 sm:p-12 md:p-24 overflow-hidden group">
             
             {/* Ambient glows inside dark card */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--soouls-accent)]/20 rounded-full blur-[100px] opacity-50 group-hover:opacity-80 group-hover:scale-110 transition-all duration-1000 pointer-events-none" />

@@ -286,9 +286,15 @@ export function FeatureShowcaseSection() {
 
         @media(max-width: 900px) {
           .showcase { grid-template-columns: 1fr; }
-          .show-list { flex-direction: row; overflow-x: auto; padding-bottom: 6px; }
+          .show-list { flex-direction: row; overflow-x: auto; padding-bottom: 6px; -ms-overflow-style: none; scrollbar-width: none; }
+          .show-list::-webkit-scrollbar { display: none; }
           .show-tab { min-width: 200px; flex-shrink: 0; }
           .show-stage { min-height: 400px; }
+        }
+        @media(max-width: 600px) {
+          .pmock { padding: 20px 16px; }
+          .pcap { font-size: 0.95rem; }
+          .pane { padding: 24px 16px; }
         }
       `}</style>
       

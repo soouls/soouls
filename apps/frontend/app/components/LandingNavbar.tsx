@@ -2,12 +2,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ButterflyLogo } from './ButterflyLogo';
-import PricingContent from './PricingContent';
 
 const navLinks = [
   { href: '#features', label: 'Features' },
   { href: '#how', label: 'How it works' },
-  { action: 'pricing', label: 'Pricing' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '#testimonials', label: 'Testimonials' },
 ];
 
@@ -16,7 +15,6 @@ export default function LandingNavbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [activeSection, setActiveSection] = useState('');
-  const [isPricingOpen, setIsPricingOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,15 +43,6 @@ export default function LandingNavbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Lock body scroll when pricing modal is open
-  useEffect(() => {
-    if (isPricingOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-  }, [isPricingOpen]);
-
   const handleNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     if (href.startsWith('#')) {
@@ -80,22 +69,11 @@ export default function LandingNavbar() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link href="/" className="group flex items-center gap-2 text-[var(--soouls-accent)] hover:opacity-80 transition-opacity">
             <ButterflyLogo className="w-5 h-5 transition-transform duration-500 group-hover:rotate-[360deg] group-hover:scale-110" />
-            <span className="font-playfair text-2xl text-[var(--soouls-text-strong)] italic">{isScrolled ? 'S' : 'Soouls'}</span>
+            <span className="font-playfair text-2xl text-[var(--soouls-text-strong)] italic">Soouls</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[var(--soouls-text-muted)]">
             {navLinks.map((link, i) => {
-              if (link.action === 'pricing') {
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setIsPricingOpen(true)}
-                    className="hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block"
-                  >
-                    {link.label}
-                  </button>
-                );
-              }
               return (
                 <a
                   key={link.href}
@@ -118,7 +96,7 @@ export default function LandingNavbar() {
 
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link href="/sign-in" className="text-[var(--soouls-text-strong)] hover:text-[#d98a4b] hover:scale-105 transform transition-all duration-300 origin-left inline-block">Log in</Link>
-            <Link href="/sign-up" className={`text-[var(--soouls-bg)] px-6 py-2.5 rounded-full hover:scale-105 transition-all duration-300 shadow-sm ${
+            <Link href="/sign-up" className={`text-[var(--soouls-bg)] text-sm md:text-base px-4 py-2 md:px-6 md:py-2.5 rounded-full hover:scale-105 transition-all duration-300 shadow-sm ${
               isScrolled 
                 ? 'bg-[#d98a4b] hover:shadow-[0_8px_30px_rgba(217,138,75,0.3)]' 
                 : 'bg-[var(--soouls-text-strong)]'
@@ -126,24 +104,6 @@ export default function LandingNavbar() {
           </div>
         </div>
       </header>
-
-      {/* Pricing Modal Overlay */}
-      {isPricingOpen && (
-        <div className="fixed inset-0 z-[100] bg-[var(--soouls-bg)] overflow-y-auto w-full h-full animate-in fade-in zoom-in-95 duration-300">
-          <button 
-            onClick={() => setIsPricingOpen(false)}
-            className="fixed top-8 right-8 z-[110] w-12 h-12 bg-white/50 backdrop-blur-md hover:bg-white rounded-full flex items-center justify-center border border-[var(--line)] shadow-sm transition-all hover:scale-110 hover:rotate-90 duration-300"
-            aria-label="Close pricing"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <div className="min-h-screen">
-            <PricingContent />
-          </div>
-        </div>
-      )}
     </>
   );
 }
