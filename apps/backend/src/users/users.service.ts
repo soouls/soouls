@@ -23,6 +23,9 @@ export class UsersService {
       .limit(1);
 
     if (existingUser) {
+      void this.messagingService.syncSignupContact(existingUser.id).catch((err) => {
+        console.error('[Users] Resend contact sync background failure:', err);
+      });
       return existingUser.id;
     }
 
@@ -104,9 +107,9 @@ export class UsersService {
       }
     }
 
-    // 5. Welcome sequence should not block user creation
-    void this.messagingService.sendWelcomeSequence(newUser.id).catch((err) => {
-      console.error('[Users] Welcome sequence background failure:', err);
+    // 5. Resend owns the welcome flow. Sync the contact now; fire the automation after onboarding.
+    void this.messagingService.syncSignupContact(newUser.id).catch((err) => {
+      console.error('[Users] Resend contact sync failure:', err);
     });
 
     // 6. Try to sync phone number from Google if it was missing
@@ -133,6 +136,7 @@ export class UsersService {
     },
   ): Promise<void> {
     let updateData = data;
+    let completedOnboardingNow = false;
 
     if (data.preferences) {
       const [currentUser] = await db
@@ -141,10 +145,15 @@ export class UsersService {
         .where(eq(users.id, userId))
         .limit(1);
 
+      const currentPreferences = (currentUser?.preferences as Record<string, unknown> | null) ?? {};
+      completedOnboardingNow =
+        data.preferences.onboardingCompleted === true &&
+        currentPreferences.onboardingCompleted !== true;
+
       updateData = {
         ...data,
         preferences: {
-          ...((currentUser?.preferences as Record<string, unknown> | null) ?? {}),
+          ...currentPreferences,
           ...data.preferences,
         },
       };
@@ -157,5 +166,13 @@ export class UsersService {
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+
+    if (completedOnboardingNow) {
+      void this.messagingService
+        .syncSignupContact(userId, { triggerSignupEvent: true })
+        .catch((err) => {
+          console.error('[Users] Resend onboarding completion automation failure:', err);
+        });
+    }
   }
 }

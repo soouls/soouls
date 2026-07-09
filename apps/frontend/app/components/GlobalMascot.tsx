@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type MascotEmotion, OrbiMascotBase } from './OrbiMascotBase';
 
-const MESSAGES: Record<MascotEmotion, string[]> = {
+const MESSAGES: Partial<Record<MascotEmotion, string[]>> = {
   neutral: [
     'I am here.',
     'The silence is clear.',
@@ -32,6 +32,19 @@ const MESSAGES: Record<MascotEmotion, string[]> = {
   writing: ['Capture the essence.', 'Pure flow.', 'The light records.', 'No static, only truth.'],
   focused: ['Aligned.', 'Sensing the deep patterns.', 'Steady resonance.', 'The path is clear.'],
   spectral: ['Transcendence.', 'The map is clear.', 'We are connected.', 'Echoes of the absolute.'],
+  excited: ['I am awake.', 'Signal rising.', 'Let us go.', 'The room is lit.'],
+  playful: ['Tap accepted.', 'Tiny orbit.', 'I can move.', 'Try dragging me.'],
+  celebrating: ['First spark saved.', 'That counted.', 'A beginning.', 'We started.'],
+  listening: ['I hear the shape of it.', 'Still here.', 'Go on.', 'Holding the thread.'],
+  idea: ['There it is.', 'A little light.', 'Catch that.', 'That thought has edges.'],
+  working: [
+    'Building the map.',
+    'Following the current.',
+    'Threading it together.',
+    'Still with you.',
+  ],
+  floating: ['Drifting nearby.', 'Soft orbit.', 'No rush.', 'I will hover here.'],
+  waving: ['Hello again.', 'Found you.', 'Back in range.', 'Here.'],
 };
 
 export function GlobalMascot() {
@@ -40,14 +53,13 @@ export function GlobalMascot() {
 
   const [emotion, setEmotion] = useState<MascotEmotion>('neutral');
   const [message, setMessage] = useState<string | undefined>();
-  const [isRoaming, setIsRoaming] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [blink, setBlink] = useState(false);
   const [hasAwakened, setHasAwakened] = useState(false);
+  const [awakenedDuringOnboarding, setAwakenedDuringOnboarding] = useState(false);
+  const [arrivalPulse, setArrivalPulse] = useState(false);
 
-  const lastActivityRef = useRef(Date.now());
-  const roamIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const eyeDartIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,7 +80,7 @@ export function GlobalMascot() {
       if (text) {
         setMessage(text);
       } else {
-        const possible = MESSAGES[emotion];
+        const possible = MESSAGES[emotion] ?? MESSAGES.neutral ?? ['I am here.'];
         setMessage(possible[Math.floor(Math.random() * possible.length)]);
       }
 
@@ -81,43 +93,41 @@ export function GlobalMascot() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    setHasAwakened(window.localStorage.getItem('soouls-orbi-awake') === 'true');
+    const syncAwake = (event?: Event) => {
+      const awakened = window.localStorage.getItem('soouls-orbi-awake') === 'true';
+      setHasAwakened(awakened);
+      if (event?.type === 'soouls-orbi-awake') {
+        setAwakenedDuringOnboarding(true);
+      }
+      if (awakened) {
+        setArrivalPulse(true);
+        setEmotion('waving');
+        if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+        setMessage('I am awake.');
+        messageTimeoutRef.current = setTimeout(() => {
+          setMessage(undefined);
+        }, 3600);
+        setTimeout(() => setArrivalPulse(false), 1800);
+      }
+    };
+
+    syncAwake();
+    window.addEventListener('storage', syncAwake);
+    window.addEventListener('soouls-orbi-awake', syncAwake);
+    return () => {
+      window.removeEventListener('storage', syncAwake);
+      window.removeEventListener('soouls-orbi-awake', syncAwake);
+    };
   }, []);
 
-  const updatePosition = useCallback(() => {
-    if (!isRoaming) {
-      setPosition({ x: 0, y: 0 });
-      return;
+  useEffect(() => {
+    if (pathname === '/onboarding') {
+      setAwakenedDuringOnboarding(false);
     }
-
-    const padding = 150;
-    const maxX = window.innerWidth - padding * 2;
-    const maxY = window.innerHeight - padding * 2;
-
-    const targetX = Math.random() * maxX - (window.innerWidth - padding);
-    const targetY = Math.random() * maxY - (window.innerHeight - padding);
-
-    setPosition({ x: targetX, y: targetY });
-
-    const emotions: MascotEmotion[] = ['happy', 'curious', 'neutral', 'thinking', 'spectral'];
-    const nextEmotion = emotions[Math.floor(Math.random() * emotions.length)] ?? 'neutral';
-    setEmotion(nextEmotion);
-
-    // Occasionally speak while roaming
-    if (Math.random() > 0.6) showMessage();
-  }, [isRoaming, showMessage]);
+  }, [pathname]);
 
   useEffect(() => {
     const handleActivity = (e?: MouseEvent | KeyboardEvent | TouchEvent) => {
-      lastActivityRef.current = Date.now();
-
-      if (isRoaming) {
-        setIsRoaming(false);
-        setEmotion('surprised');
-        showMessage("Oh! You're back!");
-        setTimeout(() => setEmotion('happy'), 1000);
-      }
-
       if (e instanceof MouseEvent) {
         const normalizedX = (e.clientX / window.innerWidth) * 2 - 1;
         const normalizedY = (e.clientY / window.innerHeight) * 2 - 1;
@@ -137,28 +147,8 @@ export function GlobalMascot() {
       }
     };
 
-    const checkState = () => {
-      const now = Date.now();
-      const idleTime = now - lastActivityRef.current;
-      const hour = new Date().getHours();
-      const isNight = hour >= 22 || hour <= 6;
-
-      if (idleTime > 120000 && !isRoaming) {
-        setIsRoaming(true);
-        setEmotion('bored');
-      } else if (idleTime > 30000 && !isRoaming) {
-        setEmotion(isNight ? 'sleepy' : 'bored');
-        if (Math.random() > 0.7) showMessage();
-      } else if (isNight && idleTime > 10000 && !isRoaming) {
-        setEmotion('sleepy');
-      }
-    };
-
-    const idleInterval = setInterval(checkState, 5000);
-
     eyeDartIntervalRef.current = setInterval(() => {
-      const idleTime = Date.now() - lastActivityRef.current;
-      if (idleTime > 5000 && !isHovered) {
+      if (!isHovered) {
         mouseX.set((Math.random() - 0.5) * 15);
         mouseY.set((Math.random() - 0.5) * 15);
       }
@@ -170,26 +160,13 @@ export function GlobalMascot() {
     window.addEventListener('touchstart', handleActivity);
 
     return () => {
-      clearInterval(idleInterval);
       if (eyeDartIntervalRef.current) clearInterval(eyeDartIntervalRef.current);
       window.removeEventListener('mousemove', handleActivity);
       window.removeEventListener('keypress', handleActivity);
       window.removeEventListener('click', handleActivity);
       window.removeEventListener('touchstart', handleActivity);
     };
-  }, [isRoaming, mouseX, mouseY, isHovered, showMessage]);
-
-  useEffect(() => {
-    if (isRoaming) {
-      updatePosition();
-      roamIntervalRef.current = setInterval(updatePosition, 10000);
-    } else if (pathname !== '/onboarding') {
-      if (roamIntervalRef.current) clearInterval(roamIntervalRef.current);
-    }
-    return () => {
-      if (roamIntervalRef.current) clearInterval(roamIntervalRef.current);
-    };
-  }, [isRoaming, updatePosition, pathname]);
+  }, [mouseX, mouseY, isHovered, showMessage]);
 
   useEffect(() => {
     const blinkCycle = () => {
@@ -206,11 +183,15 @@ export function GlobalMascot() {
   const isAuthPage = pathname?.startsWith('/sign-in') || pathname?.startsWith('/sign-up');
   const isLandingPage = pathname === '/';
 
-  if (!isLoaded || !isSignedIn || isAuthPage || isLandingPage || pathname === '/onboarding') {
+  if (!isLoaded || !isSignedIn || isAuthPage || isLandingPage) {
     return null;
   }
 
   if (!hasAwakened) {
+    return null;
+  }
+
+  if (pathname === '/onboarding' && !awakenedDuringOnboarding) {
     return null;
   }
 
@@ -219,39 +200,39 @@ export function GlobalMascot() {
       drag
       dragMomentum={false}
       dragElastic={0}
-      onDragStart={() => setIsRoaming(false)}
       onDragEnd={(_e, info) => {
         setPosition((prev) => ({
           x: prev.x + info.offset.x,
           y: prev.y + info.offset.y,
         }));
       }}
-      className="fixed bottom-3 left-1/2 z-[9999] pointer-events-auto cursor-pointer"
-      style={{ marginLeft: -96 }}
-      initial={{ opacity: 0, scale: 0.5 }}
+      className="fixed bottom-5 right-5 z-[9999] pointer-events-auto cursor-grab active:cursor-grabbing"
+      initial={{ opacity: 0, scale: 0.28, y: 28, filter: 'brightness(1.8)' }}
       animate={{
         opacity: 1,
-        scale: isRoaming ? 0.72 : 0.62,
+        scale: arrivalPulse ? [0.42, 0.82, 0.64] : 0.6,
         x: position.x,
         y: position.y,
-        rotate: isRoaming ? [0, -5, 5, 0] : 0,
+        rotate: arrivalPulse ? [0, -10, 8, 0] : 0,
+        filter: arrivalPulse
+          ? [
+              'brightness(1.8) drop-shadow(0 0 38px rgba(238,122,97,.75))',
+              'brightness(1.2) drop-shadow(0 0 18px rgba(238,122,97,.42))',
+            ]
+          : 'brightness(1)',
       }}
       exit={{ opacity: 0, scale: 0.5 }}
       transition={{
         type: 'spring',
         damping: 35,
         stiffness: 40,
-        x: isRoaming
-          ? { duration: 5, ease: 'easeInOut' }
-          : { type: 'spring', damping: 30, stiffness: 300 },
-        y: isRoaming
-          ? { duration: 5, ease: 'easeInOut' }
-          : { type: 'spring', damping: 30, stiffness: 300 },
-        scale: { type: 'spring', stiffness: 200, damping: 20 },
+        x: { type: 'spring', damping: 30, stiffness: 300 },
+        y: { type: 'spring', damping: 30, stiffness: 300 },
+        scale: { type: 'spring', stiffness: 220, damping: 18 },
       }}
       onHoverStart={() => {
         setIsHovered(true);
-        setEmotion('happy');
+        setEmotion('playful');
         showMessage();
       }}
       onHoverEnd={() => {
@@ -259,7 +240,15 @@ export function GlobalMascot() {
         setEmotion('neutral');
       }}
       onClick={() => {
-        const nextEmotions: MascotEmotion[] = ['happy', 'surprised', 'curious', 'spectral'];
+        const nextEmotions: MascotEmotion[] = [
+          'happy',
+          'surprised',
+          'curious',
+          'spectral',
+          'celebrating',
+          'idea',
+          'waving',
+        ];
         const next = nextEmotions[Math.floor(Math.random() * nextEmotions.length)] ?? 'happy';
         setEmotion(next);
         showMessage();
@@ -267,6 +256,24 @@ export function GlobalMascot() {
         setTimeout(() => setPosition((prev) => ({ ...prev, y: prev.y + 30 })), 250);
       }}
     >
+      <motion.div
+        className="pointer-events-none absolute inset-8 rounded-full border border-white/10"
+        animate={{
+          scale: arrivalPulse ? [0.6, 1.35, 0.95] : [0.9, 1.08, 0.9],
+          opacity: arrivalPulse ? [0, 0.72, 0] : [0.16, 0.34, 0.16],
+        }}
+        transition={{ duration: arrivalPulse ? 1.1 : 3, repeat: Number.POSITIVE_INFINITY }}
+      />
+      <motion.div
+        className="pointer-events-none absolute left-12 top-10 h-2 w-2 rounded-full bg-white"
+        animate={{
+          opacity: [0, 0.9, 0.15, 0.7, 0],
+          x: [0, 12, -4, 20, 0],
+          y: [0, -18, -30, -46, -58],
+          scale: [0.5, 1, 0.7, 1.2, 0.2],
+        }}
+        transition={{ duration: 2.4, repeat: Number.POSITIVE_INFINITY, repeatDelay: 1.2 }}
+      />
       <OrbiMascotBase
         emotion={emotion}
         isHovered={isHovered}
@@ -275,29 +282,6 @@ export function GlobalMascot() {
         blink={blink}
         message={message}
       />
-
-      <AnimatePresence>
-        {emotion === 'sleepy' && !isRoaming && !message && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0, y: 0 }}
-            animate={{ opacity: 1, scale: 1, y: -50, x: 30 }}
-            exit={{ opacity: 0, scale: 0 }}
-            className="absolute top-0 right-0 text-2xl font-bold text-white/40 pointer-events-none select-none italic"
-          >
-            <motion.span
-              animate={{
-                opacity: [0.2, 0.6, 0.2],
-                scale: [0.8, 1.2, 0.8],
-                y: [0, -20, -40],
-                x: [0, 10, 20],
-              }}
-              transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
-            >
-              Fading...
-            </motion.span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

@@ -6,6 +6,7 @@ import { ArrowLeft, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { FaApple } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { SymbolLogo } from '../../components/SymbolLogo';
 
@@ -17,15 +18,6 @@ function getClerkErrorMessage(error: unknown, fallback: string) {
     return clerkError.errors?.[0]?.message || fallback;
   }
   return fallback;
-}
-
-function AppleLogo(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <title>Apple Logo</title>
-      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.75.8-.01 1.94-.8 3.55-.63 2.18.12 3.86 1.15 4.7 2.65-4.52 2.71-3.79 8.78.7 10.5-.83 2.09-2.05 4.2-4.03 4.2h-.03zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.23 2.5-2.12 4.41-3.74 4.25z" />
-    </svg>
-  );
 }
 
 export default function SignUpPage() {
@@ -41,6 +33,7 @@ export default function SignUpPage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -86,22 +79,30 @@ export default function SignUpPage() {
     }
   };
 
-  const handleSocialSignUp = (strategy: 'oauth_google' | 'oauth_apple') => {
+  const handleSocialSignUp = async (strategy: 'oauth_google' | 'oauth_apple') => {
     if (!isLoaded || !signUp) return;
-    signUp.authenticateWithRedirect({
-      strategy,
-      redirectUrl: '/sso-callback',
-      redirectUrlComplete: '/onboarding',
-    });
+    setError('');
+    setSocialLoading(strategy === 'oauth_google' ? 'google' : 'apple');
+
+    try {
+      await signUp.authenticateWithRedirect({
+        strategy,
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: '/onboarding',
+      });
+    } catch (err) {
+      setSocialLoading(null);
+      setError(getClerkErrorMessage(err, 'Could not start social sign up.'));
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0707] flex items-center justify-center font-sans p-4 overflow-hidden relative selection:bg-[#E07A5F]/30 selection:text-white">
+    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-x-hidden overflow-y-auto bg-[#0A0707] px-4 py-24 font-sans selection:bg-[#E07A5F]/30 selection:text-white sm:px-6 lg:px-8">
       <StarBackground />
 
       <Link
         href="/"
-        className="absolute top-8 left-8 sm:top-12 sm:left-12 z-20 flex items-center gap-2.5 group"
+        className="absolute top-5 left-5 z-20 flex items-center gap-2.5 group sm:top-8 sm:left-8 lg:top-12 lg:left-12"
       >
         <SymbolLogo
           variant="solid"
@@ -118,7 +119,7 @@ export default function SignUpPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="z-10 w-full max-w-[440px] bg-[#120D0D]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[36px] p-8 md:p-10 shadow-[0_50px_100px_rgba(0,0,0,0.85)]"
+            className="z-10 w-full max-w-[440px] rounded-[28px] border border-white/[0.08] bg-[#120D0D]/80 p-6 shadow-[0_50px_100px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:rounded-[36px] sm:p-8 md:p-10"
           >
             <button
               type="button"
@@ -158,17 +159,17 @@ export default function SignUpPage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.4 }}
-            className="z-10 w-full max-w-[440px] bg-[#120D0D]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[40px] p-10 md:p-12 shadow-[0_50px_120px_rgba(0,0,0,0.85)] relative"
+            className="relative z-10 w-full max-w-[440px] rounded-[28px] border border-white/[0.08] bg-[#120D0D]/80 p-6 shadow-[0_50px_120px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:rounded-[40px] sm:p-10 md:p-12"
           >
-            <div className="absolute top-10 right-10">
+            <div className="absolute top-6 right-6 sm:top-10 sm:right-10">
               <SymbolLogo
                 className="w-10 h-10 text-[#E07A5F] animate-pulse"
                 style={{ animationDuration: '3s' }}
               />
             </div>
 
-            <div className="mb-10">
-              <h2 className="text-4xl font-medium text-[#EFEBDD] leading-none tracking-tight">
+            <div className="mb-8 sm:mb-10">
+              <h2 className="text-[clamp(2.25rem,9vw,2.75rem)] font-medium text-[#EFEBDD] leading-none tracking-tight">
                 Begin Your
                 <br />
                 <span className="font-playfair italic font-normal text-[#E07A5F] mt-1 inline-block">
@@ -254,20 +255,26 @@ export default function SignUpPage() {
               </span>
             </div>
 
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
               <button
                 type="button"
                 onClick={() => handleSocialSignUp('oauth_google')}
-                className="flex-1 bg-white/[0.02] border border-white/[0.08] py-4 rounded-2xl flex items-center justify-center hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                disabled={Boolean(socialLoading) || isLoading}
+                aria-label="Continue with Google"
+                className="inline-flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/62 transition-all duration-300 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FcGoogle className="w-6 h-6" />
+                <span className="sm:hidden">Google</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleSocialSignUp('oauth_apple')}
-                className="flex-1 bg-white/[0.02] border border-white/[0.08] py-4 rounded-2xl flex items-center justify-center hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                disabled={Boolean(socialLoading) || isLoading}
+                aria-label="Continue with Apple"
+                className="inline-flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/62 transition-all duration-300 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <AppleLogo className="w-6 h-6 text-white" />
+                <FaApple aria-hidden="true" className="h-6 w-6 text-white" />
+                <span className="sm:hidden">Apple</span>
               </button>
             </div>
 
