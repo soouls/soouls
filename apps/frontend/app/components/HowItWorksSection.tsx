@@ -37,7 +37,8 @@ export function HowItWorksSection() {
   return (
     <>
       <style>{`
-        .hw-section { padding: 140px 0; background: transparent; overflow: hidden; }
+        .hw-section { padding: 80px 0; background: transparent; overflow: hidden; }
+        @media(min-width: 768px) { .hw-section { padding: 140px 0; } }
         .hw-header { margin-bottom: 70px; font-family: 'Fraunces', serif; font-size: 2.5rem; font-weight: 300; color: var(--ink); letter-spacing: -0.02em; }
         .hw-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; position: relative; }
         
@@ -104,6 +105,7 @@ export function HowItWorksSection() {
         @media(max-width: 600px) {
           .hw-grid { grid-template-columns: 1fr; }
           .hw-arrow-container { display: none; }
+          .hw-header { font-size: 2rem; margin-bottom: 40px; }
         }
       `}</style>
 

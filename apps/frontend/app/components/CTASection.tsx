@@ -1,13 +1,13 @@
 export default function CTASection() {
   return (
     <section className="py-24 px-6 relative z-10 flex justify-center">
-      <div className="bg-[#e6e2f8] relative overflow-hidden w-full max-w-6xl rounded-[3rem] py-28 px-8 flex flex-col items-center text-center shadow-sm">
+      <div className="bg-[#e6e2f8] relative overflow-hidden w-full max-w-6xl rounded-[2rem] md:rounded-[3rem] py-16 px-6 md:py-28 md:px-8 flex flex-col items-center text-center shadow-sm">
         {/* Peach gradient blur */}
         <div className="absolute -top-20 -right-20 w-[400px] h-[400px] bg-[#fde1d3] rounded-full blur-[80px] opacity-80 pointer-events-none" />
         
         <span className="text-[#6450d6] text-[10px] font-bold tracking-[0.2em] uppercase mb-8 z-10">Start Now</span>
         
-        <h2 className="text-4xl md:text-6xl font-bold text-[#16130f] max-w-3xl leading-[1.1] mb-6 tracking-tight z-10">
+        <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold text-[#16130f] max-w-3xl leading-[1.1] mb-6 tracking-tight z-10">
           Your mind has been waiting for a page that <em className="font-playfair font-normal italic text-[#6450d6]">moves</em> like it does
         </h2>
         
@@ -42,7 +42,7 @@ export default function CTASection() {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 mb-16 z-10">
+        <div className="flex flex-col w-full sm:w-auto sm:flex-row gap-4 mb-16 z-10 px-4 sm:px-0">
           <button className="bg-[#16130f] text-[#f7f3ec] px-8 py-4 rounded-full font-medium hover:scale-105 transition-transform shadow-md">
             Start your first entry
           </button>

@@ -6,7 +6,7 @@ import { ArrowRight, Twitter, Instagram, Linkedin, Mail } from 'lucide-react';
 
 export default function FooterSection() {
   return (
-    <footer className="relative z-10 w-full overflow-hidden bg-gradient-to-b from-transparent to-[#fdfaf6]/80 pt-32 pb-8 border-t border-[var(--line)]">
+    <footer className="relative z-10 w-full overflow-hidden bg-gradient-to-b from-transparent to-[#fdfaf6]/80 pt-20 md:pt-32 pb-8 border-t border-[var(--line)]">
       {/* Animated Ambient Glow inside Footer */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-[var(--soouls-accent)]/5 rounded-[100%] blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#E07A5F]/10 rounded-full blur-[100px] pointer-events-none" />
@@ -24,8 +24,8 @@ export default function FooterSection() {
               A private space for your quietest thoughts. Join thousands of souls exploring their minds.
             </p>
           </div>
-          <button className="group relative px-8 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase overflow-hidden shadow-[0_10px_30px_rgba(22,19,15,0.15)] transition-transform hover:scale-105 duration-300">
-            <span className="relative z-10 flex items-center gap-2">
+          <button className="group relative px-8 py-4 w-full md:w-auto bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase overflow-hidden shadow-[0_10px_30px_rgba(22,19,15,0.15)] transition-transform hover:scale-105 duration-300">
+            <span className="relative z-10 flex items-center justify-center gap-2">
               Start free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-[var(--soouls-accent)] to-[#E07A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

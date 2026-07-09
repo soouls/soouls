@@ -109,7 +109,8 @@ export function PrivacySection() {
   return (
     <>
       <style>{`
-        .priv-section { padding: 140px 0; background: transparent; overflow: hidden; position: relative; }
+        .priv-section { padding: 80px 0; background: transparent; overflow: hidden; position: relative; }
+        @media(min-width: 768px) { .priv-section { padding: 140px 0; } }
         
         .priv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 0 32px; }
         
@@ -156,6 +157,10 @@ export function PrivacySection() {
 
         @media(max-width: 900px) {
           .priv-grid { grid-template-columns: 1fr; gap: 60px; }
+        }
+        @media(max-width: 600px) {
+          .vault-card { padding: 40px 24px; }
+          .priv-stats { flex-direction: column; gap: 12px; }
         }
       `}</style>
 

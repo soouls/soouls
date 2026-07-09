@@ -14,6 +14,10 @@ export function ManifestoSection() {
         .lp { font-family: 'Fraunces', serif; font-size: 1.12rem; line-height: 1.9; color: var(--ink-soft); margin-bottom: 18px; }
         .dropcap { float: left; font-size: 3.2rem; line-height: .9; padding: 6px 10px 0 0; color: var(--amber); font-style: italic; }
         .sig { font-family: 'Fraunces', serif; font-style: italic; text-align: right; color: var(--ink); font-size: 1.05rem; margin-top: 8px; }
+        @media(max-width: 600px) {
+          .letter { padding: 32px 24px; transform: none; border-radius: 16px; }
+          .letter:hover { transform: translateY(-4px); }
+        }
       `}</style>
 
       <section className="block" id="manifesto">
