@@ -410,6 +410,8 @@ export type OnboardingStatus = {
   completed: boolean;
   isWaitlistUser: boolean;
   message: string | null;
+  planType: string | null;
+  subscriptionStatus: string | null;
 };
 
 export type AccountExport = {

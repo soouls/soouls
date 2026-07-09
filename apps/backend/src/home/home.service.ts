@@ -53,6 +53,8 @@ type UserRow = {
   marketingEmailOptIn: boolean;
   transactionalEmailOptIn: boolean;
   isWaitlistUser: boolean;
+  planType: string | null;
+  subscriptionStatus: string | null;
 };
 
 const formatRelativeUpdatedAt = (date: Date): string => {
@@ -96,6 +98,8 @@ export class HomeService implements HomeApi {
         marketingEmailOptIn: users.marketingEmailOptIn,
         transactionalEmailOptIn: users.transactionalEmailOptIn,
         isWaitlistUser: users.isWaitlistUser,
+        planType: users.planType,
+        subscriptionStatus: users.subscriptionStatus,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -497,6 +501,8 @@ export class HomeService implements HomeApi {
       message: user.isWaitlistUser
         ? 'You are always special to us. You are a waitlist member. Thank you.'
         : null,
+      planType: user.planType,
+      subscriptionStatus: user.subscriptionStatus,
     };
   }
 
