@@ -1,7 +1,7 @@
 import { createClerkClient } from '@clerk/backend';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { and, db, eq, sql } from '@soouls/database/client';
+import { and, db, eq, or, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
 import { RedisService } from '../redis/redis.service';
 
@@ -119,8 +119,8 @@ export class TasksService {
     try {
       console.log('[Scheduler] Running daily trial expiry email check...');
 
-      // Find users whose trial ended exactly yesterday/today. 
-      // Assuming a 14-day trial starts from createdAt. 
+      // Find users whose trial ended exactly yesterday/today.
+      // Assuming a 14-day trial starts from createdAt.
       // So createdAt is between 14 and 15 days ago.
       const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
@@ -132,8 +132,8 @@ export class TasksService {
           and(
             sql`${users.createdAt} >= ${fifteenDaysAgo}`,
             sql`${users.createdAt} < ${fourteenDaysAgo}`,
-            or(eq(users.planType, 'free'), sql`${users.planType} IS NULL`)
-          )
+            or(eq(users.planType, 'free'), sql`${users.planType} IS NULL`),
+          ),
         );
 
       if (expiringUsers.length === 0) {
@@ -149,7 +149,7 @@ export class TasksService {
 
       for (const u of expiringUsers) {
         if (!u.email) continue;
-        
+
         try {
           await resend.emails.send({
             from: 'Soouls <hello@soouls.com>',
