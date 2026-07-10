@@ -1,9 +1,8 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
-import { db } from '@soouls/database/client';
-import { users, subscriptions, razorpayWebhooks, payments } from '@soouls/database/schema';
-import { eq } from 'drizzle-orm';
+import crypto from 'node:crypto';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { db, eq } from '@soouls/database/client';
+import { payments, razorpayWebhooks, subscriptions, users } from '@soouls/database/schema';
 import Razorpay from 'razorpay';
-import crypto from 'crypto';
 
 @Injectable()
 export class PaymentsService {
@@ -26,8 +25,13 @@ export class PaymentsService {
       throw new HttpException('Payment gateway not configured', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // 1. Get User
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    // 1. Get User (can be database UUID or Clerk User ID)
+    const isClerkId = userId.startsWith('user_');
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(isClerkId ? eq(users.clerkId, userId) : eq(users.id, userId));
+
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
 
     // 2. Create customer if not exists
@@ -40,9 +44,9 @@ export class PaymentsService {
         notes: { userId: user.id },
       });
       customerId = customer.id;
-      
+
       // Update DB
-      await db.update(users).set({ razorpayCustomerId: customerId }).where(eq(users.id, userId));
+      await db.update(users).set({ razorpayCustomerId: customerId }).where(eq(users.id, user.id));
     }
 
     // 3. Create Subscription
@@ -57,14 +61,11 @@ export class PaymentsService {
     return subscription;
   }
 
-  async verifyWebhook(signature: string, body: any) {
+  async verifyWebhook(signature: string, rawBody: string) {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
     if (!secret) throw new Error('Razorpay webhook secret not configured');
 
-    const expectedSignature = crypto
-      .createHmac('sha256', secret)
-      .update(JSON.stringify(body))
-      .digest('hex');
+    const expectedSignature = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
 
     if (expectedSignature !== signature) {
       this.logger.error('Invalid Razorpay signature');
@@ -75,9 +76,18 @@ export class PaymentsService {
   }
 
   async cancelSubscription(userId: string) {
-    if (!this.razorpay) throw new HttpException('Payment gateway not configured', HttpStatus.INTERNAL_SERVER_ERROR);
-    
-    const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId));
+    if (!this.razorpay)
+      throw new HttpException('Payment gateway not configured', HttpStatus.INTERNAL_SERVER_ERROR);
+
+    const isClerkId = userId.startsWith('user_');
+    const [user] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(isClerkId ? eq(users.clerkId, userId) : eq(users.id, userId));
+
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.userId, user.id));
     if (!sub || !sub.providerSubscriptionId) {
       throw new HttpException('No active subscription found', HttpStatus.NOT_FOUND);
     }
@@ -95,19 +105,34 @@ export class PaymentsService {
   async handleWebhook(event: any) {
     this.logger.log(`Received Razorpay webhook: ${event.event}`);
 
-    // Log the event
-    await db.insert(razorpayWebhooks).values({
-      razorpayEventId: event.account_id || Date.now().toString(), // Use event id if present, otherwise fallback
-      eventType: event.event,
-      payload: event,
-    }).onConflictDoNothing();
+    const eventId = event.id;
+    if (!eventId) {
+      this.logger.error('Received Razorpay webhook without an event ID');
+      return;
+    }
+
+    // Log the event and enforce idempotency by checking if it was inserted successfully
+    const inserted = await db
+      .insert(razorpayWebhooks)
+      .values({
+        razorpayEventId: eventId,
+        eventType: event.event,
+        payload: event,
+      })
+      .onConflictDoNothing()
+      .returning({ id: razorpayWebhooks.id });
+
+    if (inserted.length === 0) {
+      this.logger.warn(`Razorpay event ${eventId} has already been processed. Skipping.`);
+      return;
+    }
 
     try {
       if (event.event === 'subscription.activated' || event.event === 'subscription.charged') {
         const subId = event.payload.subscription.entity.id;
         const customerId = event.payload.subscription.entity.customer_id;
         const notes = event.payload.subscription.entity.notes || {};
-        
+
         let userId = notes.userId;
         if (!userId) {
           const [u] = await db.select().from(users).where(eq(users.razorpayCustomerId, customerId));
@@ -117,41 +142,87 @@ export class PaymentsService {
         if (userId) {
           // Calculate trial period logic, etc.
           // Upsert subscription
-          await db.insert(subscriptions).values({
-            userId,
-            providerSubscriptionId: subId,
-            provider: 'razorpay',
-            status: 'active',
-            planType: 'premium',
-            currentPeriodStart: new Date(event.payload.subscription.entity.current_start * 1000),
-            currentPeriodEnd: new Date(event.payload.subscription.entity.current_end * 1000),
-          }).onConflictDoUpdate({
-            target: [subscriptions.providerSubscriptionId],
-            set: {
+          await db
+            .insert(subscriptions)
+            .values({
+              userId,
+              providerSubscriptionId: subId,
+              provider: 'razorpay',
               status: 'active',
+              planType: 'premium',
               currentPeriodStart: new Date(event.payload.subscription.entity.current_start * 1000),
               currentPeriodEnd: new Date(event.payload.subscription.entity.current_end * 1000),
-              updatedAt: new Date(),
-            }
-          });
+            })
+            .onConflictDoUpdate({
+              target: [subscriptions.providerSubscriptionId],
+              set: {
+                status: 'active',
+                currentPeriodStart: new Date(
+                  event.payload.subscription.entity.current_start * 1000,
+                ),
+                currentPeriodEnd: new Date(event.payload.subscription.entity.current_end * 1000),
+                updatedAt: new Date(),
+              },
+            });
 
           // Update user status
-          await db.update(users).set({
-            subscriptionStatus: 'active',
-            planType: 'premium',
-            currentPeriodEnd: new Date(event.payload.subscription.entity.current_end * 1000),
-            paymentProvider: 'razorpay',
-          }).where(eq(users.id, userId));
+          await db
+            .update(users)
+            .set({
+              subscriptionStatus: 'active',
+              planType: 'premium',
+              currentPeriodEnd: new Date(event.payload.subscription.entity.current_end * 1000),
+              paymentProvider: 'razorpay',
+            })
+            .where(eq(users.id, userId));
+
+          // Log payment details in DB if available
+          const paymentEntity = event.payload.payment?.entity;
+          if (paymentEntity) {
+            const [dbSub] = await db
+              .select({ id: subscriptions.id })
+              .from(subscriptions)
+              .where(eq(subscriptions.providerSubscriptionId, subId))
+              .limit(1);
+
+            await db
+              .insert(payments)
+              .values({
+                userId,
+                subscriptionId: dbSub?.id ?? null,
+                providerPaymentId: paymentEntity.id,
+                provider: 'razorpay',
+                amount: paymentEntity.amount,
+                currency: paymentEntity.currency,
+                status:
+                  paymentEntity.status === 'captured'
+                    ? 'successful'
+                    : paymentEntity.status || 'successful',
+                receiptUrl: paymentEntity.notes?.receipt_url ?? null,
+                metadata: paymentEntity,
+              })
+              .onConflictDoNothing();
+          }
         }
-      } else if (event.event === 'subscription.halted' || event.event === 'subscription.cancelled') {
+      } else if (
+        event.event === 'subscription.halted' ||
+        event.event === 'subscription.cancelled'
+      ) {
         const subId = event.payload.subscription.entity.id;
-        await db.update(subscriptions)
+        await db
+          .update(subscriptions)
           .set({ status: 'canceled', canceledAt: new Date(), updatedAt: new Date() })
           .where(eq(subscriptions.providerSubscriptionId, subId));
-          
-        const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.providerSubscriptionId, subId));
+
+        const [sub] = await db
+          .select()
+          .from(subscriptions)
+          .where(eq(subscriptions.providerSubscriptionId, subId));
         if (sub) {
-          await db.update(users).set({ subscriptionStatus: 'canceled', planType: 'free' }).where(eq(users.id, sub.userId));
+          await db
+            .update(users)
+            .set({ subscriptionStatus: 'canceled', planType: 'free' })
+            .where(eq(users.id, sub.userId));
         }
       }
     } catch (e) {
