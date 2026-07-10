@@ -14,9 +14,10 @@ import {
   journalEntries,
   messageCampaigns,
   messageDeliveries,
+  payments,
   permissionRequests,
+  razorpayWebhooks,
   serviceControls,
-  stripeWebhooks,
   users,
 } from '@soouls/database/schema';
 import { Resend } from 'resend';
@@ -1192,18 +1193,18 @@ export class CommandCenterService {
     const churnRateResult =
       totalCount > 0 ? Math.round(((totalCount - activeCount) / totalCount) * 100 * 10) / 10 : 0;
 
-    // Real revenue from Stripe webhooks over last 7 days
+    // Real revenue from payments over last 7 days
     const revenueByDay = await db
       .select({
-        date: sql<string>`to_char(${stripeWebhooks.createdAt}::date, 'Dy')`,
-        amount: sql<number>`coalesce(sum(${stripeWebhooks.amount}), 0)`,
+        date: sql<string>`to_char(${payments.createdAt}::date, 'Dy')`,
+        amount: sql<number>`coalesce(sum(${payments.amount}), 0)`,
       })
-      .from(stripeWebhooks)
-      .where(sql`${stripeWebhooks.createdAt} > NOW() - INTERVAL '7 days'`)
-      .groupBy(
-        sql`${stripeWebhooks.createdAt}::date, to_char(${stripeWebhooks.createdAt}::date, 'Dy')`,
+      .from(payments)
+      .where(
+        sql`${payments.createdAt} > NOW() - INTERVAL '7 days' AND ${payments.status} = 'successful'`,
       )
-      .orderBy(sql`${stripeWebhooks.createdAt}::date`);
+      .groupBy(sql`${payments.createdAt}::date, to_char(${payments.createdAt}::date, 'Dy')`)
+      .orderBy(sql`${payments.createdAt}::date`);
 
     // Fallback: if no webhook data, estimate from MRR spread over 7 days
     const mrr = Number(mrrResult[0]?.mrr || 0);
@@ -1215,11 +1216,28 @@ export class CommandCenterService {
             amount: Math.round((mrr / 30) * 100) / 100,
           }));
 
-    const webhooks = await db
+    const rawWebhooks = await db
       .select()
-      .from(stripeWebhooks)
-      .orderBy(desc(stripeWebhooks.createdAt))
+      .from(razorpayWebhooks)
+      .orderBy(desc(razorpayWebhooks.createdAt))
       .limit(10);
+
+    const webhooks = rawWebhooks.map((w) => {
+      const payload = w.payload as any;
+      const paymentEntity = payload?.payload?.payment?.entity;
+      const subscriptionEntity = payload?.payload?.subscription?.entity;
+      return {
+        id: w.id,
+        stripeEventId: w.razorpayEventId, // Mapped to stripeEventId for UI compatibility
+        eventType: w.eventType,
+        status: w.status,
+        customerId: subscriptionEntity?.customer_id || null,
+        amount: paymentEntity?.amount || null,
+        metadata: payload,
+        processedAt: w.processedAt,
+        createdAt: w.createdAt,
+      };
+    });
 
     return {
       mrr: Number(mrrResult[0]?.mrr || 0),
