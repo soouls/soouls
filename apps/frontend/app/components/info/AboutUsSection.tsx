@@ -4,7 +4,8 @@ import {
   LockIcon, 
   MoonIcon, 
   GitMergeIcon,
-  Heart
+  Heart,
+  Linkedin
 } from 'lucide-react';
 
 export default function AboutUsSection() {
@@ -121,20 +122,29 @@ export default function AboutUsSection() {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { img: '12', role: 'Founder', desc: 'Product & engineering' },
-              { img: '47', role: 'Design lead', desc: 'Brand & interface' },
-              { img: '33', role: 'Engineer', desc: 'Spatial Canvas & sync' },
-              { img: '25', role: 'Engineer', desc: 'Insights & clustering' },
+              { name: 'Rudra Singh', role: 'Founder and CEO', img: '/Rudra.jpg', linkedin: 'https://www.linkedin.com/in/rudra-singh-73554623b/' },
+              { name: 'Bhargav', role: 'Co-founder and CDO', img: '/Bhargav.jpeg', linkedin: 'https://www.linkedin.com/in/bhargav-koppula/' },
+              { name: 'Shreya', role: 'Frontend Developer', img: '/shreya.jpeg', linkedin: 'https://www.linkedin.com/in/shreya-garg-281aa7219/' },
+              { name: 'Sreyashree', role: 'UI/UX Product Designer', img: '/Sreya%20Shree.jpeg', linkedin: 'https://www.linkedin.com/in/dsreyashree2006/' },
+              { name: 'Subhranil', role: 'Fullstack Dev', img: '/Subhranil.jpeg' },
+              { name: 'Varun', role: 'App and Frontend Dev', img: '/varun.jpeg', linkedin: 'https://www.linkedin.com/in/varun-patel-16611631a/' },
             ].map((member, idx) => (
-              <div key={idx} className="text-center group reveal" style={{ transitionDelay: `${idx * 100}ms` }}>
-                <div className="w-full aspect-square rounded-2xl md:rounded-[2rem] bg-[#fdfaf6] border border-[#e3dbcd]/50 overflow-hidden mb-6 relative shadow-sm">
-                  <img src={`https://i.pravatar.cc/300?img=${member.img}`} alt={member.role} className="w-full h-full object-cover transition-transform duration-300 group-active:scale-95 opacity-90 group-hover:opacity-100" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--ink)]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div key={idx} className="text-center group reveal flex flex-col items-center" style={{ transitionDelay: `${idx * 100}ms` }}>
+                <div className="w-full aspect-square rounded-2xl md:rounded-[2rem] bg-[#fdfaf6] border border-[#e3dbcd]/50 overflow-hidden mb-6 relative shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                  <img src={member.img} alt={member.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--ink)]/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
-                <h5 className="font-playfair text-xl font-bold text-[var(--ink)] mb-1">{member.role}</h5>
-                <p className="font-urbanist text-sm text-[var(--ink-soft)]">{member.desc}</p>
+                <h5 className="font-playfair text-xl font-bold text-[var(--ink)] mb-1 flex items-center justify-center gap-2">
+                  {member.name}
+                  {member.linkedin && (
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#E07A5F] hover:text-[#c96a51] transition-colors" title={`LinkedIn of ${member.name}`}>
+                      <Linkedin size={18} strokeWidth={2} />
+                    </a>
+                  )}
+                </h5>
+                <p className="font-urbanist text-sm text-[var(--ink-soft)]">{member.role}</p>
               </div>
             ))}
           </div>
