@@ -17,7 +17,7 @@ export default function AboutUsSection() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
             <Heart className="w-6 h-6 text-[#E07A5F]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
+          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-6 block">
             Our story
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold text-[var(--ink)] leading-tight mb-8">
@@ -29,9 +29,9 @@ export default function AboutUsSection() {
         </div>
 
         {/* Letter */}
-        <div className="relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-3xl md:rounded-[3rem] p-6 sm:p-8 md:p-16 mb-20 md:mb-32 max-w-[800px] mx-auto reveal overflow-hidden group shadow-[0_10px_30px_rgba(224,122,95,0.05)] hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] transition-all duration-700">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E07A5F]/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--soouls-accent)]/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        <div className="relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-3xl md:rounded-[3rem] p-6 sm:p-8 md:p-16 mb-20 md:mb-32 max-w-[800px] mx-auto reveal overflow-hidden group shadow-[0_10px_30px_rgba(224,122,95,0.05)] hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] transition-colors transition-transform transition-shadow duration-300">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#E07A5F]/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--soouls-accent)]/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           
           <div className="relative z-10 prose prose-lg md:prose-xl font-urbanist text-[var(--ink-soft)] prose-p:leading-relaxed mx-auto">
             <p>We kept losing ourselves in productivity apps built for output — streaks, dashboards, guilt. Our thoughts deserved better than a to-do list with a diary bolted on.</p>
@@ -44,7 +44,7 @@ export default function AboutUsSection() {
         {/* Values */}
         <div className="mb-20 md:mb-32">
           <div className="text-center mb-16 reveal">
-            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-4 block">
+            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
               What we won't compromise on
             </span>
             <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)]">
@@ -60,10 +60,10 @@ export default function AboutUsSection() {
             ].map((val, idx) => {
               const Icon = val.icon;
               return (
-                <div key={idx} className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-3xl md:rounded-[2.5rem] p-10 transition-all duration-500 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 reveal overflow-hidden" style={{ transitionDelay: `${idx * 100}ms` }}>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#E07A5F]/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div key={idx} className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-3xl md:rounded-[2.5rem] p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 reveal overflow-hidden" style={{ transitionDelay: `${idx * 100}ms` }}>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#E07A5F]/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   
-                  <div className="relative z-10 w-16 h-16 rounded-2xl bg-white border border-[#e3dbcd] shadow-sm flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500">
+                  <div className="relative z-10 w-16 h-16 rounded-2xl bg-white border border-[#e3dbcd] shadow-sm flex items-center justify-center mb-8 group-active:scale-95 transition-transform duration-300">
                     <Icon size={28} strokeWidth={1.5} className="text-[#E07A5F]" />
                   </div>
                   <h4 className="relative z-10 font-playfair text-2xl font-bold text-[var(--ink)] mb-4">{val.title}</h4>
@@ -79,7 +79,7 @@ export default function AboutUsSection() {
         {/* Timeline */}
         <div className="mb-20 md:mb-32 max-w-[800px] mx-auto">
           <div className="text-center mb-20 reveal">
-            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-4 block">
+            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
               How we got here
             </span>
             <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)]">
@@ -96,11 +96,11 @@ export default function AboutUsSection() {
               { time: 'Today', title: '10,000+ people mapping their minds', desc: 'Grown without ad spend, one quiet recommendation at a time.' }
             ].map((item, idx) => (
               <div key={idx} className="relative flex items-start md:justify-between md:odd:flex-row-reverse group reveal" style={{ transitionDelay: `${idx * 150}ms` }}>
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white border border-[#e3dbcd] shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10 group-hover:scale-110 group-hover:border-[#E07A5F] transition-all duration-500">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white border border-[#e3dbcd] shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10 group-active:scale-95 group-hover:border-[#E07A5F] transition-colors transition-transform transition-shadow duration-300">
                   <div className="w-3 h-3 rounded-full bg-[#E07A5F] group-hover:animate-ping" />
                 </div>
-                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 rounded-2xl md:rounded-[2rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 ml-4 md:ml-0 md:group-odd:text-right hover:bg-white hover:shadow-lg transition-all duration-500 hover:-translate-y-1">
-                  <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-widest uppercase mb-3 block">{item.time}</span>
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-8 rounded-2xl md:rounded-[2rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 ml-4 md:ml-0 md:group-odd:text-right hover:bg-white hover:shadow-lg transition-all active:scale-[0.98] duration-200">
+                  <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-3 block">{item.time}</span>
                   <h5 className="font-playfair text-2xl font-bold text-[var(--ink)] mb-3">{item.title}</h5>
                   <p className="font-urbanist text-[var(--ink-soft)] leading-relaxed">{item.desc}</p>
                 </div>
@@ -113,7 +113,7 @@ export default function AboutUsSection() {
         {/* Team */}
         <div className="mb-20 md:mb-32">
           <div className="text-center mb-16 reveal">
-            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-4 block">
+            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
               Who's building it
             </span>
             <h2 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)]">
@@ -130,8 +130,8 @@ export default function AboutUsSection() {
             ].map((member, idx) => (
               <div key={idx} className="text-center group reveal" style={{ transitionDelay: `${idx * 100}ms` }}>
                 <div className="w-full aspect-square rounded-2xl md:rounded-[2rem] bg-[#fdfaf6] border border-[#e3dbcd]/50 overflow-hidden mb-6 relative shadow-sm">
-                  <img src={`https://i.pravatar.cc/300?img=${member.img}`} alt={member.role} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--ink)]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <img src={`https://i.pravatar.cc/300?img=${member.img}`} alt={member.role} className="w-full h-full object-cover transition-transform duration-300 group-active:scale-95 opacity-90 group-hover:opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--ink)]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
                 <h5 className="font-playfair text-xl font-bold text-[var(--ink)] mb-1">{member.role}</h5>
                 <p className="font-urbanist text-sm text-[var(--ink-soft)]">{member.desc}</p>
@@ -151,7 +151,7 @@ export default function AboutUsSection() {
               <p className="font-urbanist text-lg text-[var(--ink-soft)] mb-10 max-w-md mx-auto">
                 We post honestly about what's working and what isn't. No roadmap theater.
               </p>
-              <a href="/blog" className="inline-block px-10 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:scale-105 transition-transform duration-300 shadow-[0_10px_20px_rgba(22,19,15,0.15)]">
+              <a href="/blog" className="inline-block px-10 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm font-semibold tracking-tight active:scale-[0.97] transition-all duration-200">
                 Read the blog
               </a>
             </div>

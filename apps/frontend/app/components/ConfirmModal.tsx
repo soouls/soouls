@@ -74,7 +74,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                   type="button"
                   onClick={onClose}
                   disabled={isPending}
-                  className="w-full py-3.5 rounded-2xl bg-[rgba(15,15,15,0.5)] border border-[var(--soouls-accent)] text-[#E6E2D6] hover:bg-[#222] transition-all text-lg font-bold shadow-lg sm:w-52 disabled:opacity-50"
+                  className="w-full py-3.5 rounded-2xl bg-[rgba(15,15,15,0.5)] border border-[var(--soouls-accent)] text-[#E6E2D6] hover:bg-[#222] transition-colors transition-transform transition-shadow text-lg font-bold shadow-lg sm:w-52 disabled:opacity-50"
                 >
                   {cancelText}
                 </button>
@@ -82,7 +82,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                   type="button"
                   onClick={onConfirm}
                   disabled={isPending}
-                  className={`w-full py-3.5 rounded-2xl transition-all text-lg font-bold shadow-lg sm:w-52 disabled:opacity-50 flex items-center justify-center gap-2 ${getConfirmButtonClasses()}`}
+                  className={`w-full py-3.5 rounded-2xl transition-colors transition-transform transition-shadow text-lg font-bold shadow-lg sm:w-52 disabled:opacity-50 flex items-center justify-center gap-2 ${getConfirmButtonClasses()}`}
                 >
                   {isPending ? (
                     <>

@@ -216,7 +216,7 @@ export default function WaitlistSection() {
               </div>
               <button
                 type="submit"
-                className="font-urbanist font-bold transition-all duration-300 flex items-center justify-center"
+                className="font-urbanist font-bold transition-colors transition-transform transition-shadow duration-300 flex items-center justify-center"
                 style={{
                   backgroundColor: '#E07A5F',
                   border: 'none',

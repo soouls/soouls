@@ -126,10 +126,10 @@ export default function BlogSection() {
         {/* Header */}
         <div className="mb-16 md:mb-24 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 reveal">
           <div className="max-w-2xl text-left">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6 transition-transform duration-500 hover:scale-110 hover:rotate-12">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6 transition-transform duration-300 active:scale-95 hover:rotate-12">
               <BookOpen className="w-6 h-6 text-[#E07A5F]" />
             </div>
-            <p className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
+            <p className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-6 block">
               The Soouls Journal
             </p>
             <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-[1.1] mb-6">
@@ -138,7 +138,7 @@ export default function BlogSection() {
           </div>
           <button
             type="button"
-            className="group px-8 py-4 rounded-full border border-[#e3dbcd] bg-[#fdfaf6]/80 backdrop-blur-sm text-[var(--ink)] font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-[var(--ink)] hover:border-[var(--ink)] hover:text-white transition-all duration-300 shadow-sm flex items-center gap-2"
+            className="group px-8 py-4 rounded-full border border-[#e3dbcd] bg-[#fdfaf6]/80 backdrop-blur-sm text-[var(--ink)] font-urbanist font-bold text-sm font-semibold tracking-tight hover:bg-[var(--ink)] hover:border-[var(--ink)] hover:text-white transition-colors transition-transform transition-shadow duration-300 shadow-sm flex items-center gap-2"
           >
             View All Articles
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -147,7 +147,7 @@ export default function BlogSection() {
 
         {/* Featured Post */}
         <div className="featured-post-container group relative w-full h-[400px] md:h-[600px] mb-16 rounded-3xl md:rounded-[3rem] overflow-hidden cursor-pointer reveal border border-[#e3dbcd]/20 shadow-xl">
-          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all duration-700 z-10 pointer-events-none" />
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors transition-transform transition-shadow duration-300 z-10 pointer-events-none" />
           
           <div className="absolute inset-0 -top-[20%] h-[140%] w-full">
             <img 
@@ -160,12 +160,12 @@ export default function BlogSection() {
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 pointer-events-none" />
 
-          <div className="absolute bottom-0 left-0 p-8 sm:p-12 md:p-20 z-20 max-w-3xl transform group-hover:-translate-y-2 transition-transform duration-500">
+          <div className="absolute bottom-0 left-0 p-8 sm:p-12 md:p-20 z-20 max-w-3xl transform group-hover:-translate-y-2 transition-transform duration-300">
             <div className="flex items-center gap-4 mb-6">
-              <span className="font-urbanist text-xs font-bold text-[#E07A5F] tracking-[0.3em] uppercase">
+              <span className="font-urbanist text-xs font-bold text-[#E07A5F] font-semibold tracking-tight">
                 Featured Thinking
               </span>
-              <span className="flex items-center gap-1.5 font-urbanist text-[10px] text-white/60 font-bold tracking-widest uppercase bg-white/10 px-3 py-1 rounded-full backdrop-blur-md">
+              <span className="flex items-center gap-1.5 font-urbanist text-[10px] text-white/60 font-bold font-semibold tracking-tight bg-white/10 px-3 py-1 rounded-full backdrop-blur-md">
                 <Clock className="w-3 h-3" /> 10 min read
               </span>
             </div>
@@ -181,10 +181,10 @@ export default function BlogSection() {
                 <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" alt="Author" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col">
-                <span className="font-urbanist text-white text-sm font-bold tracking-widest uppercase">
+                <span className="font-urbanist text-white text-sm font-bold font-semibold tracking-tight">
                   By Elena Rossi
                 </span>
-                <span className="font-urbanist text-white/60 text-xs tracking-widest uppercase">
+                <span className="font-urbanist text-white/60 text-xs font-semibold tracking-tight">
                   April 02, 2026
                 </span>
               </div>
@@ -199,25 +199,25 @@ export default function BlogSection() {
               key={post.title} 
               className={`blog-card group cursor-pointer ${idx === 0 ? 'post-span-8' : 'post-span-4'}`}
             >
-              <div className={`relative ${idx === 0 ? 'h-[400px] md:h-[480px]' : 'h-[280px] md:h-[320px]'} rounded-3xl md:rounded-[2.5rem] overflow-hidden mb-6 border border-[#e3dbcd]/50 shadow-sm group-hover:shadow-[0_20px_40px_rgba(224,122,95,0.15)] transition-all duration-500`}>
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10 pointer-events-none" />
+              <div className={`relative ${idx === 0 ? 'h-[400px] md:h-[480px]' : 'h-[280px] md:h-[320px]'} rounded-3xl md:rounded-[2.5rem] overflow-hidden mb-6 border border-[#e3dbcd]/50 shadow-sm group-hover:shadow-[0_20px_40px_rgba(224,122,95,0.15)] transition-colors transition-transform transition-shadow duration-300`}>
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300 z-10 pointer-events-none" />
                 <img 
                   src={post.image} 
                   alt={post.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
+                  className="absolute inset-0 w-full h-full object-cover group-active:scale-95 transition-transform duration-500 ease-out"
                 />
               </div>
               
               <div className="px-2">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="inline-block px-3 py-1 bg-[#E07A5F]/10 rounded-full font-urbanist text-[10px] font-bold text-[#E07A5F] tracking-widest uppercase transform group-hover:-translate-y-1 transition-transform duration-300">
+                  <span className="inline-block px-3 py-1 bg-[#E07A5F]/10 rounded-full font-urbanist text-[10px] font-bold text-[#E07A5F] font-semibold tracking-tight transform group-hover:-translate-y-1 transition-transform duration-300">
                     {post.category}
                   </span>
                   <div className="flex items-center gap-3">
-                    <span className="font-urbanist text-[10px] text-[var(--ink-soft)] font-bold tracking-widest uppercase">
+                    <span className="font-urbanist text-[10px] text-[var(--ink-soft)] font-bold font-semibold tracking-tight">
                       {post.date}
                     </span>
-                    <span className="flex items-center gap-1 font-urbanist text-[10px] text-[var(--ink-faint)] font-bold tracking-widest uppercase">
+                    <span className="flex items-center gap-1 font-urbanist text-[10px] text-[var(--ink-faint)] font-bold font-semibold tracking-tight">
                       <Clock className="w-3 h-3" /> {post.readTime}
                     </span>
                   </div>
@@ -234,8 +234,8 @@ export default function BlogSection() {
         <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '200ms' }}>
           <div className="relative p-8 sm:p-12 md:p-24 rounded-[2rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-white/60 backdrop-blur-3xl border border-[#e3dbcd]/60 overflow-hidden flex flex-col items-center text-center shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
             
-            <div className="newsletter-glow absolute top-0 right-0 w-[400px] h-[400px] bg-[#E07A5F]/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none transition-opacity duration-1000" />
-            <div className="newsletter-glow absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#6450d6]/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none transition-opacity duration-1000" style={{ animationDelay: '1.5s' }} />
+            <div className="newsletter-glow absolute top-0 right-0 w-[400px] h-[400px] bg-[#E07A5F]/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none transition-opacity duration-500" />
+            <div className="newsletter-glow absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#6450d6]/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none transition-opacity duration-500" style={{ animationDelay: '1.5s' }} />
             
             <div className="relative z-10 w-full flex flex-col items-center">
               <h3 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)] mb-6">
@@ -253,14 +253,14 @@ export default function BlogSection() {
                   <input
                     type="email"
                     placeholder="Enter your email address"
-                    className="w-full bg-white border border-[#e3dbcd] rounded-full px-8 py-5 text-[var(--ink)] font-urbanist focus:outline-none focus:border-[#E07A5F] focus:ring-4 focus:ring-[#E07A5F]/10 transition-all shadow-sm peer"
+                    className="w-full bg-white border border-[#e3dbcd] rounded-full px-8 py-5 text-[var(--ink)] font-urbanist focus:outline-none focus:border-[#E07A5F] focus:ring-4 focus:ring-[#E07A5F]/10 transition-colors transition-transform transition-shadow shadow-sm peer"
                     required
                   />
                   <div className="absolute inset-0 rounded-full border-2 border-transparent peer-focus:border-[#E07A5F]/30 pointer-events-none transition-colors" />
                 </div>
                 <button
                   type="submit"
-                  className="px-10 py-5 bg-[var(--ink)] text-[#f7f3ec] font-urbanist font-bold text-sm tracking-widest uppercase rounded-full hover:bg-black hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_10px_20px_rgba(22,19,15,0.15)] whitespace-nowrap overflow-hidden relative group/submit"
+                  className="px-10 py-5 bg-[var(--ink)] text-[#f7f3ec] font-urbanist font-bold text-sm font-semibold tracking-tight rounded-full hover:bg-black hover:scale-105 active:scale-[0.97] transition-colors transition-transform transition-shadow duration-300 shadow-[0_10px_20px_rgba(22,19,15,0.15)] whitespace-nowrap overflow-hidden relative group/submit"
                 >
                   <span className="relative z-10 group-active/submit:text-transparent transition-colors">Subscribe</span>
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-active/submit:opacity-100 transition-opacity">

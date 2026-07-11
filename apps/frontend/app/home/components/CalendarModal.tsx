@@ -244,7 +244,7 @@ function GCalModal({
                 type="button"
                 onClick={onConnect}
                 disabled={connecting || !isConfigured}
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-3 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-lg shadow-[var(--soouls-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-3 text-sm font-semibold text-white hover:opacity-90 transition-colors transition-transform transition-shadow shadow-lg shadow-[var(--soouls-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {connecting ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -555,7 +555,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={() => setShowGCalModal(true)}
-              className={`hidden sm:inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all ${
+              className={`hidden sm:inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-colors transition-transform transition-shadow ${
                 gcalConnected
                   ? 'border-[var(--soouls-accent)]/40 bg-[var(--soouls-accent)]/10 text-[var(--soouls-text-muted)] hover:bg-[var(--soouls-accent)]/20'
                   : 'border-white/10 bg-white/5 text-gray-400 hover:bg-white/10 hover:border-white/20'
@@ -575,7 +575,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                   key={v}
                   type="button"
                   onClick={() => setView(v)}
-                  className={`px-5 py-2 rounded-full text-xs font-semibold transition-all duration-300 ${
+                  className={`px-5 py-2 rounded-full text-xs font-semibold transition-colors transition-transform transition-shadow duration-300 ${
                     view === v
                       ? 'bg-[var(--soouls-accent)] text-neutral-900 shadow-lg shadow-[var(--soouls-accent)]/20'
                       : 'text-gray-400 hover:text-white'
@@ -693,7 +693,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                           key={entry.id}
                           type="button"
                           onClick={() => openEntry(entry.id)}
-                          className="w-full text-left rounded-2xl border border-white/10 px-4 py-3 bg-white/[0.02] hover:border-[var(--soouls-accent)]/40 hover:bg-[var(--soouls-accent)]/10 transition-all shadow-lg group"
+                          className="w-full text-left rounded-2xl border border-white/10 px-4 py-3 bg-white/[0.02] hover:border-[var(--soouls-accent)]/40 hover:bg-[var(--soouls-accent)]/10 transition-colors transition-transform transition-shadow shadow-lg group"
                         >
                           <div className="line-clamp-2 text-sm text-gray-200 group-hover:text-white font-medium">
                             {entry.title}
@@ -717,7 +717,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
                         <button
                           type="button"
                           onClick={() => setShowGCalModal(true)}
-                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-lg"
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-colors transition-transform transition-shadow shadow-lg"
                         >
                           <Calendar size={14} />
                           Connect Calendar

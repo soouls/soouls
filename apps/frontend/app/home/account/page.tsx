@@ -103,7 +103,7 @@ function OutlineButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-2.5 rounded-full border px-6 py-3 text-sm font-medium transition-all disabled:opacity-50"
+      className="inline-flex items-center gap-2.5 rounded-full border px-6 py-3 text-sm font-medium transition-colors transition-transform transition-shadow disabled:opacity-50"
       style={{
         borderColor: danger ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.15)',
         color: danger ? '#f87171' : 'var(--soouls-text-muted)',
@@ -126,7 +126,7 @@ function DataActionButton({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="flex min-w-[220px] flex-1 items-center gap-3 rounded-2xl border px-5 py-4 text-sm font-medium transition-all hover:bg-white/5 disabled:opacity-60"
+      className="flex min-w-[220px] flex-1 items-center gap-3 rounded-2xl border px-5 py-4 text-sm font-medium transition-colors transition-transform transition-shadow hover:bg-white/5 disabled:opacity-60"
       style={{
         backgroundColor: 'var(--soouls-bg-surface)',
         borderColor: 'var(--soouls-border)',
@@ -231,9 +231,9 @@ export default function AccountPage() {
       }}
     >
       <BackgroundText />
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-colors transition-transform transition-shadow duration-300">
         <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
-          <Link href="/home" className="text-white/30 hover:text-white/60 transition-all">
+          <Link href="/home" className="text-white/30 hover:text-white/60 transition-colors transition-transform transition-shadow">
             Home
           </Link>
           <span className="text-white/20">/</span>
@@ -243,7 +243,7 @@ export default function AccountPage() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 transition-all cursor-pointer overflow-hidden shadow-2xl shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 transition-colors transition-transform transition-shadow cursor-pointer overflow-hidden shadow-2xl shrink-0"
         >
           {user?.imageUrl && (
             <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />

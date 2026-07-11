@@ -106,7 +106,7 @@ export default function SignUpPage() {
       >
         <SymbolLogo
           variant="solid"
-          className="w-8 h-8 text-[#E07A5F] group-hover:rotate-12 transition-transform duration-500"
+          className="w-8 h-8 text-[#E07A5F] group-hover:rotate-12 transition-transform duration-300"
         />
         <span className="text-[22px] font-bold tracking-tight text-white/95 font-sans">Soouls</span>
       </Link>
@@ -124,7 +124,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={() => setStep('form')}
-              className="mb-8 text-white/40 hover:text-[#E07A5F] transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
+              className="mb-8 text-white/40 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -138,13 +138,13 @@ export default function SignUpPage() {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="000000"
-                className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-all duration-300 font-mono font-bold"
+                className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-all duration-200 ease-out font-mono font-bold"
                 required
               />
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(224,122,95,0.25)] hover:shadow-[0_10px_30px_rgba(224,122,95,0.45)] text-xs tracking-widest uppercase disabled:opacity-50"
+                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-colors transition-transform transition-shadow duration-200 ease-out active:scale-[0.97] shadow-[0_10px_30px_rgba(224,122,95,0.25)] hover:shadow-[0_10px_30px_rgba(224,122,95,0.45)] text-xs tracking-widest uppercase disabled:opacity-50"
               >
                 {isLoading ? 'Verifying...' : 'Complete Registration'}
               </button>
@@ -189,7 +189,7 @@ export default function SignUpPage() {
                 <div>
                   <label
                     htmlFor="signup-email"
-                    className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1"
+                    className="block text-sm font-medium text-white/70 mb-2 ml-1"
                   >
                     Email
                   </label>
@@ -201,7 +201,7 @@ export default function SignUpPage() {
                       value={emailAddress}
                       onChange={(e) => setEmailAddress(e.target.value)}
                       placeholder="Enter your Email"
-                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-300"
+                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
                       required
                     />
                   </div>
@@ -209,7 +209,7 @@ export default function SignUpPage() {
                 <div>
                   <label
                     htmlFor="signup-password"
-                    className="block text-[10px] font-bold tracking-[0.2em] text-white/40 uppercase mb-2 ml-1"
+                    className="block text-sm font-medium text-white/70 mb-2 ml-1"
                   >
                     Password
                   </label>
@@ -221,7 +221,7 @@ export default function SignUpPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Create a password"
-                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-300"
+                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
                       required
                     />
                   </div>
@@ -231,7 +231,7 @@ export default function SignUpPage() {
               <div className="flex justify-end">
                 <Link
                   href="/sign-in"
-                  className="block text-[10px] font-bold tracking-widest text-[#E07A5F]/75 uppercase hover:text-[#E07A5F] transition-colors ml-1"
+                  className="block text-sm font-medium text-[#E07A5F]/90 hover:text-[#E07A5F] transition-colors ml-1"
                 >
                   Already have an account? Sign In
                 </Link>
@@ -240,7 +240,7 @@ export default function SignUpPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-all shadow-[0_10px_30px_rgba(224,122,95,0.25)] hover:shadow-[0_10px_30px_rgba(224,122,95,0.45)] hover:scale-[1.01] active:scale-[0.99] text-xs tracking-widest uppercase disabled:opacity-50"
+                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(224,122,95,0.25)] hover:shadow-[0_8px_30px_rgba(224,122,95,0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
               >
                 {isLoading ? 'Processing...' : 'Sign Up'}
               </button>
@@ -261,7 +261,7 @@ export default function SignUpPage() {
                 onClick={() => handleSocialSignUp('oauth_google')}
                 disabled={Boolean(socialLoading) || isLoading}
                 aria-label="Continue with Google"
-                className="inline-flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/62 transition-all duration-300 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-4 text-sm font-medium text-white/80 transition-all duration-200 ease-out hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FcGoogle className="w-6 h-6" />
                 <span className="sm:hidden">Google</span>
@@ -271,7 +271,7 @@ export default function SignUpPage() {
                 onClick={() => handleSocialSignUp('oauth_apple')}
                 disabled={Boolean(socialLoading) || isLoading}
                 aria-label="Continue with Apple"
-                className="inline-flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/62 transition-all duration-300 hover:scale-[1.02] hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex min-h-[56px] items-center justify-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-4 text-sm font-medium text-white/80 transition-all duration-200 ease-out hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <FaApple aria-hidden="true" className="h-6 w-6 text-white" />
                 <span className="sm:hidden">Apple</span>

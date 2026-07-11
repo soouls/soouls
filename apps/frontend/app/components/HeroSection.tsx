@@ -101,7 +101,7 @@ export default function HeroSection() {
           transition: transform 0.3s ease, box-shadow 0.3s ease;
           cursor: default;
         }
-        .chip-f:hover { transform: translateY(-6px) scale(1.04) !important; box-shadow: 0 24px 50px rgba(22, 19, 15, 0.12); }
+        .chip-f:hover { transform: scale(0.98) !important; box-shadow: 0 8px 20px rgba(22, 19, 15, 0.05); }
         .chip-f .em { font-size: 1.2rem; }
         .chip-f small { display: block; color: var(--soouls-text-faint); font-size: 0.73rem; font-weight: 400; }
         .cf1 { top: 22%; left: 6%; animation-delay: 0.4s; }
@@ -229,14 +229,11 @@ export default function HeroSection() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-5 justify-center">
-          <Link href="/signup" className="hero-cta-btn group relative px-8 py-4 rounded-full font-medium text-lg bg-[#16130f] text-[#f7f3ec] hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-[0_20px_50px_rgba(22,19,15,0.3)]">
+          <Link href="/sign-up" className="hero-cta-btn group relative px-8 py-3.5 rounded-full font-semibold text-[15px] tracking-tight bg-[#16130f] text-[#f7f3ec] transition-all active:scale-[0.97] duration-200">
             <span className="relative z-10">Begin your map — it&apos;s free</span>
-            <span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#d98a4b] to-[#cf7b6e] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <span className="absolute inset-0 rounded-full bg-[#16130f] group-hover:bg-transparent transition-colors duration-500" />
           </Link>
-          <Link href="/dashboard" className="hero-cta-btn group px-8 py-4 rounded-full font-medium text-lg border border-[var(--soouls-border)] hover:border-[#d98a4b] hover:text-[#d98a4b] transition-all duration-300 relative overflow-hidden">
+          <Link href="/dashboard" className="hero-cta-btn group px-8 py-3.5 rounded-full font-semibold text-[15px] tracking-tight border border-[var(--soouls-border)] hover:bg-[var(--soouls-border)]/50 transition-all active:scale-[0.97] duration-200 relative overflow-hidden">
             <span className="relative z-10">Peek inside</span>
-            <span className="absolute inset-0 bg-gradient-to-r from-[#d98a4b]/5 to-[#cf7b6e]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </Link>
         </div>
         

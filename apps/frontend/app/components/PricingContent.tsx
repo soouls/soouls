@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
+import Link from 'next/link';
 import { Check, X, Sparkles, Infinity as InfinityIcon, Users, ChevronDown } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -187,7 +188,7 @@ export default function PricingContent() {
         <div className="relative inline-flex items-center justify-center">
           <div className="inline-flex items-center p-1.5 bg-[#fdfaf6]/80 backdrop-blur-xl border border-[var(--line)] rounded-full relative shadow-sm">
             <div 
-              className="absolute top-1.5 bottom-1.5 rounded-full bg-[var(--ink)] transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] w-[calc(50%-6px)]"
+              className="absolute top-1.5 bottom-1.5 rounded-full bg-[var(--ink)] transition-transform duration-300 ease-out w-[calc(50%-6px)]"
               style={{ 
                 transform: isAnnual ? 'translateX(100%)' : 'translateX(0)',
                 left: '6px'
@@ -227,7 +228,7 @@ export default function PricingContent() {
           {plans.map((plan, i) => (
             <div 
               key={plan.name} 
-              className={`pricing-card relative flex flex-col bg-[#fdfaf6]/80 backdrop-blur-3xl rounded-[2rem] p-8 transition-transform duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)] ${
+              className={`pricing-card relative flex flex-col bg-[#fdfaf6]/80 backdrop-blur-3xl rounded-[2rem] p-8 transition-transform duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)] ${
                 plan.highlighted 
                   ? 'border-2 border-[var(--soouls-accent)] shadow-[0_10px_30px_rgba(217,138,75,0.15)] scale-105 z-10' 
                   : 'border border-[#e3dbcd]/60'
@@ -241,7 +242,7 @@ export default function PricingContent() {
               
               <div className="relative z-10 mb-6 flex items-center justify-between">
                 <h3 className="font-playfair text-2xl font-bold text-[var(--ink)]">{plan.name}</h3>
-                <div className="transform transition-transform duration-500 hover:scale-110 hover:rotate-12">
+                <div className="transform transition-transform duration-300 hover:scale-110 hover:rotate-12">
                   {plan.icon}
                 </div>
               </div>
@@ -264,13 +265,13 @@ export default function PricingContent() {
                 {typeof plan.priceMonthly === 'number' ? (isAnnual ? 'Billed annually' : 'Billed monthly') : 'Priced per seat'}
               </p>
               
-              <button className={`relative z-10 w-full py-4 rounded-full font-urbanist font-bold text-sm tracking-widest uppercase transition-colors duration-300 mb-8 ${
+              <Link href="/sign-up" className={`inline-block text-center relative z-10 w-full py-4 rounded-full font-urbanist font-bold text-sm tracking-widest uppercase transition-colors duration-300 mb-8 ${
                 plan.highlighted 
                   ? 'bg-[var(--soouls-accent)] text-white hover:bg-[#c27a41] hover:shadow-md' 
                   : 'bg-[var(--ink)]/5 text-[var(--ink)] hover:bg-[var(--ink)]/10'
               }`}>
                 {plan.cta}
-              </button>
+              </Link>
               
               <div className="relative z-10 flex flex-col gap-4 mt-auto">
                 {plan.features.map((feature, idx) => (
@@ -295,21 +296,21 @@ export default function PricingContent() {
       <div className="trust-strip-container border-y border-[var(--line)] bg-[#fdfaf6]/40 backdrop-blur-md py-16 mb-32 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           <div className="trust-item group cursor-default">
-            <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6">
+            <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             </div>
             <h4 className="font-playfair text-xl font-bold text-[var(--ink)] mb-3">Cancel anytime</h4>
             <p className="font-urbanist text-sm text-[var(--ink-soft)] max-w-xs mx-auto">No contracts, no retention calls. Downgrade in two clicks from Settings.</p>
           </div>
           <div className="trust-item group cursor-default">
-            <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+            <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             </div>
             <h4 className="font-playfair text-xl font-bold text-[var(--ink)] mb-3">Entries stay yours</h4>
             <p className="font-urbanist text-sm text-[var(--ink-soft)] max-w-xs mx-auto">Downgrade and your past entries stay intact and exportable — nothing gets held hostage.</p>
           </div>
           <div className="trust-item group cursor-default">
-            <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
+            <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
             </div>
             <h4 className="font-playfair text-xl font-bold text-[var(--ink)] mb-3">14-day money back</h4>
@@ -333,10 +334,10 @@ export default function PricingContent() {
                 className="w-full px-6 py-6 flex items-center justify-between text-left focus:outline-none"
               >
                 <span className="font-playfair text-xl font-bold text-[var(--ink)] pr-4 group-hover:text-[var(--soouls-accent)] transition-colors">{faq.q}</span>
-                <ChevronDown className={`w-5 h-5 text-[var(--soouls-accent)] shrink-0 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${openFaq === idx ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-5 h-5 text-[var(--soouls-accent)] shrink-0 transition-transform duration-300 ease-out ${openFaq === idx ? 'rotate-180' : ''}`} />
               </button>
               <div 
-                className={`px-6 overflow-hidden transition-all duration-500 ease-in-out ${openFaq === idx ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
+                className={`px-6 overflow-hidden transition-colors transition-transform transition-shadow duration-300 ease-in-out ${openFaq === idx ? 'max-h-40 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
               >
                 <p className="font-urbanist text-[var(--ink-soft)] leading-relaxed">
                   {faq.a}
@@ -350,8 +351,8 @@ export default function PricingContent() {
       {/* FINAL CTA */}
       <div className="max-w-5xl mx-auto px-6 reveal">
         <div className="bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 shadow-[0_8px_32px_rgba(217,138,75,0.06)] rounded-[2rem] md:rounded-[3rem] p-8 sm:p-12 md:p-20 text-center relative overflow-hidden group/cta">
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-[#E07A5F]/10 rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-1000" />
-          <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-[var(--soouls-accent)]/10 rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-1000" />
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-[#E07A5F]/10 rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-500" />
+          <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-[var(--soouls-accent)]/10 rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-500" />
           
           <Sparkles className="w-12 h-12 text-[var(--soouls-accent)] mx-auto mb-8 animate-pulse relative z-10" />
           <h3 className="relative z-10 font-playfair text-4xl md:text-5xl font-bold text-[var(--ink)] mb-6">
@@ -361,9 +362,9 @@ export default function PricingContent() {
             You can always go deeper later — nothing you write today gets left behind.
           </p>
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
-            <button className="w-full sm:w-auto px-8 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-black transition-all duration-300 hover:scale-105 shadow-md">
+            <Link href="/sign-up" className="inline-block text-center w-full sm:w-auto px-8 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-black transition-colors transition-transform transition-shadow duration-300 hover:scale-105 shadow-md">
               Start free with Node
-            </button>
+            </Link>
             <button className="w-full sm:w-auto px-8 py-4 bg-transparent border border-[var(--ink)] text-[var(--ink)] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-[var(--ink)]/5 transition-colors">
               Compare plans again ↑
             </button>
