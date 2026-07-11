@@ -116,7 +116,7 @@ export default function TermsOfServiceSection() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
             <Scale className="w-6 h-6 text-[#E07A5F]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-4 block">
+          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
             Legal & Trust
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold text-[var(--ink)] leading-tight mb-6">
@@ -135,17 +135,17 @@ export default function TermsOfServiceSection() {
               <div 
                 key={sec.id} 
                 id={sec.id}
-                className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-all duration-500 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-1 reveal"
+                className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-1 reveal"
                 style={{ transitionDelay: `${(idx % 5) * 100}ms` }}
               >
                 {/* Decorative Glow */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E07A5F]/5 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E07A5F]/5 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
                 <div className="flex flex-col md:flex-row gap-8 relative z-10">
                   <div className="md:w-1/3 shrink-0">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-white border border-[#e3dbcd] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-500">
-                        <Icon className="w-5 h-5 text-[var(--ink)] group-hover:text-[#E07A5F] transition-colors duration-500" />
+                      <div className="w-10 h-10 rounded-full bg-white border border-[#e3dbcd] flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-300">
+                        <Icon className="w-5 h-5 text-[var(--ink)] group-hover:text-[#E07A5F] transition-colors duration-300" />
                       </div>
                       <h2 className="font-playfair text-2xl font-bold text-[var(--ink)]">
                         {sec.title}

@@ -239,9 +239,9 @@ export default function SettingsPage() {
       <BackgroundText />
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-colors transition-transform transition-shadow duration-300">
         <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
-          <Link href="/home" className="text-white/30 hover:text-white/60 transition-all">
+          <Link href="/home" className="text-white/30 hover:text-white/60 transition-colors transition-transform transition-shadow">
             Home
           </Link>
           <span className="text-white/20">/</span>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 transition-all cursor-pointer overflow-hidden shadow-2xl"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 transition-colors transition-transform transition-shadow cursor-pointer overflow-hidden shadow-2xl"
           >
             <img
               src={user?.imageUrl || avatarFor(user?.primaryEmailAddress?.emailAddress || user?.id)}
@@ -401,7 +401,7 @@ export default function SettingsPage() {
                       type="button"
                       onClick={() => handlePatch({ accentTheme: opt.value })}
                       title={opt.label}
-                      className="relative h-6 w-6 rounded-full transition-all duration-200 hover:scale-110"
+                      className="relative h-6 w-6 rounded-full transition-colors transition-transform transition-shadow duration-200 hover:scale-110"
                       style={{
                         backgroundColor: opt.hex,
                         boxShadow:
@@ -459,7 +459,7 @@ export default function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => timeInputRef.current?.showPicker?.()}
-                    className="rounded-full border px-3 py-1 text-xs transition-all hover:opacity-80"
+                    className="rounded-full border px-3 py-1 text-xs transition-colors transition-transform transition-shadow hover:opacity-80"
                     style={{ borderColor: 'var(--soouls-border)', color: 'var(--soouls-accent)' }}
                   >
                     {formatReminderTime(settings.reminderTime)}
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                     key={level}
                     type="button"
                     onClick={() => handlePatch({ insightDepth: level })}
-                    className="rounded-xl px-3 py-2 text-xs font-medium capitalize transition-all duration-200"
+                    className="rounded-xl px-3 py-2 text-xs font-medium capitalize transition-colors transition-transform transition-shadow duration-200"
                     style={{
                       backgroundColor:
                         settings.insightDepth === level
@@ -546,7 +546,7 @@ export default function SettingsPage() {
                         dataStorage: settings.dataStorage === 'local' ? 'cloud' : 'local',
                       })
                     }
-                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
+                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors transition-transform transition-shadow hover:opacity-80"
                     style={{
                       borderColor: 'var(--soouls-border)',
                       color: 'var(--soouls-accent)',
@@ -567,7 +567,7 @@ export default function SettingsPage() {
                         dataUsage: settings.dataUsage === 'anonymous' ? 'full' : 'anonymous',
                       })
                     }
-                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all hover:opacity-80"
+                    className="rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors transition-transform transition-shadow hover:opacity-80"
                     style={{
                       borderColor: 'var(--soouls-border)',
                       color: 'var(--soouls-accent)',
@@ -586,7 +586,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => handlePatch(HOME_DEFAULT_SETTINGS)}
-              className="rounded-full border px-6 py-2.5 text-sm font-medium transition-all hover:opacity-80"
+              className="rounded-full border px-6 py-2.5 text-sm font-medium transition-colors transition-transform transition-shadow hover:opacity-80"
               style={{ borderColor: 'var(--soouls-border)', color: 'var(--soouls-text-muted)' }}
             >
               Reset App
@@ -594,7 +594,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={handleClearCache}
-              className="rounded-full border px-6 py-2.5 text-sm font-medium transition-all hover:opacity-80"
+              className="rounded-full border px-6 py-2.5 text-sm font-medium transition-colors transition-transform transition-shadow hover:opacity-80"
               style={{
                 borderColor: 'rgba(var(--soouls-accent-rgb),0.4)',
                 color: 'var(--soouls-accent)',

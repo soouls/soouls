@@ -55,7 +55,7 @@ export default function HelpSection() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#6450d6]/10 mb-6">
             <LifeBuoy className="w-6 h-6 text-[#6450d6]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#6450d6] tracking-[0.3em] uppercase mb-4 block">
+          <span className="font-urbanist text-[11px] font-bold text-[#6450d6] font-semibold tracking-tight mb-4 block">
             Support Center
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold text-[var(--ink)] leading-tight mb-8">
@@ -63,8 +63,8 @@ export default function HelpSection() {
           </h1>
           
           <div className="relative max-w-2xl mx-auto group">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#6450d6]/20 to-[var(--soouls-accent)]/20 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            <div className="relative flex items-center bg-white/80 backdrop-blur-md border border-[#e3dbcd] rounded-full p-2 shadow-sm focus-within:border-[#6450d6] focus-within:shadow-[0_8px_30px_rgba(100,80,214,0.15)] transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#6450d6]/20 to-[var(--soouls-accent)]/20 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="relative flex items-center bg-white/80 backdrop-blur-md border border-[#e3dbcd] rounded-full p-2 shadow-sm focus-within:border-[#6450d6] focus-within:shadow-[0_8px_30px_rgba(100,80,214,0.15)] transition-colors transition-transform transition-shadow duration-300">
               <SearchIcon className="w-5 h-5 text-[var(--ink-faint)] ml-4 shrink-0" />
               <input 
                 type="text" 
@@ -87,15 +87,15 @@ export default function HelpSection() {
                 <button 
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`group relative p-6 rounded-2xl md:rounded-[2rem] border text-left transition-all duration-500 overflow-hidden ${
+                  className={`group relative p-6 rounded-2xl md:rounded-[2rem] border text-left transition-colors transition-transform transition-shadow duration-300 overflow-hidden ${
                     isActive 
                       ? 'bg-[var(--ink)] border-[var(--ink)] text-[#f7f3ec] shadow-xl scale-105 z-10' 
                       : `bg-[#fdfaf6]/60 backdrop-blur-md border-[#e3dbcd]/50 text-[var(--ink)] ${cat.bgHover} hover:-translate-y-1 hover:shadow-lg`
                   }`}
                 >
-                  <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20 pointer-events-none transition-opacity duration-500 ${isActive ? 'bg-white opacity-10' : cat.color.replace('text-', 'bg-')} group-hover:opacity-30`} />
+                  <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20 pointer-events-none transition-opacity duration-300 ${isActive ? 'bg-white opacity-10' : cat.color.replace('text-', 'bg-')} group-hover:opacity-30`} />
                   
-                  <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110 ${
+                  <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 group-active:scale-95 ${
                     isActive ? 'bg-white/10' : 'bg-white border border-[#e3dbcd] shadow-sm'
                   }`}>
                     <Icon size={20} strokeWidth={2} className={isActive ? 'text-white' : cat.color} />
@@ -131,7 +131,7 @@ export default function HelpSection() {
                   <div key={category} className="mb-12 last:mb-0 reveal" style={{ transitionDelay: `${catIdx * 100}ms` }}>
                     <div className="flex items-center gap-3 mb-6 pl-2">
                       <div className={`w-2 h-2 rounded-full ${catInfo?.color.replace('text-', 'bg-')}`} />
-                      <h3 className={`font-urbanist text-xs font-bold tracking-[0.2em] uppercase ${catInfo?.color}`}>
+                      <h3 className={`font-urbanist text-xs font-bold font-semibold tracking-tight ${catInfo?.color}`}>
                         {catInfo?.title}
                       </h3>
                     </div>
@@ -142,7 +142,7 @@ export default function HelpSection() {
                         return (
                           <div 
                             key={faq.id} 
-                            className={`group border rounded-[1.5rem] overflow-hidden transition-all duration-500 ${
+                            className={`group border rounded-[1.5rem] overflow-hidden transition-colors transition-transform transition-shadow duration-300 ${
                               isOpen 
                                 ? `bg-white border-[#e3dbcd] shadow-[0_10px_30px_rgba(0,0,0,0.03)]` 
                                 : 'bg-[#fdfaf6]/40 backdrop-blur-sm border-[#e3dbcd]/50 hover:bg-white hover:border-[#e3dbcd] hover:shadow-md'
@@ -155,16 +155,16 @@ export default function HelpSection() {
                               <span className="font-playfair font-bold text-xl text-[var(--ink)] pr-8 group-hover:text-[var(--soouls-accent)] transition-colors">
                                 {faq.q}
                               </span>
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors transition-transform transition-shadow duration-300 ${
                                 isOpen 
                                   ? `rotate-45 ${catInfo?.color.replace('text-', 'bg-')} text-white shadow-lg scale-110` 
-                                  : 'bg-white border border-[#e3dbcd] text-[var(--ink-soft)] group-hover:scale-110'
+                                  : 'bg-white border border-[#e3dbcd] text-[var(--ink-soft)] group-active:scale-95'
                               }`}>
                                 <PlusIcon size={18} strokeWidth={2} />
                               </div>
                             </button>
                             <div 
-                              className={`px-6 md:px-8 font-urbanist text-base text-[var(--ink-soft)] leading-relaxed transition-all duration-500 overflow-hidden ${
+                              className={`px-6 md:px-8 font-urbanist text-base text-[var(--ink-soft)] leading-relaxed transition-colors transition-transform transition-shadow duration-300 overflow-hidden ${
                                 isOpen ? 'max-h-96 pb-8 opacity-100' : 'max-h-0 opacity-0 pb-0'
                               }`}
                             >
@@ -194,7 +194,7 @@ export default function HelpSection() {
               <p className="font-urbanist text-lg text-[var(--ink-soft)] mb-10 max-w-md mx-auto">
                 Real humans read every message, usually within a day. We're here for you.
               </p>
-              <a href="mailto:support@soouls.in" className="inline-block px-10 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:scale-105 transition-transform duration-300 shadow-[0_10px_20px_rgba(22,19,15,0.15)]">
+              <a href="mailto:support@soouls.in" className="inline-block px-10 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm font-semibold tracking-tight active:scale-[0.97] transition-all duration-200">
                 Contact support
               </a>
             </div>

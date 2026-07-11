@@ -39,7 +39,7 @@ export default function DocumentationSection() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
             <BookText className="w-6 h-6 text-[#E07A5F]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
+          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-6 block">
             Knowledge Base
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-[1.1] mb-8">
@@ -57,13 +57,13 @@ export default function DocumentationSection() {
             return (
               <div
                 key={doc.title}
-                className="group relative p-10 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:bg-white hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 transition-all duration-700 flex flex-col reveal overflow-hidden"
+                className="group relative p-10 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:bg-white hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 transition-colors transition-transform transition-shadow duration-300 flex flex-col reveal overflow-hidden"
                 style={{ transitionDelay: `${(idx % 4) * 100}ms` }}
               >
-                <div className="absolute top-0 right-0 w-32 h-32 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none rounded-full blur-[40px]" style={{ backgroundColor: doc.color }} />
+                <div className="absolute top-0 right-0 w-32 h-32 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none rounded-full blur-[40px]" style={{ backgroundColor: doc.color }} />
                 
                 <div className="relative z-10 flex flex-col h-full">
-                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#e3dbcd] shadow-sm flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500" style={{ color: doc.color }}>
+                  <div className="w-14 h-14 rounded-2xl bg-white border border-[#e3dbcd] shadow-sm flex items-center justify-center mb-8 group-active:scale-95 group-hover:rotate-3 transition-transform duration-300" style={{ color: doc.color }}>
                     <Icon size={24} strokeWidth={1.5} />
                   </div>
                   

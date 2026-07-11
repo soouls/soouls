@@ -51,12 +51,12 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 z-50 h-full w-[min(92vw,415px)] border-l border-[#222] bg-[rgba(15,15,15,0.92)] p-8 shadow-2xl backdrop-blur-[30px] sm:p-12 flex flex-col rounded-l-[24px] overflow-hidden"
+            className="fixed top-0 right-0 z-50 h-full w-[min(92vw,415px)] border-l border-white/10 bg-black/60 p-8 shadow-2xl backdrop-blur-[40px] backdrop-saturate-[200%] sm:p-12 flex flex-col rounded-l-[32px] overflow-hidden"
           >
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all z-[60]"
+              className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors transition-transform transition-shadow z-[60]"
               aria-label="Close sidebar"
             >
               <X className="w-7 h-7 stroke-[1.5]" />
@@ -74,7 +74,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                   </p>
                 </div>
               </div>
-              <h2 className="text-[32px] font-bold text-[var(--soouls-accent)] tracking-tight leading-none mb-4">
+              <h2 className="text-[32px] font-bold text-[var(--soouls-accent)] tracking-[-0.03em] leading-none mb-4">
                 {fullName}
               </h2>
               <p className="text-xl text-white font-playfair italic leading-snug">
@@ -122,7 +122,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="flex items-center gap-4 px-2 py-3 text-white hover:text-white/80 transition-all"
+                  className="flex items-center gap-4 px-3 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-[0.98]"
                   onClick={onClose}
                 >
                   {item.icon}
@@ -137,7 +137,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                   onClose();
                   onLogoutClick();
                 }}
-                className="flex items-center gap-4 px-2 py-3 text-red-500 hover:text-red-400 transition-all mt-4 w-full"
+                className="flex items-center gap-4 px-3 py-3 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 active:scale-[0.98] mt-4 w-full"
               >
                 <LogOut className="w-5 h-5 stroke-[1.5]" />
                 <span className="text-lg font-light tracking-wide">Logout</span>

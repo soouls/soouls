@@ -508,7 +508,7 @@ const OrangeBtn = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="px-8 py-2.5 bg-[var(--soouls-accent)] hover:opacity-90 disabled:opacity-40 disabled:hover:translate-y-0 text-white text-[13px] rounded-full transition-all duration-300 font-semibold shadow-[0_8px_20px_rgba(var(--soouls-accent-rgb),0.3)] hover:shadow-[0_8px_30px_rgba(var(--soouls-accent-rgb),0.5)] tracking-wide hover:-translate-y-0.5"
+    className="px-8 py-2.5 bg-[var(--soouls-accent)] hover:opacity-90 disabled:opacity-40 disabled:hover:translate-y-0 text-white text-[13px] rounded-full transition-colors transition-transform transition-shadow duration-300 font-semibold shadow-[0_8px_20px_rgba(var(--soouls-accent-rgb),0.3)] hover:shadow-[0_8px_30px_rgba(var(--soouls-accent-rgb),0.5)] tracking-wide hover:-translate-y-0.5"
   >
     {children}
   </button>
@@ -528,7 +528,7 @@ const MInput = ({
     value={value}
     onChange={onChange}
     placeholder={placeholder}
-    className={`bg-black/20 border border-white/5 rounded-2xl px-5 py-3.5 text-white text-[14px] placeholder:text-white/30 outline-none focus:border-[var(--soouls-accent)]/50 focus:bg-black/40 transition-all w-full shadow-inner ${className}`}
+    className={`bg-black/20 border border-white/5 rounded-2xl px-5 py-3.5 text-white text-[14px] placeholder:text-white/30 outline-none focus:border-[var(--soouls-accent)]/50 focus:bg-black/40 transition-colors transition-transform transition-shadow w-full shadow-inner ${className}`}
   />
 );
 
@@ -682,7 +682,7 @@ function DoodleModal({
               type="button"
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex-1 py-2.5 rounded-[16px] text-[13px] font-medium transition-all duration-300 ${tab === t.id ? 'bg-white/10 text-white shadow-lg scale-100 ring-1 ring-white/10' : 'text-white/40 hover:text-white/80 hover:bg-white/5 scale-95'}`}
+              className={`flex-1 py-2.5 rounded-[16px] text-[13px] font-medium transition-colors transition-transform transition-shadow duration-300 ${tab === t.id ? 'bg-white/10 text-white shadow-lg scale-100 ring-1 ring-white/10' : 'text-white/40 hover:text-white/80 hover:bg-white/5 scale-95'}`}
             >
               {t.label}
             </button>
@@ -698,7 +698,7 @@ function DoodleModal({
                 placeholder={`Search ${tab}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:border-[var(--soouls-accent)]/60 focus:bg-black/60 transition-all shadow-inner"
+                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3 text-[14px] text-white placeholder:text-white/30 outline-none focus:border-[var(--soouls-accent)]/60 focus:bg-black/60 transition-colors transition-transform transition-shadow shadow-inner"
               />
             </div>
           )}
@@ -771,7 +771,7 @@ function DoodleModal({
                       setColor(c);
                       setTool('pen');
                     }}
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${color === c && tool === 'pen' ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-black scale-110' : 'hover:scale-110 opacity-70 hover:opacity-100'}`}
+                    className={`w-4 h-4 rounded-full transition-colors transition-transform transition-shadow duration-300 ${color === c && tool === 'pen' ? 'ring-2 ring-white/60 ring-offset-2 ring-offset-black scale-110' : 'hover:scale-110 opacity-70 hover:opacity-100'}`}
                     style={{ backgroundColor: c }}
                   />
                 ))}
@@ -779,7 +779,7 @@ function DoodleModal({
                 <button
                   type="button"
                   onClick={() => setTool('eraser')}
-                  className={`p-1.5 rounded-full transition-all ${tool === 'eraser' ? 'bg-white/20 text-white shadow-inner' : 'text-white/40 hover:text-white/90'}`}
+                  className={`p-1.5 rounded-full transition-colors transition-transform transition-shadow ${tool === 'eraser' ? 'bg-white/20 text-white shadow-inner' : 'text-white/40 hover:text-white/90'}`}
                 >
                   <Eraser className="w-4 h-4" />
                 </button>
@@ -826,7 +826,7 @@ function DoodleModal({
                     onSave(canvasRef.current?.toDataURL('image/webp', 0.8) || '');
                     onClose();
                   }}
-                  className="px-10 py-3.5 rounded-full bg-[var(--soouls-accent)] hover:opacity-90 text-white text-[14px] transition-all duration-300 pointer-events-auto shadow-[0_10px_40px_rgba(var(--soouls-accent-rgb),0.4)] hover:shadow-[0_10px_60px_rgba(var(--soouls-accent-rgb),0.6)] font-semibold tracking-wide hover:-translate-y-1"
+                  className="px-10 py-3.5 rounded-full bg-[var(--soouls-accent)] hover:opacity-90 text-white text-[14px] transition-colors transition-transform transition-shadow duration-300 pointer-events-auto shadow-[0_10px_40px_rgba(var(--soouls-accent-rgb),0.4)] hover:shadow-[0_10px_60px_rgba(var(--soouls-accent-rgb),0.6)] font-semibold tracking-wide hover:-translate-y-1"
                 >
                   Drop into Entry
                 </button>
@@ -1090,7 +1090,7 @@ function VoiceModal({
         <button
           type="button"
           onClick={recording ? undefined : start}
-          className={`w-28 h-28 rounded-full flex items-center justify-center transition-all duration-500 mb-12 ${recording ? 'bg-[var(--soouls-accent)]/10 ring-2 ring-[var(--soouls-accent)]/50 scale-105' : 'bg-black/40 hover:bg-black/60 shadow-inner ring-1 ring-white/5'}`}
+          className={`w-28 h-28 rounded-full flex items-center justify-center transition-colors transition-transform transition-shadow duration-300 mb-12 ${recording ? 'bg-[var(--soouls-accent)]/10 ring-2 ring-[var(--soouls-accent)]/50 scale-105' : 'bg-black/40 hover:bg-black/60 shadow-inner ring-1 ring-white/5'}`}
         >
           <Mic
             className={`w-10 h-10 ${recording ? 'text-[var(--soouls-accent)] animate-pulse drop-shadow-[0_0_15px_rgba(212,107,78,0.8)]' : 'text-white/30'}`}
@@ -1102,7 +1102,7 @@ function VoiceModal({
           <div className="flex flex-col items-center gap-3 group">
             <button
               type="button"
-              className="w-14 h-14 rounded-full bg-black/20 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105"
+              className="w-14 h-14 rounded-full bg-black/20 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-colors transition-transform transition-shadow hover:scale-105"
             >
               <Pause className="w-5 h-5 text-white/60 group-hover:text-white" fill="currentColor" />
             </button>
@@ -1117,7 +1117,7 @@ function VoiceModal({
                 if (recording) stop();
                 else onClose();
               }}
-              className="w-14 h-14 rounded-full bg-black/20 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105"
+              className="w-14 h-14 rounded-full bg-black/20 border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-colors transition-transform transition-shadow hover:scale-105"
             >
               <Square
                 className="w-4 h-4 text-white/60 group-hover:text-white"
@@ -1970,7 +1970,7 @@ function NewEntryContent() {
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden"
+            className="w-10 h-10 rounded-full border-2 border-white/10 hover:border-white/30 transition-colors transition-transform transition-shadow cursor-pointer overflow-hidden"
           >
             {user?.imageUrl && (
               <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />

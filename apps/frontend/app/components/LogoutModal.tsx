@@ -48,14 +48,14 @@ export const LogoutModal: React.FC<LogoutModalProps> = ({ isOpen, onClose }) => 
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-3.5 rounded-2xl bg-[rgba(15,15,15,0.5)] border border-[#D46B4E] text-[#E6E2D6] hover:bg-[#222] transition-all text-lg font-bold shadow-lg sm:w-52"
+                  className="w-full py-3.5 rounded-2xl bg-[rgba(15,15,15,0.5)] border border-[#D46B4E] text-[#E6E2D6] hover:bg-[#222] transition-colors transition-transform transition-shadow text-lg font-bold shadow-lg sm:w-52"
                 >
                   Stay
                 </button>
                 <button
                   type="button"
                   onClick={() => signOut({ redirectUrl: '/' })}
-                  className="w-full py-3.5 rounded-2xl bg-[rgba(255,0,0,0.72)] border border-red-600 text-[#E6E2D6] hover:bg-red-700 transition-all text-lg font-bold shadow-lg sm:w-52"
+                  className="w-full py-3.5 rounded-2xl bg-[rgba(255,0,0,0.72)] border border-red-600 text-[#E6E2D6] hover:bg-red-700 transition-colors transition-transform transition-shadow text-lg font-bold shadow-lg sm:w-52"
                 >
                   Logout
                 </button>

@@ -24,12 +24,11 @@ export default function FooterSection() {
               A private space for your quietest thoughts. Join thousands of souls exploring their minds.
             </p>
           </div>
-          <button className="group relative px-8 py-4 w-full md:w-auto bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase overflow-hidden shadow-[0_10px_30px_rgba(22,19,15,0.15)] transition-transform hover:scale-105 duration-300">
+          <Link href="/sign-up" className="group relative px-7 py-3 w-full md:w-auto bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-semibold text-[15px] tracking-tight transition-all active:scale-[0.97] duration-200">
             <span className="relative z-10 flex items-center justify-center gap-2">
               Start free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--soouls-accent)] to-[#E07A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          </button>
+          </Link>
         </div>
 
         {/* Main Footer Links */}
@@ -38,8 +37,8 @@ export default function FooterSection() {
           {/* Brand & Mission */}
           <div className="max-w-sm flex flex-col gap-8 reveal" style={{ transitionDelay: '100ms' }}>
             <Link href="/" className="group flex items-center gap-3 w-fit">
-              <div className="w-10 h-10 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center group-hover:bg-[var(--soouls-accent)] transition-colors duration-500">
-                <ButterflyLogo className="w-5 h-5 text-[var(--soouls-accent)] group-hover:text-white transition-colors duration-500" />
+              <div className="w-10 h-10 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center group-hover:bg-[var(--soouls-accent)] transition-colors duration-300">
+                <ButterflyLogo className="w-5 h-5 text-[var(--soouls-accent)] group-hover:text-white transition-colors duration-300" />
               </div>
               <span className="font-playfair text-3xl text-[var(--ink)] italic group-hover:opacity-80 transition-opacity">Soouls</span>
             </Link>
@@ -61,7 +60,7 @@ export default function FooterSection() {
                   target="_blank" 
                   rel="noopener noreferrer" 
                   aria-label={social.label}
-                  className="w-10 h-10 rounded-full border border-[var(--line)] flex items-center justify-center text-[var(--ink-faint)] hover:text-[var(--soouls-accent)] hover:border-[var(--soouls-accent)] bg-white/50 hover:bg-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(217,138,75,0.1)]"
+                  className="w-10 h-10 rounded-full border border-[var(--line)] flex items-center justify-center text-[var(--ink-faint)] hover:text-[var(--soouls-accent)] hover:border-[var(--soouls-accent)] bg-white/50 hover:bg-white backdrop-blur-sm transition-all active:scale-[0.94] duration-200"
                 >
                   <social.icon className="w-4 h-4" />
                 </a>
@@ -74,8 +73,8 @@ export default function FooterSection() {
             
             {/* Column 1 */}
             <div className="flex flex-col gap-6 min-w-[140px] reveal" style={{ transitionDelay: '200ms' }}>
-              <h4 className="text-[var(--ink)] text-xs uppercase tracking-[0.2em] font-bold mb-2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[var(--soouls-accent)]" /> Product
+              <h4 className="text-[var(--ink)] text-[13px] font-semibold tracking-tight mb-2 flex items-center gap-2">
+                Product
               </h4>
               {[
                 { name: 'Features', href: '/features' },
@@ -83,19 +82,16 @@ export default function FooterSection() {
                 { name: 'Security', href: '/security' },
                 { name: 'Changelog', href: '/release-notes' },
               ].map((link) => (
-                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-sm text-[var(--ink-soft)] transition-colors duration-300 hover:text-[var(--soouls-accent)]">
-                  <span className="relative">
-                    {link.name}
-                    <span className="absolute -bottom-1 left-0 w-0 h-px bg-[var(--soouls-accent)] transition-all duration-300 group-hover:w-full" />
-                  </span>
+                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-[15px] text-[var(--ink-soft)] hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200">
+                  {link.name}
                 </Link>
               ))}
             </div>
 
             {/* Column 2 */}
             <div className="flex flex-col gap-6 min-w-[140px] reveal" style={{ transitionDelay: '300ms' }}>
-              <h4 className="text-[var(--ink)] text-xs uppercase tracking-[0.2em] font-bold mb-2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#E07A5F]" /> Resources
+              <h4 className="text-[var(--ink)] text-[13px] font-semibold tracking-tight mb-2 flex items-center gap-2">
+                Resources
               </h4>
               {[
                 { name: 'Journal Guide', href: '/journal-guide' },
@@ -104,19 +100,16 @@ export default function FooterSection() {
                 { name: 'Community', href: '/community' },
                 { name: 'Download App', href: '/downloads' },
               ].map((link) => (
-                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-sm text-[var(--ink-soft)] transition-colors duration-300 hover:text-[#E07A5F]">
-                  <span className="relative">
-                    {link.name}
-                    <span className="absolute -bottom-1 left-0 w-0 h-px bg-[#E07A5F] transition-all duration-300 group-hover:w-full" />
-                  </span>
+                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-[15px] text-[var(--ink-soft)] hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200">
+                  {link.name}
                 </Link>
               ))}
             </div>
             
             {/* Column 3 */}
             <div className="flex flex-col gap-6 min-w-[140px] reveal" style={{ transitionDelay: '400ms' }}>
-              <h4 className="text-[var(--ink)] text-xs uppercase tracking-[0.2em] font-bold mb-2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#6450d6]" /> Company
+              <h4 className="text-[var(--ink)] text-[13px] font-semibold tracking-tight mb-2 flex items-center gap-2">
+                Company
               </h4>
               {[
                 { name: 'About Us', href: '/about' },
@@ -125,11 +118,8 @@ export default function FooterSection() {
                 { name: 'Terms of Service', href: '/terms' },
                 { name: 'Contact', href: '/contact' },
               ].map((link) => (
-                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-sm text-[var(--ink-soft)] transition-colors duration-300 hover:text-[#6450d6]">
-                  <span className="relative">
-                    {link.name}
-                    <span className="absolute -bottom-1 left-0 w-0 h-px bg-[#6450d6] transition-all duration-300 group-hover:w-full" />
-                  </span>
+                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-[15px] text-[var(--ink-soft)] hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200">
+                  {link.name}
                 </Link>
               ))}
             </div>

@@ -175,12 +175,12 @@ export default function CanvasPage() {
       <BackgroundText />
 
       {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 transition-all duration-300 md:p-10">
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 transition-colors transition-transform transition-shadow duration-300 md:p-10">
         <div className="flex min-w-0 items-center text-[16px] font-medium tracking-normal sm:text-[22px] gap-1">
           <button
             type="button"
             onClick={() => router.push('/home')}
-            className="text-white/30 hover:text-white/60 transition-all cursor-pointer"
+            className="text-white/30 hover:text-white/60 transition-colors transition-transform transition-shadow cursor-pointer"
           >
             Home
           </button>
@@ -238,7 +238,7 @@ export default function CanvasPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="search for entries"
-                  className="soouls-search w-full py-5 pl-16 pr-8 text-[18px] text-white placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-[var(--soouls-accent)]/20 transition-all"
+                  className="soouls-search w-full py-5 pl-16 pr-8 text-[18px] text-white placeholder:text-white/35 focus:outline-none focus:ring-1 focus:ring-[var(--soouls-accent)]/20 transition-colors transition-transform transition-shadow"
                 />
               </div>
 
@@ -298,7 +298,7 @@ export default function CanvasPage() {
                           key={entry.id}
                           layoutId={entry.id}
                           onClick={() => handleEntryClick(entry)}
-                          className={`p-6 rounded-[24px] border transition-all cursor-pointer group ${selectedEntry?.id === entry.id ? 'bg-[var(--soouls-accent)]/10 border-[var(--soouls-accent)]/40 shadow-[0_0_30px_rgba(var(--soouls-accent-rgb),0.15)]' : 'bg-[#111111]/40 border-white/[0.03] hover:border-white/10'}`}
+                          className={`p-6 rounded-[24px] border transition-colors transition-transform transition-shadow cursor-pointer group ${selectedEntry?.id === entry.id ? 'bg-[var(--soouls-accent)]/10 border-[var(--soouls-accent)]/40 shadow-[0_0_30px_rgba(var(--soouls-accent-rgb),0.15)]' : 'bg-[#111111]/40 border-white/[0.03] hover:border-white/10'}`}
                         >
                           <div className="flex justify-between items-start mb-3">
                             <h4 className="text-[20px] font-playfair font-bold text-[#EFEBDD] group-hover:text-white leading-tight">
@@ -328,7 +328,7 @@ export default function CanvasPage() {
               {view === 'cluster' && (
                 <button
                   type="button"
-                  className="w-full py-5 rounded-full bg-[#1A1817] border border-[var(--soouls-accent)]/30 text-[var(--soouls-accent)] font-bold text-[16px] flex items-center justify-center gap-3 hover:bg-[var(--soouls-accent)] hover:text-white transition-all shadow-[0_10px_20px_rgba(0,0,0,0.3)] group mt-auto"
+                  className="w-full py-5 rounded-full bg-[#1A1817] border border-[var(--soouls-accent)]/30 text-[var(--soouls-accent)] font-bold text-[16px] flex items-center justify-center gap-3 hover:bg-[var(--soouls-accent)] hover:text-white transition-colors transition-transform transition-shadow shadow-[0_10px_20px_rgba(0,0,0,0.3)] group mt-auto"
                 >
                   <div className="flex -space-x-1">
                     <div className="w-3.5 h-3.5 rounded-full border border-current opacity-40" />
@@ -423,7 +423,7 @@ export default function CanvasPage() {
                           );
                         }}
                         style={{ x: node.x - 150, y: node.y - 100, position: 'absolute' }}
-                        className={`w-[300px] p-8 rounded-[32px] backdrop-blur-3xl border transition-all ${selectedEntry?.id === node.id ? 'bg-[#1A1A1A] border-[var(--soouls-accent)]/40 z-30 shadow-[0_0_40px_rgba(var(--soouls-accent-rgb),0.2)]' : 'bg-[#0D0D0D]/90 border-white/5 hover:border-white/10 z-10'}`}
+                        className={`w-[300px] p-8 rounded-[32px] backdrop-blur-3xl border transition-colors transition-transform transition-shadow ${selectedEntry?.id === node.id ? 'bg-[#1A1A1A] border-[var(--soouls-accent)]/40 z-30 shadow-[0_0_40px_rgba(var(--soouls-accent-rgb),0.2)]' : 'bg-[#0D0D0D]/90 border-white/5 hover:border-white/10 z-10'}`}
                       >
                         <div className="text-[9px] text-white/20 font-bold uppercase tracking-widest mb-3">
                           {new Date(node.createdAt).toLocaleDateString()}
@@ -442,7 +442,7 @@ export default function CanvasPage() {
                   <div className="absolute bottom-8 left-1/2 flex max-w-[calc(100%-48px)] -translate-x-1/2 items-center gap-1 overflow-x-auto rounded-[28px] border border-white/10 bg-[#44413D]/80 p-2 shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-3xl md:bottom-12">
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest whitespace-nowrap"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-colors transition-transform transition-shadow uppercase tracking-widest whitespace-nowrap"
                     >
                       <Plus className="w-5 h-5 text-[var(--soouls-accent)]" />
                       CREATE
@@ -458,7 +458,7 @@ export default function CanvasPage() {
                     <div className="w-[1px] h-10 bg-white/10 mx-2" />
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest whitespace-nowrap"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-colors transition-transform transition-shadow uppercase tracking-widest whitespace-nowrap"
                     >
                       <LayoutGrid className="w-5 h-5" />
                       AUTO - ARRANGE
@@ -466,7 +466,7 @@ export default function CanvasPage() {
                     <div className="w-[1px] h-10 bg-white/10 mx-2" />
                     <button
                       type="button"
-                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-all uppercase tracking-widest whitespace-nowrap"
+                      className="flex items-center gap-3 px-8 py-3 text-[12px] font-bold text-white/40 hover:text-white transition-colors transition-transform transition-shadow uppercase tracking-widest whitespace-nowrap"
                     >
                       <Trash2 className="w-5 h-5" />
                       CLEAR
@@ -477,14 +477,14 @@ export default function CanvasPage() {
                   <div className="absolute right-10 bottom-12 flex flex-col gap-6">
                     <button
                       type="button"
-                      className="w-14 h-14 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
+                      className="w-14 h-14 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-colors transition-transform transition-shadow shadow-2xl backdrop-blur-md"
                     >
                       <Plus className="w-6 h-6" />
                     </button>
                     <div className="w-14 h-[1px] bg-white/5" />
                     <button
                       type="button"
-                      className="w-14 h-14 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
+                      className="w-14 h-14 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-colors transition-transform transition-shadow shadow-2xl backdrop-blur-md"
                     >
                       <div className="w-6 h-[2px] bg-current" />
                     </button>

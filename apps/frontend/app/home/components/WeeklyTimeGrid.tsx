@@ -80,13 +80,13 @@ export function WeeklyTimeGrid({
                 <button
                   type="button"
                   onClick={() => onSelectDay(wd.getDate())}
-                  className={`w-9 h-9 rounded-full text-sm font-semibold flex items-center justify-center transition-all ${
+                  className={`w-9 h-9 rounded-full text-sm font-semibold flex items-center justify-center transition-colors transition-transform transition-shadow ${
                     isToday
                       ? 'bg-[var(--soouls-accent)] text-white shadow-lg shadow-[var(--soouls-accent)]/30'
                       : isSelected
                         ? 'ring-2 ring-[var(--soouls-accent)] text-white'
                         : 'text-gray-300 hover:bg-white/5'
-                  } text-sm font-semibold flex items-center justify-center transition-all`}
+                  } text-sm font-semibold flex items-center justify-center transition-colors transition-transform transition-shadow`}
                 >
                   {wd.getDate()}
                 </button>
@@ -197,7 +197,7 @@ export function WeeklyTimeGrid({
                           key={entry.id}
                           type="button"
                           onClick={() => onOpenEntry(entry.id)}
-                          className="absolute left-1 right-1 rounded-md px-2 py-1.5 overflow-hidden text-left text-[10px] bg-zinc-800 border border-zinc-700 hover:border-[#e67e65] hover:bg-zinc-700 transition-all z-20 shadow-lg"
+                          className="absolute left-1 right-1 rounded-md px-2 py-1.5 overflow-hidden text-left text-[10px] bg-zinc-800 border border-zinc-700 hover:border-[#e67e65] hover:bg-zinc-700 transition-colors transition-transform transition-shadow z-20 shadow-lg"
                           style={{
                             top: `${top}px`,
                             height: `${height}px`,

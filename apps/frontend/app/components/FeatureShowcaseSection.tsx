@@ -206,7 +206,7 @@ export function FeatureShowcaseSection() {
         .show-tab .tno { font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-faint); font-size: 1rem; transition: color .4s; }
         .show-tab strong { display: block; font-size: .95rem; color: var(--ink); }
         .show-tab small { color: var(--ink-faint); font-size: .76rem; }
-        .show-tab:hover { transform: translateX(4px); }
+        .show-tab:active { transform: scale(0.98); }
         .show-tab.active { background: var(--ink); border-color: var(--ink); box-shadow: 0 12px 30px rgba(22, 19, 15, .2); }
         .show-tab.active strong { color: var(--paper); }
         .show-tab.active small { color: rgba(247, 243, 236, .55); }
@@ -245,7 +245,7 @@ export function FeatureShowcaseSection() {
         .pad-hint { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-faint); font-size: .95rem; pointer-events: none; transition: opacity .5s; }
         .pad-wrap.used .pad-hint { opacity: 0; }
         .pad-clear { position: absolute; right: 8px; bottom: 8px; font: 600 .68rem 'Inter', sans-serif; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink-faint); transition: all .3s; z-index:10; }
-        .pad-clear:hover { color: var(--ink); transform: rotate(-3deg); }
+        .pad-clear:active { color: var(--ink); transform: scale(0.95); }
         
         .fan { position: relative; width: 220px; height: 150px; }
         .fp { position: absolute; left: 50%; top: 20px; width: 110px; height: 84px; margin-left: -55px; border-radius: 10px; border: 4px solid #fff; box-shadow: 0 12px 30px rgba(22, 19, 15, .16); animation: fanmove 6s var(--ease) infinite; }

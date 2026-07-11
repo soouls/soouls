@@ -12,7 +12,7 @@ export default function CookiePolicySection() {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
               <Cookie className="w-6 h-6 text-[#E07A5F]" />
             </div>
-            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
+            <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-6 block">
               Cookie Policy
             </span>
             <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-[1.1] mb-8">
@@ -22,7 +22,7 @@ export default function CookiePolicySection() {
 
           <div className="relative p-6 sm:p-8 md:p-16 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 shadow-[0_10px_40px_rgba(22,19,15,0.03)] overflow-hidden group">
             
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#E07A5F]/5 blur-[60px] rounded-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#E07A5F]/5 blur-[60px] rounded-full pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
             
             <div className="relative z-10 space-y-12 font-urbanist text-[var(--ink-soft)] text-lg leading-relaxed max-w-2xl mx-auto">
               <p className="text-xl text-[var(--ink)] font-medium">

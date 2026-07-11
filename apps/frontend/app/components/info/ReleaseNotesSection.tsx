@@ -46,7 +46,7 @@ export default function ReleaseNotesSection() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
             <History className="w-6 h-6 text-[#E07A5F]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-6 block">
+          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-6 block">
             Changelog
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-[1.1] mb-8">
@@ -67,18 +67,18 @@ export default function ReleaseNotesSection() {
               
               {/* Timeline Dot with Glow */}
               <div className="absolute left-[13px] top-10 flex items-center justify-center">
-                <div className="absolute w-8 h-8 bg-[#E07A5F]/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative w-[18px] h-[18px] rounded-full bg-white border-[4px] border-[#E07A5F] group-hover:scale-125 transition-transform duration-500 shadow-sm z-10" />
+                <div className="absolute w-8 h-8 bg-[#E07A5F]/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative w-[18px] h-[18px] rounded-full bg-white border-[4px] border-[#E07A5F] group-hover:scale-125 transition-transform duration-300 shadow-sm z-10" />
               </div>
 
               {/* Card */}
-              <div className="relative p-6 sm:p-8 md:p-14 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:bg-white hover:border-[#E07A5F]/30 hover:shadow-[0_20px_40px_rgba(224,122,95,0.06)] hover:-translate-y-1 transition-all duration-500 overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07A5F]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              <div className="relative p-6 sm:p-8 md:p-14 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:bg-white hover:border-[#E07A5F]/30 hover:shadow-[0_20px_40px_rgba(224,122,95,0.06)] hover:-translate-y-1 transition-colors transition-transform transition-shadow duration-300 overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07A5F]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
                 <div className="relative z-10">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 border-b border-[#e3dbcd]/50 pb-8">
                     <div>
-                      <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] tracking-[0.3em] uppercase mb-4 block">
+                      <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
                         {release.date}
                       </span>
                       <h3 className="font-playfair text-4xl font-bold text-[var(--ink)] group-hover:text-[#E07A5F] transition-colors duration-300">
@@ -93,7 +93,7 @@ export default function ReleaseNotesSection() {
                   <ul className="space-y-5">
                     {release.changes.map((change, cIdx) => (
                       <li key={cIdx} className="flex items-start gap-4 font-urbanist text-[var(--ink-soft)] text-lg leading-relaxed group/item">
-                        <Sparkles className="w-5 h-5 text-[#E07A5F]/40 mt-1 shrink-0 group-hover/item:text-[#E07A5F] group-hover/item:scale-110 transition-all" strokeWidth={1.5} />
+                        <Sparkles className="w-5 h-5 text-[#E07A5F]/40 mt-1 shrink-0 group-hover/item:text-[#E07A5F] group-hover/item:scale-110 transition-colors transition-transform transition-shadow" strokeWidth={1.5} />
                         <span>{change}</span>
                       </li>
                     ))}
