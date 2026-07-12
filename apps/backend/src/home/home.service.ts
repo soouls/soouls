@@ -55,6 +55,7 @@ type UserRow = {
   isWaitlistUser: boolean;
   planType: string | null;
   subscriptionStatus: string | null;
+  trialEndsAt: Date | null;
 };
 
 const formatRelativeUpdatedAt = (date: Date): string => {
@@ -100,6 +101,7 @@ export class HomeService implements HomeApi {
         isWaitlistUser: users.isWaitlistUser,
         planType: users.planType,
         subscriptionStatus: users.subscriptionStatus,
+        trialEndsAt: users.trialEndsAt,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -495,6 +497,10 @@ export class HomeService implements HomeApi {
     const preferences = (user.preferences ?? {}) as Record<string, unknown>;
     const completed = preferences.onboardingCompleted === true;
 
+    const trialEndsAt = user.trialEndsAt || new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const trialDaysLeft = Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+    const isTrialActive = trialDaysLeft > 0 && (user.planType === 'free' || !user.planType);
+
     return {
       completed,
       isWaitlistUser: user.isWaitlistUser,
@@ -503,6 +509,8 @@ export class HomeService implements HomeApi {
         : null,
       planType: user.planType,
       subscriptionStatus: user.subscriptionStatus,
+      trialDaysLeft,
+      isTrialActive,
     };
   }
 

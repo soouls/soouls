@@ -412,6 +412,8 @@ export type OnboardingStatus = {
   message: string | null;
   planType: string | null;
   subscriptionStatus: string | null;
+  trialDaysLeft?: number;
+  isTrialActive?: boolean;
 };
 
 export type AccountExport = {

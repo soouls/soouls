@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { and, db, eq, or, sql } from '@soouls/database/client';
 import { canvasNodes, journalEntries, users } from '@soouls/database/schema';
+import { Resend } from 'resend';
 import { RedisService } from '../redis/redis.service';
 
 @Injectable()
@@ -120,18 +121,30 @@ export class TasksService {
       console.log('[Scheduler] Running daily trial expiry email check...');
 
       // Find users whose trial ended exactly yesterday/today.
-      // Assuming a 14-day trial starts from createdAt.
-      // So createdAt is between 14 and 15 days ago.
+      // 1. If trialEndsAt is set, we check if it is between 24 hours ago and now.
+      // 2. If trialEndsAt is not set, we check if createdAt is between 15 and 14 days ago.
       const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
       const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
       const expiringUsers = await db
         .select({ id: users.id, email: users.email, name: users.name })
         .from(users)
         .where(
           and(
-            sql`${users.createdAt} >= ${fifteenDaysAgo}`,
-            sql`${users.createdAt} < ${fourteenDaysAgo}`,
+            or(
+              and(
+                sql`${users.trialEndsAt} IS NOT NULL`,
+                sql`${users.trialEndsAt} >= ${yesterday}`,
+                sql`${users.trialEndsAt} < ${now}`,
+              ),
+              and(
+                sql`${users.trialEndsAt} IS NULL`,
+                sql`${users.createdAt} >= ${fifteenDaysAgo}`,
+                sql`${users.createdAt} < ${fourteenDaysAgo}`,
+              ),
+            ),
             or(eq(users.planType, 'free'), sql`${users.planType} IS NULL`),
           ),
         );
@@ -145,7 +158,7 @@ export class TasksService {
 
       const apiKey = process.env.RESEND_API_KEY;
       if (!apiKey) throw new Error('RESEND_API_KEY is not configured');
-      const resend = new (require('resend').Resend)(apiKey);
+      const resend = new Resend(apiKey);
 
       for (const u of expiringUsers) {
         if (!u.email) continue;
