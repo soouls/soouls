@@ -25,10 +25,12 @@
     "node": ">=18"
   },
   "packageManager": "bun@1.3.6",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "resolutions": {
-    "mime": "1.6.0",
-    "metro-file-map": "npm:@expo/metro-file-map@~57.0.0"
+    "mime": "1.6.0"
   },
   "dependencies": {
     "@giphy/js-fetch-api": "^5.8.0",

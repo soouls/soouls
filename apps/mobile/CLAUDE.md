@@ -30,13 +30,27 @@ This is the Soouls mobile application built with React Native and Expo. It uses 
 5. **Styling**: Ensure components use modern UI aesthetics adhering to Soouls design guidelines. Be responsive to different screen sizes.
 
 ## Local Development
-You can use either npm or bun to run the project locally.
+Since this project uses custom native C++ libraries (such as `react-native-worklets` and `react-native-reanimated` v4), it **cannot run inside the generic Expo Go app**. You must run it in a **Development Build** (using `expo-dev-client`).
 
-### Using npm (default)
-Execute `npx expo start` in the `apps/mobile` directory.
+### Running the Project
+1. **First-time Native Build & Run:**
+   To build the native Android or iOS client and install it on your device/emulator:
+   * **Android:** `bun run android` (or `npx expo run:android`)
+   * **iOS:** `bun run ios` (or `npx expo run:ios`)
+   
+2. **Subsequent JS Runs:**
+   Once the custom development client is installed on your emulator/device, start the bundler without rebuilding the native app:
+   `bun run start` (or `npx expo start`)
 
-### Using Bun (optional)
-Execute `bun run start` in the `apps/mobile` directory.
+## Windows Build Considerations
+Windows has a 260-character path limit (`MAX_PATH`). To build successfully on Windows:
+* **Directory Redirection:** All subproject build outputs and CMake staging folders are redirected to `${project.rootDir}/build` to keep paths short (configured via `settings.gradle`).
+* **Autolinking Patch:** A custom task in `app/build.gradle` dynamically modifies `Android-autolinking.cmake` to point to these short paths.
+* **CMake Batched Compilation:** `UNITY_BUILD ON` is configured on the `reanimated` target to compile source files in combined units, preventing deeply nested directory creation in the build cache.
+* **Cache Wiping:** If incremental package tasks fail (e.g. `IncrementalSplitterRunnable`), wipe the `build` directory manually:
+  ```powershell
+  Remove-Item -Recurse -Force apps/mobile/android/build
+  ```
 
 ## Testing
-Always test on both iOS and Android platforms via the Expo Go app or simulator.
+Always test on both iOS and Android platforms using the **custom Development Build** installed on your emulator, simulator, or physical device. Do not use the default Expo Go app.

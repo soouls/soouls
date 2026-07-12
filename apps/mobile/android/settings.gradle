@@ -1,0 +1,77 @@
+pluginManagement {
+    // Resolve @react-native/gradle-plugin via Node.js from the android/ dir
+    def rnGradlePlugin = providers.exec {
+        workingDir(rootDir)
+        commandLine("node", "--print",
+            "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+    }.standardOutput.asText.get().trim()
+    def rnGradlePluginDir = new File(rnGradlePlugin).parentFile.absolutePath
+
+    includeBuild(rnGradlePluginDir)
+
+    // Resolve expo-gradle-plugin via Node.js from the android/ dir (same method as ExpoAutolinkingSettingsPlugin)
+    def expoAutolinkingPkg = providers.exec {
+        workingDir(rootDir)
+        commandLine("node", "--print",
+            "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })")
+    }.standardOutput.asText.get().trim()
+    def expoGradlePluginDir = new File(expoAutolinkingPkg).parentFile.absolutePath + "/android/expo-gradle-plugin"
+
+    includeBuild(expoGradlePluginDir)
+}
+
+plugins {
+    id("com.facebook.react.settings")
+    id("expo-autolinking-settings")
+}
+
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+    if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
+        ex.autolinkLibrariesFromCommand()
+    } else {
+        ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
+    }
+}
+expoAutolinking.useExpoModules()
+
+rootProject.name = 'Soouls'
+
+expoAutolinking.useExpoVersionCatalog()
+
+include ':app'
+
+// Redirect buildDirectory and buildStagingDirectory of all subprojects to short local paths in the workspace.
+// This ensures all codegen-generated files (like ComponentDescriptors.cpp) and CMake compiled files
+// are stored in short paths to avoid Windows MAX_PATH/CMake/Ninja path limits.
+gradle.beforeProject { project ->
+    if (project != project.rootProject && project.name != "app") {
+        project.layout.buildDirectory.set(new File("${project.rootDir}/build/subprojects/${project.name.replace(':', '_')}"))
+        
+        project.plugins.withId("com.android.library") {
+            project.android.externalNativeBuild.cmake {
+                buildStagingDirectory = new File("${project.rootDir}/build/cxx/${project.name.replace(':', '_')}")
+            }
+        }
+        project.plugins.withId("com.android.application") {
+            project.android.externalNativeBuild.cmake {
+                buildStagingDirectory = new File("${project.rootDir}/build/cxx/${project.name.replace(':', '_')}")
+            }
+        }
+    }
+}
+
+
+
+
+// Per official docs + Expo source: includeBuild must ALSO appear at root settings scope
+// (outside pluginManagement) to enable module substitution for buildscript :classpath.
+// We use the SAME path string as pluginManagement to guarantee Gradle deduplication.
+def rnGradlePluginForSubstitution = providers.exec {
+    workingDir(rootDir)
+    commandLine("node", "--print",
+        "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
+}.standardOutput.asText.get().trim()
+includeBuild(new File(rnGradlePluginForSubstitution).parentFile.absolutePath)
+
+
+

@@ -1,4 +1,4 @@
-import type { AppRouter } from '@soouls/api/src/router';
+import type { AppRouter } from '@soouls/api/router';
 import { QueryClient } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';

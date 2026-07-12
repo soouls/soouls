@@ -1,21 +1,93 @@
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { usePersistedEntry } from '../../hooks/usePersistedEntry';
+import { useUpsertSync } from '../../hooks/useEntries';
+import { BlockToolbar } from '../../components/blocks/BlockToolbar';
+import { VoiceCard } from '../../components/blocks/VoiceCard';
+import { ImageCard } from '../../components/blocks/ImageCard';
+import { GoalCard } from '../../components/blocks/GoalCard';
+import { TasklistCard } from '../../components/blocks/TasklistCard';
+import { DoodleCard } from '../../components/blocks/DoodleCard';
+import LZString from 'lz-string';
+import { useVoiceRecorder } from '../../hooks/useVoiceRecorder';
+import { useImagePicker } from '../../hooks/useImagePicker';
 
 export function CreateEntryScreen({ navigation }: any) {
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { textContent, setTextContent, blocks, setBlocks, saveStatus, clearDraft } = usePersistedEntry('draft');
+  const upsertSync = useUpsertSync();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { start: startVoice, stop: stopVoice, recording } = useVoiceRecorder();
+  const { pickImage } = useImagePicker();
+
+  const performSync = async (finalize = false) => {
+    if (!textContent.trim() && !title.trim() && blocks.length === 0) return;
+    setIsSyncing(true);
+    try {
+      const contentObj = { title, textContent, blocks };
+      const contentStr = JSON.stringify(contentObj);
+      const compressed = LZString.compressToBase64(contentStr);
+      
+      await upsertSync.mutateAsync({
+        content: compressed,
+        type: 'entry',
+        finalize
+      });
+    } catch (err) {
+      console.error('Sync failed:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // 2s debounce for background sync
+  useEffect(() => {
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = setTimeout(() => {
+      performSync(false);
+    }, 2000);
+    return () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [textContent, title, blocks]);
+
+  // AppState listener for immediate sync on background
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState.match(/inactive|background/)) {
+        performSync(false);
+      }
+    });
+    return () => subscription.remove();
+  }, [textContent, title, blocks]);
 
   const handleSave = async () => {
-    setIsLoading(true);
-    // Simulate API call for now
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.goBack();
-    }, 1000);
+    await performSync(true); // Finalize the entry
+    await clearDraft();
+    navigation.goBack();
+  };
+
+  const addBlock = (block: any) => {
+    setBlocks([...blocks, block]);
+  };
+
+  const handleVoiceToggle = async () => {
+    if (recording) {
+      const uri = await stopVoice();
+      if (uri) addBlock({ type: 'voice', duration: 5 }); // mocked duration
+    } else {
+      await startVoice();
+    }
+  };
+
+  const handleImagePick = async () => {
+    const img = await pickImage();
+    if (img) addBlock({ type: 'image', url: img.uri, name: img.name });
   };
 
   return (
@@ -41,21 +113,43 @@ export function CreateEntryScreen({ navigation }: any) {
           <View style={styles.textAreaContainer}>
             <Input
               label=""
-              value={content}
+              value={textContent}
               placeholder="Write your thoughts here..."
-              onChangeText={setContent}
+              onChangeText={setTextContent}
               multiline
-              numberOfLines={10}
+              numberOfLines={6}
             />
           </View>
+
+          <View style={styles.blocksContainer}>
+            {blocks.map((block: any, idx: number) => {
+              if (block.type === 'voice') return <VoiceCard key={idx} duration={block.duration} />;
+              if (block.type === 'image') return <ImageCard key={idx} uri={block.url || block.dataUrl} />;
+              if (block.type === 'goal') return <GoalCard key={idx} goal={block.goal} label={block.label} />;
+              if (block.type === 'tasklist') return <TasklistCard key={idx} title={block.title} tasks={block.tasks} />;
+              if (block.type === 'doodle') return <DoodleCard key={idx} />;
+              return null;
+            })}
+          </View>
         </ScrollView>
+        
+        <BlockToolbar 
+          onAddVoice={handleVoiceToggle}
+          onAddImage={handleImagePick}
+          onAddGoal={() => addBlock({ type: 'goal', goal: 'New Goal', label: 'My Goal' })}
+          onAddTasklist={() => addBlock({ type: 'tasklist', title: 'Todos', tasks: [{text: 'Task 1', done: false}] })}
+          onAddDoodle={() => addBlock({ type: 'doodle' })}
+        />
 
         <View style={styles.footer}>
+          <Text style={{color: '#8E8E93', fontSize: 12, marginBottom: 8}}>
+            {recording ? 'Recording voice...' : isSyncing ? 'Syncing to cloud...' : saveStatus === 'saved' ? 'Saved locally' : ''}
+          </Text>
           <Button
-            title="Save Entry"
+            title="Save & Close"
             onPress={handleSave}
-            isLoading={isLoading}
-            disabled={!title || !content}
+            isLoading={isSyncing}
+            disabled={(!title && !textContent && blocks.length === 0) || isSyncing}
           />
         </View>
       </KeyboardAvoidingView>
@@ -103,12 +197,14 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   textAreaContainer: {
-    minHeight: 200,
+    minHeight: 120,
+  },
+  blocksContainer: {
+    marginTop: 16,
+    paddingBottom: 24,
   },
   footer: {
     padding: 24,
     backgroundColor: '#FFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5EA',
   },
 });
