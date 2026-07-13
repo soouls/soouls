@@ -428,3 +428,44 @@ export const aiUsageLogs = pgTable('ai_usage_logs', {
   metadata: jsonb('metadata').$type<Record<string, unknown> | null>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// ────────────────────────────────────────
+// Email System tables
+// ────────────────────────────────────────
+export const emailLogs = pgTable('email_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id)
+    .notNull(),
+  idempotencyKey: text('idempotency_key').notNull().unique(), // e.g. "welcome-email:{userId}"
+  templateName: text('template_name').notNull(), // "welcome" | "password-reset" | "sunday-review" | ...
+  status: text('status')
+    .$type<
+      'queued' | 'sent' | 'delivered' | 'bounced' | 'complained' | 'failed' | 'skipped_suppressed'
+    >()
+    .notNull(), // queued | sent | delivered | bounced | complained | failed | skipped_suppressed
+  resendMessageId: text('resend_message_id'),
+  attempts: integer('attempts').default(0).notNull(),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const emailPreferences = pgTable('email_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .references(() => users.id)
+    .notNull()
+    .unique(),
+  productDigests: boolean('product_digests').default(true).notNull(), // Sunday Review, etc.
+  billingReminders: boolean('billing_reminders').default(true).notNull(),
+  reEngagementNudges: boolean('re_engagement_nudges').default(false).notNull(), // explicitly opt-in, off by default
+  securityAlerts: boolean('security_alerts').default(true).notNull(), // strongly discouraged from disabling; UI should say so
+});
+
+export const emailSuppressions = pgTable('email_suppressions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  reason: text('reason').notNull(), // "hard_bounce" | "complaint" | "manual_unsubscribe"
+  suppressedAt: timestamp('suppressed_at').defaultNow().notNull(),
+});

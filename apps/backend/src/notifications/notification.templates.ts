@@ -176,7 +176,7 @@ function TransactionalEmailShell(props: {
 
   return React.createElement(
     Html,
-    null,
+    { lang: 'en', dir: 'ltr' },
     React.createElement(Head),
     React.createElement(Preview, null, props.previewText),
     React.createElement(
@@ -346,74 +346,6 @@ async function renderTransactionalTemplate(options: {
     html,
     text,
     whatsappBody: options.whatsappBody,
-  } satisfies MessageTemplate;
-}
-
-export function buildCampaignTemplate(input: {
-  brandKey?: string;
-  subject: string;
-  markdownBody: string;
-  ctaLabel?: string;
-  ctaUrl?: string;
-  whatsappBody?: string;
-}) {
-  const brand = getBrandPreset(input.brandKey);
-  const previewText = buildExcerpt(input.markdownBody, 120);
-  const textBody = markdownToText(input.markdownBody);
-  const htmlBody = markdownToHtml(input.markdownBody);
-  const ctaBlock =
-    input.ctaLabel && input.ctaUrl
-      ? `<div style="margin-top:28px;"><a href="${input.ctaUrl}" style="display:inline-block;padding:14px 20px;border-radius:999px;background:linear-gradient(135deg,#f97316,#fb923c);color:#0f172a;text-decoration:none;font-weight:700;">${input.ctaLabel}</a></div>`
-      : '';
-
-  const html = `
-    <!doctype html>
-    <html>
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>${input.subject}</title>
-        <meta name="description" content="${previewText}" />
-      </head>
-      <body style="margin:0;padding:32px 16px;background:#020617;font-family:Inter,Arial,sans-serif;color:#e2e8f0;">
-        <div style="max-width:680px;margin:0 auto;background:radial-gradient(circle at top,#1e293b 0%,#0f172a 48%,#020617 100%);border:1px solid rgba(255,255,255,0.08);border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(15,23,42,0.45);">
-          <div style="padding:32px 32px 12px;background:linear-gradient(180deg,rgba(249,115,22,0.22),rgba(15,23,42,0));">
-            <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.08);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#fdba74;">
-              ${brand.eyebrow}
-            </div>
-            <h1 style="margin:22px 0 12px;font-size:34px;line-height:1.1;color:#fff7ed;font-family:Georgia,'Times New Roman',serif;">
-              ${input.subject}
-            </h1>
-            <p style="margin:0;color:#cbd5e1;font-size:16px;line-height:1.7;max-width:560px;">
-              ${previewText}
-            </p>
-          </div>
-          <div style="padding:12px 32px 32px;">
-            <div style="padding:24px;border-radius:24px;background:rgba(15,23,42,0.55);border:1px solid rgba(255,255,255,0.08);">
-              ${htmlBody}
-              ${ctaBlock}
-            </div>
-            <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);font-size:13px;line-height:1.7;color:#94a3b8;">
-              ${brand.footer}
-            </div>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-
-  const whatsappBody = [input.whatsappBody?.trim() || textBody, input.ctaUrl]
-    .filter(Boolean)
-    .join('\n\n');
-
-  return {
-    subject: input.subject,
-    previewText,
-    html,
-    text: input.ctaUrl
-      ? `${textBody}\n\n${input.ctaLabel ?? 'Open Soouls'}: ${input.ctaUrl}`
-      : textBody,
-    whatsappBody,
   } satisfies MessageTemplate;
 }
 

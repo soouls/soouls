@@ -46,6 +46,19 @@ function parseHighlightedText(text: string | undefined | null, fallback: string)
   });
 }
 
+type ClusterCardPosition = {
+  top?: string;
+  left?: string;
+  right?: string;
+  bottom?: string;
+  transform?: string;
+  zIndex: number;
+  width: string;
+  bg: string;
+  border: string;
+  opacity?: number;
+};
+
 const DashboardPage = () => {
   const { user } = useUser();
   const { setIsOpen } = useSidebar();
@@ -400,19 +413,6 @@ const DashboardPage = () => {
 
                     {/* Real Graph Nodes from Cluster Entries */}
                     {clusterEntries.map((entry, index) => {
-                      type ClusterCardPosition = {
-                        top?: string;
-                        left?: string;
-                        right?: string;
-                        bottom?: string;
-                        transform?: string;
-                        zIndex: number;
-                        width: string;
-                        bg: string;
-                        border: string;
-                        opacity?: number;
-                      };
-
                       const fallbackPosition: ClusterCardPosition = {
                         top: '50%',
                         left: '50%',

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect, useRef } from 'react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,44 +18,73 @@ export default function ScrollytellingSection() {
     const ctx = cv.getContext('2d');
     if (!ctx) return;
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let W = 0;
     let H = 0;
 
-    const WORDS = ['deadline','mum','the garden','novel draft','rent','old friend','gym','that email','the trip','apartment','a promise','therapy','the studio','sleep','birthday','the sea','money','courage','monstera','chapter 3','the call','sunday'];
+    const WORDS = [
+      'deadline',
+      'mum',
+      'the garden',
+      'novel draft',
+      'rent',
+      'old friend',
+      'gym',
+      'that email',
+      'the trip',
+      'apartment',
+      'a promise',
+      'therapy',
+      'the studio',
+      'sleep',
+      'birthday',
+      'the sea',
+      'money',
+      'courage',
+      'monstera',
+      'chapter 3',
+      'the call',
+      'sunday',
+    ];
     const HUBS = [
-      {x:.26, y:.36, c:'#d98a4b'},
-      {x:.72, y:.3,  c:'#cf7b6e'},
-      {x:.36, y:.72, c:'#7d9b76'},
-      {x:.74, y:.7,  c:'#6d7fa3'}
+      { x: 0.26, y: 0.36, c: '#d98a4b' },
+      { x: 0.72, y: 0.3, c: '#cf7b6e' },
+      { x: 0.36, y: 0.72, c: '#7d9b76' },
+      { x: 0.74, y: 0.7, c: '#6d7fa3' },
     ];
     let pts: any[] = [];
-    
-    function rnd(seed: number){
-      let x = Math.sin(seed * 127.1) * 43758.5453;
+
+    function rnd(seed: number) {
+      const x = Math.sin(seed * 127.1) * 43758.5453;
       return x - Math.floor(x);
     }
-    
-    function rs(){
+
+    function rs() {
       W = cv.offsetWidth;
       H = cv.offsetHeight;
       cv.width = W * dpr;
       cv.height = H * dpr;
-      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
       pts = WORDS.map((w, i) => {
-        let hub = HUBS[i % 4]!;
-        let ang = rnd(i + 7) * 6.28, dist = 54 + rnd(i + 3) * 70;
+        const hub = HUBS[i % 4]!;
+        const ang = rnd(i + 7) * 6.28;
+        const dist = 54 + rnd(i + 3) * 70;
         return {
-          w: w, c: hub.c, hub: i % 4,
-          sx: rnd(i) * W * .9 + W * .05, sy: rnd(i + 40) * H * .8 + H * .1,
-          tx: hub.x * W + Math.cos(ang) * dist, ty: hub.y * H + Math.sin(ang) * dist,
-          r: 4 + rnd(i + 11) * 4, p: rnd(i + 23) * 6.28
+          w: w,
+          c: hub.c,
+          hub: i % 4,
+          sx: rnd(i) * W * 0.9 + W * 0.05,
+          sy: rnd(i + 40) * H * 0.8 + H * 0.1,
+          tx: hub.x * W + Math.cos(ang) * dist,
+          ty: hub.y * H + Math.sin(ang) * dist,
+          r: 4 + rnd(i + 11) * 4,
+          p: rnd(i + 23) * 6.28,
         };
       });
     }
 
-    function ease(t: number){
-      return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    function ease(t: number) {
+      return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
     }
 
     const progressRef = { current: 0 };
@@ -64,50 +93,64 @@ export default function ScrollytellingSection() {
     function draw(prog: number, t: number) {
       if (!ctx) return;
       ctx.clearRect(0, 0, W, H);
-      let m = ease(Math.min(1, Math.max(0, (prog - .15) / .6)));  /* morph 15%..75% */
-      let linkA = Math.min(1, Math.max(0, (prog - .62) / .25));   /* links fade in */
-      
+      const m = ease(Math.min(1, Math.max(0, (prog - 0.15) / 0.6))); /* morph 15%..75% */
+      const linkA = Math.min(1, Math.max(0, (prog - 0.62) / 0.25)); /* links fade in */
+
       /* hub glows */
       HUBS.forEach((h) => {
-        let a = linkA * .9; 
+        const a = linkA * 0.9;
         if (a <= 0) return;
-        let hx = h.x * W, hy = h.y * H;
-        let g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 90);
-        g.addColorStop(0, h.c + Math.round(a * 38).toString(16).padStart(2, '0'));
-        g.addColorStop(1, h.c + '00');
+        const hx = h.x * W;
+        const hy = h.y * H;
+        const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 90);
+        g.addColorStop(
+          0,
+          h.c +
+            Math.round(a * 38)
+              .toString(16)
+              .padStart(2, '0'),
+        );
+        g.addColorStop(1, `${h.c}00`);
         ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(hx, hy, 90, 0, 6.28); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(hx, hy, 90, 0, 6.28);
+        ctx.fill();
       });
-      
+
       /* links to hub */
       if (linkA > 0) {
         ctx.lineWidth = 1.2;
         pts.forEach((p) => {
-          let hub = HUBS[p.hub]!;
-          ctx.strokeStyle = `rgba(${linkC},${(linkA * .3).toFixed(3)})`;
-          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(hub.x * W, hub.y * H); ctx.stroke();
+          const hub = HUBS[p.hub]!;
+          ctx.strokeStyle = `rgba(${linkC},${(linkA * 0.3).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(hub.x * W, hub.y * H);
+          ctx.stroke();
         });
       }
-      
+
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       pts.forEach((p) => {
-        let jx = reduced ? 0 : Math.sin(t / 1500 + p.p) * 5 * (1 - m * .4);
-        let jy = reduced ? 0 : Math.cos(t / 1800 + p.p) * 5 * (1 - m * .4);
+        const jx = reduced ? 0 : Math.sin(t / 1500 + p.p) * 5 * (1 - m * 0.4);
+        const jy = reduced ? 0 : Math.cos(t / 1800 + p.p) * 5 * (1 - m * 0.4);
         p.x = p.sx + (p.tx - p.sx) * m + jx;
         p.y = p.sy + (p.ty - p.sy) * m + jy;
-        ctx.fillStyle = p.c; 
-        ctx.globalAlpha = .85; 
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28); ctx.fill(); 
+        ctx.fillStyle = p.c;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, 6.28);
+        ctx.fill();
         ctx.globalAlpha = 1;
-        
+
         ctx.fillStyle = `rgba(${linkC},${0.75 - m * 0.2})`;
-        ctx.font = 'italic 13px Fraunces,serif'; 
+        ctx.font = 'italic 13px Fraunces,serif';
         ctx.textAlign = 'center';
         ctx.fillText(p.w, p.x, p.y - p.r - 7);
       });
-      
+
       /* captions */
-      let ci = prog < .33 ? 0 : prog < .7 ? 1 : 2;
+      const ci = prog < 0.33 ? 0 : prog < 0.7 ? 1 : 2;
       capsRef.current.forEach((c, i) => {
         if (c) c.classList.toggle('on', i === ci);
       });
@@ -133,7 +176,7 @@ export default function ScrollytellingSection() {
       scrub: true,
       onUpdate: (self) => {
         progressRef.current = self.progress;
-      }
+      },
     });
 
     animationFrameId = requestAnimationFrame(loop);
@@ -175,16 +218,28 @@ export default function ScrollytellingSection() {
       `}</style>
 
       <div className="story-stick">
-        <canvas id="storyCanvas" ref={canvasRef}></canvas>
-        
+        <canvas id="storyCanvas" ref={canvasRef} />
+
         <div className="story-cap">
-          <h2 ref={(el) => { if (el) capsRef.current[0] = el; }}>
+          <h2
+            ref={(el) => {
+              if (el) capsRef.current[0] = el;
+            }}
+          >
             Life arrives <em>scattered.</em>
           </h2>
-          <h2 ref={(el) => { if (el) capsRef.current[1] = el; }}>
+          <h2
+            ref={(el) => {
+              if (el) capsRef.current[1] = el;
+            }}
+          >
             Soouls listens for <em>the threads.</em>
           </h2>
-          <h2 ref={(el) => { if (el) capsRef.current[2] = el; }}>
+          <h2
+            ref={(el) => {
+              if (el) capsRef.current[2] = el;
+            }}
+          >
             And your mind becomes <em>a map.</em>
           </h2>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Shield, Key, Lock, Fingerprint, EyeOff, Server } from 'lucide-react';
+import { EyeOff, Fingerprint, Key, Lock, Server, Shield } from 'lucide-react';
 
 export default function SecuritySection() {
   const pillars = [
@@ -33,13 +33,12 @@ export default function SecuritySection() {
       icon: Shield,
       title: 'Independent Audits',
       text: 'Our cryptographic implementation is regularly audited by independent security researchers to ensure no backdoors or vulnerabilities exist.',
-    }
+    },
   ];
 
   return (
     <section id="security" className="relative w-full py-10 bg-transparent overflow-hidden">
       <div className="relative z-10 max-w-[1240px] mx-auto">
-        
         {/* Header */}
         <div className="max-w-[800px] mb-16 md:mb-24 mx-auto text-center reveal">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
@@ -49,10 +48,12 @@ export default function SecuritySection() {
             Security & Architecture
           </p>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-tight mb-8">
-            Your thoughts are <br className="hidden md:block"/> <em className="italic text-[#E07A5F]">strictly yours</em>
+            Your thoughts are <br className="hidden md:block" />{' '}
+            <em className="italic text-[#E07A5F]">strictly yours</em>
           </h1>
           <p className="font-urbanist text-lg text-[var(--ink-soft)] max-w-xl mx-auto leading-relaxed">
-            We build with the assumption that your private thoughts shouldn't even be readable by us. Security isn't a feature; it's the foundation of tranquility.
+            We build with the assumption that your private thoughts shouldn't even be readable by
+            us. Security isn't a feature; it's the foundation of tranquility.
           </p>
         </div>
 
@@ -67,13 +68,17 @@ export default function SecuritySection() {
                 style={{ transitionDelay: `${(idx % 3) * 150}ms` }}
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07A5F]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                
+
                 <div className="relative z-10">
                   <div className="w-14 h-14 rounded-2xl bg-white border border-[#e3dbcd] shadow-sm flex items-center justify-center text-[#E07A5F] mb-8 group-active:scale-95 group-hover:-rotate-3 transition-transform duration-300">
                     <Icon size={24} strokeWidth={1.5} />
                   </div>
-                  <h3 className="font-playfair text-2xl font-bold text-[var(--ink)] mb-4">{item.title}</h3>
-                  <p className="font-urbanist text-[var(--ink-soft)] leading-relaxed">{item.text}</p>
+                  <h3 className="font-playfair text-2xl font-bold text-[var(--ink)] mb-4">
+                    {item.title}
+                  </h3>
+                  <p className="font-urbanist text-[var(--ink-soft)] leading-relaxed">
+                    {item.text}
+                  </p>
                 </div>
               </div>
             );
@@ -83,10 +88,9 @@ export default function SecuritySection() {
         {/* We don't monetize your mind */}
         <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '300ms' }}>
           <div className="relative p-8 sm:p-12 md:p-24 rounded-[2rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 flex flex-col items-center text-center overflow-hidden shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
-            
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E07A5F]/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-500" />
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[var(--soouls-accent)]/10 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-500" />
-            
+
             <div className="relative z-10 max-w-2xl">
               <span className="inline-flex p-4 rounded-3xl bg-white border border-[#e3dbcd] mb-10 text-[#E07A5F] shadow-sm group-active:scale-95 transition-transform duration-300">
                 <EyeOff className="w-8 h-8" strokeWidth={1.5} />
@@ -114,7 +118,6 @@ export default function SecuritySection() {
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

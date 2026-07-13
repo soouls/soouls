@@ -15,7 +15,7 @@ export default function RevealObserver() {
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     const observeAll = () => {

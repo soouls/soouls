@@ -11,7 +11,6 @@ import {
 } from '../notifications/notification.constants';
 // biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
 import { NotificationQueueService } from '../notifications/notification.queue';
-import { buildCampaignTemplate } from '../notifications/notification.templates';
 import {
   BRAND_PRESETS,
   type CampaignInput,
@@ -279,123 +278,15 @@ export class MessagingService {
     return result;
   }
 
-  private async queueCampaign(input: CampaignInput, createdByUserId?: string | null) {
-    const sanitizedChannels = Array.from(new Set(input.channels)).filter(
-      (channel): channel is Channel => channel === 'email',
+  private async queueCampaign(_input: CampaignInput, _createdByUserId?: string | null) {
+    throw new Error(
+      'Campaigns are now managed directly in the Resend Dashboard. Please use Resend Broadcasts instead.',
     );
-
-    if (sanitizedChannels.length === 0) {
-      throw new Error('Choose email for the campaign. Email is the only enabled send channel.');
-    }
-
-    const template = buildCampaignTemplate({
-      brandKey: input.brandKey,
-      subject: input.subject,
-      markdownBody: input.markdownBody,
-      ctaLabel: input.ctaLabel,
-      ctaUrl: input.ctaUrl,
-      whatsappBody: input.whatsappBody,
-    });
-
-    const conditions = [];
-
-    // Safety filters to ensure we don't accidentally send to people who opted out
-    const channelConditions = [];
-    if (sanitizedChannels.includes('email')) {
-      channelConditions.push(
-        and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)),
-      );
-    }
-    if (channelConditions.length > 0) {
-      conditions.push(or(...channelConditions));
-    }
-
-    if (input.targeting) {
-      if (input.targeting.signupDate === 'last_7_days') {
-        conditions.push(sql`${users.createdAt} > now() - interval '7 days'`);
-      } else if (input.targeting.signupDate === 'last_30_days') {
-        conditions.push(sql`${users.createdAt} > now() - interval '30 days'`);
-      } else if (input.targeting.signupDate === 'older_than_30') {
-        conditions.push(sql`${users.createdAt} < now() - interval '30 days'`);
-      }
-
-      // Billing tier / waitlist targeting
-      if ((input.targeting as any).billingTier === 'waitlist') {
-        conditions.push(eq(users.isWaitlistUser, true));
-      } else if (
-        (input.targeting as any).billingTier &&
-        (input.targeting as any).billingTier !== 'all' &&
-        (input.targeting as any).billingTier !== 'waitlist_all'
-      ) {
-        conditions.push(sql`${users.billingTier} = ${(input.targeting as any).billingTier}`);
-      }
-    }
-
-    const baseQuery = db.select({ count: sql<number>`count(*)` }).from(users);
-    if (conditions.length > 0) {
-      baseQuery.where(and(...conditions));
-    }
-
-    const [audienceCountRow] = await baseQuery;
-    let estimatedRecipients = countValue(audienceCountRow?.count);
-
-    if ((input.targeting as any)?.billingTier === 'waitlist_all') {
-      const signedUpEmails = await db.select({ email: users.email }).from(users);
-      const signedUpEmailSet = new Set(signedUpEmails.map((user) => user.email.toLowerCase()));
-      const waitlistRows = await db
-        .select({ email: waitlistUsers.email, phoneNumber: waitlistUsers.phoneNumber })
-        .from(waitlistUsers);
-      const externalWaitlistCount = waitlistRows.filter((entry) => {
-        if (signedUpEmailSet.has(entry.email.toLowerCase())) {
-          return false;
-        }
-
-        const canEmail = sanitizedChannels.includes('email') && Boolean(entry.email);
-        return canEmail;
-      }).length;
-
-      estimatedRecipients += externalWaitlistCount;
-    }
-
-    const [campaign] = await db
-      .insert(messageCampaigns)
-      .values({
-        createdByUserId: createdByUserId ?? null,
-        brandKey: input.brandKey,
-        title: input.title,
-        subject: input.subject,
-        previewText: template.previewText,
-        markdownBody: input.markdownBody,
-        whatsappBody: template.whatsappBody,
-        ctaLabel: input.ctaLabel,
-        ctaUrl: input.ctaUrl,
-        channels: sanitizedChannels,
-        targeting: input.targeting as any,
-        status: 'sending',
-        totalRecipients: estimatedRecipients,
-        updatedAt: new Date(),
-      })
-      .returning({ id: messageCampaigns.id });
-
-    if (!this.notificationQueue.isConfigured()) {
-      await this.notificationDispatch.processCampaignDispatch(campaign.id);
-    } else {
-      try {
-        await this.notificationQueue.enqueueCampaignDispatch(campaign.id);
-      } catch (error) {
-        console.error('[Messaging] Failed to enqueue campaign dispatch', {
-          campaignId: campaign.id,
-          error,
-        });
-        await this.notificationDispatch.processCampaignDispatch(campaign.id);
-      }
-    }
-    await this.redis.del('messaging:admin:center');
-
+    // biome-ignore lint/correctness/noUnreachable: Stub return for types
     return {
-      campaignId: campaign.id,
+      campaignId: 'stub',
       status: 'queued' as const,
-      totalRecipients: estimatedRecipients,
+      totalRecipients: 0,
       emailRecipients: 0,
       whatsappRecipients: 0,
       failedCount: 0,
@@ -567,7 +458,7 @@ export class MessagingService {
     return this.queueCampaign(input, sender.id);
   }
 
-  async sendTestEmail(input: {
+  async sendTestEmail(_input: {
     to: string;
     subject: string;
     markdownBody: string;
@@ -575,60 +466,13 @@ export class MessagingService {
     ctaUrl?: string;
     brandKey?: 'soouls' | 'soouls-studio' | 'founder-desk';
   }) {
-    const apiKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.MESSAGING_FROM_EMAIL;
-    const fromName = process.env.MESSAGING_FROM_NAME ?? 'Soouls';
-
-    if (!apiKey || !fromEmail) {
-      throw new Error(
-        'Email provider not configured. Set RESEND_API_KEY and MESSAGING_FROM_EMAIL.',
-      );
-    }
-
-    const template = buildCampaignTemplate({
-      brandKey: input.brandKey || 'soouls',
-      subject: input.subject,
-      markdownBody: input.markdownBody,
-      ctaLabel: input.ctaLabel,
-      ctaUrl: input.ctaUrl,
-    });
-
-    const resend = new Resend(apiKey);
-    const response = await resend.emails.send({
-      from: `${fromName} <${fromEmail}>`,
-      to: [input.to],
-      subject: input.subject,
-      html: template.html,
-      text: template.text,
-    });
-
-    if (response.error) {
-      throw new Error(`Failed to send email: ${response.error.message}`);
-    }
-
-    const deliveryId = crypto.randomUUID();
-
-    await db.insert(messageDeliveries).values({
-      id: deliveryId,
-      userId: null,
-      campaignId: null,
-      brandKey: input.brandKey || 'soouls',
-      channel: 'email',
-      category: 'marketing',
-      templateKey: 'campaign',
-      subject: input.subject,
-      recipient: input.to,
-      provider: 'resend',
-      providerMessageId: response.data?.id || null,
-      status: 'sent',
-      sentAt: new Date(),
-    });
-
+    throw new Error('Test emails are now managed and sent directly from the Resend Dashboard.');
+    // biome-ignore lint/correctness/noUnreachable: Stub return for types
     return {
-      deliveryId,
+      deliveryId: 'stub',
       status: 'sent',
       provider: 'resend',
-      messageId: response.data?.id,
+      messageId: 'stub',
     };
   }
 

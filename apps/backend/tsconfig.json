@@ -1,6 +1,7 @@
 {
   "extends": "@soouls/typescript-config/node.json",
   "compilerOptions": {
+    "jsx": "react-jsx",
     "declaration": true,
     "removeComments": true,
     "sourceMap": true,

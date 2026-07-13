@@ -1,89 +1,109 @@
 'use client';
 
-import { useRef } from 'react';
-import { ArrowRight, BookOpen, Clock, Check } from 'lucide-react';
+import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
+import { ArrowRight, BookOpen, Check, Clock } from 'lucide-react';
+import { useRef } from 'react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function BlogSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const featuredImgRef = useRef<HTMLImageElement>(null);
-  
-  useGSAP(() => {
-    // Parallax for featured image
-    if (featuredImgRef.current) {
-      gsap.to(featuredImgRef.current, {
-        y: '20%',
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.featured-post-container',
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true,
-        }
-      });
-    }
 
-    // Reveal post cards
-    gsap.fromTo('.blog-card',
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power3.out', scrollTrigger: {
-        trigger: '.blog-grid',
-        start: 'top 85%'
-      }}
-    );
+  useGSAP(
+    () => {
+      // Parallax for featured image
+      if (featuredImgRef.current) {
+        gsap.to(featuredImgRef.current, {
+          y: '20%',
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '.featured-post-container',
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+        });
+      }
 
-    // Newsletter floating animation
-    gsap.fromTo('.newsletter-glow',
-      { scale: 0.8, opacity: 0.3 },
-      { scale: 1.2, opacity: 0.6, duration: 3, yoyo: true, repeat: -1, ease: 'sine.inOut' }
-    );
-  }, { scope: containerRef });
+      // Reveal post cards
+      gsap.fromTo(
+        '.blog-card',
+        { y: 50, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.blog-grid',
+            start: 'top 85%',
+          },
+        },
+      );
+
+      // Newsletter floating animation
+      gsap.fromTo(
+        '.newsletter-glow',
+        { scale: 0.8, opacity: 0.3 },
+        { scale: 1.2, opacity: 0.6, duration: 3, yoyo: true, repeat: -1, ease: 'sine.inOut' },
+      );
+    },
+    { scope: containerRef },
+  );
 
   const posts = [
     {
       title: 'The Eternal Solitude',
       category: 'PHILOSOPHY',
-      image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1000&auto=format&fit=crop',
+      image:
+        'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1000&auto=format&fit=crop',
       date: 'MARCH 12, 2026',
-      readTime: '6 min read'
+      readTime: '6 min read',
     },
     {
       title: 'Fluid Dynamics of Thought',
       category: 'SCIENCE',
-      image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
+      image:
+        'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000&auto=format&fit=crop',
       date: 'MARCH 08, 2026',
-      readTime: '4 min read'
+      readTime: '4 min read',
     },
     {
       title: 'Blindness of the North',
       category: 'CULTURE',
-      image: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?q=80&w=1000&auto=format&fit=crop',
+      image:
+        'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?q=80&w=1000&auto=format&fit=crop',
       date: 'FEB 28, 2026',
-      readTime: '8 min read'
+      readTime: '8 min read',
     },
     {
       title: 'Earth Metamorphosis',
       category: 'NATURE',
-      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop',
+      image:
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop',
       date: 'FEB 20, 2026',
-      readTime: '5 min read'
+      readTime: '5 min read',
     },
     {
       title: 'Cosmic Humidity',
       category: 'SPACE',
-      image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop',
+      image:
+        'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1000&auto=format&fit=crop',
       date: 'FEB 14, 2026',
-      readTime: '7 min read'
+      readTime: '7 min read',
     },
   ];
 
   return (
-    <section id="blog" className="relative w-full py-10 bg-transparent overflow-hidden" ref={containerRef}>
-      
+    <section
+      id="blog"
+      className="relative w-full py-10 bg-transparent overflow-hidden"
+      ref={containerRef}
+    >
       <style>{`
         .animated-underline {
           position: relative;
@@ -122,7 +142,6 @@ export default function BlogSection() {
       `}</style>
 
       <div className="relative z-10 max-w-[1240px] mx-auto px-6">
-        
         {/* Header */}
         <div className="mb-16 md:mb-24 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 reveal">
           <div className="max-w-2xl text-left">
@@ -133,7 +152,8 @@ export default function BlogSection() {
               The Soouls Journal
             </p>
             <h1 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-[1.1] mb-6">
-              Thoughts on <br className="hidden sm:block" /> <em className="italic text-[#E07A5F]">thinking</em>
+              Thoughts on <br className="hidden sm:block" />{' '}
+              <em className="italic text-[#E07A5F]">thinking</em>
             </h1>
           </div>
           <button
@@ -148,16 +168,16 @@ export default function BlogSection() {
         {/* Featured Post */}
         <div className="featured-post-container group relative w-full h-[400px] md:h-[600px] mb-16 rounded-3xl md:rounded-[3rem] overflow-hidden cursor-pointer reveal border border-[#e3dbcd]/20 shadow-xl">
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors transition-transform transition-shadow duration-300 z-10 pointer-events-none" />
-          
+
           <div className="absolute inset-0 -top-[20%] h-[140%] w-full">
-            <img 
+            <img
               ref={featuredImgRef}
-              src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2000&auto=format&fit=crop" 
+              src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2000&auto=format&fit=crop"
               alt="Featured Post"
               className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-[1.5s] ease-out"
             />
           </div>
-          
+
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 pointer-events-none" />
 
           <div className="absolute bottom-0 left-0 p-8 sm:p-12 md:p-20 z-20 max-w-3xl transform group-hover:-translate-y-2 transition-transform duration-300">
@@ -169,16 +189,21 @@ export default function BlogSection() {
                 <Clock className="w-3 h-3" /> 10 min read
               </span>
             </div>
-            
+
             <h3 className="font-playfair text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-6 group-hover:text-[#fdfaf6] transition-colors leading-tight animated-underline pb-2">
               The Art of Slow Living in a Fast World
             </h3>
             <p className="font-urbanist text-white/80 text-xl mb-10 line-clamp-2 max-w-2xl leading-relaxed">
-              How to reclaim your attention and find stillness in a culture that rewards constant motion, infinite scrolling, and perpetual availability.
+              How to reclaim your attention and find stillness in a culture that rewards constant
+              motion, infinite scrolling, and perpetual availability.
             </p>
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop" alt="Author" className="w-full h-full object-cover" />
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
+                  alt="Author"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-urbanist text-white text-sm font-bold font-semibold tracking-tight">
@@ -195,19 +220,21 @@ export default function BlogSection() {
         {/* Editorial Post Grid */}
         <div className="blog-grid editorial-grid mb-20 md:mb-32">
           {posts.map((post, idx) => (
-            <div 
-              key={post.title} 
+            <div
+              key={post.title}
               className={`blog-card group cursor-pointer ${idx === 0 ? 'post-span-8' : 'post-span-4'}`}
             >
-              <div className={`relative ${idx === 0 ? 'h-[400px] md:h-[480px]' : 'h-[280px] md:h-[320px]'} rounded-3xl md:rounded-[2.5rem] overflow-hidden mb-6 border border-[#e3dbcd]/50 shadow-sm group-hover:shadow-[0_20px_40px_rgba(224,122,95,0.15)] transition-colors transition-transform transition-shadow duration-300`}>
+              <div
+                className={`relative ${idx === 0 ? 'h-[400px] md:h-[480px]' : 'h-[280px] md:h-[320px]'} rounded-3xl md:rounded-[2.5rem] overflow-hidden mb-6 border border-[#e3dbcd]/50 shadow-sm group-hover:shadow-[0_20px_40px_rgba(224,122,95,0.15)] transition-colors transition-transform transition-shadow duration-300`}
+              >
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300 z-10 pointer-events-none" />
-                <img 
-                  src={post.image} 
+                <img
+                  src={post.image}
                   alt={post.title}
                   className="absolute inset-0 w-full h-full object-cover group-active:scale-95 transition-transform duration-500 ease-out"
                 />
               </div>
-              
+
               <div className="px-2">
                 <div className="flex justify-between items-center mb-4">
                   <span className="inline-block px-3 py-1 bg-[#E07A5F]/10 rounded-full font-urbanist text-[10px] font-bold text-[#E07A5F] font-semibold tracking-tight transform group-hover:-translate-y-1 transition-transform duration-300">
@@ -222,7 +249,9 @@ export default function BlogSection() {
                     </span>
                   </div>
                 </div>
-                <h4 className={`font-playfair font-bold text-[var(--ink)] leading-tight animated-underline pb-1 ${idx === 0 ? 'text-4xl' : 'text-2xl'}`}>
+                <h4
+                  className={`font-playfair font-bold text-[var(--ink)] leading-tight animated-underline pb-1 ${idx === 0 ? 'text-4xl' : 'text-2xl'}`}
+                >
                   {post.title}
                 </h4>
               </div>
@@ -233,21 +262,29 @@ export default function BlogSection() {
         {/* Newsletter: The Weekly Whisper */}
         <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '200ms' }}>
           <div className="relative p-8 sm:p-12 md:p-24 rounded-[2rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-white/60 backdrop-blur-3xl border border-[#e3dbcd]/60 overflow-hidden flex flex-col items-center text-center shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
-            
             <div className="newsletter-glow absolute top-0 right-0 w-[400px] h-[400px] bg-[#E07A5F]/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none transition-opacity duration-500" />
-            <div className="newsletter-glow absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#6450d6]/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none transition-opacity duration-500" style={{ animationDelay: '1.5s' }} />
-            
+            <div
+              className="newsletter-glow absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#6450d6]/10 blur-[80px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none transition-opacity duration-500"
+              style={{ animationDelay: '1.5s' }}
+            />
+
             <div className="relative z-10 w-full flex flex-col items-center">
               <h3 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)] mb-6">
                 The Weekly <em className="italic text-[#E07A5F]">Whisper</em>
               </h3>
               <p className="font-urbanist text-[var(--ink-soft)] text-lg mb-12 max-w-lg leading-relaxed">
-                A curated collection of insights, art, and philosophy delivered to your inbox every Sunday. Quiet, ad-free, and always meaningful.
+                A curated collection of insights, art, and philosophy delivered to your inbox every
+                Sunday. Quiet, ad-free, and always meaningful.
               </p>
-              
-              <form 
+
+              <form
                 className="w-full max-w-lg flex flex-col sm:flex-row gap-4 relative z-10"
-                onSubmit={(e) => { e.preventDefault(); const target = e.currentTarget; target.classList.add('animate-pulse'); setTimeout(() => target.classList.remove('animate-pulse'), 500); }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const target = e.currentTarget;
+                  target.classList.add('animate-pulse');
+                  setTimeout(() => target.classList.remove('animate-pulse'), 500);
+                }}
               >
                 <div className="relative flex-1">
                   <input
@@ -262,7 +299,9 @@ export default function BlogSection() {
                   type="submit"
                   className="px-10 py-5 bg-[var(--ink)] text-[#f7f3ec] font-urbanist font-bold text-sm font-semibold tracking-tight rounded-full hover:bg-black hover:scale-105 active:scale-[0.97] transition-colors transition-transform transition-shadow duration-300 shadow-[0_10px_20px_rgba(22,19,15,0.15)] whitespace-nowrap overflow-hidden relative group/submit"
                 >
-                  <span className="relative z-10 group-active/submit:text-transparent transition-colors">Subscribe</span>
+                  <span className="relative z-10 group-active/submit:text-transparent transition-colors">
+                    Subscribe
+                  </span>
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-active/submit:opacity-100 transition-opacity">
                     <Check className="w-5 h-5 text-white" />
                   </div>
@@ -271,7 +310,6 @@ export default function BlogSection() {
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

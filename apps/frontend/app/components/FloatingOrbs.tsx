@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { useEffect, useRef } from 'react';
 
 export default function FloatingOrbs() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -9,7 +9,7 @@ export default function FloatingOrbs() {
   useEffect(() => {
     if (!containerRef.current) return;
     const orbs = containerRef.current.querySelectorAll('.orb');
-    
+
     // We use matchMedia or simple screen size to adjust number of orbs or spread
     const ctx = gsap.context(() => {
       orbs.forEach((orb) => {
@@ -43,7 +43,7 @@ export default function FloatingOrbs() {
     const baseHues = [110, 260, 45, 25]; // green, purple, yellow, orange
     const hue = (baseHues[i % baseHues.length] || 110) + (Math.random() * 20 - 10); // Slight random variance in color
     const color = `hsla(${hue}, 70%, 65%, 1)`; // Base color, transparency controlled by GSAP opacity
-    
+
     return (
       <div
         key={i}

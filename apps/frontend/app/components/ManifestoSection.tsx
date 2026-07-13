@@ -23,14 +23,24 @@ export function ManifestoSection() {
       <section className="block" id="manifesto">
         <div className="wrap" style={{ display: 'flex', justifyContent: 'center' }}>
           <div className="letter reveal">
-            <span className="stamp" aria-hidden="true">✦</span>
-            <p className="kicker" style={{ justifyContent: 'center', display: 'flex' }}>Why we built this</p>
-            <h2 style={{ textAlign: 'center', marginBottom: '26px' }}>A letter, before you scroll on.</h2>
+            <span className="stamp" aria-hidden="true">
+              ✦
+            </span>
+            <p className="kicker" style={{ justifyContent: 'center', display: 'flex' }}>
+              Why we built this
+            </p>
+            <h2 style={{ textAlign: 'center', marginBottom: '26px' }}>
+              A letter, before you scroll on.
+            </h2>
             <p className="lp reveal d1">
-              <span className="dropcap">W</span>e kept losing ourselves in productivity apps built for output — streaks, dashboards, guilt. Our thoughts deserved better than a to-do list with a diary bolted on.
+              <span className="dropcap">W</span>e kept losing ourselves in productivity apps built
+              for output — streaks, dashboards, guilt. Our thoughts deserved better than a to-do
+              list with a diary bolted on.
             </p>
             <p className="lp reveal d2">
-              So we built the thing we needed: a room with no audience, where a voice note at 3am and a doodle on a napkin matter as much as a perfect paragraph. Where a life doesn't have to be linear to make sense.
+              So we built the thing we needed: a room with no audience, where a voice note at 3am
+              and a doodle on a napkin matter as much as a perfect paragraph. Where a life doesn't
+              have to be linear to make sense.
             </p>
             <p className="lp reveal d3">
               Soouls is our love letter to the wandering mind. We hope it becomes yours.

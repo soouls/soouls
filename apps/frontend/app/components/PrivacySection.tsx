@@ -1,31 +1,33 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useEffect, useRef, useState } from 'react';
 
 export function PrivacySection() {
   const containerRef = useRef<HTMLElement>(null);
   const vaultRef = useRef<HTMLDivElement>(null);
   const lockRef = useRef<SVGSVGElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
-  
+
   const [isEncrypted, setIsEncrypted] = useState(true);
-  
-  const plainText = "Told her the truth today. Hands shaking, voice steady — funny how those can coexist.";
-  const cipherText = "x9#kq*d l02~mw 8zj&4 nn0… 7ver# q2@ml pz*81 kd0~s ww3&j 55#a q7… ds@99 v2!z";
-  
+
+  const plainText =
+    'Told her the truth today. Hands shaking, voice steady — funny how those can coexist.';
+  const cipherText = 'x9#kq*d l02~mw 8zj&4 nn0… 7ver# q2@ml pz*81 kd0~s ww3&j 55#a q7… ds@99 v2!z';
+
   const [displayText, setDisplayText] = useState(cipherText);
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    
+
     if (containerRef.current) {
       const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      
+
       if (!isReduced) {
         // Main staggered reveal
-        gsap.fromTo(gsap.utils.toArray('.priv-reveal'),
+        gsap.fromTo(
+          gsap.utils.toArray('.priv-reveal'),
           { y: 40, opacity: 0 },
           {
             y: 0,
@@ -36,8 +38,8 @@ export function PrivacySection() {
             scrollTrigger: {
               trigger: containerRef.current,
               start: 'top 70%',
-            }
-          }
+            },
+          },
         );
 
         // Vault float animation
@@ -59,11 +61,14 @@ export function PrivacySection() {
       setIsEncrypted(false);
       let iteration = 0;
       const interval = setInterval(() => {
-        setDisplayText(prev => 
-          prev.split('').map((char, index) => {
-            if (index < iteration) return plainText[index] || '';
-            return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'[Math.floor(Math.random() * 41)];
-          }).join('')
+        setDisplayText((prev) =>
+          prev
+            .split('')
+            .map((_char, index) => {
+              if (index < iteration) return plainText[index] || '';
+              return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'[Math.floor(Math.random() * 41)];
+            })
+            .join(''),
         );
         iteration += 2;
         if (iteration >= plainText.length) {
@@ -76,11 +81,14 @@ export function PrivacySection() {
       setIsEncrypted(true);
       let iteration = 0;
       const interval = setInterval(() => {
-        setDisplayText(prev => 
-          prev.split('').map((char, index) => {
-            if (index < iteration) return cipherText[index] || '';
-            return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'[Math.floor(Math.random() * 41)];
-          }).join('')
+        setDisplayText((prev) =>
+          prev
+            .split('')
+            .map((_char, index) => {
+              if (index < iteration) return cipherText[index] || '';
+              return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'[Math.floor(Math.random() * 41)];
+            })
+            .join(''),
         );
         iteration += 2;
         if (iteration >= cipherText.length) {
@@ -101,8 +109,21 @@ export function PrivacySection() {
 
   const GreenCheck = () => (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <circle cx="14" cy="14" r="13" stroke="#7d9b76" strokeWidth="1.5" fill="rgba(125,155,118,0.1)"/>
-      <path d="M9 14.5L12.5 18L19 10" stroke="#7d9b76" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle
+        cx="14"
+        cy="14"
+        r="13"
+        stroke="#7d9b76"
+        strokeWidth="1.5"
+        fill="rgba(125,155,118,0.1)"
+      />
+      <path
+        d="M9 14.5L12.5 18L19 10"
+        stroke="#7d9b76"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 
@@ -166,48 +187,58 @@ export function PrivacySection() {
 
       <section className="priv-section" id="privacy" ref={containerRef}>
         <div className="priv-grid">
-          
           {/* Left Content */}
           <div>
             <p className="kicker priv-reveal">Private by design</p>
             <h2 className="priv-reveal font-fraunces text-4xl md:text-5xl lg:text-6xl text-[var(--ink)] font-light leading-tight mt-4 mb-6">
-              A diary with a lock,<br />not a lobby.
+              A diary with a lock,
+              <br />
+              not a lobby.
             </h2>
             <p className="priv-reveal text-[var(--ink-soft)] text-lg leading-relaxed max-w-md">
-              Honesty needs a safe room. Watch what actually leaves your device — spoiler: nothing readable.
+              Honesty needs a safe room. Watch what actually leaves your device — spoiler: nothing
+              readable.
             </p>
-            
+
             <ul className="priv-list">
               <li className="priv-reveal">
-                <div className="priv-icon"><GreenCheck /></div>
+                <div className="priv-icon">
+                  <GreenCheck />
+                </div>
                 <div>
                   <strong>End-to-end encrypted</strong>
                   <span>Entries are sealed on your device. Not even we can read them.</span>
                 </div>
               </li>
               <li className="priv-reveal">
-                <div className="priv-icon"><GreenCheck /></div>
+                <div className="priv-icon">
+                  <GreenCheck />
+                </div>
                 <div>
                   <strong>No social layer, ever</strong>
                   <span>No likes, no audience, no pressure. A journal, not a stage.</span>
                 </div>
               </li>
               <li className="priv-reveal">
-                <div className="priv-icon"><GreenCheck /></div>
+                <div className="priv-icon">
+                  <GreenCheck />
+                </div>
                 <div>
                   <strong>Your data, your exit</strong>
                   <span>Export everything, anytime, in open formats. Delete means delete.</span>
                 </div>
               </li>
               <li className="priv-reveal">
-                <div className="priv-icon"><GreenCheck /></div>
+                <div className="priv-icon">
+                  <GreenCheck />
+                </div>
                 <div>
                   <strong>Insights stay on-device</strong>
                   <span>Emotional patterns are computed locally, for your eyes only.</span>
                 </div>
               </li>
             </ul>
-            
+
             <div className="priv-stats priv-reveal">
               <div className="stat-box">
                 <span className="num">0</span>
@@ -223,42 +254,65 @@ export function PrivacySection() {
               </div>
             </div>
           </div>
-          
+
           {/* Right Content - Vault */}
           <div className="vault-card priv-reveal" ref={vaultRef}>
             <div className="sonar-rings" aria-hidden="true">
-              <div className="sonar-ring"></div>
-              <div className="sonar-ring"></div>
-              <div className="sonar-ring"></div>
+              <div className="sonar-ring" />
+              <div className="sonar-ring" />
+              <div className="sonar-ring" />
             </div>
-            
-            <div 
-              className={`lock-container ${!isEncrypted ? 'is-unlocked' : ''}`} 
+
+            <div
+              className={`lock-container ${!isEncrypted ? 'is-unlocked' : ''}`}
               onClick={toggleEncryption}
+              onKeyDown={(e) => e.key === 'Enter' && toggleEncryption()}
+              tabIndex={0}
+              role="button"
               title="Click to toggle encryption"
             >
               <svg className="lock-svg" viewBox="0 0 74 84" fill="none" ref={lockRef}>
-                <path className="lock-shackle" d="M22 38 V26 a15 15 0 0 1 30 0 v12" stroke="#4a4237" strokeWidth="7" strokeLinecap="round" fill="none" />
-                <rect className="lock-body" x="12" y="38" width="50" height="42" rx="12" fill="#d98a4b" />
+                <path
+                  className="lock-shackle"
+                  d="M22 38 V26 a15 15 0 0 1 30 0 v12"
+                  stroke="#4a4237"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <rect
+                  className="lock-body"
+                  x="12"
+                  y="38"
+                  width="50"
+                  height="42"
+                  rx="12"
+                  fill="#d98a4b"
+                />
                 <circle cx="37" cy="55" r="5" fill="#14110d" />
                 <rect x="34.5" y="57" width="5" height="10" rx="2.5" fill="#14110d" />
               </svg>
             </div>
-            
+
             <h3>Only you hold the key</h3>
             <p className="vp">The door locks from the inside. Tap to peek.</p>
-            
-            <div 
-              className={`enc-demo ${!isEncrypted ? 'is-decrypted' : ''}`} 
+
+            <div
+              className={`enc-demo ${!isEncrypted ? 'is-decrypted' : ''}`}
               onClick={toggleEncryption}
+              onKeyDown={(e) => e.key === 'Enter' && toggleEncryption()}
+              tabIndex={0}
+              role="button"
             >
-              <p className="enc-text" ref={textRef}>{displayText}</p>
+              <p className="enc-text" ref={textRef}>
+                {displayText}
+              </p>
             </div>
             <p className="text-xs text-[var(--ink-faint)] mt-4 tracking-wide uppercase font-semibold">
-              <span className="text-[var(--amber)]">you</span> see words · <span className="opacity-70">the wire</span> sees cipher
+              <span className="text-[var(--amber)]">you</span> see words ·{' '}
+              <span className="opacity-70">the wire</span> sees cipher
             </p>
           </div>
-          
         </div>
       </section>
     </>

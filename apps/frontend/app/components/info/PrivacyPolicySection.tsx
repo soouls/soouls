@@ -1,6 +1,17 @@
 'use client';
 
-import { Shield, Eye, Lock, Server, Sparkles, UserX, Clock, Baby, FileText, Mail } from 'lucide-react';
+import {
+  Baby,
+  Clock,
+  Eye,
+  FileText,
+  Lock,
+  Mail,
+  Server,
+  Shield,
+  Sparkles,
+  UserX,
+} from 'lucide-react';
 
 export default function PrivacyPolicySection() {
   const sections = [
@@ -11,15 +22,32 @@ export default function PrivacyPolicySection() {
       short: 'Your entries, account details, and basic usage data. Nothing more.',
       content: (
         <>
-          <p className="mb-4">When you create an account, we collect your email address, a display name if you choose to set one, and authentication data. When you use Soouls, we store the entries you write, record, or draw, along with metadata like timestamps and which capture method you used.</p>
+          <p className="mb-4">
+            When you create an account, we collect your email address, a display name if you choose
+            to set one, and authentication data. When you use Soouls, we store the entries you
+            write, record, or draw, along with metadata like timestamps and which capture method you
+            used.
+          </p>
           <ul className="space-y-2 text-sm">
-            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> <strong>Account info:</strong> email, display name, password hash.</li>
-            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> <strong>Content:</strong> text entries, voice recordings, images, doodles.</li>
-            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> <strong>Usage data:</strong> feature interactions, collected in aggregate.</li>
-            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> <strong>Device info:</strong> OS and app version for support.</li>
+            <li className="flex gap-2">
+              <span className="text-[var(--soouls-accent)]">•</span> <strong>Account info:</strong>{' '}
+              email, display name, password hash.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-[var(--soouls-accent)]">•</span> <strong>Content:</strong> text
+              entries, voice recordings, images, doodles.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-[var(--soouls-accent)]">•</span> <strong>Usage data:</strong>{' '}
+              feature interactions, collected in aggregate.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-[var(--soouls-accent)]">•</span> <strong>Device info:</strong>{' '}
+              OS and app version for support.
+            </li>
           </ul>
         </>
-      )
+      ),
     },
     {
       id: 'how-we-use-it',
@@ -28,10 +56,17 @@ export default function PrivacyPolicySection() {
       short: 'Strictly to power your features. We never sell your data.',
       content: (
         <>
-          <p className="mb-4">We use your account information to operate your account and communicate with you. We use your content strictly to power the features you've asked for: displaying your Spatial Canvas, generating your Sunday Review, and surfacing Thought Clusters.</p>
-          <p>We use aggregate, de-identified usage data to understand which features are helpful — without us ever reading what was said in any specific recording.</p>
+          <p className="mb-4">
+            We use your account information to operate your account and communicate with you. We use
+            your content strictly to power the features you've asked for: displaying your Spatial
+            Canvas, generating your Sunday Review, and surfacing Thought Clusters.
+          </p>
+          <p>
+            We use aggregate, de-identified usage data to understand which features are helpful —
+            without us ever reading what was said in any specific recording.
+          </p>
         </>
-      )
+      ),
     },
     {
       id: 'encryption',
@@ -39,8 +74,13 @@ export default function PrivacyPolicySection() {
       title: 'Encryption & storage',
       short: "Entries are encrypted at rest and in transit. Even we can't browse your journal.",
       content: (
-        <p>All entries are encrypted using industry-standard AES-256 encryption at rest, and TLS 1.3 in transit. Access to production data is restricted to a small number of engineers under audit-logged, time-boxed access specifically for debugging reported issues — never for browsing.</p>
-      )
+        <p>
+          All entries are encrypted using industry-standard AES-256 encryption at rest, and TLS 1.3
+          in transit. Access to production data is restricted to a small number of engineers under
+          audit-logged, time-boxed access specifically for debugging reported issues — never for
+          browsing.
+        </p>
+      ),
     },
     {
       id: 'sharing',
@@ -49,14 +89,26 @@ export default function PrivacyPolicySection() {
       short: 'We do not sell your personal data or your entries, under any circumstance.',
       content: (
         <>
-          <p className="mb-4">We do not share your content with advertisers. We use a small number of infrastructure vendors who process data strictly on our behalf under data processing agreements:</p>
+          <p className="mb-4">
+            We do not share your content with advertisers. We use a small number of infrastructure
+            vendors who process data strictly on our behalf under data processing agreements:
+          </p>
           <ul className="space-y-2 text-sm">
-            <li className="flex gap-2"><span className="text-[#6450d6]">•</span> <strong>Cloud hosting:</strong> stores encrypted data; cannot read content.</li>
-            <li className="flex gap-2"><span className="text-[#6450d6]">•</span> <strong>Payment processor:</strong> billing info only, never journal content.</li>
-            <li className="flex gap-2"><span className="text-[#6450d6]">•</span> <strong>Email delivery:</strong> email address only, for transactional messages.</li>
+            <li className="flex gap-2">
+              <span className="text-[#6450d6]">•</span> <strong>Cloud hosting:</strong> stores
+              encrypted data; cannot read content.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-[#6450d6]">•</span> <strong>Payment processor:</strong> billing
+              info only, never journal content.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-[#6450d6]">•</span> <strong>Email delivery:</strong> email
+              address only, for transactional messages.
+            </li>
           </ul>
         </>
-      )
+      ),
     },
     {
       id: 'ai-processing',
@@ -64,8 +116,13 @@ export default function PrivacyPolicySection() {
       title: 'AI & insight processing',
       short: "Your entries are never used to train any AI model — ours or anyone else's.",
       content: (
-        <p>Sunday Review, Thought Clusters, and Emotional Insights are generated by processing your entries through language models to produce output shown only to you. This processing happens within our infrastructure, and the output is never retained by any underlying model provider.</p>
-      )
+        <p>
+          Sunday Review, Thought Clusters, and Emotional Insights are generated by processing your
+          entries through language models to produce output shown only to you. This processing
+          happens within our infrastructure, and the output is never retained by any underlying
+          model provider.
+        </p>
+      ),
     },
     {
       id: 'your-rights',
@@ -74,10 +131,17 @@ export default function PrivacyPolicySection() {
       short: 'Export or permanently delete your data at any time.',
       content: (
         <>
-          <p className="mb-4">From Settings, you can export a full copy of your entries in an open format, and request permanent deletion of your account. Deletion requests are processed within 30 days, including removal from backups.</p>
-          <p>Depending on where you live, you may have additional rights under laws like the GDPR or CCPA. Contact us to exercise these rights.</p>
+          <p className="mb-4">
+            From Settings, you can export a full copy of your entries in an open format, and request
+            permanent deletion of your account. Deletion requests are processed within 30 days,
+            including removal from backups.
+          </p>
+          <p>
+            Depending on where you live, you may have additional rights under laws like the GDPR or
+            CCPA. Contact us to exercise these rights.
+          </p>
         </>
-      )
+      ),
     },
     {
       id: 'retention',
@@ -85,8 +149,12 @@ export default function PrivacyPolicySection() {
       title: 'Retention & deletion',
       short: 'Downgrading a paid plan keeps your entries intact.',
       content: (
-        <p>We retain your content for as long as your account is active. If you delete your account, content is removed from active systems within 30 days and backups within 90 days. If you downgrade, your existing entries remain fully intact and exportable.</p>
-      )
+        <p>
+          We retain your content for as long as your account is active. If you delete your account,
+          content is removed from active systems within 30 days and backups within 90 days. If you
+          downgrade, your existing entries remain fully intact and exportable.
+        </p>
+      ),
     },
     {
       id: 'children',
@@ -94,8 +162,11 @@ export default function PrivacyPolicySection() {
       title: "Children's privacy",
       short: 'Soouls is not directed at children under 16.',
       content: (
-        <p>We do not knowingly collect data from anyone under 16. If you believe a child has created an account, contact us and we will remove it.</p>
-      )
+        <p>
+          We do not knowingly collect data from anyone under 16. If you believe a child has created
+          an account, contact us and we will remove it.
+        </p>
+      ),
     },
     {
       id: 'changes',
@@ -103,8 +174,11 @@ export default function PrivacyPolicySection() {
       title: 'Changes to this policy',
       short: "We'll notify you of material changes before they take effect.",
       content: (
-        <p>If we make material changes to this policy, we'll notify you by email and display a notice in the app. Continued use of Soouls constitutes acceptance of the revised policy.</p>
-      )
+        <p>
+          If we make material changes to this policy, we'll notify you by email and display a notice
+          in the app. Continued use of Soouls constitutes acceptance of the revised policy.
+        </p>
+      ),
     },
     {
       id: 'contact',
@@ -112,15 +186,23 @@ export default function PrivacyPolicySection() {
       title: 'Contact us',
       short: 'privacy@soouls.in',
       content: (
-        <p>Questions about this policy or your data can be sent to <a href="mailto:privacy@soouls.in" className="text-[var(--soouls-accent)] hover:underline font-bold">privacy@soouls.in</a>. We aim to respond within 5 business days.</p>
-      )
-    }
+        <p>
+          Questions about this policy or your data can be sent to{' '}
+          <a
+            href="mailto:privacy@soouls.in"
+            className="text-[var(--soouls-accent)] hover:underline font-bold"
+          >
+            privacy@soouls.in
+          </a>
+          . We aim to respond within 5 business days.
+        </p>
+      ),
+    },
   ];
 
   return (
     <section className="relative w-full py-10 bg-transparent overflow-hidden">
       <div className="relative z-10 max-w-[900px] mx-auto">
-        
         {/* Header */}
         <div className="mb-16 md:mb-24 text-center reveal">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--soouls-accent)]/10 mb-6">
@@ -142,15 +224,15 @@ export default function PrivacyPolicySection() {
           {sections.map((sec, idx) => {
             const Icon = sec.icon;
             return (
-              <div 
-                key={sec.id} 
+              <div
+                key={sec.id}
                 id={sec.id}
                 className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)] hover:-translate-y-1 reveal"
                 style={{ transitionDelay: `${(idx % 5) * 100}ms` }}
               >
                 {/* Decorative Glow */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[var(--soouls-accent)]/5 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                
+
                 <div className="flex flex-col md:flex-row gap-8 relative z-10">
                   <div className="md:w-1/3 shrink-0">
                     <div className="flex items-center gap-4 mb-4">
@@ -167,7 +249,7 @@ export default function PrivacyPolicySection() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="md:w-2/3 font-urbanist text-[var(--ink-soft)] leading-relaxed pt-2">
                     {sec.content}
                   </div>
@@ -176,7 +258,6 @@ export default function PrivacyPolicySection() {
             );
           })}
         </div>
-
       </div>
     </section>
   );

@@ -11,7 +11,6 @@ import {
   users,
   waitlistUsers,
 } from '@soouls/database/schema';
-import { Resend } from 'resend';
 import {
   NOTIFICATION_BATCH_SIZE,
   compactPreview,
@@ -22,7 +21,6 @@ import {
 } from './notification.constants';
 import {
   buildAdminInviteTemplate,
-  buildCampaignTemplate,
   buildSecureAccessTemplate,
   buildWelcomeTemplate,
 } from './notification.templates';
@@ -36,40 +34,77 @@ import {
   type UserMessagingProfile,
   getBrandPreset,
 } from './notification.types';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
+import { ResendProvider } from './resend.provider';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type CampaignRecipient = UserMessagingProfile & {
   userIdForDelivery?: string | null;
 };
 
+/**
+ * Resend webhook event payload.
+ *
+ * Per the Resend skill: webhook payloads contain metadata only —
+ * call `resend.emails.receiving.get()` for body content.
+ *
+ * @see https://resend.com/docs/api-reference/webhooks
+ */
 type ResendWebhookPayload = {
   type?: string;
   data?: {
     email_id?: string;
     to?: string[];
+    from?: string;
     subject?: string;
-    bounce?: { message?: string };
+    created_at?: string;
+    bounce?: { message?: string; type?: string };
     failed?: { reason?: string };
     suppressed?: { message?: string };
+    click?: { link?: string; timestamp?: string };
+    open?: { timestamp?: string };
+    delivery_delayed?: { message?: string };
   };
 };
 
-type ResendEventClient = {
-  events?: {
-    send: (input: {
-      event: string;
-      email: string;
-      payload?: Record<string, unknown>;
-    }) => Promise<{
-      error?: { message?: string } | null;
-    }>;
-  };
-};
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+let resendQueue: Promise<void> = Promise.resolve();
 
+function enqueueResend<T>(fn: () => Promise<T>): Promise<T> {
+  const result = resendQueue.then(async () => {
+    // Wait 550ms before executing the next request to ensure we stay under 2 req/sec
+    await delay(550);
+    return fn();
+  });
+
+  // Ensure the queue continues even if this task fails
+  resendQueue = result.catch(() => {}).then(() => {});
+
+  return result;
+}
+
+/**
+ * Core notification dispatch service.
+ *
+ * Handles all email delivery, Resend contact syncing, webhook processing,
+ * campaign dispatch, and automation event triggering.
+ *
+ * Design decisions (per Resend & email-best-practices skills):
+ * - SDK returns `{ data, error }` — never use try/catch for API errors (#5)
+ * - Always use idempotency keys to prevent duplicate sends (#1)
+ * - Webhook verification uses `secret` param, not `webhookSecret` (#2)
+ * - Test with `delivered@resend.dev`, never fake emails (#7)
+ * - `from` domain must match verified domain exactly (#12)
+ */
 @Injectable()
 export class NotificationDispatchService {
-  private warnedAboutRestrictedResendKey = false;
+  constructor(private readonly resend: ResendProvider) {}
 
-  private async getUserByDbId(userId: string) {
+  // ─── User Lookup ────────────────────────────────────────────────────────────
+
+  private async getUserByDbId(userId: string): Promise<UserMessagingProfile> {
     const [user] = await db
       .select({
         id: users.id,
@@ -98,7 +133,7 @@ export class NotificationDispatchService {
     return user satisfies UserMessagingProfile;
   }
 
-  private async getUserByEmail(email: string) {
+  private async getUserByEmail(email: string): Promise<UserMessagingProfile | null> {
     const [user] = await db
       .select({
         id: users.id,
@@ -123,109 +158,7 @@ export class NotificationDispatchService {
     return user ?? null;
   }
 
-  private async listCampaignRecipients(options: {
-    channels: Channel[];
-    targeting?: Record<string, string>;
-  }): Promise<CampaignRecipient[]> {
-    const conditions = [];
-
-    const channelConditions = [];
-    if (options.channels.includes('email')) {
-      channelConditions.push(
-        and(sql`${users.email} is not null`, eq(users.marketingEmailOptIn, true)),
-      );
-    }
-    if (channelConditions.length > 0) {
-      conditions.push(or(...channelConditions));
-    }
-
-    if (options.targeting) {
-      if (options.targeting.signupDate === 'last_7_days') {
-        conditions.push(sql`${users.createdAt} > now() - interval '7 days'`);
-      } else if (options.targeting.signupDate === 'last_30_days') {
-        conditions.push(sql`${users.createdAt} > now() - interval '30 days'`);
-      } else if (options.targeting.signupDate === 'older_than_30') {
-        conditions.push(sql`${users.createdAt} < now() - interval '30 days'`);
-      }
-
-      if (options.targeting.billingTier === 'waitlist') {
-        conditions.push(eq(users.isWaitlistUser, true));
-      } else if (
-        options.targeting.billingTier &&
-        options.targeting.billingTier !== 'all' &&
-        options.targeting.billingTier !== 'waitlist_all'
-      ) {
-        conditions.push(sql`${users.billingTier} = ${options.targeting.billingTier}`);
-      }
-    }
-
-    const baseQuery = db
-      .select({
-        id: users.id,
-        clerkId: users.clerkId,
-        email: users.email,
-        name: users.name,
-        phoneNumber: users.phoneNumber,
-        isWaitlistUser: users.isWaitlistUser,
-        billingTier: users.billingTier,
-        marketingEmailOptIn: users.marketingEmailOptIn,
-        marketingWhatsappOptIn: users.marketingWhatsappOptIn,
-        transactionalEmailOptIn: users.transactionalEmailOptIn,
-        transactionalWhatsappOptIn: users.transactionalWhatsappOptIn,
-        welcomeEmailSentAt: users.welcomeEmailSentAt,
-        welcomeWhatsappSentAt: users.welcomeWhatsappSentAt,
-        lastSecureAccessSentAt: users.lastSecureAccessSentAt,
-      })
-      .from(users);
-
-    if (conditions.length > 0) {
-      baseQuery.where(and(...conditions));
-    }
-
-    const signedUpRecipients = await baseQuery.orderBy(desc(users.createdAt));
-
-    if (options.targeting?.billingTier !== 'waitlist_all') {
-      return signedUpRecipients;
-    }
-
-    const allUserEmails = await db.select({ email: users.email }).from(users);
-    const signedUpEmails = new Set(allUserEmails.map((user) => user.email.toLowerCase()));
-    const waitlistRows = await db
-      .select({
-        id: waitlistUsers.id,
-        email: waitlistUsers.email,
-        phoneNumber: waitlistUsers.phoneNumber,
-        createdAt: waitlistUsers.createdAt,
-      })
-      .from(waitlistUsers)
-      .orderBy(desc(waitlistUsers.createdAt));
-
-    const waitlistRecipients = waitlistRows
-      .filter((entry) => !signedUpEmails.has(entry.email.toLowerCase()))
-      .filter((entry) => {
-        const canEmail = options.channels.includes('email') && Boolean(entry.email);
-        return canEmail;
-      })
-      .map((entry) => ({
-        id: entry.id,
-        clerkId: `waitlist:${entry.id}`,
-        email: entry.email,
-        name: null,
-        phoneNumber: entry.phoneNumber,
-        isWaitlistUser: true,
-        billingTier: 'waitlist',
-        marketingEmailOptIn: true,
-        marketingWhatsappOptIn: Boolean(normalizePhoneNumber(entry.phoneNumber)),
-        transactionalEmailOptIn: true,
-        transactionalWhatsappOptIn: Boolean(normalizePhoneNumber(entry.phoneNumber)),
-        welcomeEmailSentAt: null,
-        welcomeWhatsappSentAt: null,
-        lastSecureAccessSentAt: null,
-        userIdForDelivery: null,
-      }));
-
-    return [...signedUpRecipients, ...waitlistRecipients];
-  }
+  // ─── Delivery Recording ─────────────────────────────────────────────────────
 
   private async recordDelivery(input: {
     userId?: string;
@@ -261,50 +194,11 @@ export class NotificationDispatchService {
     });
   }
 
-  private getDeliveryUserId(user: CampaignRecipient) {
+  private getDeliveryUserId(user: CampaignRecipient): string | undefined {
     return user.userIdForDelivery === null ? undefined : (user.userIdForDelivery ?? user.id);
   }
 
-  private getResend() {
-    const apiKey = process.env.RESEND_API_KEY;
-    return apiKey ? new Resend(apiKey) : null;
-  }
-
-  private getResendContactSync() {
-    const apiKey =
-      process.env.RESEND_MARKETING_API_KEY ||
-      process.env.RESEND_CONTACTS_API_KEY ||
-      process.env.RESEND_AUTOMATION_API_KEY ||
-      process.env.RESEND_API_KEY;
-    return apiKey ? new Resend(apiKey) : null;
-  }
-
-  private getResendApiKey() {
-    return (
-      process.env.RESEND_AUTOMATION_API_KEY ||
-      process.env.RESEND_MARKETING_API_KEY ||
-      process.env.RESEND_CONTACTS_API_KEY ||
-      process.env.RESEND_API_KEY
-    );
-  }
-
-  private isRestrictedResendKeyError(error: unknown) {
-    const message = error instanceof Error ? error.message : String(error ?? '');
-    return (
-      message.toLowerCase().includes('restricted') && message.toLowerCase().includes('send email')
-    );
-  }
-
-  private warnRestrictedResendKey(feature: string) {
-    if (this.warnedAboutRestrictedResendKey) {
-      return;
-    }
-
-    this.warnedAboutRestrictedResendKey = true;
-    console.warn(
-      `[Messaging] Resend ${feature} skipped because the configured key can only send emails. Create a Resend API key with Contacts/Segments/Events permissions and set RESEND_MARKETING_API_KEY.`,
-    );
-  }
+  // ─── Resend Contact Sync ────────────────────────────────────────────────────
 
   private getNameParts(name: string | null | undefined) {
     const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
@@ -314,7 +208,7 @@ export class NotificationDispatchService {
     };
   }
 
-  private getResendSegmentIds(user: UserMessagingProfile) {
+  private getResendSegmentIds(user: UserMessagingProfile): string[] {
     const segmentIds = new Set(getConfiguredResendSegments());
 
     if (user.isWaitlistUser) {
@@ -337,8 +231,16 @@ export class NotificationDispatchService {
     return Array.from(segmentIds);
   }
 
-  private async syncResendContact(user: UserMessagingProfile) {
-    const resend = this.getResendContactSync();
+  /**
+   * Sync a user to Resend Contacts with properties and segments.
+   *
+   * Per Resend contacts skill:
+   * - Create a contact with `resend.contacts.create()` including segments
+   * - Update by email with `resend.contacts.update()`
+   * - SDK returns `{ data, error }` — check `error` explicitly
+   */
+  private async syncResendContact(user: UserMessagingProfile): Promise<boolean> {
+    const resend = this.resend.contacts;
     if (!resend) {
       return false;
     }
@@ -350,73 +252,89 @@ export class NotificationDispatchService {
       firstName: firstName ?? undefined,
       lastName: lastName ?? undefined,
       unsubscribed: !user.marketingEmailOptIn,
-      properties: {
-        userId: user.id,
-        clerkId: user.clerkId,
-        phoneNumber: user.phoneNumber,
-        isWaitlistUser: String(Boolean(user.isWaitlistUser)),
-        billingTier: user.billingTier ?? 'free',
-        marketingEmailOptIn: String(user.marketingEmailOptIn),
-        marketingWhatsappOptIn: String(user.marketingWhatsappOptIn),
-        transactionalEmailOptIn: String(user.transactionalEmailOptIn),
-        transactionalWhatsappOptIn: String(user.transactionalWhatsappOptIn),
-      },
+      // properties: {
+      //   userId: user.id,
+      //   clerkId: user.clerkId,
+      //   phoneNumber: user.phoneNumber,
+      //   isWaitlistUser: String(Boolean(user.isWaitlistUser)),
+      //   billingTier: user.billingTier ?? 'free',
+      //   marketingEmailOptIn: String(user.marketingEmailOptIn),
+      //   marketingWhatsappOptIn: String(user.marketingWhatsappOptIn),
+      //   transactionalEmailOptIn: String(user.transactionalEmailOptIn),
+      //   transactionalWhatsappOptIn: String(user.transactionalWhatsappOptIn),
+      // },
     };
 
     try {
-      const update = await resend.contacts.update(contact);
+      // Try update first — if the contact exists, this succeeds
+      const update = await enqueueResend(() =>
+        resend.contacts.update({
+          ...contact,
+        }),
+      );
 
       if (update.error) {
-        if (this.isRestrictedResendKeyError(update.error.message)) {
-          this.warnRestrictedResendKey('contact sync');
+        if (this.resend.isRestrictedKeyError(update.error.message)) {
+          this.resend.warnRestricted('contact sync');
           return false;
         }
 
-        const create = await resend.contacts.create({
-          ...contact,
-          segments: segmentIds.map((id) => ({ id })),
-        });
+        // Contact doesn't exist — create with segments
+        const payload: any = { ...contact };
+        if (segmentIds.length > 0) {
+          payload.segments = segmentIds.map((id) => ({ id }));
+        }
+
+        const create = await enqueueResend(() => resend.contacts.create(payload));
 
         if (create.error) {
-          if (this.isRestrictedResendKeyError(create.error.message)) {
-            this.warnRestrictedResendKey('contact sync');
+          if (this.resend.isRestrictedKeyError(create.error.message)) {
+            this.resend.warnRestricted('contact sync');
             return false;
           }
 
-          throw new Error(`Resend contact sync failed: ${create.error.message}`);
+          console.error(`[Messaging] Resend contact sync failed: ${create.error.message}`);
+          return false;
         }
 
         return true;
       }
 
-      await Promise.all(
-        segmentIds.map(async (segmentId) => {
-          const result = await resend.contacts.segments.add({ email: user.email, segmentId });
-          if (result.error) {
-            if (this.isRestrictedResendKeyError(result.error.message)) {
-              this.warnRestrictedResendKey('segment sync');
-              return;
-            }
-
-            console.warn('[Messaging] Resend segment sync failed', {
-              userId: user.id,
-              segmentId,
-              error: result.error.message,
-            });
+      // Contact updated — now sync segment membership
+      for (const segmentId of segmentIds) {
+        const result = await enqueueResend(() =>
+          resend.contacts.segments.add({
+            email: user.email,
+            segmentId,
+          }),
+        );
+        if (result.error) {
+          if (this.resend.isRestrictedKeyError(result.error.message)) {
+            this.resend.warnRestricted('segment sync');
+            continue;
           }
-        }),
-      );
+
+          console.warn('[Messaging] Resend segment sync failed', {
+            userId: user.id,
+            segmentId,
+            error: result.error.message,
+          });
+        }
+      }
 
       return true;
     } catch (error) {
-      if (this.isRestrictedResendKeyError(error)) {
-        this.warnRestrictedResendKey('contact sync');
+      if (this.resend.isRestrictedKeyError(error)) {
+        this.resend.warnRestricted('contact sync');
         return false;
       }
 
-      throw error;
+      console.error('[Messaging] Resend contact sync threw an unexpected error', error);
+      return false;
     }
   }
+
+  // ─── Resend Automation Events ───────────────────────────────────────────────
 
   private getSignupEventPayload(user: UserMessagingProfile) {
     const { firstName, lastName } = this.getNameParts(user.name);
@@ -448,68 +366,75 @@ export class NotificationDispatchService {
     };
   }
 
+  /**
+   * Fire a Resend automation event.
+   *
+   * Per the Resend events skill:
+   * - Use `resend.events.send()` — returns `202 Accepted` (async processing)
+   * - Provide exactly one of `contactId` or `email` (not both)
+   * - SDK returns `{ data, error }` — check `error` explicitly
+   *
+   * With SDK ≥6.14.0, `events.send()` is available natively —
+   * no raw fetch fallback needed.
+   */
   private async triggerResendEvent(input: {
     event: string;
     email: string;
     payload: Record<string, unknown>;
-  }) {
-    const apiKey = this.getResendApiKey();
-
-    if (!apiKey) {
-      console.log('[Messaging] Resend automation event skipped', {
+  }): Promise<void> {
+    const resend = this.resend.contacts;
+    if (!resend) {
+      console.log('[Messaging] Resend automation event skipped — no API key', {
         event: input.event,
         email: input.email,
       });
       return;
     }
 
-    const resend = new Resend(apiKey);
-    const sdkEvents = (resend as unknown as ResendEventClient).events;
-
-    if (sdkEvents?.send) {
-      const response = await sdkEvents.send(input);
-      if (response.error) {
-        if (this.isRestrictedResendKeyError(response.error.message)) {
-          this.warnRestrictedResendKey('automation event');
-          return;
-        }
-
-        throw new Error(`Resend automation event failed: ${response.error.message}`);
-      }
-      return;
-    }
-
-    const baseUrl = process.env.RESEND_BASE_URL ?? 'https://api.resend.com';
-    const response = (await fetch(new URL('/events/send', baseUrl), {
+    const response = await fetch('https://api.resend.com/events', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${this.resend.contactsApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(input),
-    })) as any;
+      body: JSON.stringify({
+        name: input.event,
+        email: input.email,
+        data: input.payload,
+      }),
+    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      if (this.isRestrictedResendKeyError(errorText)) {
-        this.warnRestrictedResendKey('automation event');
+      const errorData = await response.json().catch(() => ({}));
+      if (this.resend.isRestrictedKeyError(errorData.message || '')) {
+        this.resend.warnRestricted('automation event');
         return;
       }
 
-      throw new Error(`Resend automation event failed: ${errorText}`);
+      console.error(`[Messaging] Resend automation event failed: ${errorData.message || response.statusText}`);
+      return;
     }
   }
 
-  async triggerSignupAutomation(user: UserMessagingProfile) {
+  /** Fire the `user.signed_up` event for Resend automations. */
+  async triggerSignupAutomation(user: UserMessagingProfile): Promise<void> {
     const event = process.env.RESEND_SIGNUP_EVENT_NAME?.trim() || 'user.signed_up';
-    await this.triggerResendEvent({
-      event,
-      email: user.email,
-      payload: this.getSignupEventPayload(user),
-    });
+    try {
+      await this.triggerResendEvent({
+        event,
+        email: user.email,
+        payload: this.getSignupEventPayload(user),
+      });
+    } catch (error) {
+      console.error('[Messaging] Failed to trigger signup automation safely', error);
+    }
   }
 
-  async syncResendContactByUserId(userId: string, options: { triggerSignupEvent?: boolean } = {}) {
+  /** Sync a user to Resend contacts by database ID, optionally firing signup event. */
+  async syncResendContactByUserId(
+    userId: string,
+    options: { triggerSignupEvent?: boolean } = {},
+  ): Promise<void> {
     const user = await this.getUserByDbId(userId);
     await this.syncResendContact(user);
 
@@ -518,13 +443,23 @@ export class NotificationDispatchService {
     }
   }
 
+  // ─── Email Sending ──────────────────────────────────────────────────────────
+
+  /**
+   * Send a single email via the Resend SDK.
+   *
+   * Per the Resend skill:
+   * - SDK returns `{ data, error }` — never throws (#5)
+   * - Always use idempotency keys for retry safety (#1)
+   * - `from` domain must match a verified domain (#12)
+   * - Format: `<event-type>/<entity-id>` with max 256 chars
+   */
   private async sendEmail(message: EmailMessage): Promise<TransportResult> {
-    const resend = this.getResend();
+    const resend = this.resend.sending;
     const fromEmail = process.env.MESSAGING_FROM_EMAIL;
-    const fromName = process.env.MESSAGING_FROM_NAME ?? 'Soouls';
 
     if (!resend || !fromEmail) {
-      console.log('[Messaging] Email preview', {
+      console.log('[Messaging] Email preview (dev mode)', {
         to: message.to,
         subject: message.subject,
       });
@@ -537,17 +472,33 @@ export class NotificationDispatchService {
 
     const response = await resend.emails.send(
       {
-        from: `${fromName} <${fromEmail}>`,
+        from: this.resend.fromAddress,
         to: [message.to],
         subject: message.subject,
         html: message.html,
         text: message.text,
-        replyTo: process.env.MESSAGING_REPLY_TO_EMAIL || undefined,
+        replyTo: this.resend.replyTo,
+        headers: {
+          // List-Unsubscribe improves deliverability for marketing emails
+          // Gmail and other providers show unsubscribe link in header
+          ...(message.listUnsubscribeUrl
+            ? {
+                'List-Unsubscribe': `<${message.listUnsubscribeUrl}>`,
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              }
+            : {}),
+        },
       },
       message.idempotencyKey ? { idempotencyKey: message.idempotencyKey } : undefined,
     );
 
     if (response.error) {
+      console.error('[Messaging] Resend send failed', {
+        to: message.to,
+        subject: message.subject,
+        error: response.error.message,
+      });
+
       return {
         status: 'failed',
         provider: 'resend',
@@ -562,13 +513,18 @@ export class NotificationDispatchService {
     };
   }
 
-  private async syncNewsletterUser(user: UserMessagingProfile) {
+  // ─── Newsletter Sync ────────────────────────────────────────────────────────
+
+  private async syncNewsletterUser(user: UserMessagingProfile): Promise<void> {
     const url = process.env.NEWSLETTER_SYNC_URL;
     const apiKey = process.env.NEWSLETTER_SYNC_API_KEY;
     const audience = process.env.NEWSLETTER_SYNC_AUDIENCE;
 
     if (!url) {
-      console.log('[Messaging] Newsletter sync skipped', { userId: user.id, email: user.email });
+      console.log('[Messaging] Newsletter sync skipped', {
+        userId: user.id,
+        email: user.email,
+      });
       return;
     }
 
@@ -593,6 +549,14 @@ export class NotificationDispatchService {
     }
   }
 
+  // ─── Template Delivery ──────────────────────────────────────────────────────
+
+  /**
+   * Deliver a rendered template to a user, respecting opt-in preferences.
+   *
+   * Per email-best-practices skill architecture:
+   * `[Suppression Check] → [Idempotent Send + Retry] → [Email API] → [Webhook Events]`
+   */
   private async deliverTemplate(input: {
     user: UserMessagingProfile;
     channel: Channel;
@@ -644,12 +608,16 @@ export class NotificationDispatchService {
         return { status: 'skipped' as const };
       }
 
+      // Build List-Unsubscribe URL for marketing emails
+      const listUnsubscribeUrl = respectMarketing ? this.buildUnsubscribeUrl(user) : undefined;
+
       const result = await this.sendEmail({
         to: user.email,
         subject: input.template.subject,
         html: input.template.html,
         text: input.template.text,
         idempotencyKey: `${input.templateKey}:email:${this.getDeliveryUserId(user) ?? user.email}:${input.campaignId ?? 'single'}`,
+        listUnsubscribeUrl,
       });
 
       await this.recordDelivery({
@@ -673,6 +641,7 @@ export class NotificationDispatchService {
       return result;
     }
 
+    // WhatsApp channel — currently disabled, log for audit trail
     await this.recordDelivery({
       userId: this.getDeliveryUserId(user),
       campaignId: input.campaignId,
@@ -693,11 +662,51 @@ export class NotificationDispatchService {
     return { status: 'skipped' as const };
   }
 
-  async processWelcomeSequence(userId: string) {
+  private buildUnsubscribeUrl(user: UserMessagingProfile): string | undefined {
+    const frontendUrl = getFrontendUrl();
+    if (!frontendUrl) {
+      return undefined;
+    }
+    return new URL(
+      `/home/settings?unsubscribe=marketing&email=${encodeURIComponent(user.email)}`,
+      frontendUrl,
+    ).toString();
+  }
+
+  // ─── Job Processing ─────────────────────────────────────────────────────────
+
+  /** Route a notification job to its handler by name. */
+  async processJob(name: string, data: unknown): Promise<void> {
+    switch (name) {
+      case 'welcome-sequence':
+        await this.processWelcomeSequence((data as { userId: string }).userId);
+        return;
+      case 'secure-access':
+        await this.processSecureAccess((data as { email: string }).email);
+        return;
+      case 'admin-invite':
+        await this.processAdminInvite((data as { inviteId: string }).inviteId);
+        return;
+
+      case 'gdpr-export':
+        await this.processGdprExport(
+          (data as { userId: string; requestorEmail: string }).userId,
+          (data as { userId: string; requestorEmail: string }).requestorEmail,
+        );
+        return;
+      default:
+        throw new Error(`Unsupported notification job: ${name}`);
+    }
+  }
+
+  // ─── Welcome Sequence ───────────────────────────────────────────────────────
+
+  async processWelcomeSequence(userId: string): Promise<void> {
     const user = await this.getUserByDbId(userId);
     const template = await buildWelcomeTemplate(user);
     const failedProviders: string[] = [];
 
+    // Sync contact to Resend before sending (ensures segments are set)
     await this.syncResendContact(user);
 
     if (!user.welcomeEmailSentAt) {
@@ -723,10 +732,18 @@ export class NotificationDispatchService {
       }
     }
 
+    // Sync to external newsletter service if configured
     try {
       await this.syncNewsletterUser(user);
     } catch (error) {
       console.error('[Messaging] Newsletter sync failed', error);
+    }
+
+    // Fire signup event for Resend automations
+    try {
+      await this.triggerSignupAutomation(user);
+    } catch (error) {
+      console.error('[Messaging] Signup automation event failed', error);
     }
 
     if (failedProviders.length > 0) {
@@ -734,75 +751,9 @@ export class NotificationDispatchService {
     }
   }
 
-  async processJob(name: string, data: unknown) {
-    switch (name) {
-      case 'welcome-sequence':
-        await this.processWelcomeSequence((data as { userId: string }).userId);
-        return;
-      case 'secure-access':
-        await this.processSecureAccess((data as { email: string }).email);
-        return;
-      case 'admin-invite':
-        await this.processAdminInvite((data as { inviteId: string }).inviteId);
-        return;
-      case 'campaign-dispatch':
-        await this.processCampaignDispatch((data as { campaignId: string }).campaignId);
-        return;
-      case 'gdpr-export':
-        await this.processGdprExport(
-          (data as { userId: string; requestorEmail: string }).userId,
-          (data as { userId: string; requestorEmail: string }).requestorEmail,
-        );
-        return;
-      default:
-        throw new Error(`Unsupported notification job: ${name}`);
-    }
-  }
+  // ─── Secure Access ──────────────────────────────────────────────────────────
 
-  async processResendWebhook(event: ResendWebhookPayload) {
-    const emailId = event.data?.email_id;
-    if (!emailId) {
-      return;
-    }
-
-    const isFailure =
-      event.type === 'email.bounced' ||
-      event.type === 'email.complained' ||
-      event.type === 'email.failed' ||
-      event.type === 'email.suppressed';
-    const status = isFailure ? 'failed' : 'sent';
-    const errorMessage =
-      event.data?.bounce?.message ?? event.data?.failed?.reason ?? event.data?.suppressed?.message;
-
-    await db
-      .update(messageDeliveries)
-      .set({
-        status,
-        errorMessage,
-        payload: compactPreview({
-          providerEvent: event.type,
-          subject: event.data?.subject,
-          to: event.data?.to,
-        }),
-        updatedAt: new Date(),
-      })
-      .where(eq(messageDeliveries.providerMessageId, emailId));
-
-    if (event.type === 'email.complained' || event.type === 'email.suppressed') {
-      for (const recipient of event.data?.to ?? []) {
-        await db
-          .update(users)
-          .set({
-            marketingEmailOptIn: false,
-            ...(event.type === 'email.suppressed' ? { transactionalEmailOptIn: false } : {}),
-            updatedAt: new Date(),
-          })
-          .where(eq(users.email, recipient.toLowerCase()));
-      }
-    }
-  }
-
-  async processSecureAccess(email: string) {
+  async processSecureAccess(email: string): Promise<void> {
     const normalizedEmail = email.trim().toLowerCase();
     const user = await this.getUserByEmail(normalizedEmail);
 
@@ -841,7 +792,9 @@ export class NotificationDispatchService {
       .where(eq(users.id, user.id));
   }
 
-  async processAdminInvite(inviteId: string) {
+  // ─── Admin Invite ───────────────────────────────────────────────────────────
+
+  async processAdminInvite(inviteId: string): Promise<void> {
     const [invite] = await db
       .select({
         id: adminInvites.id,
@@ -905,119 +858,9 @@ export class NotificationDispatchService {
     });
   }
 
-  async processCampaignDispatch(campaignId: string) {
-    const [campaign] = await db
-      .select({
-        id: messageCampaigns.id,
-        brandKey: messageCampaigns.brandKey,
-        subject: messageCampaigns.subject,
-        markdownBody: messageCampaigns.markdownBody,
-        whatsappBody: messageCampaigns.whatsappBody,
-        ctaLabel: messageCampaigns.ctaLabel,
-        ctaUrl: messageCampaigns.ctaUrl,
-        channels: messageCampaigns.channels,
-        targeting: messageCampaigns.targeting,
-      })
-      .from(messageCampaigns)
-      .where(eq(messageCampaigns.id, campaignId))
-      .limit(1);
+  // ─── GDPR Export ────────────────────────────────────────────────────────────
 
-    if (!campaign) {
-      throw new Error('Campaign not found.');
-    }
-
-    const sanitizedChannels = Array.from(new Set(campaign.channels ?? [])).filter(
-      (channel): channel is Channel => channel === 'email',
-    );
-
-    if (sanitizedChannels.length === 0) {
-      throw new Error('Campaign has no sendable email channel.');
-    }
-
-    const recipients = await this.listCampaignRecipients({
-      channels: sanitizedChannels,
-      targeting: campaign.targeting as Record<string, string> | undefined,
-    });
-    const template = buildCampaignTemplate({
-      brandKey: getBrandPreset(campaign.brandKey).key,
-      subject: campaign.subject,
-      markdownBody: campaign.markdownBody,
-      ctaLabel: campaign.ctaLabel ?? undefined,
-      ctaUrl: campaign.ctaUrl ?? undefined,
-      whatsappBody: campaign.whatsappBody,
-    });
-
-    let emailRecipients = 0;
-    let whatsappRecipients = 0;
-    let failedCount = 0;
-
-    await db
-      .update(messageCampaigns)
-      .set({
-        status: 'sending',
-        totalRecipients: recipients.length,
-        updatedAt: new Date(),
-      })
-      .where(eq(messageCampaigns.id, campaignId));
-
-    for (let index = 0; index < recipients.length; index += NOTIFICATION_BATCH_SIZE) {
-      const batch = recipients.slice(index, index + NOTIFICATION_BATCH_SIZE);
-
-      await Promise.all(
-        batch.flatMap((recipient) =>
-          sanitizedChannels.map(async (channel) => {
-            const result = await this.deliverTemplate({
-              user: recipient,
-              campaignId,
-              channel,
-              category: 'marketing',
-              brandKey: getBrandPreset(campaign.brandKey).key,
-              templateKey: 'campaign',
-              template,
-              respectMarketingPreferences: true,
-            });
-
-            if (result.status === 'sent') {
-              if (channel === 'email') {
-                emailRecipients += 1;
-              } else {
-                whatsappRecipients += 1;
-              }
-            }
-
-            if (result.status === 'failed') {
-              failedCount += 1;
-            }
-          }),
-        ),
-      );
-
-      // Polite rate limit: 1 second delay between batches
-      if (index + NOTIFICATION_BATCH_SIZE < recipients.length) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-    }
-
-    const status: 'sent' | 'partially_sent' | 'failed' =
-      failedCount === 0
-        ? 'sent'
-        : emailRecipients + whatsappRecipients > 0
-          ? 'partially_sent'
-          : 'failed';
-
-    await db
-      .update(messageCampaigns)
-      .set({
-        status,
-        emailRecipients,
-        whatsappRecipients,
-        lastSentAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(messageCampaigns.id, campaignId));
-  }
-
-  async processGdprExport(userId: string, requestorEmail: string) {
+  async processGdprExport(userId: string, requestorEmail: string): Promise<void> {
     const user = await this.getUserByDbId(userId);
 
     // Fetch all user data
@@ -1082,5 +925,209 @@ export class NotificationDispatchService {
       `,
       text: `GDPR Data Export generated for ${user.email}. Target size: ${zipSizeStr}.`,
     });
+  }
+
+  // ─── Resend Webhook Processing ──────────────────────────────────────────────
+
+  /**
+   * Process incoming Resend webhook events.
+   *
+   * Per the Resend webhooks skill:
+   * - Hard bounces (`email.bounced`) are permanent — remove address immediately
+   * - Soft bounces (`email.delivery_delayed`) are temporary — Resend retries automatically
+   * - `email.complained` means recipient marked as spam — unsubscribe immediately
+   * - `email.delivered` confirms successful delivery
+   * - `email.opened`/`email.clicked` track engagement
+   *
+   * @see https://resend.com/docs/api-reference/webhooks
+   */
+  async processResendWebhook(event: ResendWebhookPayload): Promise<void> {
+    const emailId = event.data?.email_id;
+    if (!emailId) {
+      console.warn('[Webhook] Resend event missing email_id', {
+        type: event.type,
+      });
+      return;
+    }
+
+    console.log('[Webhook] Processing Resend event', {
+      type: event.type,
+      emailId,
+      to: event.data?.to,
+    });
+
+    switch (event.type) {
+      // ── Delivery Confirmation ─────────────────────────────────────────────
+      case 'email.delivered':
+        await db
+          .update(messageDeliveries)
+          .set({
+            status: 'sent',
+            payload: compactPreview({
+              providerEvent: 'email.delivered',
+              deliveredAt: event.data?.created_at,
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+        break;
+
+      // ── Hard Bounce — permanent failure, remove address ───────────────────
+      case 'email.bounced':
+        await db
+          .update(messageDeliveries)
+          .set({
+            status: 'failed',
+            errorMessage: event.data?.bounce?.message ?? 'Hard bounce',
+            payload: compactPreview({
+              providerEvent: 'email.bounced',
+              bounceType: event.data?.bounce?.type,
+              subject: event.data?.subject,
+              to: event.data?.to,
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+
+        // Hard bounces are permanent — never retry sending to this address
+        for (const recipient of event.data?.to ?? []) {
+          await db
+            .update(users)
+            .set({
+              transactionalEmailOptIn: false,
+              marketingEmailOptIn: false,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.email, recipient.toLowerCase()));
+        }
+        break;
+
+      // ── Spam Complaint — unsubscribe immediately ──────────────────────────
+      case 'email.complained':
+        await db
+          .update(messageDeliveries)
+          .set({
+            status: 'failed',
+            errorMessage: 'Recipient reported spam',
+            payload: compactPreview({
+              providerEvent: 'email.complained',
+              subject: event.data?.subject,
+              to: event.data?.to,
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+
+        for (const recipient of event.data?.to ?? []) {
+          await db
+            .update(users)
+            .set({
+              marketingEmailOptIn: false,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.email, recipient.toLowerCase()));
+        }
+        break;
+
+      // ── Send Failure ──────────────────────────────────────────────────────
+      case 'email.failed':
+        await db
+          .update(messageDeliveries)
+          .set({
+            status: 'failed',
+            errorMessage: event.data?.failed?.reason ?? 'Send failed',
+            payload: compactPreview({
+              providerEvent: 'email.failed',
+              subject: event.data?.subject,
+              to: event.data?.to,
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+        break;
+
+      // ── Suppressed Address ────────────────────────────────────────────────
+      case 'email.suppressed':
+        await db
+          .update(messageDeliveries)
+          .set({
+            status: 'failed',
+            errorMessage: event.data?.suppressed?.message ?? 'Address suppressed',
+            payload: compactPreview({
+              providerEvent: 'email.suppressed',
+              subject: event.data?.subject,
+              to: event.data?.to,
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+
+        for (const recipient of event.data?.to ?? []) {
+          await db
+            .update(users)
+            .set({
+              transactionalEmailOptIn: false,
+              marketingEmailOptIn: false,
+              updatedAt: new Date(),
+            })
+            .where(eq(users.email, recipient.toLowerCase()));
+        }
+        break;
+
+      // ── Soft Bounce — temporary, Resend retries automatically ─────────────
+      case 'email.delivery_delayed':
+        await db
+          .update(messageDeliveries)
+          .set({
+            payload: compactPreview({
+              providerEvent: 'email.delivery_delayed',
+              message: event.data?.delivery_delayed?.message,
+              subject: event.data?.subject,
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+        break;
+
+      // ── Engagement Tracking ───────────────────────────────────────────────
+      case 'email.opened':
+        await db
+          .update(messageDeliveries)
+          .set({
+            payload: compactPreview({
+              providerEvent: 'email.opened',
+              openedAt: event.data?.open?.timestamp ?? new Date().toISOString(),
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+        break;
+
+      case 'email.clicked':
+        await db
+          .update(messageDeliveries)
+          .set({
+            payload: compactPreview({
+              providerEvent: 'email.clicked',
+              link: event.data?.click?.link,
+              clickedAt: event.data?.click?.timestamp ?? new Date().toISOString(),
+            }),
+            updatedAt: new Date(),
+          })
+          .where(eq(messageDeliveries.providerMessageId, emailId));
+        break;
+
+      // ── Send Accepted ─────────────────────────────────────────────────────
+      case 'email.sent':
+        // email.sent means the API accepted the request; delivery is not yet confirmed.
+        // No status update needed — our initial status is already 'sent' (accepted).
+        break;
+
+      default:
+        console.log('[Webhook] Unhandled Resend event type', {
+          type: event.type,
+        });
+        break;
+    }
   }
 }

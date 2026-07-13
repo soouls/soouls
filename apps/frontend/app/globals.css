@@ -84,36 +84,62 @@
 }
 
 /* Kicker Global Styles */
-.kicker { 
-  display: inline-flex; 
-  align-items: center; 
-  gap: 10px; 
-  font-size: .78rem; 
-  font-weight: 700; 
-  letter-spacing: .15em; 
-  text-transform: uppercase; 
-  color: var(--amber); 
-  margin-bottom: 20px; 
-  font-family: 'Inter', system-ui, sans-serif; 
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 20px;
+  font-family: "Inter", system-ui, sans-serif;
 }
-.kicker::before { 
-  content: ''; 
-  width: 0; 
-  height: 2px; 
-  border-radius: 2px; 
-  background: linear-gradient(90deg, var(--amber), var(--rose)); 
-  transition: width .6s var(--ease-out) .15s; 
+.kicker::before {
+  content: "";
+  width: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--amber), var(--rose));
+  transition: width .6s var(--ease-out) .15s;
 }
-.kicker.in-view::before, .kicker.in::before { 
-  width: 26px; 
+.kicker.in-view::before,
+.kicker.in::before {
+  width: 26px;
 }
 
 /* Legacy HTML Layouts */
-.wrap { width: min(1160px, 92vw); margin: 0 auto; }
-section.block { padding: 120px 0; }
-.block h2 { font-size: clamp(2rem, 4.4vw, 3.3rem); max-width: 640px; margin-bottom: 18px; letter-spacing: -0.02em; line-height: 1.05; }
-.block .sub { color: var(--ink-soft); font-size: 1.08rem; max-width: 560px; line-height: 1.5; }
-h1, h2, h3, .serif { font-family: 'Fraunces', Georgia, serif; font-weight: 420; letter-spacing: -0.02em; line-height: 1.08; font-optical-sizing: auto; }
+.wrap {
+  width: min(1160px, 92vw);
+  margin: 0 auto;
+}
+section.block {
+  padding: 120px 0;
+}
+.block h2 {
+  font-size: clamp(2rem, 4.4vw, 3.3rem);
+  max-width: 640px;
+  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.block .sub {
+  color: var(--ink-soft);
+  font-size: 1.08rem;
+  max-width: 560px;
+  line-height: 1.5;
+}
+h1,
+h2,
+h3,
+.serif {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 420;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  font-optical-sizing: auto;
+}
 
 html[data-theme-mode="light"] {
   --soouls-bg: #f5f1ea;
@@ -520,14 +546,19 @@ mark {
   transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
 }
 
-.reveal.in, .reveal.in-view {
+.reveal.in,
+.reveal.in-view {
   opacity: 1;
   transform: translateY(0);
 }
 
 @keyframes scaleIn {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 /* Smooth scroll anchor offset */
@@ -614,11 +645,12 @@ mark {
 /* ── Enhanced Micro-Interactions ── */
 
 /* Smooth link underline animation */
-nav a, footer a {
+nav a,
+footer a {
   position: relative;
 }
 nav a::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -2px;
   left: 0;
@@ -637,9 +669,8 @@ nav a:hover::after {
 .vault-card,
 .show-stage,
 .pmock {
-  transition: transform 0.3s var(--ease-out), 
-              box-shadow 0.3s var(--ease-out),
-              border-color 0.2s ease-out !important;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out), border-color 0.2s
+    ease-out !important;
 }
 
 /* Button press animation */
@@ -655,7 +686,7 @@ a.px-8:active {
   overflow: hidden;
 }
 .pill::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -665,8 +696,13 @@ a.px-8:active {
   animation: pillShimmer 4s ease-in-out infinite;
 }
 @keyframes pillShimmer {
-  0%, 100% { left: -100%; }
-  50% { left: 150%; }
+  0%,
+  100% {
+    left: -100%;
+  }
+  50% {
+    left: 150%;
+  }
 }
 
 /* Smooth image/icon pop on hover */
@@ -688,17 +724,24 @@ a.px-8:active {
 
 /* Sticky note wobble on hover */
 .sticky-note {
-  transition: transform 0.3s var(--ease-out),
-              box-shadow 0.3s var(--ease-out) !important;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out) !important;
 }
 .sticky-note:hover {
   animation: noteWobble 0.5s ease-in-out;
 }
 @keyframes noteWobble {
-  0% { transform: rotate(var(--tw-rotate, 0deg)); }
-  25% { transform: rotate(calc(var(--tw-rotate, 0deg) + 2deg)); }
-  75% { transform: rotate(calc(var(--tw-rotate, 0deg) - 1.5deg)); }
-  100% { transform: rotate(var(--tw-rotate, 0deg)); }
+  0% {
+    transform: rotate(var(--tw-rotate, 0deg));
+  }
+  25% {
+    transform: rotate(calc(var(--tw-rotate, 0deg) + 2deg));
+  }
+  75% {
+    transform: rotate(calc(var(--tw-rotate, 0deg) - 1.5deg));
+  }
+  100% {
+    transform: rotate(var(--tw-rotate, 0deg));
+  }
 }
 
 /* Kicker line draw animation */
@@ -719,23 +762,29 @@ a.px-8:active {
 
 /* CTA section floating particles */
 .bg-\[\#e6e2f8\]::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at 20% 80%, rgba(100, 80, 214, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 80% 20%, rgba(253, 225, 211, 0.15) 0%, transparent 50%);
+    radial-gradient(circle at 80% 20%, rgba(253, 225, 211, 0.15) 0%, transparent 50%);
   animation: ctaGlow 8s ease-in-out infinite alternate;
   pointer-events: none;
   border-radius: inherit;
 }
 @keyframes ctaGlow {
-  0% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 1; transform: scale(1.02); }
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
 }
 
 /* Show stage background gradient pulse */
 .show-stage::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -744,8 +793,15 @@ a.px-8:active {
   pointer-events: none;
 }
 @keyframes stageBreath {
-  0%, 100% { opacity: 0.3; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 /* Footer wordmark breath */
@@ -753,14 +809,26 @@ footer .font-playfair.italic.font-medium {
   animation: wordmarkBreath 8s ease-in-out infinite;
 }
 @keyframes wordmarkBreath {
-  0%, 100% { opacity: 0.5; letter-spacing: -0.02em; }
-  50% { opacity: 0.7; letter-spacing: 0.01em; }
+  0%,
+  100% {
+    opacity: 0.5;
+    letter-spacing: -0.02em;
+  }
+  50% {
+    opacity: 0.7;
+    letter-spacing: 0.01em;
+  }
 }
 
 /* Green checkmark bounce on scroll */
 @keyframes checkBounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 .priv-list li:hover .priv-icon svg {
   animation: checkBounce 0.5s ease;
@@ -771,14 +839,20 @@ footer .font-playfair.italic.font-medium {
   animation: stampSpin 0.6s var(--ease-out);
 }
 @keyframes stampSpin {
-  0% { transform: rotate(-8deg) scale(1); }
-  50% { transform: rotate(360deg) scale(1.2); }
-  100% { transform: rotate(352deg) scale(1); }
+  0% {
+    transform: rotate(-8deg) scale(1);
+  }
+  50% {
+    transform: rotate(360deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(352deg) scale(1);
+  }
 }
 
 /* Encryption demo scan line */
 .enc-demo::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -789,10 +863,20 @@ footer .font-playfair.italic.font-medium {
   pointer-events: none;
 }
 @keyframes scanLine {
-  0% { top: 0; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 /* How it works arrow bounce */
@@ -800,9 +884,15 @@ footer .font-playfair.italic.font-medium {
   animation: arrowBounce 0.4s var(--ease-out);
 }
 @keyframes arrowBounce {
-  0% { transform: translateX(0); }
-  50% { transform: translateX(8px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(8px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 /* Platform badge hover glow */
@@ -823,7 +913,7 @@ footer .font-playfair.italic.font-medium {
 /* Section divider gradient line */
 .hw-section::before,
 .priv-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 50%;
@@ -834,4 +924,3 @@ footer .font-playfair.italic.font-medium {
   border-radius: 2px;
   opacity: 0.5;
 }
-

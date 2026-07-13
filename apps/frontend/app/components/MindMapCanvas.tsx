@@ -12,13 +12,13 @@ export default function MindMapCanvas() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let W = 0;
     let H = 0;
     let nodes: any[] = [];
     let pulses: any[] = [];
-    let mouse = { x: -9999, y: -9999 };
-    
+    const mouse = { x: -9999, y: -9999 };
+
     const P = ['#d98a4b', '#cf7b6e', '#7d9b76', '#7d9b76', '#6d7fa3', '#b7a98f'];
     const LD = 180;
     const LINKC = '227,219,205'; // rgba for --soouls-border roughly
@@ -29,7 +29,7 @@ export default function MindMapCanvas() {
       canvas.width = W * dpr;
       canvas.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      
+
       const count = Math.max(15, Math.min(25, Math.floor((W * H) / 50000)));
       nodes = [];
       for (let i = 0; i < count; i++) {
@@ -40,7 +40,7 @@ export default function MindMapCanvas() {
           vy: (Math.random() - 0.5) * 0.85,
           r: 3 + Math.random() * 9,
           c: P[i % P.length],
-          p: Math.random() * 6.28
+          p: Math.random() * 6.28,
         });
       }
     };
@@ -61,11 +61,12 @@ export default function MindMapCanvas() {
 
     const tick = (t: number) => {
       ctx.clearRect(0, 0, W, H);
-      
+
       // Draw lines between nodes
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i], b = nodes[j];
+          const a = nodes[i];
+          const b = nodes[j];
           const d = Math.hypot(a.x - b.x, a.y - b.y);
           if (d < LD) {
             ctx.strokeStyle = `rgba(${LINKC},${((1 - d / LD) * 0.35).toFixed(3)})`;
@@ -95,7 +96,7 @@ export default function MindMapCanvas() {
           if (n.y < -20) n.y = H + 20;
           if (n.y > H + 20) n.y = -20;
         }
-        
+
         const br = 1 + Math.sin(t / 1400 + n.p) * 0.22;
         ctx.globalAlpha = 0.85;
         ctx.fillStyle = n.c;
@@ -107,7 +108,7 @@ export default function MindMapCanvas() {
 
       // Traveling thought pulses
       if (!reduced && Math.random() < 0.02 && pulses.length < 5) spawnPulse();
-      
+
       pulses = pulses.filter((pl) => {
         pl.t += 0.016;
         const x = pl.a.x + (pl.b.x - pl.a.x) * pl.t;
@@ -133,9 +134,9 @@ export default function MindMapCanvas() {
 
     window.addEventListener('resize', rs);
     window.addEventListener('pointermove', handleMouseMove);
-    
+
     rs();
-    
+
     if (reduced) {
       tick(0);
     } else {
@@ -155,7 +156,6 @@ export default function MindMapCanvas() {
       ref={canvasRef}
       className="absolute inset-0 w-full h-full z-0 pointer-events-auto"
       style={{ opacity: 0.8 }}
-      aria-hidden="true"
     />
   );
 }
