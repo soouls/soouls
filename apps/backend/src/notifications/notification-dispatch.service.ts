@@ -405,13 +405,13 @@ export class NotificationDispatchService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      if (this.resend.isRestrictedKeyError(errorData.message || '')) {
+      const errorData = (await response.json().catch(() => ({}))) as any;
+      if (this.resend.isRestrictedKeyError(errorData?.message || '')) {
         this.resend.warnRestricted('automation event');
         return;
       }
 
-      console.error(`[Messaging] Resend automation event failed: ${errorData.message || response.statusText}`);
+      console.error(`[Messaging] Resend automation event failed: ${errorData?.message || response.statusText}`);
       return;
     }
   }
