@@ -37,10 +37,22 @@ export default function MarqueeSection() {
       `}</style>
 
       <div className="marquee-track">
-        <span>write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i> reflect on it <i>✦</i></span>
-        <span>write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i> reflect on it <i>✦</i></span>
-        <span>write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i> reflect on it <i>✦</i></span>
-        <span>write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i> reflect on it <i>✦</i></span>
+        <span>
+          write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i>{' '}
+          reflect on it <i>✦</i>
+        </span>
+        <span>
+          write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i>{' '}
+          reflect on it <i>✦</i>
+        </span>
+        <span>
+          write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i>{' '}
+          reflect on it <i>✦</i>
+        </span>
+        <span>
+          write it <i>✦</i> speak it <i>✦</i> doodle it <i>✦</i> map it <i>✦</i> feel it <i>✦</i>{' '}
+          reflect on it <i>✦</i>
+        </span>
       </div>
     </div>
   );

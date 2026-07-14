@@ -5,9 +5,12 @@ import { NotificationQueueService } from './notification.queue';
 import { NotificationWorker } from './notification.worker';
 import { NotificationsController } from './notifications.controller';
 
+import { ResendProvider } from './resend.provider';
+
 @Module({
   controllers: [NotificationsController],
   providers: [
+    ResendProvider,
     NotificationQueueService,
     NotificationDispatchService,
     ...(isVercelRuntime ? [] : [NotificationWorker]),

@@ -47,19 +47,55 @@ export default function SecondaryMarquee() {
         }
       `}</style>
       <div className="marquee-track">
-        <div className="marquee-item"><span className="mdot"></span>Overthinkers</div>
-        <div className="marquee-item"><span className="mdot"></span>Late-night writers</div>
-        <div className="marquee-item"><span className="mdot"></span>People in therapy</div>
-        <div className="marquee-item"><span className="mdot"></span>Founders & builders</div>
-        <div className="marquee-item"><span className="mdot"></span>Students under pressure</div>
-        <div className="marquee-item"><span className="mdot"></span>Quiet processors</div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Overthinkers
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Late-night writers
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          People in therapy
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Founders & builders
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Students under pressure
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Quiet processors
+        </div>
         {/* Duplicated for infinite scroll */}
-        <div className="marquee-item"><span className="mdot"></span>Overthinkers</div>
-        <div className="marquee-item"><span className="mdot"></span>Late-night writers</div>
-        <div className="marquee-item"><span className="mdot"></span>People in therapy</div>
-        <div className="marquee-item"><span className="mdot"></span>Founders & builders</div>
-        <div className="marquee-item"><span className="mdot"></span>Students under pressure</div>
-        <div className="marquee-item"><span className="mdot"></span>Quiet processors</div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Overthinkers
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Late-night writers
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          People in therapy
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Founders & builders
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Students under pressure
+        </div>
+        <div className="marquee-item">
+          <span className="mdot" />
+          Quiet processors
+        </div>
       </div>
     </div>
   );

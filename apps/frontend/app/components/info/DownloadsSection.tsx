@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Monitor,
-  Smartphone,
-  Tablet,
-  Globe,
-  ArrowRight
-} from 'lucide-react';
+import { ArrowRight, Globe, Monitor, Smartphone, Tablet } from 'lucide-react';
 
 export default function DownloadsSection() {
   const platforms = [
@@ -63,7 +57,6 @@ export default function DownloadsSection() {
   return (
     <section id="downloads" className="relative w-full py-10 bg-transparent overflow-hidden">
       <div className="relative z-10 max-w-[1240px] mx-auto">
-        
         {/* Header */}
         <div className="mb-16 md:mb-24 text-center max-w-[800px] mx-auto reveal">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--soouls-accent)]/10 mb-6">
@@ -73,10 +66,11 @@ export default function DownloadsSection() {
             Ecosystem
           </span>
           <h2 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] mb-8">
-            Available where <br/> <em className="italic text-[var(--soouls-accent)]">you are</em>
+            Available where <br /> <em className="italic text-[var(--soouls-accent)]">you are</em>
           </h2>
           <p className="font-urbanist text-lg text-[var(--ink-soft)] max-w-xl mx-auto leading-relaxed">
-            Your mind isn't tethered to a single device. Neither is Soouls. Access your secure canvas seamlessly across the platforms you use every day.
+            Your mind isn't tethered to a single device. Neither is Soouls. Access your secure
+            canvas seamlessly across the platforms you use every day.
           </p>
         </div>
 
@@ -90,9 +84,11 @@ export default function DownloadsSection() {
                 className={`
                   group relative flex flex-col justify-between p-10 rounded-3xl md:rounded-[3rem] 
                   transition-colors transition-transform transition-shadow duration-300 ease-out overflow-hidden reveal
-                  ${platform.isComingSoon 
-                    ? 'bg-transparent border border-dashed border-[#e3dbcd] opacity-70 grayscale' 
-                    : 'bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)]'}
+                  ${
+                    platform.isComingSoon
+                      ? 'bg-transparent border border-dashed border-[#e3dbcd] opacity-70 grayscale'
+                      : 'bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)]'
+                  }
                   h-[320px]
                 `}
                 style={{ transitionDelay: `${(idx % 4) * 150}ms` }}
@@ -104,7 +100,9 @@ export default function DownloadsSection() {
 
                 <div className="flex flex-col relative z-10">
                   <div className="flex flex-col items-start gap-6 mb-8">
-                    <div className={`p-4 rounded-2xl ${platform.isComingSoon ? 'bg-[var(--ink)]/5' : 'bg-[var(--soouls-accent)]/10 text-[var(--soouls-accent)]'} group-active:scale-95 transition-transform duration-300`}>
+                    <div
+                      className={`p-4 rounded-2xl ${platform.isComingSoon ? 'bg-[var(--ink)]/5' : 'bg-[var(--soouls-accent)]/10 text-[var(--soouls-accent)]'} group-active:scale-95 transition-transform duration-300`}
+                    >
                       <Icon className="w-8 h-8" strokeWidth={1.5} />
                     </div>
                     <span
@@ -141,7 +139,6 @@ export default function DownloadsSection() {
             );
           })}
         </div>
-
       </div>
     </section>
   );

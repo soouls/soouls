@@ -14,6 +14,8 @@ import { Resend } from 'resend';
 // biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
 import { NotificationDispatchService } from './notification-dispatch.service';
 import { getBackendPublicUrl } from './notification.constants';
+// biome-ignore lint/style/useImportType: Nest uses this class as a runtime injection token.
+import { ResendProvider } from './resend.provider';
 
 type RawBodyRequest = Request & {
   rawBody?: string;
@@ -32,15 +34,18 @@ function firstHeader(value: string | string[] | undefined) {
 
 function headerRecordToResendHeaders(headers: Record<string, string | string[] | undefined>) {
   return {
-    id: firstHeader(headers['svix-id']) ?? '',
-    timestamp: firstHeader(headers['svix-timestamp']) ?? '',
-    signature: firstHeader(headers['svix-signature']) ?? '',
+    'svix-id': firstHeader(headers['svix-id']) ?? '',
+    'svix-timestamp': firstHeader(headers['svix-timestamp']) ?? '',
+    'svix-signature': firstHeader(headers['svix-signature']) ?? '',
   };
 }
 
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly dispatcher: NotificationDispatchService) {}
+  constructor(
+    private readonly dispatcher: NotificationDispatchService,
+    private readonly resend: ResendProvider,
+  ) {}
 
   @Post('jobs/:name')
   @HttpCode(200)
@@ -110,10 +115,16 @@ export class NotificationsController {
       return fallbackBody;
     }
 
-    return new Resend(process.env.RESEND_API_KEY).webhooks.verify({
-      webhookSecret,
+    // Use contacts instance which has full access, or fallback to sending instance
+    const client = this.resend.contacts ?? this.resend.sending;
+    if (!client) {
+      throw new UnauthorizedException('Resend is not configured.');
+    }
+
+    return client.webhooks.verify({
+      secret: webhookSecret,
       payload,
-      headers: headerRecordToResendHeaders(headers),
-    });
+      headers: headerRecordToResendHeaders(headers) as any,
+    } as any);
   }
 }

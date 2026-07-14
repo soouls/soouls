@@ -20,15 +20,14 @@ const defaultLinks: NavLink[] = [
 
 export default function LandingDock({ links = defaultLinks }: LandingNavbarProps) {
   return (
-      <div
+    <div
       className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-row items-center rounded-[32px]"
       style={{
         backgroundColor: 'rgba(42, 51, 53, 0.7)',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow:
-          '0px 22px 48px 0px rgba(0, 0, 0, 0.16), 0px 8px 16px 0px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0px 22px 48px 0px rgba(0, 0, 0, 0.16), 0px 8px 16px 0px rgba(0, 0, 0, 0.1)',
         padding: '16px 32px',
         gap: '48px',
       }}

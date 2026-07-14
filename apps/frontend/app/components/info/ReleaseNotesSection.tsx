@@ -40,7 +40,6 @@ export default function ReleaseNotesSection() {
   return (
     <section id="release-notes" className="relative w-full py-10 bg-transparent overflow-hidden">
       <div className="relative z-10 max-w-[1240px] mx-auto">
-        
         {/* Header */}
         <div className="max-w-2xl mb-20 md:mb-32 reveal">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
@@ -63,8 +62,11 @@ export default function ReleaseNotesSection() {
           <div className="absolute top-4 bottom-4 left-[21px] w-px bg-gradient-to-b from-[#e3dbcd] via-[#e3dbcd]/50 to-transparent" />
 
           {releases.map((release, idx) => (
-            <div key={release.version} className="relative pl-16 md:pl-24 group reveal" style={{ transitionDelay: `${idx * 150}ms` }}>
-              
+            <div
+              key={release.version}
+              className="relative pl-16 md:pl-24 group reveal"
+              style={{ transitionDelay: `${idx * 150}ms` }}
+            >
               {/* Timeline Dot with Glow */}
               <div className="absolute left-[13px] top-10 flex items-center justify-center">
                 <div className="absolute w-8 h-8 bg-[#E07A5F]/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -74,7 +76,7 @@ export default function ReleaseNotesSection() {
               {/* Card */}
               <div className="relative p-6 sm:p-8 md:p-14 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:bg-white hover:border-[#E07A5F]/30 hover:shadow-[0_20px_40px_rgba(224,122,95,0.06)] hover:-translate-y-1 transition-colors transition-transform transition-shadow duration-300 overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07A5F]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                
+
                 <div className="relative z-10">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 border-b border-[#e3dbcd]/50 pb-8">
                     <div>
@@ -92,15 +94,20 @@ export default function ReleaseNotesSection() {
 
                   <ul className="space-y-5">
                     {release.changes.map((change, cIdx) => (
-                      <li key={cIdx} className="flex items-start gap-4 font-urbanist text-[var(--ink-soft)] text-lg leading-relaxed group/item">
-                        <Sparkles className="w-5 h-5 text-[#E07A5F]/40 mt-1 shrink-0 group-hover/item:text-[#E07A5F] group-hover/item:scale-110 transition-colors transition-transform transition-shadow" strokeWidth={1.5} />
+                      <li
+                        key={cIdx}
+                        className="flex items-start gap-4 font-urbanist text-[var(--ink-soft)] text-lg leading-relaxed group/item"
+                      >
+                        <Sparkles
+                          className="w-5 h-5 text-[#E07A5F]/40 mt-1 shrink-0 group-hover/item:text-[#E07A5F] group-hover/item:scale-110 transition-colors transition-transform transition-shadow"
+                          strokeWidth={1.5}
+                        />
                         <span>{change}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
-
             </div>
           ))}
         </div>

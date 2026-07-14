@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function FeatureShowcaseSection() {
   const [activeTab, setActiveTab] = useState(0);
@@ -22,7 +23,7 @@ export function FeatureShowcaseSection() {
     'rgba(125,155,118,.16)',
     'rgba(109,127,163,.14)',
     'rgba(217,138,75,.12)',
-    'rgba(207,123,110,.12)'
+    'rgba(207,123,110,.12)',
   ];
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export function FeatureShowcaseSection() {
         startTimer();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
@@ -57,8 +58,6 @@ export function FeatureShowcaseSection() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [tabs.length]);
-
-
 
   const handleTabClick = (index: number) => {
     setActiveTab(index);
@@ -86,12 +85,13 @@ export function FeatureShowcaseSection() {
   // Typed text effect
   const [typedText, setTypedText] = useState('');
   useEffect(() => {
-    const fullText = 'Told her the truth today. Hands shaking, voice steady \u2014 funny how those can coexist\u2026';
+    const fullText =
+      'Told her the truth today. Hands shaking, voice steady \u2014 funny how those can coexist\u2026';
     if (reducedMotion) {
       setTypedText(fullText);
       return;
     }
-    
+
     let currentIndex = 0;
     let typeTimeout: NodeJS.Timeout;
 
@@ -117,12 +117,12 @@ export function FeatureShowcaseSection() {
   // Interactive doodle pad
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const pad = canvasRef.current;
     const wrap = wrapRef.current;
     if (!pad || !wrap) return;
-    
+
     const pc = pad.getContext('2d');
     if (!pc) return;
 
@@ -169,12 +169,12 @@ export function FeatureShowcaseSection() {
     const handlePointerUp = () => {
       drawing = false;
     };
-    
+
     pad.addEventListener('pointerdown', handlePointerDown);
     pad.addEventListener('pointermove', handlePointerMove);
     pad.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('resize', prs);
-    
+
     prs();
 
     return () => {
@@ -297,17 +297,18 @@ export function FeatureShowcaseSection() {
           .pane { padding: 24px 16px; }
         }
       `}</style>
-      
+
       <section className="block has-bg" id="features">
-        <div className="dotgrid" aria-hidden="true"></div>
-        <div className="blob b1" aria-hidden="true"></div>
-        <div className="blob b2" aria-hidden="true"></div>
-        
+        <div className="dotgrid" aria-hidden="true" />
+        <div className="blob b1" aria-hidden="true" />
+        <div className="blob b2" aria-hidden="true" />
+
         <div className="wrap">
           <p className="kicker reveal">Everything, one quiet space</p>
           <h2 className="reveal">A journal that thinks the way you do — sideways.</h2>
           <p className="sub reveal d1">
-            Life isn't linear, and neither is Soouls. Capture anything, in any form, and watch it find its place.
+            Life isn't linear, and neither is Soouls. Capture anything, in any form, and watch it
+            find its place.
           </p>
 
           <div className="showcase reveal d2">
@@ -324,20 +325,20 @@ export function FeatureShowcaseSection() {
                     <strong>{t.title}</strong>
                     <small>{t.desc}</small>
                   </div>
-                  <i className="tbar"></i>
+                  <i className="tbar" />
                 </button>
               ))}
             </div>
 
-            <div 
-              className="show-stage" 
+            <div
+              className="show-stage"
               style={{ '--stagec': tints[activeTab] } as React.CSSProperties}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
               {/* Tab 1: Write */}
               <div className={`pane ${activeTab === 0 ? 'active' : ''}`}>
-                <span className="ghost">{tabs[0]!.icon}</span>
+                <span className="ghost">{tabs[0]?.icon}</span>
                 <div className="pmock">
                   <p className="pdate">TUESDAY · 21:14</p>
                   <h4>The courage conversation</h4>
@@ -345,18 +346,28 @@ export function FeatureShowcaseSection() {
                   <svg className="sprout" viewBox="0 0 170 60" fill="none" aria-hidden="true">
                     <path className="spl" d="M6 30 C 50 30, 80 12, 118 14" />
                     <circle className="spc" cx="132" cy="14" r="9" fill="#cf7b6e" />
-                    <text x="132" y="44" textAnchor="middle" className="splbl">studio dream</text>
+                    <text x="132" y="44" textAnchor="middle" className="splbl">
+                      studio dream
+                    </text>
                   </svg>
                 </div>
-                <p className="pcap">Every entry is a node. Watch it link itself. <a href="#" style={{ color: 'var(--amber)', fontWeight: 600, fontStyle: 'normal' }}>Try the writing room →</a></p>
+                <p className="pcap">
+                  Every entry is a node. Watch it link itself.{' '}
+                  <a
+                    href="/home"
+                    style={{ color: 'var(--amber)', fontWeight: 600, fontStyle: 'normal' }}
+                  >
+                    Try the writing room →
+                  </a>
+                </p>
               </div>
 
               {/* Tab 2: Speak */}
               <div className={`pane ${activeTab === 1 ? 'active' : ''}`}>
-                <span className="ghost">{tabs[1]!.icon}</span>
+                <span className="ghost">{tabs[1]?.icon}</span>
                 <div className="bigwave" aria-hidden="true">
                   {Array.from({ length: 18 }).map((_, i) => (
-                    <b key={i}></b>
+                    <b key={i} />
                   ))}
                 </div>
                 <div className="wchips" aria-hidden="true">
@@ -369,38 +380,53 @@ export function FeatureShowcaseSection() {
 
               {/* Tab 3: Doodle */}
               <div className={`pane ${activeTab === 2 ? 'active' : ''}`}>
-                <span className="ghost">{tabs[2]!.icon}</span>
+                <span className="ghost">{tabs[2]?.icon}</span>
                 <div className="pad-wrap" ref={wrapRef} style={{ width: 'min(430px, 100%)' }}>
-                  <canvas ref={canvasRef} id="pad" style={{ height: '170px' }}></canvas>
+                  <canvas ref={canvasRef} id="pad" style={{ height: '170px' }} />
                   <span className="pad-hint">this box is real ink — draw ✏️</span>
-                  <button className="pad-clear" type="button" onClick={clearPad}>clear</button>
+                  <button className="pad-clear" type="button" onClick={clearPad}>
+                    clear
+                  </button>
                 </div>
                 <p className="pcap">Sketch what words can't say. Ink lives beside your entries.</p>
               </div>
 
               {/* Tab 4: Collect */}
               <div className={`pane ${activeTab === 3 ? 'active' : ''}`}>
-                <span className="ghost">{tabs[3]!.icon}</span>
+                <span className="ghost">{tabs[3]?.icon}</span>
                 <div className="fan" aria-hidden="true">
-                  <i className="fp f1"></i><i className="fp f2"></i><i className="fp f3"></i>
+                  <i className="fp f1" />
+                  <i className="fp f2" />
+                  <i className="fp f3" />
                 </div>
                 <p className="pcap">The visual scraps of a life, kept where they belong.</p>
               </div>
 
               {/* Tab 5: Intend */}
               <div className={`pane ${activeTab === 4 ? 'active' : ''}`}>
-                <span className="ghost">{tabs[4]!.icon}</span>
+                <span className="ghost">{tabs[4]?.icon}</span>
                 <div className="autotasks" aria-hidden="true">
-                  <div className="atask t1"><i></i><span>Call mum back</span></div>
-                  <div className="atask t2"><i></i><span>One phone-free walk</span></div>
-                  <div className="atask t3"><i></i><span>Finish chapter three</span></div>
+                  <div className="atask t1">
+                    <i />
+                    <span>Call mum back</span>
+                  </div>
+                  <div className="atask t2">
+                    <i />
+                    <span>One phone-free walk</span>
+                  </div>
+                  <div className="atask t3">
+                    <i />
+                    <span>Finish chapter three</span>
+                  </div>
                 </div>
-                <p className="pcap">Intentions, not deadlines. They tick themselves off… eventually.</p>
+                <p className="pcap">
+                  Intentions, not deadlines. They tick themselves off… eventually.
+                </p>
               </div>
 
               {/* Tab 6: Reflect */}
               <div className={`pane ${activeTab === 5 ? 'active' : ''}`}>
-                <span className="ghost">{tabs[5]!.icon}</span>
+                <span className="ghost">{tabs[5]?.icon}</span>
                 <div className="refl" aria-hidden="true">
                   <div className="rring">
                     <svg width="110" height="110" viewBox="0 0 110 110">
@@ -411,12 +437,27 @@ export function FeatureShowcaseSection() {
                         </linearGradient>
                       </defs>
                       <circle cx="55" cy="55" r="44" fill="none" stroke="#e3dbcd" strokeWidth="8" />
-                      <circle className="rrf" cx="55" cy="55" r="44" fill="none" stroke="url(#rg2)" strokeWidth="8" strokeLinecap="round" />
+                      <circle
+                        className="rrf"
+                        cx="55"
+                        cy="55"
+                        r="44"
+                        fill="none"
+                        stroke="url(#rg2)"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                      />
                     </svg>
                     <span>💌</span>
                   </div>
                   <div className="rband">
-                    <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
                   </div>
                 </div>
                 <p className="pcap">Every Sunday: a quiet letter written by your week.</p>

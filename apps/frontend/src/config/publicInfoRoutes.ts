@@ -18,7 +18,7 @@ export const publicInfoSlugs = [
   'journal-guide',
   'help',
   'privacy',
-  'terms'
+  'terms',
 ] as const;
 
 export const publicInfoPaths = publicInfoSlugs.map((slug) => `/${slug}`);

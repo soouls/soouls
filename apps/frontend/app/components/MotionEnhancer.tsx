@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useEffect } from 'react';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -35,8 +35,9 @@ export default function MotionEnhancer() {
     // ── 3. Section-level parallax for visual depth ──
     gsap.utils.toArray('.hw-card').forEach((el, i) => {
       const card = el as HTMLElement;
-      gsap.fromTo(card, 
-        { y: 30 + (i * 10) },
+      gsap.fromTo(
+        card,
+        { y: 30 + i * 10 },
         {
           y: -10,
           ease: 'none',
@@ -46,7 +47,7 @@ export default function MotionEnhancer() {
             end: 'bottom 10%',
             scrub: 2,
           },
-        }
+        },
       );
     });
 
@@ -78,7 +79,9 @@ export default function MotionEnhancer() {
     });
 
     // ── 5. Tilt effect on privacy list items and stat boxes ──
-    const tiltCards = document.querySelectorAll('.priv-list li, .stat-box, .sticky-note, .vault-card');
+    const tiltCards = document.querySelectorAll(
+      '.priv-list li, .stat-box, .sticky-note, .vault-card',
+    );
     tiltCards.forEach((card) => {
       const el = card as HTMLElement;
       const handleMouseMove = (e: MouseEvent) => {
@@ -124,7 +127,8 @@ export default function MotionEnhancer() {
     // ── 7. Social icons bounce on scroll ──
     const socialIcons = document.querySelectorAll('[aria-label]');
     socialIcons.forEach((icon, i) => {
-      gsap.fromTo(icon,
+      gsap.fromTo(
+        icon,
         { y: 20, opacity: 0 },
         {
           y: 0,
@@ -136,7 +140,7 @@ export default function MotionEnhancer() {
             trigger: icon,
             start: 'top 95%',
           },
-        }
+        },
       );
     });
 
@@ -145,7 +149,7 @@ export default function MotionEnhancer() {
     statNums.forEach((num) => {
       const el = num as HTMLElement;
       const finalText = el.textContent || '';
-      
+
       ScrollTrigger.create({
         trigger: el,
         start: 'top 85%',
@@ -158,7 +162,7 @@ export default function MotionEnhancer() {
               duration: 2,
               ease: 'power2.out',
               onUpdate: () => {
-                el.textContent = Math.round(obj.val) + '%';
+                el.textContent = `${Math.round(obj.val)}%`;
               },
             });
           }
@@ -169,7 +173,8 @@ export default function MotionEnhancer() {
     // ── 9. CTA section entrance ──
     const ctaSection = document.querySelector('.bg-\\[\\#e6e2f8\\]');
     if (ctaSection) {
-      gsap.fromTo(ctaSection,
+      gsap.fromTo(
+        ctaSection,
         { scale: 0.92, opacity: 0.5, borderRadius: '60px' },
         {
           scale: 1,
@@ -181,7 +186,7 @@ export default function MotionEnhancer() {
             trigger: ctaSection,
             start: 'top 80%',
           },
-        }
+        },
       );
     }
 
@@ -209,7 +214,8 @@ export default function MotionEnhancer() {
 
     // ── 11. Staggered feature tab entrance ──
     gsap.utils.toArray('.show-tab').forEach((el, i) => {
-      gsap.fromTo(el as HTMLElement,
+      gsap.fromTo(
+        el as HTMLElement,
         { x: -30, opacity: 0 },
         {
           x: 0,
@@ -221,11 +227,11 @@ export default function MotionEnhancer() {
             trigger: el as HTMLElement,
             start: 'top 90%',
           },
-        }
+        },
       );
     });
 
-    // ── 12. Hover glow effect on CTA buttons ──  
+    // ── 12. Hover glow effect on CTA buttons ──
     const ctaButtons = document.querySelectorAll('.bg-\\[\\#16130f\\]');
     ctaButtons.forEach((btn) => {
       const el = btn as HTMLElement;
@@ -244,7 +250,7 @@ export default function MotionEnhancer() {
     });
 
     return () => {
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      ScrollTrigger.getAll().forEach((t) => t.kill());
       const bar = document.getElementById('scroll-progress');
       if (bar) bar.remove();
     };

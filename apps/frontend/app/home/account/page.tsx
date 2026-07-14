@@ -233,7 +233,10 @@ export default function AccountPage() {
       <BackgroundText />
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-5 md:p-10 transition-colors transition-transform transition-shadow duration-300">
         <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
-          <Link href="/home" className="text-white/30 hover:text-white/60 transition-colors transition-transform transition-shadow">
+          <Link
+            href="/home"
+            className="text-white/30 hover:text-white/60 transition-colors transition-transform transition-shadow"
+          >
             Home
           </Link>
           <span className="text-white/20">/</span>

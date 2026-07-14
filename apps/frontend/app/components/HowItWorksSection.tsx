@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useEffect, useRef } from 'react';
 
 export function HowItWorksSection() {
   const containerRef = useRef<HTMLElement>(null);
@@ -27,8 +27,8 @@ export function HowItWorksSection() {
             scrollTrigger: {
               trigger: containerRef.current,
               start: 'top 75%',
-            }
-          }
+            },
+          },
         );
       }
     }
@@ -114,7 +114,6 @@ export function HowItWorksSection() {
           <h2 className="hw-header reveal">How Soouls works</h2>
 
           <div className="hw-grid">
-
             {/* Step 1 */}
             <div className="hw-step">
               <div className="hw-top">
@@ -133,7 +132,12 @@ export function HowItWorksSection() {
                 <span className="c-brain">Brain dump</span>
                 <svg className="c-doodle" viewBox="0 0 100 60">
                   <path d="M10,40 Q30,10 50,30 T80,20 Q90,50 60,40 T30,50" />
-                  <path d="M45,20 Q55,10 65,30" strokeDasharray="30" strokeDashoffset="30" style={{ animationDelay: '1s' }} />
+                  <path
+                    d="M45,20 Q55,10 65,30"
+                    strokeDasharray="30"
+                    strokeDashoffset="30"
+                    style={{ animationDelay: '1s' }}
+                  />
                 </svg>
               </div>
             </div>
@@ -154,13 +158,13 @@ export function HowItWorksSection() {
               </div>
               <div className="hw-card" style={{ padding: 0 }}>
                 <div className="c-nodes">
-                  <div className="node-line nline1"></div>
-                  <div className="node-line nline2"></div>
-                  <div className="node-line nline3"></div>
-                  <div className="node-dot nd1"></div>
-                  <div className="node-dot nd2"></div>
-                  <div className="node-dot nd3"></div>
-                  <div className="node-dot nd4"></div>
+                  <div className="node-line nline1" />
+                  <div className="node-line nline2" />
+                  <div className="node-line nline3" />
+                  <div className="node-dot nd1" />
+                  <div className="node-dot nd2" />
+                  <div className="node-dot nd3" />
+                  <div className="node-dot nd4" />
                 </div>
               </div>
             </div>
@@ -181,7 +185,9 @@ export function HowItWorksSection() {
               </div>
               <div className="hw-card">
                 <div className="c-insight">Emotional insight</div>
-                <p className="c-insight-txt">You felt <span className="c-highlight">proud and grateful</span> this week.</p>
+                <p className="c-insight-txt">
+                  You felt <span className="c-highlight">proud and grateful</span> this week.
+                </p>
               </div>
             </div>
 
@@ -199,13 +205,12 @@ export function HowItWorksSection() {
                   {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
                     <div className="c-day" key={i}>
                       <span>{day}</span>
-                      <div className={`c-dot ${i !== 5 ? 'filled' : ''}`}></div>
+                      <div className={`c-dot ${i !== 5 ? 'filled' : ''}`} />
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
