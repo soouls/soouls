@@ -5,6 +5,7 @@ import { publicInfoPaths } from './src/config/publicInfoRoutes';
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
+  '/pricing(.*)',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/sso-callback(.*)',

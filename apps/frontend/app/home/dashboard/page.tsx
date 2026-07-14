@@ -46,6 +46,19 @@ function parseHighlightedText(text: string | undefined | null, fallback: string)
   });
 }
 
+type ClusterCardPosition = {
+  top?: string;
+  left?: string;
+  right?: string;
+  bottom?: string;
+  transform?: string;
+  zIndex: number;
+  width: string;
+  bg: string;
+  border: string;
+  opacity?: number;
+};
+
 const DashboardPage = () => {
   const { user } = useUser();
   const { setIsOpen } = useSidebar();
@@ -168,12 +181,12 @@ const DashboardPage = () => {
     >
       <BackgroundText />
       {/* HEADER - Exact Design Parity */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-5 md:p-10 flex justify-between items-center transition-all duration-300">
+      <header className="fixed top-0 left-0 right-0 z-50 p-5 md:p-10 flex justify-between items-center transition-colors transition-transform transition-shadow duration-300">
         <div className="flex items-center gap-1 text-[16px] sm:text-[22px] font-medium tracking-tight min-w-0">
           <button
             type="button"
             onClick={() => router.push('/home')}
-            className="text-white/30 hover:text-white/60 transition-all cursor-pointer"
+            className="text-white/30 hover:text-white/60 transition-colors transition-transform transition-shadow cursor-pointer"
           >
             Home
           </button>
@@ -184,7 +197,7 @@ const DashboardPage = () => {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 hover:border-white/30 transition-all cursor-pointer overflow-hidden shadow-2xl shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/10 hover:border-white/30 transition-colors transition-transform transition-shadow cursor-pointer overflow-hidden shadow-2xl shrink-0"
         >
           {user?.imageUrl ? (
             <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -215,7 +228,7 @@ const DashboardPage = () => {
                     router.push('/home/new-entry');
                   }
                 }}
-                className="w-full bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col min-h-[140px] sm:min-h-[220px] transition-all group relative cursor-pointer hover:border-white/20"
+                className="w-full bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col min-h-[140px] sm:min-h-[220px] transition-colors transition-transform transition-shadow group relative cursor-pointer hover:border-white/20"
               >
                 <span className="text-[16px] sm:text-[24px] text-white/20 font-light mb-auto">
                   Write something to start
@@ -228,7 +241,7 @@ const DashboardPage = () => {
                         e.stopPropagation();
                         router.push('/home/new-entry');
                       }}
-                      className="flex items-center gap-1.5 sm:gap-2.5 text-[#A78BFA] hover:opacity-80 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 sm:gap-2.5 text-[#A78BFA] hover:opacity-80 transition-colors transition-transform transition-shadow cursor-pointer"
                     >
                       <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="text-[13px] sm:text-[16px] font-medium">Voice note</span>
@@ -239,7 +252,7 @@ const DashboardPage = () => {
                         e.stopPropagation();
                         router.push('/home/new-entry');
                       }}
-                      className="flex items-center gap-1.5 sm:gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 sm:gap-2.5 text-[var(--soouls-accent)] hover:opacity-80 transition-colors transition-transform transition-shadow cursor-pointer"
                     >
                       <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="text-[13px] sm:text-[16px] font-medium">Image</span>
@@ -250,7 +263,7 @@ const DashboardPage = () => {
                         e.stopPropagation();
                         router.push('/home/new-entry');
                       }}
-                      className="flex items-center gap-1.5 sm:gap-2.5 text-[#34D399] hover:opacity-80 transition-all cursor-pointer"
+                      className="flex items-center gap-1.5 sm:gap-2.5 text-[#34D399] hover:opacity-80 transition-colors transition-transform transition-shadow cursor-pointer"
                     >
                       <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="text-[13px] sm:text-[16px] font-medium">Task</span>
@@ -262,7 +275,7 @@ const DashboardPage = () => {
                       e.stopPropagation();
                       router.push('/home/new-entry');
                     }}
-                    className="w-full sm:w-auto px-5 sm:px-8 py-2.5 sm:py-3 rounded-full border border-white/10 text-white/90 text-[14px] sm:text-[16px] font-medium hover:bg-white/5 transition-all flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-5 sm:px-8 py-2.5 sm:py-3 rounded-full border border-white/10 text-white/90 text-[14px] sm:text-[16px] font-medium hover:bg-white/5 transition-colors transition-transform transition-shadow flex items-center justify-center gap-2"
                     style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
                   >
                     <Plus className="w-4 h-4" />
@@ -350,7 +363,7 @@ const DashboardPage = () => {
                       transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
                     },
                   }}
-                  className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-all"
+                  className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-6 relative overflow-hidden group cursor-pointer hover:border-white/20 transition-colors transition-transform transition-shadow"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">
@@ -400,19 +413,6 @@ const DashboardPage = () => {
 
                     {/* Real Graph Nodes from Cluster Entries */}
                     {clusterEntries.map((entry, index) => {
-                      type ClusterCardPosition = {
-                        top?: string;
-                        left?: string;
-                        right?: string;
-                        bottom?: string;
-                        transform?: string;
-                        zIndex: number;
-                        width: string;
-                        bg: string;
-                        border: string;
-                        opacity?: number;
-                      };
-
                       const fallbackPosition: ClusterCardPosition = {
                         top: '50%',
                         left: '50%',
@@ -481,7 +481,7 @@ const DashboardPage = () => {
                       return (
                         <div
                           key={entry.id}
-                          className="absolute p-3 rounded-xl backdrop-blur-sm transition-all hover:scale-105 hover:opacity-100"
+                          className="absolute p-3 rounded-xl backdrop-blur-sm transition-colors transition-transform transition-shadow hover:scale-105 hover:opacity-100"
                           style={{
                             top: pos.top || 'auto',
                             left: pos.left || 'auto',
@@ -574,7 +574,7 @@ const DashboardPage = () => {
                           e.stopPropagation();
                           router.push('/home/clusters');
                         }}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30 rounded-full text-[var(--soouls-accent)] text-[12px] font-bold hover:bg-[var(--soouls-accent)] hover:text-white transition-all cursor-pointer z-10 relative"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[var(--soouls-accent)]/10 border border-[var(--soouls-accent)]/30 rounded-full text-[var(--soouls-accent)] text-[12px] font-bold hover:bg-[var(--soouls-accent)] hover:text-white transition-colors transition-transform transition-shadow cursor-pointer z-10 relative"
                       >
                         <Plus className="w-4 h-4" />
                         Start New Cluster
@@ -599,17 +599,17 @@ const DashboardPage = () => {
                           <button
                             type="button"
                             key={task.id}
-                            className="flex w-full items-center gap-4 group cursor-pointer p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:border-white/10 transition-all text-left"
+                            className="flex w-full items-center gap-4 group cursor-pointer p-3 rounded-xl bg-white/[0.01] border border-white/[0.03] hover:border-white/10 transition-colors transition-transform transition-shadow text-left"
                             onClick={() => router.push(`/home/new-entry?id=${task.entryId}`)}
                           >
                             <div
-                              className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.done ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]' : 'border-white/20'}`}
+                              className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors transition-transform transition-shadow ${task.done ? 'bg-[var(--soouls-accent)] border-[var(--soouls-accent)]' : 'border-white/20'}`}
                             >
                               {task.done && <CheckSquare className="w-4 h-4 text-white" />}
                             </div>
                             <div className="flex-1">
                               <p
-                                className={`text-[14px] font-medium transition-all ${task.done ? 'text-white/40 line-through' : 'text-white/80'}`}
+                                className={`text-[14px] font-medium transition-colors transition-transform transition-shadow ${task.done ? 'text-white/40 line-through' : 'text-white/80'}`}
                               >
                                 {task.text}
                               </p>
@@ -632,21 +632,21 @@ const DashboardPage = () => {
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('today')}
-                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-all ${activeTaskTab === 'today' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
+                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-colors transition-transform transition-shadow ${activeTaskTab === 'today' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
                       >
                         Today
                       </button>
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('yesterday')}
-                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-all ${activeTaskTab === 'yesterday' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
+                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-colors transition-transform transition-shadow ${activeTaskTab === 'yesterday' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'}`}
                       >
                         Yesterday
                       </button>
                       <button
                         type="button"
                         onClick={() => setActiveTaskTab('search')}
-                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-all ${activeTaskTab === 'search' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
+                        className={`flex-1 sm:flex-none sm:w-full px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-[12px] sm:text-[14px] font-bold transition-colors transition-transform transition-shadow ${activeTaskTab === 'search' ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[#1A1A1A] text-white/40'} flex items-center gap-2 justify-center`}
                       >
                         <Search className="w-4 h-4" />
                         Search
@@ -728,7 +728,7 @@ const DashboardPage = () => {
                 <div className="bg-[#111111] border border-white/[0.05] rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 flex flex-col gap-4 sm:gap-8">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[18px] font-medium text-white/90">Recent Activity</h3>
-                    <div className="flex items-center gap-2 text-white/40 text-[12px] bg-white/[0.03] px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/[0.08] transition-all">
+                    <div className="flex items-center gap-2 text-white/40 text-[12px] bg-white/[0.03] px-3 py-1.5 rounded-full cursor-pointer hover:bg-white/[0.08] transition-colors transition-transform transition-shadow">
                       <span>Last 7 Days</span>
                       <ChevronRight className="w-4 h-4" />
                     </div>
@@ -746,7 +746,7 @@ const DashboardPage = () => {
                             <motion.div
                               initial={{ height: 0 }}
                               animate={{ height: `${bar.percent}%` }}
-                              className={`w-full rounded-full transition-all duration-700 group-hover:brightness-125 ${idx === now.getDay() ? 'bg-[var(--soouls-accent)]' : 'bg-white/20'}`}
+                              className={`w-full rounded-full transition-colors transition-transform transition-shadow duration-300 group-hover:brightness-125 ${idx === now.getDay() ? 'bg-[var(--soouls-accent)]' : 'bg-white/20'}`}
                             />
                           </div>
                           <span

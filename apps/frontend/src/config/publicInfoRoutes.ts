@@ -13,6 +13,12 @@ export const publicInfoSlugs = [
   'terms-of-service',
   'cookie-policy',
   'security',
+  'status',
+  'download',
+  'journal-guide',
+  'help',
+  'privacy',
+  'terms',
 ] as const;
 
 export const publicInfoPaths = publicInfoSlugs.map((slug) => `/${slug}`);

@@ -21,13 +21,15 @@ const defaultLinks: NavLink[] = [
 export default function LandingDock({ links = defaultLinks }: LandingNavbarProps) {
   return (
     <div
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-row items-center rounded-3xl"
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-row items-center rounded-[32px]"
       style={{
-        backgroundColor: '#2A3335',
-        boxShadow:
-          '0px 22px 48px 0px rgba(232, 195, 122, 0.16), 0px 88px 88px 0px rgba(232, 195, 122, 0.14), 0px 198px 119px 0px rgba(232, 195, 122, 0.08), 0px 351px 141px 0px rgba(232, 195, 122, 0.02), 0px 549px 154px 0px rgba(232, 195, 122, 0)',
-        padding: '26px 44px',
-        gap: '64px', // Reduced from 125px for better spacing on smaller monitors while keeping ratio
+        backgroundColor: 'rgba(42, 51, 53, 0.7)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0px 22px 48px 0px rgba(0, 0, 0, 0.16), 0px 8px 16px 0px rgba(0, 0, 0, 0.1)',
+        padding: '16px 32px',
+        gap: '48px',
       }}
     >
       {/* Logo Area */}
@@ -49,24 +51,12 @@ export default function LandingDock({ links = defaultLinks }: LandingNavbarProps
       </div>
 
       {/* Nav Links */}
-      <nav className="hidden md:flex flex-row gap-[48px] items-center">
+      <nav className="hidden md:flex flex-row gap-[40px] items-center">
         {links.map((link) => (
           <Link
             key={link.label}
             href={link.href}
-            className="font-urbanist"
-            style={{
-              color: '#A8A8A8',
-              fontSize: '18px', // Scaled down from 26px
-              lineHeight: '1.2em',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#EFEBDD';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#A8A8A8';
-            }}
+            className="font-urbanist text-[18px] text-[#A8A8A8] hover:text-[#EFEBDD] transition-colors duration-200"
           >
             {link.label}
           </Link>
@@ -77,25 +67,7 @@ export default function LandingDock({ links = defaultLinks }: LandingNavbarProps
       <div className="flex flex-row items-center">
         <Link
           href="/#waitlist"
-          className="font-urbanist font-semibold transition-all duration-300 flex justify-center items-center"
-          style={{
-            backgroundColor: '#E07C60',
-            color: '#222222',
-            fontSize: '16px',
-            lineHeight: '1em',
-            letterSpacing: '-0.035em',
-            padding: '12px 20px',
-            borderRadius: '12px',
-            gap: '7.5px',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)';
-            (e.currentTarget as HTMLElement).style.backgroundColor = '#d4694e';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
-            (e.currentTarget as HTMLElement).style.backgroundColor = '#E07C60';
-          }}
+          className="font-urbanist font-semibold bg-[#E07C60] hover:bg-[#d4694e] text-[#222222] text-[16px] tracking-tight px-5 py-3 rounded-[12px] active:scale-[0.97] transition-all duration-200 flex justify-center items-center"
         >
           Join the Waitlist
         </Link>

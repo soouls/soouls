@@ -1,6 +1,7 @@
 {
   "extends": "@soouls/typescript-config/node.json",
   "compilerOptions": {
+    "jsx": "react-jsx",
     "declaration": true,
     "removeComments": true,
     "sourceMap": true,
@@ -10,7 +11,8 @@
     "paths": {
       "@soouls/api/*": ["../../packages/api/src/*"],
       "@soouls/database/*": ["../../packages/database/src/*"],
-      "@soouls/ai-engine/*": ["../../packages/ai-engine/src/*"]
+      "@soouls/ai-engine/*": ["../../packages/ai-engine/src/*"],
+      "@soouls/logic/*": ["../../packages/logic/src/*"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true

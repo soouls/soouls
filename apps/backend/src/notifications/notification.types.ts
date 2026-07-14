@@ -26,6 +26,8 @@ export type EmailMessage = {
   html: string;
   text: string;
   idempotencyKey?: string;
+  /** One-click unsubscribe URL — adds List-Unsubscribe header for marketing emails. */
+  listUnsubscribeUrl?: string;
 };
 
 export type TransportResult = {

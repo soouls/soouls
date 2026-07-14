@@ -396,7 +396,7 @@ export default function CanvasClusterPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="search for entries"
-              className="soouls-search h-[64px] w-full rounded-full border border-white/10 bg-[#44423F]/90 pl-16 pr-6 text-[20px] text-white outline-none placeholder:text-white/35 shadow-inner transition-all focus:ring-1 focus:ring-[var(--soouls-accent)]/20"
+              className="soouls-search h-[64px] w-full rounded-full border border-white/10 bg-[#44423F]/90 pl-16 pr-6 text-[20px] text-white outline-none placeholder:text-white/35 shadow-inner transition-colors transition-transform transition-shadow focus:ring-1 focus:ring-[var(--soouls-accent)]/20"
             />
           </div>
 
@@ -422,7 +422,7 @@ export default function CanvasClusterPage() {
                   key={entry.id}
                   type="button"
                   onClick={() => setSelectedEntryId(entry.id)}
-                  className={`w-full rounded-[28px] border p-6 text-left transition-all group ${
+                  className={`w-full rounded-[28px] border p-6 text-left transition-colors transition-transform transition-shadow group ${
                     selectedEntryId === entry.id
                       ? 'border-[var(--soouls-accent)]/50 bg-[var(--soouls-accent)]/10 shadow-[0_0_30px_rgba(var(--soouls-accent-rgb),0.12)]'
                       : 'border-white/[0.04] bg-[#0F0F0F]/60 hover:border-white/10'
@@ -454,7 +454,7 @@ export default function CanvasClusterPage() {
           <button
             type="button"
             onClick={() => setShowInsights(true)}
-            className="mt-8 flex items-center justify-center gap-3 rounded-full border border-[var(--soouls-accent)]/40 bg-[#1A1312] px-6 py-5 text-[18px] font-bold text-[#EFEBDD] shadow-[0_12px_32px_rgba(var(--soouls-accent-rgb),0.16)] transition-all hover:bg-[var(--soouls-accent)] hover:text-white group"
+            className="mt-8 flex items-center justify-center gap-3 rounded-full border border-[var(--soouls-accent)]/40 bg-[#1A1312] px-6 py-5 text-[18px] font-bold text-[#EFEBDD] shadow-[0_12px_32px_rgba(var(--soouls-accent-rgb),0.16)] transition-colors transition-transform transition-shadow hover:bg-[var(--soouls-accent)] hover:text-white group"
           >
             <div className="flex -space-x-1">
               <div className="w-3.5 h-3.5 rounded-full border border-current opacity-40 group-hover:opacity-100" />
@@ -538,14 +538,14 @@ export default function CanvasClusterPage() {
                 <button
                   type="button"
                   onClick={() => reactFlowInstance?.zoomIn()}
-                  className="w-12 h-12 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
+                  className="w-12 h-12 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-colors transition-transform transition-shadow shadow-2xl backdrop-blur-md"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => reactFlowInstance?.zoomOut()}
-                  className="w-12 h-12 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-all shadow-2xl backdrop-blur-md"
+                  className="w-12 h-12 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-[var(--soouls-accent)]/20 transition-colors transition-transform transition-shadow shadow-2xl backdrop-blur-md"
                 >
                   <Minus className="w-5 h-5" />
                 </button>

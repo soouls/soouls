@@ -71,7 +71,7 @@ export function DailyTimeGrid({
         <button
           type="button"
           onClick={onNewEntry}
-          className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-all border border-white/5 shadow-lg backdrop-blur-md"
+          className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-colors transition-transform transition-shadow border border-white/5 shadow-lg backdrop-blur-md"
         >
           <PenSquare size={16} />
           New entry
@@ -174,7 +174,7 @@ export function DailyTimeGrid({
                     type="button"
                     key={entry.id}
                     onClick={() => onOpenEntry(entry.id)}
-                    className="absolute left-4 right-4 rounded-xl px-4 py-3 overflow-hidden text-left bg-[#1a1a1a] border border-[#333] hover:border-[var(--soouls-accent)] hover:bg-[#222] transition-all z-20 shadow-xl"
+                    className="absolute left-4 right-4 rounded-xl px-4 py-3 overflow-hidden text-left bg-[#1a1a1a] border border-[#333] hover:border-[var(--soouls-accent)] hover:bg-[#222] transition-colors transition-transform transition-shadow z-20 shadow-xl"
                     style={{
                       top: `${top}px`,
                       height: `${height}px`,

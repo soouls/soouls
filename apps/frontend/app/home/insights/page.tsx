@@ -270,7 +270,7 @@ export default function InsightsPage() {
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all cursor-pointer overflow-hidden border-white/[0.08]"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-colors transition-transform transition-shadow cursor-pointer overflow-hidden border-white/[0.08]"
               style={{
                 boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
               }}
@@ -305,7 +305,7 @@ export default function InsightsPage() {
                 type="button"
                 onClick={handleRefresh}
                 disabled={refreshing || isLoading}
-                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-[0_0_16px_rgba(var(--soouls-accent-rgb),0.3)]"
+                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-colors transition-transform transition-shadow duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-[0_0_16px_rgba(var(--soouls-accent-rgb),0.3)]"
                 style={{
                   borderColor: 'var(--soouls-accent)',
                   color: 'var(--soouls-accent)',
@@ -401,7 +401,7 @@ export default function InsightsPage() {
                       </div>
                       <div className="h-[10px] rounded-full overflow-hidden bg-[#3c241a]">
                         <div
-                          className="h-full rounded-full transition-all duration-1000"
+                          className="h-full rounded-full transition-colors transition-transform transition-shadow duration-500"
                           style={{
                             width: `${t.pct}%`,
                             background:
@@ -464,7 +464,7 @@ export default function InsightsPage() {
                   return (
                     <div
                       key={i}
-                      className="flex-1 max-w-[32px] transition-all duration-700 cursor-pointer"
+                      className="flex-1 max-w-[32px] transition-colors transition-transform transition-shadow duration-300 cursor-pointer"
                       style={{
                         height: `${height}%`,
                         backgroundColor: colors[i % colors.length],

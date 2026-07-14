@@ -36,9 +36,9 @@ export const metadata: Metadata = {
   description:
     'Non-linear journaling designed for depth. Capture your thoughts as they happen. Build a map of your mind.',
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
+    icon: '/favicon-box.svg',
+    shortcut: '/favicon-box.svg',
+    apple: '/favicon-box.svg',
   },
 };
 

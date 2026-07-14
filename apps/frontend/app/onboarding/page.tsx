@@ -391,7 +391,7 @@ function ProgressHeader({ step }: { step: number }) {
         {QUESTION_STEPS.map((item, index) => (
           <span
             key={item}
-            className="h-[3px] rounded-full transition-all"
+            className="h-[3px] rounded-full transition-colors transition-transform transition-shadow"
             style={{
               width: index < step ? 44 : 28,
               background:
@@ -425,9 +425,8 @@ function ChoiceCard({
       onMouseLeave={onHoverEnd}
       onFocus={onHover}
       onBlur={onHoverEnd}
-      whileHover={{ y: -3, scale: 1.01 }}
-      whileTap={{ scale: 0.985 }}
-      className="group relative min-h-[154px] overflow-hidden rounded-[8px] border p-4 text-left transition-colors hover:border-[rgba(var(--soouls-accent-rgb),.46)] hover:bg-[rgba(var(--soouls-accent-rgb),.08)]"
+      whileTap={{ scale: 0.97 }}
+      className="group relative min-h-[154px] overflow-hidden rounded-2xl border p-5 text-left transition-colors hover:border-[rgba(var(--soouls-accent-rgb),.46)] hover:bg-[rgba(var(--soouls-accent-rgb),.08)]"
       style={{
         borderColor: selected ? 'rgba(var(--soouls-accent-rgb), .74)' : 'rgba(255,255,255,.1)',
         background: selected
@@ -1203,7 +1202,7 @@ export default function OnboardingPage() {
                       type="button"
                       onClick={() => handleFinish(false)}
                       disabled={isFinishing}
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-4 text-sm font-bold uppercase tracking-[0.18em] text-black shadow-[0_18px_48px_rgba(var(--soouls-accent-rgb),.26)] transition hover:scale-[1.02] disabled:opacity-40 sm:py-3 sm:tracking-[0.22em]"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--soouls-accent)] px-8 py-3.5 text-[15px] font-semibold tracking-tight text-black transition-all active:scale-[0.97] disabled:opacity-40 hover:brightness-110"
                     >
                       {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                       {firstEntry.trim() ? 'Create Node #001' : 'Enter empty universe'}
@@ -1230,7 +1229,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => router.push('/home')}
-                    className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-3 text-sm font-bold uppercase tracking-[0.22em] text-black"
+                    className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-3 text-[15px] font-semibold tracking-tight text-black transition-all active:scale-[0.97] hover:brightness-110"
                   >
                     Enter home
                     <CheckCircle2 className="h-4 w-4" />
@@ -1244,12 +1243,12 @@ export default function OnboardingPage() {
 
       {questionStep || stage === 'about' ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-30 flex justify-center px-5">
-          <div className="pointer-events-auto flex w-full max-w-[380px] items-center justify-between rounded-full border border-white/12 bg-black/70 px-2 py-2 shadow-[0_20px_70px_rgba(0,0,0,.5)] backdrop-blur-xl">
+          <div className="pointer-events-auto flex w-full max-w-[380px] items-center justify-between rounded-full border border-white/12 bg-[#151515]/60 px-2 py-2 shadow-2xl backdrop-blur-[20px] backdrop-saturate-[180%]">
             <button
               type="button"
               onClick={goBack}
               disabled={stage === 'reason'}
-              className="inline-flex items-center gap-2 px-4 text-xs uppercase tracking-[0.2em] text-white/48 disabled:opacity-25"
+              className="inline-flex items-center gap-2 px-4 text-[15px] font-medium text-white/60 transition-all active:scale-[0.97] disabled:opacity-25"
             >
               <ChevronLeft className="h-4 w-4" />
               Back
@@ -1258,7 +1257,7 @@ export default function OnboardingPage() {
               type="button"
               onClick={goNext}
               disabled={!canContinue}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-6 py-3 text-xs font-bold uppercase tracking-[0.22em] text-black disabled:opacity-35"
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-6 py-2.5 text-[15px] font-semibold tracking-tight text-black transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-35"
             >
               {stage === 'about' ? 'Skip' : 'Next'}
               <ArrowRight className="h-4 w-4" />

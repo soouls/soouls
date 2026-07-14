@@ -4,6 +4,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommandCenterModule } from './command-center/command-center.module';
+import { EmailsModule } from './emails/emails.module';
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
 import { RedisModule } from './redis/redis.module';
 import { isVercelRuntime } from './runtime';

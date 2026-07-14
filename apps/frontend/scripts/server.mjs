@@ -9,7 +9,7 @@ const hostname = 'localhost';
 
 const app = next({
   dev: true,
-  webpack: true,
+  turbopack: true,
   dir: appRoot,
   hostname,
   port,

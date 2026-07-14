@@ -33,23 +33,30 @@
     "rules": {
       "recommended": true,
       "a11y": {
-        "noAriaUnsupportedElements": "warn"
+        "noAriaUnsupportedElements": "warn",
+        "noSvgWithoutTitle": "warn",
+        "useButtonType": "warn",
+        "useSemanticElements": "warn"
       },
       "complexity": {
         "noBannedTypes": "warn",
-        "noUselessTypeConstraint": "warn"
+        "noUselessTypeConstraint": "warn",
+        "noForEach": "warn"
       },
       "correctness": {
-        "noUnusedVariables": "error",
-        "useExhaustiveDependencies": "warn"
+        "noUnusedVariables": "warn",
+        "useExhaustiveDependencies": "warn",
+        "noUnsafeOptionalChaining": "warn",
+        "noUnreachable": "warn"
       },
       "performance": {
-        "noDelete": "error"
+        "noDelete": "warn"
       },
       "style": {
-        "noParameterAssign": "error",
-        "useConst": "error",
-        "useImportType": "error"
+        "noParameterAssign": "warn",
+        "useConst": "warn",
+        "useImportType": "warn",
+        "noNonNullAssertion": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn",

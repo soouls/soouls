@@ -410,7 +410,7 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
                   type="button"
                   onMouseEnter={() => setSelected(index)}
                   onClick={() => handleEntryClick(entry.id)}
-                  className={`group relative flex w-full items-center justify-between gap-4 rounded-[16px] bg-[#0F0F0F]/50 px-4 py-3 border border-[#222222] transition-all sm:px-6 sm:py-4 ${
+                  className={`group relative flex w-full items-center justify-between gap-4 rounded-[16px] bg-[#0F0F0F]/50 px-4 py-3 border border-[#222222] transition-colors transition-transform transition-shadow sm:px-6 sm:py-4 ${
                     selected === index
                       ? 'bg-[#222222] border-white/10 shadow-2xl'
                       : 'hover:bg-[#151515]'
@@ -482,7 +482,7 @@ function SearchPopup({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-[110] rounded-2xl bg-white/[0.03] p-3 text-white/30 transition-all hover:bg-white/[0.08] hover:text-white/70 active:scale-95 border border-white/5 sm:right-8 sm:top-8 sm:p-4"
+          className="absolute right-4 top-4 z-[110] rounded-2xl bg-white/[0.03] p-3 text-white/30 transition-colors transition-transform transition-shadow hover:bg-white/[0.08] hover:text-white/70 active:scale-[0.97] border border-white/5 sm:right-8 sm:top-8 sm:p-4"
         >
           <X className="h-5 w-5" />
         </button>
@@ -584,7 +584,7 @@ export default function HomePage() {
       </div>
 
       <header
-        className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 transition-all duration-300 md:px-12 ${scrolled ? 'border-b py-4 backdrop-blur-md' : 'bg-transparent py-6'}`}
+        className={`fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 transition-colors transition-transform transition-shadow duration-300 md:px-12 ${scrolled ? 'border-b py-4 backdrop-blur-md' : 'bg-transparent py-6'}`}
         style={{
           backgroundColor: scrolled ? 'rgba(20,20,20,0.76)' : 'transparent',
           borderColor: scrolled ? 'var(--soouls-border)' : 'transparent',
@@ -657,7 +657,7 @@ export default function HomePage() {
                     console.error('Refresh failed:', err);
                   }
                 }}
-                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-all duration-300 cursor-pointer hover:shadow-[0_0_16px_rgba(var(--soouls-accent-rgb),0.3)]"
+                className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border text-[11px] font-medium tracking-[0.04em] uppercase transition-colors transition-transform transition-shadow duration-300 cursor-pointer hover:shadow-[0_0_16px_rgba(var(--soouls-accent-rgb),0.3)]"
                 style={{
                   borderColor: 'var(--soouls-accent)',
                   color: 'var(--soouls-accent)',
@@ -726,7 +726,7 @@ export default function HomePage() {
                         </div>
                         <div className="h-[10px] rounded-full overflow-hidden bg-[#3c241a]">
                           <div
-                            className="h-full rounded-full transition-all duration-1000"
+                            className="h-full rounded-full transition-colors transition-transform transition-shadow duration-500"
                             style={{
                               width: `${t.progress}%`,
                               background:
@@ -790,7 +790,7 @@ export default function HomePage() {
                     return (
                       <div
                         key={i}
-                        className="flex-1 max-w-[32px] transition-all duration-700"
+                        className="flex-1 max-w-[32px] transition-colors transition-transform transition-shadow duration-300"
                         style={{
                           height: `${height}%`,
                           backgroundColor: colors[i % colors.length],

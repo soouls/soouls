@@ -132,7 +132,7 @@ export default function ClusterDetailPage() {
         <div className="flex justify-end">
           <Link
             href={`/home/canvas/${clusterId}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-colors transition-transform transition-shadow hover:scale-105 active:scale-[0.97]"
             style={{
               backgroundColor: 'var(--soouls-bg-surface)',
               border: '1px solid var(--soouls-border)',

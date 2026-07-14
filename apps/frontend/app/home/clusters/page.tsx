@@ -86,7 +86,7 @@ export default function ClustersPage() {
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-all cursor-pointer overflow-hidden border-white/[0.08]"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 transition-colors transition-transform transition-shadow cursor-pointer overflow-hidden border-white/[0.08]"
               style={{
                 boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
               }}
@@ -137,7 +137,7 @@ export default function ClustersPage() {
                     type="button"
                     key={opt.key}
                     onClick={() => setFilter(opt.key)}
-                    className="px-5 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-[0.12em] transition-all border"
+                    className="px-5 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors transition-transform transition-shadow border"
                     style={
                       filter === opt.key
                         ? {
@@ -177,7 +177,7 @@ export default function ClustersPage() {
               <button
                 type="button"
                 onClick={() => router.push(`/home/clusters/${featured.id}`)}
-                className="w-full text-left rounded-[24px] p-8 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 transition-all hover:brightness-110 group"
+                className="w-full text-left rounded-[24px] p-8 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 transition-colors transition-transform transition-shadow hover:brightness-110 group"
                 style={{
                   backgroundColor: 'var(--soouls-bg-panel)',
                   border: '1px solid rgba(var(--soouls-accent-rgb),0.3)',
@@ -295,7 +295,7 @@ export default function ClustersPage() {
                     type="button"
                     key={cluster.id}
                     onClick={() => router.push(`/home/clusters/${cluster.id}`)}
-                    className="rounded-[20px] p-7 flex flex-col gap-5 text-left transition-all hover:brightness-110"
+                    className="rounded-[20px] p-7 flex flex-col gap-5 text-left transition-colors transition-transform transition-shadow hover:brightness-110"
                     style={{
                       backgroundColor: 'var(--soouls-bg-panel)',
                       border: '1px solid rgba(255,255,255,0.06)',
