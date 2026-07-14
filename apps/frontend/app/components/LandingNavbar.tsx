@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ButterflyLogo } from './ButterflyLogo';
+import { ThemeToggle } from './ThemeToggle';
 
 const navLinks = [
   { href: '#features', label: 'Features' },
@@ -67,12 +68,14 @@ export default function LandingNavbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="group flex items-center gap-2 text-[var(--soouls-accent)] hover:opacity-80 transition-opacity">
-            <ButterflyLogo className="w-5 h-5 transition-transform duration-300 group-hover:rotate-[360deg] group-hover:scale-110" />
-            <span className="font-playfair text-2xl text-[var(--soouls-text-strong)] italic">Soouls</span>
-          </Link>
+          <div className="flex-1 flex justify-start">
+            <Link href="/" className="group flex items-center gap-2 text-[var(--soouls-accent)] hover:opacity-80 transition-opacity">
+              <ButterflyLogo className="w-5 h-5 transition-transform duration-300 group-hover:rotate-[360deg] group-hover:scale-110" />
+              <span className="font-playfair text-2xl text-[var(--soouls-text-strong)] italic">Soouls</span>
+            </Link>
+          </div>
           
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[var(--soouls-text-muted)]">
+          <nav className="hidden md:flex items-center justify-center gap-8 text-sm font-medium text-[var(--soouls-text-muted)]">
             {navLinks.map((link, i) => {
               return (
                 <a
@@ -94,12 +97,13 @@ export default function LandingNavbar() {
             })}
           </nav>
 
-          <div className="flex items-center gap-6 text-sm font-medium">
+          <div className="flex-1 flex items-center justify-end gap-6 text-sm font-medium">
+            <ThemeToggle />
             <Link href="/sign-in" className="text-[var(--soouls-text-strong)] hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200 inline-block">Log in</Link>
             <Link href="/sign-up" className={`text-[var(--soouls-bg)] text-sm md:text-base px-4 py-2 md:px-6 md:py-2.5 rounded-full active:scale-[0.97] transition-all duration-200 shadow-sm ${
               isScrolled 
                 ? 'bg-[#d98a4b] hover:bg-[#d48142] hover:shadow-[0_8px_30px_rgba(217,138,75,0.3)]' 
-                : 'bg-[var(--soouls-text-strong)] hover:bg-black/80'
+                : 'bg-[var(--soouls-text-strong)] hover:opacity-80'
             }`}>Start writing</Link>
           </div>
         </div>

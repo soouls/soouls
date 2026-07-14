@@ -6,11 +6,11 @@ import { ArrowRight, Twitter, Instagram, Linkedin, Mail } from 'lucide-react';
 
 export default function FooterSection() {
   return (
-    <footer className="relative z-10 w-full overflow-hidden bg-gradient-to-b from-transparent to-[#fdfaf6]/80 pt-20 md:pt-32 pb-8 border-t border-[var(--line)]">
+    <footer className="relative z-10 w-full overflow-hidden bg-gradient-to-b from-transparent to-[var(--paper)]/80 pt-20 md:pt-32 pb-8 border-t border-[var(--line)]">
       {/* Animated Ambient Glow inside Footer */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-[var(--soouls-accent)]/5 rounded-[100%] blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#E07A5F]/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#6450d6]/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[var(--soouls-accent)]/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[var(--ink)]/10 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="w-full max-w-7xl mx-auto px-6 relative z-10">
         
@@ -24,7 +24,7 @@ export default function FooterSection() {
               A private space for your quietest thoughts. Join thousands of souls exploring their minds.
             </p>
           </div>
-          <Link href="/sign-up" className="group relative px-7 py-3 w-full md:w-auto bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-semibold text-[15px] tracking-tight transition-all active:scale-[0.97] duration-200">
+          <Link href="/sign-up" className="group relative px-7 py-3 w-full md:w-auto bg-[var(--ink)] text-[var(--paper)] rounded-full font-urbanist font-semibold text-[15px] tracking-tight transition-all active:scale-[0.97] duration-200">
             <span className="relative z-10 flex items-center justify-center gap-2">
               Start free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </span>
@@ -60,7 +60,7 @@ export default function FooterSection() {
                   target="_blank" 
                   rel="noopener noreferrer" 
                   aria-label={social.label}
-                  className="w-10 h-10 rounded-full border border-[var(--line)] flex items-center justify-center text-[var(--ink-faint)] hover:text-[var(--soouls-accent)] hover:border-[var(--soouls-accent)] bg-white/50 hover:bg-white backdrop-blur-sm transition-all active:scale-[0.94] duration-200"
+                  className="w-10 h-10 rounded-full border border-[var(--line)] flex items-center justify-center text-[var(--ink-faint)] hover:text-[var(--soouls-accent)] hover:border-[var(--soouls-accent)] bg-[rgba(var(--soouls-bg-elevated-rgb),0.5)] hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)] backdrop-blur-sm transition-all active:scale-[0.94] duration-200"
                 >
                   <social.icon className="w-4 h-4" />
                 </a>

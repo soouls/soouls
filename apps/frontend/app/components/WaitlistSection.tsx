@@ -173,7 +173,7 @@ export default function WaitlistSection() {
             <span
               className="font-playfair italic"
               style={{
-                color: '#E07A5F',
+                color: 'var(--soouls-accent)',
                 textShadow: '0 4px 42px rgba(224, 122, 95, 0.4)',
               }}
             >
@@ -218,7 +218,7 @@ export default function WaitlistSection() {
                 type="submit"
                 className="font-urbanist font-bold transition-colors transition-transform transition-shadow duration-300 flex items-center justify-center"
                 style={{
-                  backgroundColor: '#E07A5F',
+                  backgroundColor: 'var(--soouls-accent)',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '16px 24px',
@@ -234,7 +234,7 @@ export default function WaitlistSection() {
                   (e.currentTarget as HTMLElement).style.color = '#FFFFFF';
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = '#E07A5F';
+                  (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--soouls-accent)';
                   (e.currentTarget as HTMLElement).style.color = '#222222';
                 }}
               >
@@ -243,7 +243,7 @@ export default function WaitlistSection() {
             </form>
             <p className="text-center text-xs text-[#A8A8A8] mt-3 font-urbanist">
               Enter your email for updates, or{' '}
-              <a href="/sign-up" style={{ color: '#E07A5F' }}>
+              <a href="/sign-up" style={{ color: 'var(--soouls-accent)' }}>
                 create your ID
               </a>{' '}
               to start writing now.

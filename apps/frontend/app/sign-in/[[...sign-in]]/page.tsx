@@ -143,7 +143,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-x-hidden overflow-y-auto bg-[#0A0707] px-4 py-24 font-sans selection:bg-[#E07A5F]/30 selection:text-white sm:px-6 lg:px-8">
+    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-x-hidden overflow-y-auto bg-[var(--paper)] px-4 py-24 font-sans selection:bg-[rgba(var(--soouls-accent-rgb),0.3)] selection:text-white sm:px-6 lg:px-8">
       <StarBackground />
 
       <Link
@@ -152,7 +152,7 @@ export default function SignInPage() {
       >
         <SymbolLogo
           variant="solid"
-          className="w-8 h-8 text-[#E07A5F] group-hover:rotate-12 transition-transform duration-300"
+          className="w-8 h-8 text-[var(--soouls-accent)] group-hover:rotate-12 transition-transform duration-300"
         />
         <span className="text-[22px] font-bold tracking-tight text-white/95 font-sans">Soouls</span>
       </Link>
@@ -195,14 +195,14 @@ export default function SignInPage() {
                   Email Address
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                   <input
                     id="forgot-email"
                     type="email"
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
+                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[rgba(var(--soouls-accent-rgb),0.5)] focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
                     required
                   />
                 </div>
@@ -210,7 +210,7 @@ export default function SignInPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(224,122,95,0.25)] hover:shadow-[0_8px_30px_rgba(224,122,95,0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
+                className="w-full bg-[var(--soouls-accent)] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(var(--soouls-accent-rgb),0.25)] hover:shadow-[0_8px_30px_rgba(var(--soouls-accent-rgb),0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
               >
                 {isLoading ? 'Sending...' : 'Send Reset Code'}
               </button>
@@ -240,7 +240,7 @@ export default function SignInPage() {
             <h2 className="text-3xl font-medium text-white mb-2 tracking-tight">New Password</h2>
             <p className="text-sm text-white/40 mb-8 font-light">
               Enter the code sent to{' '}
-              <span className="text-[#E07A5F] font-normal">{emailAddress}</span>
+              <span className="text-[var(--soouls-accent)] font-normal">{emailAddress}</span>
             </p>
             {error && (
               <div className="mb-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
@@ -261,7 +261,7 @@ export default function SignInPage() {
                   value={resetCode}
                   onChange={(e) => setResetCode(e.target.value)}
                   placeholder="000000"
-                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-all duration-200 ease-out font-mono font-bold"
+                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[rgba(var(--soouls-accent-rgb),0.5)] focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-all duration-200 ease-out font-mono font-bold"
                   required
                 />
               </div>
@@ -273,14 +273,14 @@ export default function SignInPage() {
                   New Password
                 </label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                   <input
                     id="reset-password"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Min 8 characters"
-                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
+                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[rgba(var(--soouls-accent-rgb),0.5)] focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
                     required
                     minLength={8}
                   />
@@ -289,7 +289,7 @@ export default function SignInPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(224,122,95,0.25)] hover:shadow-[0_8px_30px_rgba(224,122,95,0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
+                className="w-full bg-[var(--soouls-accent)] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(var(--soouls-accent-rgb),0.25)] hover:shadow-[0_8px_30px_rgba(var(--soouls-accent-rgb),0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
               >
                 {isLoading ? 'Resetting...' : 'Set New Password'}
               </button>
@@ -308,7 +308,7 @@ export default function SignInPage() {
           >
             <div className="absolute top-6 right-6 sm:top-10 sm:right-10">
               <SymbolLogo
-                className="w-10 h-10 text-[#E07A5F] animate-pulse"
+                className="w-10 h-10 text-[var(--soouls-accent)] animate-pulse"
                 style={{ animationDuration: '3s' }}
               />
             </div>
@@ -317,7 +317,7 @@ export default function SignInPage() {
               <h2 className="text-[clamp(2.25rem,9vw,2.75rem)] font-medium text-[#EFEBDD] leading-none tracking-tight">
                 Welcome
                 <br />
-                <span className="font-playfair italic font-normal text-[#E07A5F] mt-1 inline-block">
+                <span className="font-playfair italic font-normal text-[var(--soouls-accent)] mt-1 inline-block">
                   Back
                 </span>
               </h2>
@@ -327,7 +327,7 @@ export default function SignInPage() {
               <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
                 {error}
                 {error.includes('sign up') && (
-                  <Link href="/sign-up" className="block mt-2 text-[#E07A5F] hover:underline">
+                  <Link href="/sign-up" className="block mt-2 text-[var(--soouls-accent)] hover:underline">
                     Create Identity →
                   </Link>
                 )}
@@ -344,14 +344,14 @@ export default function SignInPage() {
                     Email
                   </label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                     <input
                       id="sign-in-email"
                       type="email"
                       value={emailAddress}
                       onChange={(e) => setEmailAddress(e.target.value)}
                       placeholder="Enter your Email"
-                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
+                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[rgba(var(--soouls-accent-rgb),0.5)] focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
                       required
                     />
                   </div>
@@ -364,14 +364,14 @@ export default function SignInPage() {
                     Password
                   </label>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                     <input
                       id="sign-in-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
-                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[#E07A5F]/50 focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
+                      className="w-full bg-white/[0.02] border border-white/[0.06] focus:ring-2 focus:ring-[rgba(var(--soouls-accent-rgb),0.5)] focus:border-transparent focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-200 ease-out"
                       required
                     />
                   </div>
@@ -385,7 +385,7 @@ export default function SignInPage() {
                     setStep('forgot');
                     setError('');
                   }}
-                  className="block text-sm font-medium text-[#E07A5F]/90 hover:text-[#E07A5F] transition-colors ml-1"
+                  className="block text-sm font-medium text-[rgba(var(--soouls-accent-rgb),0.9)] hover:text-[var(--soouls-accent)] transition-colors ml-1"
                 >
                   Forgot Password?
                 </button>
@@ -394,7 +394,7 @@ export default function SignInPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(224,122,95,0.25)] hover:shadow-[0_8px_30px_rgba(224,122,95,0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
+                className="w-full bg-[var(--soouls-accent)] hover:bg-[#F08A6F] text-[#111] font-semibold py-4 rounded-2xl transition-all duration-200 ease-out shadow-[0_4px_20px_rgba(var(--soouls-accent-rgb),0.25)] hover:shadow-[0_8px_30px_rgba(var(--soouls-accent-rgb),0.4)] active:scale-[0.97] text-[17px] tracking-tight disabled:opacity-50"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </button>
@@ -436,7 +436,7 @@ export default function SignInPage() {
               Don&apos;t have an account?{' '}
               <Link
                 href="/sign-up"
-                className="text-[#E07A5F] hover:text-[#F08A6F] font-semibold hover:underline transition-colors ml-1"
+                className="text-[var(--soouls-accent)] hover:text-[#F08A6F] font-semibold hover:underline transition-colors ml-1"
               >
                 Sign Up
               </Link>
@@ -469,7 +469,7 @@ function StarBackground() {
         style={{ animationDelay: '1s' }}
       />
       <div
-        className="absolute top-[10%] right-[40%] w-1 h-1 bg-[#E07A5F] rounded-full animate-pulse opacity-40 shadow-[0_0_12px_#E07A5F]"
+        className="absolute top-[10%] right-[40%] w-1 h-1 bg-[var(--soouls-accent)] rounded-full animate-pulse opacity-40 shadow-[0_0_12px_var(--soouls-accent)]"
         style={{ animationDelay: '0.3s' }}
       />
       <div
@@ -496,7 +496,7 @@ function StarBackground() {
         />
       ))}
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.06)_0%,transparent_70%)]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[radial-gradient(circle_at_center,rgba(var(--soouls-accent-rgb),0.06)_0%,transparent_70%)]" />
 
       {/* Constellation lines */}
       <svg

@@ -65,7 +65,7 @@ export default function HeroSection() {
         .hero-pill {
           display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 600;
           letter-spacing: 0.08em; text-transform: uppercase; color: var(--soouls-text-strong);
-          background: rgba(253, 250, 246, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+          background: rgba(var(--soouls-bg-elevated-rgb), 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
           border: 1px solid var(--soouls-border); border-radius: 999px; padding: 10px 22px; margin-bottom: 34px;
           position: relative; overflow: hidden;
         }
@@ -75,7 +75,7 @@ export default function HeroSection() {
         }
         .hero-pill::after {
           content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(217, 138, 75, 0.12), transparent);
+          background: linear-gradient(90deg, transparent, rgba(var(--soouls-accent-rgb), 0.12), transparent);
           animation: pillShimmer 4s ease-in-out infinite;
         }
         @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
@@ -92,9 +92,9 @@ export default function HeroSection() {
         .hero-swash path { stroke-dasharray: 320; stroke-dashoffset: 0; }
 
         .chip-f {
-          position: absolute; z-index: 2; background: rgba(253, 250, 246, 0.88); backdrop-filter: blur(12px);
+          position: absolute; z-index: 2; background: rgba(var(--soouls-bg-elevated-rgb), 0.88); backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(227, 219, 205, 0.6); border-radius: 18px; padding: 14px 18px;
+          border: 1px solid var(--soouls-border); border-radius: 18px; padding: 14px 18px;
           box-shadow: 0 16px 40px rgba(22, 19, 15, 0.07); display: flex; align-items: center; gap: 10px;
           font-size: 0.85rem; font-weight: 500; color: var(--soouls-text-strong); will-change: transform;
           animation: floaty 7s ease-in-out infinite;
@@ -145,8 +145,8 @@ export default function HeroSection() {
 
         .hero-stats-bar {
           display: flex; align-items: center; gap: 28px; margin-top: 32px; padding: 16px 32px;
-          background: rgba(253, 250, 246, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(227, 219, 205, 0.5); border-radius: 999px;
+          background: rgba(var(--soouls-bg-elevated-rgb), 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+          border: 1px solid var(--soouls-border); border-radius: 999px;
         }
         .hero-stat { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--ink-soft); }
         .hero-stat strong { font-family: 'Fraunces', serif; font-size: 1.15rem; color: var(--ink); font-weight: 500; }
@@ -229,7 +229,7 @@ export default function HeroSection() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-5 justify-center">
-          <Link href="/sign-up" className="hero-cta-btn group relative px-8 py-3.5 rounded-full font-semibold text-[15px] tracking-tight bg-[#16130f] text-[#f7f3ec] transition-all active:scale-[0.97] duration-200">
+          <Link href="/sign-up" className="hero-cta-btn group relative px-8 py-3.5 rounded-full font-semibold text-[15px] tracking-tight bg-[var(--ink)] text-[var(--paper)] transition-all active:scale-[0.97] duration-200">
             <span className="relative z-10">Begin your map — it&apos;s free</span>
           </Link>
           <Link href="/dashboard" className="hero-cta-btn group px-8 py-3.5 rounded-full font-semibold text-[15px] tracking-tight border border-[var(--soouls-border)] hover:bg-[var(--soouls-border)]/50 transition-all active:scale-[0.97] duration-200 relative overflow-hidden">

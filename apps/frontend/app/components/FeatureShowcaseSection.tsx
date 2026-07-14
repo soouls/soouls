@@ -207,9 +207,9 @@ export function FeatureShowcaseSection() {
         .show-tab strong { display: block; font-size: .95rem; color: var(--ink); }
         .show-tab small { color: var(--ink-faint); font-size: .76rem; }
         .show-tab:active { transform: scale(0.98); }
-        .show-tab.active { background: var(--ink); border-color: var(--ink); box-shadow: 0 12px 30px rgba(22, 19, 15, .2); }
-        .show-tab.active strong { color: var(--paper); }
-        .show-tab.active small { color: rgba(247, 243, 236, .55); }
+        .show-tab.active { background: var(--soouls-text-strong); border-color: var(--soouls-text-strong); box-shadow: 0 12px 30px rgba(0, 0, 0, .1); }
+        .show-tab.active strong { color: var(--soouls-bg-base); }
+        .show-tab.active small { color: var(--soouls-bg-base); opacity: 0.7; }
         .show-tab.active .tno { color: var(--amber); }
         .tbar { position: absolute; left: 0; bottom: 0; height: 2.5px; width: 100%; }
         .show-tab.active .tbar::after { content: ''; display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--rose)); width: 0; animation: tprog 5s linear forwards; }
@@ -220,14 +220,14 @@ export function FeatureShowcaseSection() {
         .pane { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 40px; opacity: 0; transform: scale(.97) translateY(10px); transition: opacity .6s var(--ease), transform .6s var(--ease); pointer-events: none; }
         .pane.active { opacity: 1; transform: none; pointer-events: auto; }
         .pcap { font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-soft); font-size: 1.02rem; text-align: center; }
-        .pmock { width: min(430px, 100%); background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; box-shadow: 0 18px 44px rgba(22, 19, 15, .08); }
+        .pmock { width: min(430px, 100%); background: rgba(var(--soouls-bg-elevated-rgb), 0.6); backdrop-filter: blur(12px); border: 1px solid var(--soouls-border); border-radius: 18px; padding: 26px 28px; box-shadow: 0 18px 44px rgba(0, 0, 0, .08); }
         .pdate { font-size: .68rem; letter-spacing: .12em; color: var(--ink-faint); font-weight: 600; margin-bottom: 8px; }
         .pmock h4 { font-size: 1.3rem; margin-bottom: 10px; }
         .ptype { font-family: 'Fraunces', serif; font-size: .98rem; color: var(--ink-soft); min-height: 76px; line-height: 1.7; }
         .ptype::after { content: ''; display: inline-block; width: 2px; height: 1em; background: var(--amber); margin-left: 2px; animation: caret 1s steps(1) infinite; }
         
         .sprout { width: 170px; margin-top: 6px; overflow: visible; }
-        .spl { stroke: #e3dbcd; stroke-width: 2; stroke-dasharray: 140; stroke-dashoffset: 140; animation: mlDraw 5s var(--ease) infinite; }
+        .spl { stroke: var(--soouls-border); stroke-width: 2; stroke-dasharray: 140; stroke-dashoffset: 140; animation: mlDraw 5s var(--ease) infinite; }
         .spc { transform-origin: center; transform-box: fill-box; animation: dotBreathe 3s ease-in-out infinite; }
         .splbl { font: italic 11px Fraunces, serif; fill: #8a8174; }
         
@@ -410,7 +410,7 @@ export function FeatureShowcaseSection() {
                           <stop offset="1" stopColor="#cf7b6e" />
                         </linearGradient>
                       </defs>
-                      <circle cx="55" cy="55" r="44" fill="none" stroke="#e3dbcd" strokeWidth="8" />
+                      <circle cx="55" cy="55" r="44" fill="none" stroke="var(--soouls-border)" strokeWidth="8" />
                       <circle className="rrf" cx="55" cy="55" r="44" fill="none" stroke="url(#rg2)" strokeWidth="8" strokeLinecap="round" />
                     </svg>
                     <span>💌</span>

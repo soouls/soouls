@@ -50,14 +50,14 @@ export default function JournalGuideSection() {
         
         {/* Header */}
         <div className="mb-16 md:mb-24 text-center reveal">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
-            <BookOpen className="w-6 h-6 text-[#E07A5F]" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[rgba(var(--soouls-accent-rgb),0.1)] mb-6">
+            <BookOpen className="w-6 h-6 text-[var(--soouls-accent)]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
+          <span className="font-urbanist text-[11px] font-bold text-[var(--soouls-accent)] font-semibold tracking-tight mb-4 block">
             Resources
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold text-[var(--ink)] leading-tight mb-6">
-            The Journal <span className="italic text-[#E07A5F]">Guide</span>
+            The Journal <span className="italic text-[var(--soouls-accent)]">Guide</span>
           </h1>
           <p className="font-urbanist text-lg text-[var(--ink-soft)] max-w-xl mx-auto">
             A gentle introduction to non-linear journaling and capturing your thoughts in a spatial canvas.
@@ -68,7 +68,7 @@ export default function JournalGuideSection() {
         <div className="space-y-6 relative">
           
           {/* Decorative center line */}
-          <div className="hidden md:block absolute left-[3.5rem] top-10 bottom-10 w-px bg-gradient-to-b from-[#E07A5F]/0 via-[#E07A5F]/30 to-[#E07A5F]/0 z-0" />
+          <div className="hidden md:block absolute left-[3.5rem] top-10 bottom-10 w-px bg-gradient-to-b from-[rgba(var(--soouls-accent-rgb),0)] via-[rgba(var(--soouls-accent-rgb),0.3)] to-[rgba(var(--soouls-accent-rgb),0)] z-0" />
 
           {steps.map((step, idx) => {
             const Icon = step.icon;
@@ -76,24 +76,24 @@ export default function JournalGuideSection() {
               <div 
                 key={step.id} 
                 id={step.id}
-                className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-1 reveal z-10"
+                className="group relative bg-[rgba(var(--soouls-bg-elevated-rgb),0.6)] backdrop-blur-md border border-[var(--soouls-border)] rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)] hover:shadow-[0_20px_40px_rgba(var(--soouls-accent-rgb),0.08)] hover:-translate-y-1 reveal z-10"
                 style={{ transitionDelay: `${(idx % 5) * 100}ms` }}
               >
                 {/* Decorative Glow */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E07A5F]/5 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[rgba(var(--soouls-accent-rgb),0.05)] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
                 <div className="flex flex-col md:flex-row gap-8 relative z-10">
                   <div className="md:w-1/3 shrink-0">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-white border border-[#e3dbcd] flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-300 shrink-0">
-                        <Icon className="w-5 h-5 text-[var(--ink)] group-hover:text-[#E07A5F] transition-colors duration-300" />
+                      <div className="w-12 h-12 rounded-full bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border border-[var(--soouls-border)] flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-300 shrink-0">
+                        <Icon className="w-5 h-5 text-[var(--ink)] group-hover:text-[var(--soouls-accent)] transition-colors duration-300" />
                       </div>
                       <h2 className="font-playfair text-2xl font-bold text-[var(--ink)]">
                         {step.title}
                       </h2>
                     </div>
-                    <div className="p-4 bg-[#E07A5F]/5 rounded-xl border border-[#E07A5F]/10 ml-0 md:ml-16">
-                      <p className="font-urbanist text-sm font-bold text-[#E07A5F] leading-snug m-0">
+                    <div className="p-4 bg-[rgba(var(--soouls-accent-rgb),0.05)] rounded-xl border border-[rgba(var(--soouls-accent-rgb),0.1)] ml-0 md:ml-16">
+                      <p className="font-urbanist text-sm font-bold text-[var(--soouls-accent)] leading-snug m-0">
                         {step.short}
                       </p>
                     </div>
@@ -110,7 +110,7 @@ export default function JournalGuideSection() {
 
         {/* CTA */}
         <div className="mt-24 text-center reveal" style={{ transitionDelay: '300ms' }}>
-          <div className="inline-flex items-center gap-2 text-[#E07A5F] font-urbanist font-bold uppercase tracking-widest text-sm hover:text-[var(--soouls-accent)] transition-colors cursor-pointer group">
+          <div className="inline-flex items-center gap-2 text-[var(--soouls-accent)] font-urbanist font-bold uppercase tracking-widest text-sm hover:text-[var(--soouls-accent)] transition-colors cursor-pointer group">
             <Sparkles className="w-4 h-4" />
             <span className="relative">
               Open your canvas

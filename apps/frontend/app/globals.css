@@ -23,13 +23,13 @@
 
 :root {
   /* Legacy App Colors from Original HTML */
-  --ink: #16130f;
-  --ink-soft: #4c453b;
-  --ink-faint: #8a8174;
-  --paper: #f7f3ec;
-  --paper-warm: #efe8dc;
-  --card: #fffdf8;
-  --line: #e3dbcd;
+  --ink: var(--soouls-text-strong);
+  --ink-soft: var(--soouls-text);
+  --ink-faint: var(--soouls-text-muted);
+  --paper: var(--soouls-bg);
+  --paper-warm: var(--soouls-bg-elevated);
+  --card: var(--soouls-bg-elevated);
+  --line: var(--soouls-border);
   --amber: #d98a4b;
   --rose: #cf7b6e;
   --sage: #7d9b76;
@@ -54,8 +54,10 @@
   --soouls-text-muted: rgba(239, 237, 221, 0.68);
   --soouls-text-faint: rgba(239, 237, 221, 0.38);
   --soouls-accent: #ee7a61;
-  --soouls-accent-rgb: 238, 122, 97;
+  --soouls-accent-rgb: 224, 122, 95;
   --soouls-accent-deep: #4a2b25;
+  --soouls-bg-elevated-rgb: 34, 34, 34;
+  --soouls-border-rgb: 255, 255, 255;
   --soouls-gold: #ffad0a;
   --soouls-green: #9cff7e;
   --soouls-blue: #94b8ff;
@@ -120,7 +122,16 @@ html[data-theme-mode="light"] {
   --soouls-bg-elevated: #fffdf8;
   --soouls-bg-surface: #fffbf4;
   --soouls-bg-panel: #ece4d7;
+  --soouls-bg-elevated-rgb: 255, 253, 248;
+  --soouls-border-rgb: 30, 24, 18;
   --soouls-border: rgba(30, 24, 18, 0.08);
+  --ink: #16130f;
+  --ink-soft: #4c453b;
+  --ink-faint: #8a8174;
+  --paper: #f7f3ec;
+  --paper-warm: #efe8dc;
+  --card: #fffdf8;
+  --line: #e3dbcd;
   --soouls-text: #241d17;
   --soouls-text-strong: #111111;
   --soouls-text-muted: rgba(36, 29, 23, 0.72);
@@ -134,6 +145,7 @@ html[data-theme-mode="light"] {
   --sc-grey1: rgba(36, 29, 23, 0.88);
   --sc-grey2: rgba(36, 29, 23, 0.64);
   --sc-grey3: rgba(36, 29, 23, 0.48);
+  --soouls-cursor-glow: transparent;
   color-scheme: light;
 }
 
@@ -168,6 +180,37 @@ html {
 
 html:not([data-theme-mode]),
 html[data-theme-mode="dark"] {
+  --ink: #f5f1e9;
+  --ink-soft: #b8b4c8;
+  --ink-faint: #7a7690;
+  --paper: #100e1c;
+  --paper-warm: #1a1730;
+  --card: #1a1730;
+  --line: rgba(245, 241, 233, 0.1);
+
+  --soouls-bg: #100e1c;
+  --soouls-bg-elevated: #1a1730;
+  --soouls-bg-surface: #1e1a38;
+  --soouls-bg-panel: #100e1c;
+  --soouls-card: #1a1730;
+  --soouls-border: rgba(245, 241, 233, 0.1);
+  --soouls-bg-elevated-rgb: 26, 23, 48;
+  --soouls-border-rgb: 245, 241, 233;
+  --soouls-text: #b8b4c8;
+  --soouls-text-strong: #f5f1e9;
+  --soouls-text-muted: rgba(245, 241, 233, 0.72);
+  --soouls-text-faint: #7a7690;
+  --soouls-overlay-subtle: rgba(245, 241, 233, 0.04);
+  --soouls-overlay-muted: rgba(245, 241, 233, 0.08);
+  --soouls-overlay-strong: rgba(245, 241, 233, 0.16);
+  --soouls-chip-divider: rgba(245, 241, 233, 0.18);
+  --soouls-graph-stroke: rgba(245, 241, 233, 0.22);
+  --soouls-graph-fill: rgba(245, 241, 233, 0.12);
+  --sc-grey1: rgba(245, 241, 233, 0.88);
+  --sc-grey2: rgba(245, 241, 233, 0.64);
+  --sc-grey3: rgba(245, 241, 233, 0.48);
+  --soouls-cursor-glow: rgba(108, 92, 224, 0.14);
+
   color-scheme: dark;
 }
 
@@ -835,3 +878,17 @@ footer .font-playfair.italic.font-medium {
   opacity: 0.5;
 }
 
+/* Global Cursor Glow */
+.cursor-glow {
+  position: fixed;
+  width: 460px;
+  height: 460px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--soouls-cursor-glow), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  filter: blur(6px);
+}

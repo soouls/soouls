@@ -116,14 +116,14 @@ export function PrivacySection() {
         
         .priv-list { list-style: none; margin-top: 40px; display: flex; flex-direction: column; gap: 16px; }
         .priv-list li { display: flex; gap: 16px; align-items: flex-start; padding: 20px; border: 1px solid var(--line, var(--soouls-border)); border-radius: 16px; background: var(--card, var(--soouls-card)); transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1); cursor: default; }
-        .priv-list li:hover { background: #ffffff; border-color: rgba(22,19,15,.15); transform: translateX(8px); box-shadow: -8px 12px 30px rgba(0,0,0,0.05); }
+        .priv-list li:hover { background: rgba(var(--soouls-bg-elevated-rgb), 0.6); border-color: var(--soouls-border); transform: translateX(8px); box-shadow: -8px 12px 30px rgba(0,0,0,0.05); }
         
         .priv-icon { width: 36px; height: 36px; display: grid; place-items: center; flex-shrink: 0; }
         
         .priv-list strong { display: block; font-size: 1.05rem; color: var(--ink, var(--soouls-text-strong)); margin-bottom: 4px; font-weight: 600; }
         .priv-list span { font-size: 0.9rem; color: var(--ink-faint, var(--soouls-text-faint)); line-height: 1.5; display: block; }
         
-        .vault-card { position: relative; overflow: hidden; background: #ffffff; border: 1px solid var(--line, var(--soouls-border)); border-radius: 32px; padding: 60px 40px; text-align: center; box-shadow: 0 30px 60px rgba(22,19,15,0.05), inset 0 1px 0 rgba(255,255,255,1); }
+        .vault-card { position: relative; overflow: hidden; background: rgba(var(--soouls-bg-elevated-rgb), 0.6); backdrop-filter: blur(12px); border: 1px solid var(--soouls-border); border-radius: 32px; padding: 60px 40px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.05); }
         
         .sonar-rings { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); pointer-events: none; }
         .sonar-ring { position: absolute; left: -50px; top: -50px; width: 100px; height: 100px; border-radius: 50%; border: 1px solid var(--amber, #d98a4b); opacity: 0; animation: sonarPulse 4s cubic-bezier(0.21, 0.53, 0.56, 0.8) infinite; }
@@ -144,14 +144,14 @@ export function PrivacySection() {
         .vault-card h3 { font-family: 'Fraunces', serif; font-size: 1.8rem; color: var(--ink, var(--soouls-text-strong)); margin-bottom: 8px; font-weight: 300; }
         .vault-card p.vp { color: var(--ink-faint, var(--soouls-text-faint)); font-size: 0.95rem; }
         
-        .enc-demo { position: relative; margin-top: 32px; text-align: left; background: rgba(22,19,15,0.03); border: 1px solid rgba(22,19,15,.05); border-radius: 16px; padding: 24px; font-family: 'SF Mono', 'Roboto Mono', monospace; font-size: 0.9rem; line-height: 1.7; height: 110px; display: flex; align-items: center; cursor: pointer; transition: border-color 0.3s, background 0.3s; }
-        .enc-demo:hover { border-color: rgba(22,19,15,.1); background: rgba(22,19,15,0.05); }
+        .enc-demo { position: relative; margin-top: 32px; text-align: left; background: rgba(var(--soouls-bg-elevated-rgb), 0.3); border: 1px solid var(--soouls-border); border-radius: 16px; padding: 24px; font-family: 'SF Mono', 'Roboto Mono', monospace; font-size: 0.9rem; line-height: 1.7; height: 110px; display: flex; align-items: center; cursor: pointer; transition: border-color 0.3s, background 0.3s; }
+        .enc-demo:hover { border-color: var(--soouls-border); background: rgba(var(--soouls-bg-elevated-rgb), 0.5); }
         .enc-text { color: var(--sage, #7d9b76); transition: color 0.5s; word-break: break-word; }
         .is-decrypted .enc-text { font-family: 'Inter', sans-serif; color: var(--ink, var(--soouls-text-strong)); }
         
         .priv-stats { display: flex; gap: 16px; margin-top: 40px; }
         .stat-box { flex: 1; text-align: center; border: 1px solid var(--line, var(--soouls-border)); border-radius: 16px; padding: 20px 12px; background: var(--card, var(--soouls-card)); transition: all 0.3s; }
-        .stat-box:hover { background: #ffffff; transform: translateY(-4px); border-color: rgba(217,138,75,0.3); }
+        .stat-box:hover { background: rgba(var(--soouls-bg-elevated-rgb), 0.6); transform: translateY(-4px); border-color: rgba(217,138,75,0.3); }
         .stat-box .num { display: block; font-family: 'Fraunces', serif; font-size: 2rem; color: var(--amber, #d98a4b); line-height: 1; margin-bottom: 6px; }
         .stat-box .label { display: block; font: 600 0.7rem 'Inter', sans-serif; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-faint, var(--soouls-text-faint)); }
 

@@ -34,14 +34,14 @@ export default function CommunitySection() {
         
         {/* Header */}
         <div className="mb-16 md:mb-24 flex flex-col items-center text-center max-w-[800px] mx-auto reveal">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
-            <Users className="w-6 h-6 text-[#E07A5F]" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--soouls-accent)]/10 mb-6">
+            <Users className="w-6 h-6 text-[var(--soouls-accent)]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-6 block">
+          <span className="font-urbanist text-[var(--ink)] font-bold text-[var(--soouls-accent)] font-semibold tracking-tight mb-6 block">
             Community
           </span>
           <h2 className="font-playfair text-4xl sm:text-5xl md:text-7xl font-bold text-[var(--ink)] leading-tight mb-8">
-            You're not <br/> <em className="italic text-[#E07A5F]">alone</em> in this
+            You're not <br/> <em className="italic text-[var(--soouls-accent)]">alone</em> in this
           </h2>
           <p className="font-urbanist text-lg text-[var(--ink-soft)] max-w-xl mx-auto leading-relaxed">
             Join a sanctuary of thinkers, creators, and seekers who believe in slow evolution and profound focus.
@@ -56,14 +56,14 @@ export default function CommunitySection() {
               href={item.href}
               target="_blank"
               rel="noreferrer"
-              className="group relative p-12 rounded-3xl md:rounded-[3rem] bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:bg-white hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-2 transition-colors transition-transform transition-shadow duration-300 flex flex-col items-center text-center overflow-hidden reveal"
+              className="group relative p-12 rounded-3xl md:rounded-[3rem] bg-[var(--paper)]/60 backdrop-blur-md border border-[var(--soouls-border)] hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)] hover:shadow-[0_20px_40px_rgba(var(--soouls-accent-rgb),0.08)] hover:-translate-y-2 transition-colors transition-transform transition-shadow duration-300 flex flex-col items-center text-center overflow-hidden reveal"
               style={{ transitionDelay: `${(idx % 3) * 150}ms` }}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07A5F]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--soouls-accent)]/5 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
               
               <div className="relative z-10">
                 <div
-                  className="w-20 h-20 mx-auto rounded-3xl bg-white border border-[#e3dbcd] shadow-sm flex items-center justify-center mb-8 group-active:scale-95 group-hover:rotate-3 transition-transform duration-300"
+                  className="w-20 h-20 mx-auto rounded-3xl bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border border-[var(--soouls-border)] shadow-sm flex items-center justify-center mb-8 group-active:scale-95 group-hover:rotate-3 transition-transform duration-300"
                   style={{ color: item.color }}
                 >
                   {item.icon}
@@ -74,7 +74,7 @@ export default function CommunitySection() {
                 <p className="font-urbanist text-[var(--ink-soft)] leading-relaxed mb-10">
                   {item.text}
                 </p>
-                <div className="inline-flex items-center gap-2 font-urbanist text-xs font-bold text-[var(--ink)] uppercase tracking-widest mt-auto group-hover:text-[#E07A5F] transition-colors">
+                <div className="inline-flex items-center gap-2 font-urbanist text-xs font-bold text-[var(--ink)] uppercase tracking-widest mt-auto group-hover:text-[var(--soouls-accent)] transition-colors">
                   Join sanctuary <MoveRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -84,13 +84,13 @@ export default function CommunitySection() {
 
         {/* Testimonials or Manifesto */}
         <div className="max-w-[1000px] mx-auto reveal" style={{ transitionDelay: '300ms' }}>
-          <div className="relative p-8 sm:p-12 md:p-24 rounded-3xl md:rounded-[2.5rem] md:rounded-[4rem] bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 flex flex-col items-center text-center overflow-hidden shadow-[0_8px_32px_rgba(224,122,95,0.06)] group">
+          <div className="relative p-8 sm:p-12 md:p-24 rounded-3xl md:rounded-[2.5rem] md:rounded-[4rem] bg-gradient-to-br from-[rgba(var(--soouls-bg-elevated-rgb),0.8)] to-[rgba(var(--soouls-bg-elevated-rgb),0.4)] backdrop-blur-3xl border border-[var(--soouls-border)] flex flex-col items-center text-center overflow-hidden shadow-[0_8px_32px_rgba(var(--soouls-accent-rgb),0.06)] group">
             
-            <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-[#E07A5F]/10 blur-[80px] rounded-full -translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-500" />
+            <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-[rgba(var(--soouls-accent-rgb),0.1)] blur-[80px] rounded-full -translate-y-1/2 -translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-500" />
             <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--soouls-accent)]/10 blur-[80px] rounded-full translate-y-1/2 translate-x-1/2 pointer-events-none group-hover:opacity-100 opacity-50 transition-opacity duration-500" />
             
             <div className="relative z-10 max-w-2xl">
-              <span className="inline-flex p-4 rounded-3xl bg-white border border-[#e3dbcd] mb-10 text-[var(--soouls-accent)] shadow-sm group-active:scale-95 transition-transform duration-300">
+              <span className="inline-flex p-4 rounded-3xl bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border border-[var(--soouls-border)] mb-10 text-[var(--soouls-accent)] shadow-sm group-active:scale-95 transition-transform duration-300">
                 <MessagesSquare className="w-8 h-8" strokeWidth={1.5} />
               </span>
               <h3 className="font-playfair text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--ink)] mb-8">
@@ -102,7 +102,7 @@ export default function CommunitySection() {
 
               <a
                 href="mailto:hello@soouls.in"
-                className="inline-flex items-center gap-2 px-10 py-5 bg-[var(--ink)] text-[#f7f3ec] font-urbanist font-bold tracking-widest text-sm uppercase rounded-full active:scale-[0.97] transition-all duration-200"
+                className="inline-flex items-center gap-2 px-10 py-5 bg-[var(--ink)] text-[var(--paper)] font-urbanist font-bold tracking-widest text-sm uppercase rounded-full active:scale-[0.97] transition-all duration-200"
               >
                 <Sparkles className="w-4 h-4" />
                 hello@soouls.in

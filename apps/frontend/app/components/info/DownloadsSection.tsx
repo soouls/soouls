@@ -17,7 +17,7 @@ export default function DownloadsSection() {
       subtitle: 'ACCESS VIA BROWSER',
       badge: 'AVAILABLE NOW',
       badgeColor: 'rgba(224, 122, 95, 0.1)',
-      badgeTextColor: '#E07A5F',
+      badgeTextColor: 'var(--soouls-accent)',
       linkText: 'Launch App',
       linkHref: '/home',
       isComingSoon: false,
@@ -41,7 +41,7 @@ export default function DownloadsSection() {
       subtitle: 'IPHONE AND IPAD',
       badge: 'LAUNCHING SOON',
       badgeColor: 'rgba(224, 122, 95, 0.1)',
-      badgeTextColor: '#E07A5F',
+      badgeTextColor: 'var(--soouls-accent)',
       linkText: 'Join Waitlist',
       linkHref: '/sign-up',
       isComingSoon: false,
@@ -91,8 +91,8 @@ export default function DownloadsSection() {
                   group relative flex flex-col justify-between p-10 rounded-3xl md:rounded-[3rem] 
                   transition-colors transition-transform transition-shadow duration-300 ease-out overflow-hidden reveal
                   ${platform.isComingSoon 
-                    ? 'bg-transparent border border-dashed border-[#e3dbcd] opacity-70 grayscale' 
-                    : 'bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 hover:-translate-y-2 hover:bg-white hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)]'}
+                    ? 'bg-transparent border border-dashed border-[var(--soouls-border)] opacity-70 grayscale' 
+                    : 'bg-[rgba(var(--soouls-bg-elevated-rgb),0.6)] backdrop-blur-md border border-[var(--soouls-border)] hover:-translate-y-2 hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)] hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)]'}
                   h-[320px]
                 `}
                 style={{ transitionDelay: `${(idx % 4) * 150}ms` }}

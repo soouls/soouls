@@ -56,7 +56,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-colors transition-transform transition-shadow z-[60]"
+              className="absolute top-4 right-4 p-2 text-white/70 hover:text-white hover:bg-[rgba(var(--soouls-bg-elevated-rgb),0.1)] rounded-full transition-colors transition-transform transition-shadow z-[60]"
               aria-label="Close sidebar"
             >
               <X className="w-7 h-7 stroke-[1.5]" />
@@ -122,7 +122,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="flex items-center gap-4 px-3 py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 active:scale-[0.98]"
+                  className="flex items-center gap-4 px-3 py-3 text-white/90 hover:text-white hover:bg-[rgba(var(--soouls-bg-elevated-rgb),0.1)] rounded-xl transition-all duration-200 active:scale-[0.98]"
                   onClick={onClose}
                 >
                   {item.icon}
