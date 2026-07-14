@@ -62,7 +62,7 @@ export default function PricingContent() {
       description: 'For a first, quiet look at how your mind maps.',
       priceMonthly: 0,
       priceAnnual: 0,
-      icon: <span className="w-8 h-8 rounded-full bg-[#E07A5F]/10 flex items-center justify-center text-[#E07A5F]"><div className="w-2 h-2 rounded-full bg-[#E07A5F]" /></span>,
+      icon: <span className="w-8 h-8 rounded-full bg-[rgba(var(--soouls-accent-rgb),0.1)] flex items-center justify-center text-[var(--soouls-accent)]"><div className="w-2 h-2 rounded-full bg-[var(--soouls-accent)]" /></span>,
       features: [
         { text: 'Unlimited text entries', included: true },
         { text: 'Spatial Canvas, 1 active cluster', included: true },
@@ -95,7 +95,7 @@ export default function PricingContent() {
       description: 'For minds that want the deepest read.',
       priceMonthly: 19,
       priceAnnual: 15.20,
-      icon: <InfinityIcon className="text-[#6450d6] w-6 h-6" />,
+      icon: <InfinityIcon className="text-[var(--soouls-universe)] w-6 h-6" />,
       features: [
         { text: 'Everything in Soul', included: true },
         { text: 'Deep emotional pattern analysis', included: true },
@@ -173,7 +173,7 @@ export default function PricingContent() {
 
       {/* HERO HEADER */}
       <div className="max-w-4xl mx-auto px-6 text-center mb-16 reveal">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--line)] bg-[#fdfaf6]/50 backdrop-blur-md mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--line)] bg-[rgba(var(--soouls-bg-elevated-rgb),0.5)] backdrop-blur-md mb-8">
           <div className="w-2 h-2 rounded-full bg-[var(--soouls-accent)] animate-pulse" />
           <span className="font-urbanist text-[11px] uppercase tracking-[0.2em] font-bold text-[var(--ink-soft)]">Simple, honest pricing</span>
         </div>
@@ -186,7 +186,7 @@ export default function PricingContent() {
 
         {/* BILLING TOGGLE */}
         <div className="relative inline-flex items-center justify-center">
-          <div className="inline-flex items-center p-1.5 bg-[#fdfaf6]/80 backdrop-blur-xl border border-[var(--line)] rounded-full relative shadow-sm">
+          <div className="inline-flex items-center p-1.5 bg-[rgba(var(--soouls-bg-elevated-rgb),0.8)] backdrop-blur-xl border border-[var(--line)] rounded-full relative shadow-sm">
             <div 
               className="absolute top-1.5 bottom-1.5 rounded-full bg-[var(--ink)] transition-transform duration-300 ease-out w-[calc(50%-6px)]"
               style={{ 
@@ -196,13 +196,13 @@ export default function PricingContent() {
             />
             <div className="relative z-10 flex w-48">
               <button 
-                className={`flex-1 py-2.5 rounded-full font-urbanist font-bold text-sm transition-colors duration-300 text-center ${!isAnnual ? 'text-[#f7f3ec]' : 'text-[var(--ink-soft)]'}`}
+                className={`flex-1 py-2.5 rounded-full font-urbanist font-bold text-sm transition-colors duration-300 text-center ${!isAnnual ? 'text-[var(--paper)]' : 'text-[var(--ink-soft)]'}`}
                 onClick={() => setIsAnnual(false)}
               >
                 Monthly
               </button>
               <button 
-                className={`flex-1 py-2.5 rounded-full font-urbanist font-bold text-sm transition-colors duration-300 text-center ${isAnnual ? 'text-[#f7f3ec]' : 'text-[var(--ink-soft)]'}`}
+                className={`flex-1 py-2.5 rounded-full font-urbanist font-bold text-sm transition-colors duration-300 text-center ${isAnnual ? 'text-[var(--paper)]' : 'text-[var(--ink-soft)]'}`}
                 onClick={() => setIsAnnual(true)}
               >
                 Annual
@@ -210,12 +210,12 @@ export default function PricingContent() {
             </div>
           </div>
           <div className="absolute left-full top-1/2 -translate-y-1/2 ml-4 hidden sm:block">
-            <span className={`inline-block text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full transition-colors duration-300 whitespace-nowrap font-bold shadow-sm ${isAnnual ? 'bg-[#E07A5F] text-white' : 'bg-[#E07A5F]/10 text-[#E07A5F]'}`}>
+            <span className={`inline-block text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full transition-colors duration-300 whitespace-nowrap font-bold shadow-sm ${isAnnual ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[rgba(var(--soouls-accent-rgb),0.1)] text-[var(--soouls-accent)]'}`}>
               Save 20%
             </span>
           </div>
           <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 sm:hidden">
-            <span className={`inline-block text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full transition-colors duration-300 whitespace-nowrap font-bold shadow-sm ${isAnnual ? 'bg-[#E07A5F] text-white' : 'bg-[#E07A5F]/10 text-[#E07A5F]'}`}>
+            <span className={`inline-block text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full transition-colors duration-300 whitespace-nowrap font-bold shadow-sm ${isAnnual ? 'bg-[var(--soouls-accent)] text-white' : 'bg-[rgba(var(--soouls-accent-rgb),0.1)] text-[var(--soouls-accent)]'}`}>
               Save 20%
             </span>
           </div>
@@ -228,10 +228,10 @@ export default function PricingContent() {
           {plans.map((plan, i) => (
             <div 
               key={plan.name} 
-              className={`pricing-card relative flex flex-col bg-[#fdfaf6]/80 backdrop-blur-3xl rounded-[2rem] p-8 transition-transform duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)] ${
+              className={`pricing-card relative flex flex-col bg-[rgba(var(--soouls-bg-elevated-rgb),0.8)] backdrop-blur-3xl rounded-[2rem] p-8 transition-transform duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(217,138,75,0.08)] ${
                 plan.highlighted 
                   ? 'border-2 border-[var(--soouls-accent)] shadow-[0_10px_30px_rgba(217,138,75,0.15)] scale-105 z-10' 
-                  : 'border border-[#e3dbcd]/60'
+                  : 'border border-[var(--soouls-border)]'
               }`}
             >
               {plan.highlighted && (
@@ -293,7 +293,7 @@ export default function PricingContent() {
       </div>
 
       {/* TRUST STRIP */}
-      <div className="trust-strip-container border-y border-[var(--line)] bg-[#fdfaf6]/40 backdrop-blur-md py-16 mb-32 overflow-hidden">
+      <div className="trust-strip-container border-y border-[var(--line)] bg-[rgba(var(--soouls-bg-elevated-rgb),0.4)] backdrop-blur-md py-16 mb-32 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           <div className="trust-item group cursor-default">
             <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-[var(--soouls-accent)]/10 flex items-center justify-center text-[var(--soouls-accent)] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
@@ -328,7 +328,7 @@ export default function PricingContent() {
         
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
-            <div key={idx} className="faq-item bg-[#fdfaf6]/80 backdrop-blur-xl border border-[var(--line)] rounded-2xl overflow-hidden transition-colors hover:bg-white/80">
+            <div key={idx} className="faq-item bg-[rgba(var(--soouls-bg-elevated-rgb),0.8)] backdrop-blur-xl border border-[var(--line)] rounded-2xl overflow-hidden transition-colors hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)]">
               <button 
                 onClick={() => toggleFaq(idx)}
                 className="w-full px-6 py-6 flex items-center justify-between text-left focus:outline-none"
@@ -350,8 +350,8 @@ export default function PricingContent() {
 
       {/* FINAL CTA */}
       <div className="max-w-5xl mx-auto px-6 reveal">
-        <div className="bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 shadow-[0_8px_32px_rgba(217,138,75,0.06)] rounded-[2rem] md:rounded-[3rem] p-8 sm:p-12 md:p-20 text-center relative overflow-hidden group/cta">
-          <div className="absolute -top-40 -left-40 w-80 h-80 bg-[#E07A5F]/10 rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-500" />
+        <div className="bg-gradient-to-br from-[rgba(var(--soouls-bg-elevated-rgb),0.8)] to-[rgba(var(--soouls-bg-elevated-rgb),0.4)] backdrop-blur-3xl border border-[var(--soouls-border)] shadow-[0_8px_32px_rgba(217,138,75,0.06)] rounded-[2rem] md:rounded-[3rem] p-8 sm:p-12 md:p-20 text-center relative overflow-hidden group/cta">
+          <div className="absolute -top-40 -left-40 w-80 h-80 bg-[rgba(var(--soouls-accent-rgb),0.1)] rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-500" />
           <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-[var(--soouls-accent)]/10 rounded-full blur-3xl pointer-events-none group-hover/cta:scale-110 transition-transform duration-500" />
           
           <Sparkles className="w-12 h-12 text-[var(--soouls-accent)] mx-auto mb-8 animate-pulse relative z-10" />
@@ -362,7 +362,7 @@ export default function PricingContent() {
             You can always go deeper later — nothing you write today gets left behind.
           </p>
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
-            <Link href="/sign-up" className="inline-block text-center w-full sm:w-auto px-8 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-black transition-colors transition-transform transition-shadow duration-300 hover:scale-105 shadow-md">
+            <Link href="/sign-up" className="inline-block text-center w-full sm:w-auto px-8 py-4 bg-[var(--ink)] text-[var(--paper)] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:opacity-80 transition-colors transition-transform transition-shadow duration-300 hover:scale-105 shadow-md">
               Start free with Node
             </Link>
             <button className="w-full sm:w-auto px-8 py-4 bg-transparent border border-[var(--ink)] text-[var(--ink)] rounded-full font-urbanist font-bold text-sm tracking-widest uppercase hover:bg-[var(--ink)]/5 transition-colors">

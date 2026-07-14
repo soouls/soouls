@@ -105,7 +105,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0707] flex items-center justify-center font-sans p-4 overflow-hidden relative selection:bg-[#E07A5F]/30 selection:text-white">
+    <div className="min-h-screen bg-[var(--paper)] flex items-center justify-center font-sans p-4 overflow-hidden relative selection:bg-[rgba(var(--soouls-accent-rgb),0.3)] selection:text-white">
       <StarBackground />
 
       <Link
@@ -114,14 +114,14 @@ export default function ForgotPassword() {
       >
         <SymbolLogo
           variant="solid"
-          className="w-8 h-8 text-[#E07A5F] group-hover:rotate-12 transition-transform duration-300"
+          className="w-8 h-8 text-[var(--soouls-accent)] group-hover:rotate-12 transition-transform duration-300"
         />
         <span className="text-[22px] font-bold tracking-tight text-white/95 font-sans">Soouls</span>
       </Link>
 
       {/* Glow Effects Container */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-        <div className="w-[450px] h-[450px] rounded-full bg-[#E07A5F]/5 blur-[120px] translate-x-[-10%] translate-y-[-10%]" />
+        <div className="w-[450px] h-[450px] rounded-full bg-[rgba(var(--soouls-accent-rgb),0.05)] blur-[120px] translate-x-[-10%] translate-y-[-10%]" />
       </div>
 
       <div className="z-10 w-full max-w-[440px] bg-[#120D0D]/80 backdrop-blur-2xl border border-white/[0.08] rounded-[36px] p-8 md:p-10 shadow-[0_50px_100px_rgba(0,0,0,0.85)] relative">
@@ -150,7 +150,7 @@ export default function ForgotPassword() {
                 setStep('email');
                 setError('');
               }}
-              className="mb-8 text-white/40 hover:text-[#E07A5F] transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
+              className="mb-8 text-white/40 hover:text-[var(--soouls-accent)] transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase"
             >
               <ArrowLeft className="w-4 h-4" /> Change Email
             </button>
@@ -158,7 +158,7 @@ export default function ForgotPassword() {
             <h2 className="text-3xl font-medium text-white mb-2 tracking-tight">Reset Password</h2>
             <p className="text-sm text-white/40 mb-8 font-light">
               Enter the code sent to{' '}
-              <span className="text-[#E07A5F] font-normal">{emailAddress}</span>
+              <span className="text-[var(--soouls-accent)] font-normal">{emailAddress}</span>
             </p>
 
             {error && (
@@ -181,7 +181,7 @@ export default function ForgotPassword() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="000000"
-                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-colors transition-transform transition-shadow duration-300 font-mono font-bold"
+                  className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[rgba(var(--soouls-accent-rgb),0.5)] focus:bg-white/[0.04] rounded-2xl py-5 px-6 text-2xl tracking-[0.5em] text-center text-white outline-none transition-colors transition-transform transition-shadow duration-300 font-mono font-bold"
                   required
                 />
               </div>
@@ -194,14 +194,14 @@ export default function ForgotPassword() {
                   New Password
                 </label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                   <input
                     id="forgot-new-password"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="New password (min 8 chars)"
-                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-colors transition-transform transition-shadow duration-300"
+                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[rgba(var(--soouls-accent-rgb),0.5)] focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-colors transition-transform transition-shadow duration-300"
                     required
                     minLength={8}
                   />
@@ -216,14 +216,14 @@ export default function ForgotPassword() {
                   Confirm Password
                 </label>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                   <input
                     id="forgot-confirm-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-colors transition-transform transition-shadow duration-300"
+                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[rgba(var(--soouls-accent-rgb),0.5)] focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-colors transition-transform transition-shadow duration-300"
                     required
                     minLength={8}
                   />
@@ -233,7 +233,7 @@ export default function ForgotPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-colors transition-transform transition-shadow shadow-[0_10px_30px_rgba(224,122,95,0.25)] hover:shadow-[0_10px_30px_rgba(224,122,95,0.45)] hover:scale-[1.01] active:scale-[0.97] text-xs tracking-widest uppercase disabled:opacity-50"
+                className="w-full bg-[var(--soouls-accent)] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-colors transition-transform transition-shadow shadow-[0_10px_30px_rgba(var(--soouls-accent-rgb),0.25)] hover:shadow-[0_10px_30px_rgba(var(--soouls-accent-rgb),0.45)] hover:scale-[1.01] active:scale-[0.97] text-xs tracking-widest uppercase disabled:opacity-50"
               >
                 {isLoading ? 'Resetting...' : 'Reset Password'}
               </button>
@@ -245,7 +245,7 @@ export default function ForgotPassword() {
           <div>
             <Link
               href="/sign-in"
-              className="mb-8 text-white/40 hover:text-[#E07A5F] transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase inline-flex"
+              className="mb-8 text-white/40 hover:text-[var(--soouls-accent)] transition-colors flex items-center gap-2 text-xs font-bold tracking-widest uppercase inline-flex"
             >
               <ArrowLeft className="w-4 h-4" /> Back to Login
             </Link>
@@ -272,14 +272,14 @@ export default function ForgotPassword() {
                   Account Email
                 </label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#E07A5F] transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[var(--soouls-accent)] transition-colors" />
                   <input
                     id="forgot-email-address"
                     type="email"
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[#E07A5F]/50 focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-colors transition-transform transition-shadow duration-300"
+                    className="w-full bg-white/[0.02] border border-white/[0.06] focus:border-[rgba(var(--soouls-accent-rgb),0.5)] focus:bg-white/[0.04] rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-colors transition-transform transition-shadow duration-300"
                     required
                   />
                 </div>
@@ -288,7 +288,7 @@ export default function ForgotPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#E07A5F] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-colors transition-transform transition-shadow shadow-[0_10px_30px_rgba(224,122,95,0.25)] hover:shadow-[0_10px_30px_rgba(224,122,95,0.45)] hover:scale-[1.01] active:scale-[0.97] text-xs tracking-widest uppercase disabled:opacity-50"
+                className="w-full bg-[var(--soouls-accent)] hover:bg-[#F08A6F] text-[#111] font-bold py-5 rounded-2xl transition-colors transition-transform transition-shadow shadow-[0_10px_30px_rgba(var(--soouls-accent-rgb),0.25)] hover:shadow-[0_10px_30px_rgba(var(--soouls-accent-rgb),0.45)] hover:scale-[1.01] active:scale-[0.97] text-xs tracking-widest uppercase disabled:opacity-50"
               >
                 {isLoading ? 'Sending...' : 'Send Reset Code'}
               </button>
@@ -321,7 +321,7 @@ function StarBackground() {
         style={{ animationDelay: '1s' }}
       />
       <div
-        className="absolute top-[10%] right-[40%] w-1 h-1 bg-[#E07A5F] rounded-full animate-pulse opacity-40 shadow-[0_0_12px_#E07A5F]"
+        className="absolute top-[10%] right-[40%] w-1 h-1 bg-[var(--soouls-accent)] rounded-full animate-pulse opacity-40 shadow-[0_0_12px_var(--soouls-accent)]"
         style={{ animationDelay: '0.3s' }}
       />
       <div
@@ -348,7 +348,7 @@ function StarBackground() {
         />
       ))}
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[radial-gradient(circle_at_center,rgba(224,122,95,0.06)_0%,transparent_70%)]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[radial-gradient(circle_at_center,rgba(var(--soouls-accent-rgb),0.06)_0%,transparent_70%)]" />
 
       <svg
         aria-hidden="true"

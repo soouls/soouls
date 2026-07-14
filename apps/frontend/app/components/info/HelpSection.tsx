@@ -23,7 +23,7 @@ export default function HelpSection() {
   const categories = [
     { id: 'all', title: 'All topics', desc: 'Browse everything', icon: GridIcon, color: 'text-[var(--soouls-accent)]', bgHover: 'hover:border-[var(--soouls-accent)]' },
     { id: 'account', title: 'Account', desc: 'Sign in, sync, delete', icon: UserCircleIcon, color: 'text-[#6450d6]', bgHover: 'hover:border-[#6450d6]' },
-    { id: 'billing', title: 'Billing', desc: 'Plans, cancel, refunds', icon: CreditCardIcon, color: 'text-[#E07A5F]', bgHover: 'hover:border-[#E07A5F]' },
+    { id: 'billing', title: 'Billing', desc: 'Plans, cancel, refunds', icon: CreditCardIcon, color: 'text-[var(--soouls-accent)]', bgHover: 'hover:border-[var(--soouls-accent)]' },
     { id: 'privacy', title: 'Privacy & data', desc: 'Encryption, export', icon: LockIcon, color: 'text-[#4ea896]', bgHover: 'hover:border-[#4ea896]' },
   ];
 
@@ -64,7 +64,7 @@ export default function HelpSection() {
           
           <div className="relative max-w-2xl mx-auto group">
             <div className="absolute inset-0 bg-gradient-to-r from-[#6450d6]/20 to-[var(--soouls-accent)]/20 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none" />
-            <div className="relative flex items-center bg-white/80 backdrop-blur-md border border-[#e3dbcd] rounded-full p-2 shadow-sm focus-within:border-[#6450d6] focus-within:shadow-[0_8px_30px_rgba(100,80,214,0.15)] transition-colors transition-transform transition-shadow duration-300">
+            <div className="relative flex items-center bg-[rgba(var(--soouls-bg-elevated-rgb),0.8)] backdrop-blur-md border border-[var(--soouls-border)] rounded-full p-2 shadow-sm focus-within:border-[#6450d6] focus-within:shadow-[0_8px_30px_rgba(100,80,214,0.15)] transition-colors transition-transform transition-shadow duration-300">
               <SearchIcon className="w-5 h-5 text-[var(--ink-faint)] ml-4 shrink-0" />
               <input 
                 type="text" 
@@ -89,14 +89,14 @@ export default function HelpSection() {
                   onClick={() => setActiveCategory(cat.id)}
                   className={`group relative p-6 rounded-2xl md:rounded-[2rem] border text-left transition-colors transition-transform transition-shadow duration-300 overflow-hidden ${
                     isActive 
-                      ? 'bg-[var(--ink)] border-[var(--ink)] text-[#f7f3ec] shadow-xl scale-105 z-10' 
-                      : `bg-[#fdfaf6]/60 backdrop-blur-md border-[#e3dbcd]/50 text-[var(--ink)] ${cat.bgHover} hover:-translate-y-1 hover:shadow-lg`
+                      ? 'bg-[var(--ink)] border-[var(--ink)] text-[var(--paper)] shadow-xl scale-105 z-10' 
+                      : `bg-[rgba(var(--soouls-bg-elevated-rgb),0.6)] backdrop-blur-md border-[var(--soouls-border)] text-[var(--ink)] ${cat.bgHover} hover:-translate-y-1 hover:shadow-lg`
                   }`}
                 >
-                  <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20 pointer-events-none transition-opacity duration-300 ${isActive ? 'bg-white opacity-10' : cat.color.replace('text-', 'bg-')} group-hover:opacity-30`} />
+                  <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl opacity-20 pointer-events-none transition-opacity duration-300 ${isActive ? 'bg-[rgba(var(--soouls-bg-elevated-rgb),1)] opacity-10' : cat.color.replace('text-', 'bg-')} group-hover:opacity-30`} />
                   
                   <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 group-active:scale-95 ${
-                    isActive ? 'bg-white/10' : 'bg-white border border-[#e3dbcd] shadow-sm'
+                    isActive ? 'bg-[rgba(var(--soouls-bg-elevated-rgb),0.1)]' : 'bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border border-[var(--soouls-border)] shadow-sm'
                   }`}>
                     <Icon size={20} strokeWidth={2} className={isActive ? 'text-white' : cat.color} />
                   </div>
@@ -113,7 +113,7 @@ export default function HelpSection() {
         {/* FAQs */}
         <div className="reveal" style={{ transitionDelay: '200ms' }}>
           {filteredFaqs.length === 0 ? (
-            <div className="text-center py-20 bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-3xl md:rounded-[3rem] font-urbanist text-lg text-[var(--ink-soft)] shadow-inner">
+            <div className="text-center py-20 bg-[rgba(var(--soouls-bg-elevated-rgb),0.6)] backdrop-blur-md border border-[var(--soouls-border)] rounded-3xl md:rounded-[3rem] font-urbanist text-lg text-[var(--ink-soft)] shadow-inner">
               <SearchIcon className="w-12 h-12 text-[var(--ink-faint)] mx-auto mb-4 opacity-50" />
               No results found for "<span className="italic">{searchQuery}</span>"
               <br />
@@ -144,8 +144,8 @@ export default function HelpSection() {
                             key={faq.id} 
                             className={`group border rounded-[1.5rem] overflow-hidden transition-colors transition-transform transition-shadow duration-300 ${
                               isOpen 
-                                ? `bg-white border-[#e3dbcd] shadow-[0_10px_30px_rgba(0,0,0,0.03)]` 
-                                : 'bg-[#fdfaf6]/40 backdrop-blur-sm border-[#e3dbcd]/50 hover:bg-white hover:border-[#e3dbcd] hover:shadow-md'
+                                ? `bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border-[var(--soouls-border)] shadow-[0_10px_30px_rgba(0,0,0,0.03)]` 
+                                : 'bg-[rgba(var(--soouls-bg-elevated-rgb),0.4)] backdrop-blur-sm border-[var(--soouls-border)] hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)] hover:border-[var(--soouls-border)] hover:shadow-md'
                             }`}
                           >
                             <button 
@@ -158,7 +158,7 @@ export default function HelpSection() {
                               <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors transition-transform transition-shadow duration-300 ${
                                 isOpen 
                                   ? `rotate-45 ${catInfo?.color.replace('text-', 'bg-')} text-white shadow-lg scale-110` 
-                                  : 'bg-white border border-[#e3dbcd] text-[var(--ink-soft)] group-active:scale-95'
+                                  : 'bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border border-[var(--soouls-border)] text-[var(--ink-soft)] group-active:scale-95'
                               }`}>
                                 <PlusIcon size={18} strokeWidth={2} />
                               </div>
@@ -185,7 +185,7 @@ export default function HelpSection() {
 
         {/* CTA */}
         <div className="mt-24 max-w-4xl mx-auto text-center reveal" style={{ transitionDelay: '400ms' }}>
-          <div className="relative bg-gradient-to-br from-[#fdfaf6]/80 to-[#fdfaf6]/40 backdrop-blur-3xl border border-[#e3dbcd]/60 shadow-[0_8px_32px_rgba(100,80,214,0.06)] rounded-3xl md:rounded-[3rem] p-8 sm:p-12 md:p-20 overflow-hidden">
+          <div className="relative bg-gradient-to-br from-[rgba(var(--soouls-bg-elevated-rgb),0.8)] to-[rgba(var(--soouls-bg-elevated-rgb),0.4)] backdrop-blur-3xl border border-[var(--soouls-border)] shadow-[0_8px_32px_rgba(100,80,214,0.06)] rounded-3xl md:rounded-[3rem] p-8 sm:p-12 md:p-20 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#6450d6]/10 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10">
               <h3 className="font-playfair text-4xl font-bold text-[var(--ink)] mb-4">
@@ -194,7 +194,7 @@ export default function HelpSection() {
               <p className="font-urbanist text-lg text-[var(--ink-soft)] mb-10 max-w-md mx-auto">
                 Real humans read every message, usually within a day. We're here for you.
               </p>
-              <a href="mailto:support@soouls.in" className="inline-block px-10 py-4 bg-[var(--ink)] text-[#f7f3ec] rounded-full font-urbanist font-bold text-sm font-semibold tracking-tight active:scale-[0.97] transition-all duration-200">
+              <a href="mailto:support@soouls.in" className="inline-block px-10 py-4 bg-[var(--ink)] text-[var(--paper)] rounded-full font-urbanist font-bold text-sm font-semibold tracking-tight active:scale-[0.97] transition-all duration-200">
                 Contact support
               </a>
             </div>

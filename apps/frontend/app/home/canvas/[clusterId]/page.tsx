@@ -283,7 +283,7 @@ export default function CanvasClusterPage() {
             id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
             type: 'smoothstep',
             markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--soouls-accent)' },
-            style: { stroke: 'rgba(224,122,95,0.55)', strokeWidth: 1.2 },
+            style: { stroke: 'rgba(var(--soouls-accent-rgb),0.55)', strokeWidth: 1.2 },
           },
           current,
         ),

@@ -43,10 +43,10 @@ export default function TermsOfServiceSection() {
         <>
           <p className="mb-4">You agree not to use Soouls to:</p>
           <ul className="space-y-2 text-sm">
-            <li className="flex gap-2"><span className="text-[#E07A5F]">•</span> Violate any applicable law or the rights of others.</li>
-            <li className="flex gap-2"><span className="text-[#E07A5F]">•</span> Attempt to gain unauthorized access to other accounts.</li>
-            <li className="flex gap-2"><span className="text-[#E07A5F]">•</span> Reverse-engineer, scrape, or interfere with infrastructure.</li>
-            <li className="flex gap-2"><span className="text-[#E07A5F]">•</span> Upload malicious code or disrupt the Service.</li>
+            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> Violate any applicable law or the rights of others.</li>
+            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> Attempt to gain unauthorized access to other accounts.</li>
+            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> Reverse-engineer, scrape, or interfere with infrastructure.</li>
+            <li className="flex gap-2"><span className="text-[var(--soouls-accent)]">•</span> Upload malicious code or disrupt the Service.</li>
           </ul>
         </>
       )
@@ -102,7 +102,7 @@ export default function TermsOfServiceSection() {
       title: 'Contact us',
       short: 'legal@soouls.in',
       content: (
-        <p>Questions about these terms can be sent to <a href="mailto:legal@soouls.in" className="text-[#E07A5F] hover:underline font-bold">legal@soouls.in</a>.</p>
+        <p>Questions about these terms can be sent to <a href="mailto:legal@soouls.in" className="text-[var(--soouls-accent)] hover:underline font-bold">legal@soouls.in</a>.</p>
       )
     }
   ];
@@ -113,14 +113,14 @@ export default function TermsOfServiceSection() {
         
         {/* Header */}
         <div className="mb-16 md:mb-24 text-center reveal">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#E07A5F]/10 mb-6">
-            <Scale className="w-6 h-6 text-[#E07A5F]" />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[rgba(var(--soouls-accent-rgb),0.1)] mb-6">
+            <Scale className="w-6 h-6 text-[var(--soouls-accent)]" />
           </div>
-          <span className="font-urbanist text-[11px] font-bold text-[#E07A5F] font-semibold tracking-tight mb-4 block">
+          <span className="font-urbanist text-[11px] font-bold text-[var(--soouls-accent)] font-semibold tracking-tight mb-4 block">
             Legal & Trust
           </span>
           <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold text-[var(--ink)] leading-tight mb-6">
-            Terms of <span className="italic text-[#E07A5F]">Service</span>
+            Terms of <span className="italic text-[var(--soouls-accent)]">Service</span>
           </h1>
           <p className="font-urbanist text-lg text-[var(--ink-soft)] max-w-xl mx-auto">
             Last updated July 1, 2026. By using Soouls, you agree to these terms.
@@ -135,24 +135,24 @@ export default function TermsOfServiceSection() {
               <div 
                 key={sec.id} 
                 id={sec.id}
-                className="group relative bg-[#fdfaf6]/60 backdrop-blur-md border border-[#e3dbcd]/50 rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-white/90 hover:shadow-[0_20px_40px_rgba(224,122,95,0.08)] hover:-translate-y-1 reveal"
+                className="group relative bg-[rgba(var(--soouls-bg-elevated-rgb),0.6)] backdrop-blur-md border border-[var(--soouls-border)] rounded-2xl md:rounded-[2rem] p-6 md:p-10 transition-colors transition-transform transition-shadow duration-300 hover:bg-[rgba(var(--soouls-bg-elevated-rgb),1)] hover:shadow-[0_20px_40px_rgba(var(--soouls-accent-rgb),0.08)] hover:-translate-y-1 reveal"
                 style={{ transitionDelay: `${(idx % 5) * 100}ms` }}
               >
                 {/* Decorative Glow */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#E07A5F]/5 to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[rgba(var(--soouls-accent-rgb),0.05)] to-transparent rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
                 <div className="flex flex-col md:flex-row gap-8 relative z-10">
                   <div className="md:w-1/3 shrink-0">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-white border border-[#e3dbcd] flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-300">
-                        <Icon className="w-5 h-5 text-[var(--ink)] group-hover:text-[#E07A5F] transition-colors duration-300" />
+                      <div className="w-10 h-10 rounded-full bg-[rgba(var(--soouls-bg-elevated-rgb),1)] border border-[var(--soouls-border)] flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-300">
+                        <Icon className="w-5 h-5 text-[var(--ink)] group-hover:text-[var(--soouls-accent)] transition-colors duration-300" />
                       </div>
                       <h2 className="font-playfair text-2xl font-bold text-[var(--ink)]">
                         {sec.title}
                       </h2>
                     </div>
-                    <div className="p-4 bg-[#E07A5F]/5 rounded-xl border border-[#E07A5F]/10">
-                      <p className="font-urbanist text-sm font-bold text-[#E07A5F] leading-snug m-0">
+                    <div className="p-4 bg-[rgba(var(--soouls-accent-rgb),0.05)] rounded-xl border border-[rgba(var(--soouls-accent-rgb),0.1)]">
+                      <p className="font-urbanist text-sm font-bold text-[var(--soouls-accent)] leading-snug m-0">
                         {sec.short}
                       </p>
                     </div>

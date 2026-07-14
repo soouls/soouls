@@ -8,9 +8,10 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { CSPostHogProvider } from '../src/providers/posthog-provider';
 import { PersistedTRPCProvider } from '../src/providers/trpc-provider';
 import { UiThemeProvider } from '../src/providers/ui-theme-provider';
+import { ThemeProvider } from 'next-themes';
 import { BackgroundText } from './components/BackgroundText';
 import { GlobalMascot } from './components/GlobalMascot';
-
+import CursorGlow from './components/CursorGlow';
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
@@ -56,9 +57,12 @@ export default function RootLayout({
         >
           <CSPostHogProvider>
             <PersistedTRPCProvider>
-              <UiThemeProvider>{children}</UiThemeProvider>
+              <ThemeProvider attribute="data-theme-mode" defaultTheme="dark" enableSystem={false}>
+                <UiThemeProvider>{children}</UiThemeProvider>
+              </ThemeProvider>
             </PersistedTRPCProvider>
             <GlobalMascot />
+            <CursorGlow />
             <Analytics />
             <SpeedInsights />
           </CSPostHogProvider>

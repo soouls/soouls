@@ -51,20 +51,7 @@ export default function PublicInfoPageShell({ slug }: { slug: string }) {
 
   return (
     <main 
-      className="bg-[var(--soouls-bg)] min-h-screen relative overflow-hidden font-urbanist selection:bg-[#6450d6]/20"
-      style={{
-        backgroundColor: '#f7f3ec',
-        color: '#16130f',
-        '--soouls-bg': '#f7f3ec',
-        '--soouls-bg-elevated': '#fdfaf6',
-        '--soouls-card': '#fdfaf6',
-        '--soouls-border': '#e3dbcd',
-        '--soouls-text': '#4a4237',
-        '--soouls-text-strong': '#16130f',
-        '--soouls-text-muted': '#4a4237',
-        '--soouls-text-faint': '#928a7c',
-        '--soouls-accent': '#d98a4b',
-      } as React.CSSProperties}
+      className="bg-[var(--soouls-bg)] min-h-screen relative overflow-hidden font-urbanist selection:bg-[#6450d6]/20 text-[var(--soouls-text-strong)]"
     >
       <FloatingOrbs />
       <div className="relative z-10 flex flex-col min-h-screen">

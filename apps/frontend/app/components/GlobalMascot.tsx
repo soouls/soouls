@@ -265,7 +265,7 @@ export function GlobalMascot() {
         transition={{ duration: arrivalPulse ? 1.1 : 3, repeat: Number.POSITIVE_INFINITY }}
       />
       <motion.div
-        className="pointer-events-none absolute left-12 top-10 h-2 w-2 rounded-full bg-white"
+        className="pointer-events-none absolute left-12 top-10 h-2 w-2 rounded-full bg-[rgba(var(--soouls-bg-elevated-rgb),1)]"
         animate={{
           opacity: [0, 0.9, 0.15, 0.7, 0],
           x: [0, 12, -4, 20, 0],

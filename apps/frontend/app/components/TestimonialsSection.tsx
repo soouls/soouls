@@ -57,8 +57,8 @@ export default function TestimonialsSection() {
   return (
     <section id="testimonials" ref={sectionRef} className="py-20 md:py-32 px-6 max-w-[90rem] mx-auto relative z-10 overflow-hidden">
       <div className="flex items-center gap-3 mb-4 lg:ml-12">
-        <span className="w-2 h-2 rounded-full bg-[#a390e4] animate-pulse" />
-        <span className="text-[#a390e4] text-xs font-playfair italic">from people mid-thought</span>
+        <span className="w-2 h-2 rounded-full bg-[var(--ink)] animate-pulse" />
+        <span className="text-[var(--ink)] text-xs font-playfair italic">from people mid-thought</span>
       </div>
       <h2 className="text-3xl md:text-5xl font-playfair font-medium text-[var(--soouls-text-strong)] mb-16 text-left lg:ml-12 max-w-xl">
         Notes people left themselves, and us.
@@ -72,7 +72,7 @@ export default function TestimonialsSection() {
             style={{ backgroundColor: t.bg, transform: `rotate(${t.rot})` }}
           >
             <p className="font-playfair text-lg text-[#16130f] leading-snug italic">"{t.quote}"</p>
-            <p className="font-mono text-[10px] text-[#4a4237] mt-8 uppercase tracking-widest">— {t.author}</p>
+            <p className="font-mono text-[10px] text-[#16130f] mt-8 uppercase tracking-widest">— {t.author}</p>
           </div>
         ))}
       </div>

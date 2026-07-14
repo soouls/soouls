@@ -226,7 +226,7 @@ export default function MotionEnhancer() {
     });
 
     // ── 12. Hover glow effect on CTA buttons ──  
-    const ctaButtons = document.querySelectorAll('.bg-\\[\\#16130f\\]');
+    const ctaButtons = document.querySelectorAll('.bg-\\[var\\(--ink\\)\\]');
     ctaButtons.forEach((btn) => {
       const el = btn as HTMLElement;
       el.addEventListener('mouseenter', () => {

@@ -12,22 +12,7 @@ export const metadata = {
 
 export default function PricingPage() {
   return (
-    <main 
-      className="relative min-h-screen font-urbanist selection:bg-[#6450d6]/20 bg-[var(--soouls-bg)] overflow-hidden"
-      style={{
-        backgroundColor: '#f7f3ec',
-        color: '#16130f',
-        '--soouls-bg': '#f7f3ec',
-        '--soouls-bg-elevated': '#fdfaf6',
-        '--soouls-card': '#fdfaf6',
-        '--soouls-border': '#e3dbcd',
-        '--soouls-text': '#4a4237',
-        '--soouls-text-strong': '#16130f',
-        '--soouls-text-muted': '#4a4237',
-        '--soouls-text-faint': '#928a7c',
-        '--soouls-accent': '#d98a4b',
-      } as React.CSSProperties}
-    >
+    <main className="relative min-h-screen font-urbanist selection:bg-[#6450d6]/20 bg-[var(--soouls-bg)] overflow-hidden">
       <FloatingOrbs />
       <div className="relative z-10">
         <RevealObserver />

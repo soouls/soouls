@@ -128,7 +128,7 @@ function FloatingCard({ card }: { card: JournalCard }) {
         WebkitBackdropFilter: `blur(${s.blur})`,
         animation: `card-float ${3 + Math.random() * 2}s ease-in-out infinite`,
         border: card.highlighted
-          ? `${s.stroke} solid rgba(224,122,95,0.4)`
+          ? `${s.stroke} solid rgba(var(--soouls-accent-rgb),0.4)`
           : `${s.stroke} solid rgba(34,34,34,1)`,
         boxShadow: card.highlighted
           ? '0px 5px 12px 0px rgba(224, 122, 95, 0.06), 0px 22px 22px 0px rgba(224, 122, 95, 0.05), 0px 49px 29px 0px rgba(224, 122, 95, 0.03), 0px 87px 35px 0px rgba(224, 122, 95, 0.01), 0px 136px 38px 0px rgba(224, 122, 95, 0)'
@@ -247,19 +247,19 @@ export default function RiverOfTimeSection() {
               {/* Star outline */}
               <path
                 d="M12 3L14.4 9.6L21 10.2L16 14.5L17.5 21L12 17.5L6.5 21L8 14.5L3 10.2L9.6 9.6L12 3Z"
-                stroke="#E07A5F"
+                stroke="var(--soouls-accent)"
                 strokeWidth="1.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               {/* Sparkle lines */}
-              <path d="M12 10V14" stroke="#E07A5F" strokeWidth="1.2" strokeLinecap="round" />
-              <path d="M10 12H14" stroke="#E07A5F" strokeWidth="1.2" strokeLinecap="round" />
+              <path d="M12 10V14" stroke="var(--soouls-accent)" strokeWidth="1.2" strokeLinecap="round" />
+              <path d="M10 12H14" stroke="var(--soouls-accent)" strokeWidth="1.2" strokeLinecap="round" />
             </svg>
             <span
-              className="font-playfair italic text-[#E07A5F] text-[24px] lg:text-[28px] leading-[1em] tracking-tight"
+              className="font-playfair italic text-[var(--soouls-accent)] text-[24px] lg:text-[28px] leading-[1em] tracking-tight"
               style={{
-                textShadow: '0 4px 12px rgba(224,122,95,0.2)',
+                textShadow: '0 4px 12px rgba(var(--soouls-accent-rgb),0.2)',
               }}
             >
               Dynamic Synthesis

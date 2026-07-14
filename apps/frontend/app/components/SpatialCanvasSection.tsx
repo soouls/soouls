@@ -35,9 +35,9 @@ export default function SpatialCanvasSection() {
         <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap font-playfair text-[40px] md:text-[64px] leading-[1em] tracking-tight">
           <span className="text-[#EFEBDD]">Your</span>
           <span
-            className="text-[#E07A5F] italic"
+            className="text-[var(--soouls-accent)] italic"
             style={{
-              textShadow: '0 4px 24px rgba(224,122,95,0.4)',
+              textShadow: '0 4px 24px rgba(var(--soouls-accent-rgb),0.4)',
             }}
           >
             thoughts
@@ -98,7 +98,7 @@ export default function SpatialCanvasSection() {
           <div className="flex items-center gap-3 w-full">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <title>Voice Note Icon</title>
-              <path d="M8 5V19L19 12L8 5Z" fill="#E07A5F" />
+              <path d="M8 5V19L19 12L8 5Z" fill="var(--soouls-accent)" />
             </svg>
             <div className="flex items-center gap-[3px] flex-1">
               {Array.from({ length: 32 }, (_, index) => {
@@ -119,7 +119,7 @@ export default function SpatialCanvasSection() {
             <span
               style={{
                 fontSize: '12px',
-                color: '#E07A5F',
+                color: 'var(--soouls-accent)',
                 fontFamily: 'Urbanist',
                 fontWeight: 600,
               }}
@@ -217,7 +217,7 @@ export default function SpatialCanvasSection() {
             background: 'rgba(28, 28, 28, 0.8)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(224, 122, 95, 0.5)',
-            boxShadow: '0 0 24px rgba(224,122,95,.15)',
+            boxShadow: '0 0 24px rgba(var(--soouls-accent-rgb),.15)',
           }}
         >
           <p
@@ -314,7 +314,7 @@ export default function SpatialCanvasSection() {
                 style={{
                   fontSize: '14px',
                   letterSpacing: '0.15em',
-                  color: '#E07A5F',
+                  color: 'var(--soouls-accent)',
                   opacity: word.label === 'â€¢' ? 1 : 0.8,
                   fontWeight: 600,
                 }}

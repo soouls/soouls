@@ -48,8 +48,8 @@ export function HowItWorksSection() {
         .hw-text h4 { font-weight: 600; font-size: 1rem; color: var(--ink); margin-bottom: 4px; }
         .hw-text p { font-size: 0.85rem; color: var(--ink-faint); line-height: 1.4; max-width: 180px; }
         
-        .hw-card { background: #ffffff; border: 1px solid rgba(22,19,15,0.06); border-radius: 24px; padding: 20px; height: 160px; box-shadow: 0 10px 30px rgba(22, 19, 15, .03); display: flex; flex-direction: column; justify-content: center; position: relative; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease; cursor: default; }
-        .hw-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(22, 19, 15, .08); }
+        .hw-card { background: rgba(var(--soouls-bg-elevated-rgb), 0.6); backdrop-filter: blur(12px); border: 1px solid var(--soouls-border); border-radius: 24px; padding: 20px; height: 160px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: center; position: relative; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease; cursor: default; }
+        .hw-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
         
         .hw-arrow-container { position: absolute; top: 12px; right: -28px; width: 24px; height: 24px; color: var(--ink-faint); display: flex; align-items: center; justify-content: center; z-index: 10; opacity: 0; animation: fadeArrowIn 0.8s ease-out forwards 1s; }
         .hw-svg-arrow { width: 20px; height: 20px; stroke-width: 1.5; animation: slideArrow 2s infinite ease-in-out; }
@@ -69,7 +69,7 @@ export function HowItWorksSection() {
         .nline1 { width: 40px; top: 40%; left: 30%; transform: rotate(-20deg); animation: lineGrow 3s infinite alternate; }
         .nline2 { width: 45px; top: 50%; left: 55%; transform: rotate(35deg); animation: lineGrow 3s infinite alternate 0.5s; }
         .nline3 { width: 35px; top: 60%; left: 25%; transform: rotate(15deg); animation: lineGrow 3s infinite alternate 1s; }
-        .node-dot { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #ffffff; border: 1.5px solid rgba(217,138,75,0.4); display: grid; place-items: center; font-size: 10px; color: var(--amber); box-shadow: 0 4px 10px rgba(0,0,0,0.03); font-weight: 600; }
+        .node-dot { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: var(--paper); border: 1.5px solid rgba(217,138,75,0.4); display: grid; place-items: center; font-size: 10px; color: var(--amber); box-shadow: 0 4px 10px rgba(0,0,0,0.03); font-weight: 600; }
         .nd1 { top: 20%; left: 25%; animation: floatNode 4s ease-in-out infinite; }
         .nd2 { top: 55%; left: 45%; animation: floatNode 5s ease-in-out infinite 1s; border-color: rgba(207,123,110,0.4); color: var(--rose); }
         .nd3 { top: 35%; right: 20%; animation: floatNode 4.5s ease-in-out infinite 0.5s; border-color: rgba(125,155,118,0.4); color: var(--sage); }
