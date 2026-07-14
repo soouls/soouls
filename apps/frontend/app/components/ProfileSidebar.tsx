@@ -118,6 +118,11 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                   href: '/home/settings',
                   icon: <Settings className="w-5 h-5 stroke-[1.5]" />,
                 },
+                {
+                  label: 'Upgrade / Pricing',
+                  href: '/pricing',
+                  icon: <Sparkles className="w-5 h-5 stroke-[1.5]" />,
+                },
               ].map((item) => (
                 <Link
                   key={item.label}

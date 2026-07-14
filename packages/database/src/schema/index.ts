@@ -28,6 +28,20 @@ export const userAccountStatusEnum = pgEnum('user_account_status', [
   'suspended',
 ]);
 export const billingTierEnum = pgEnum('billing_tier', ['free', 'premium', 'enterprise']);
+export const subscriptionStatusEnum = pgEnum('subscription_status', [
+  'active',
+  'trialing',
+  'past_due',
+  'canceled',
+  'unpaid',
+  'free',
+]);
+export const planTypeEnum = pgEnum('plan_type', ['free', 'premium']);
+export const paymentProviderEnum = pgEnum('payment_provider', [
+  'razorpay',
+  'apple_iap',
+  'google_play',
+]);
 export const messageDeliveryStatusEnum = pgEnum('message_delivery_status', [
   'pending',
   'sent',
@@ -81,6 +95,13 @@ export const users = pgTable('users', {
   mascot: text('mascot').default('Lumi'),
   isWaitlistUser: boolean('is_waitlist_user').default(false).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
+  razorpayCustomerId: text('razorpay_customer_id'),
+  subscriptionStatus: subscriptionStatusEnum('subscription_status').default('free').notNull(),
+  planType: planTypeEnum('plan_type').default('free').notNull(),
+  trialEndsAt: timestamp('trial_ends_at'),
+  currentPeriodEnd: timestamp('current_period_end'),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false).notNull(),
+  paymentProvider: paymentProviderEnum('payment_provider'),
   walletAddress: text('wallet_address'),
   marketingEmailOptIn: boolean('marketing_email_opt_in').default(true).notNull(),
   marketingWhatsappOptIn: boolean('marketing_whatsapp_opt_in').default(false).notNull(),
@@ -430,42 +451,47 @@ export const aiUsageLogs = pgTable('ai_usage_logs', {
 });
 
 // ────────────────────────────────────────
-// Email System tables
+// Subscriptions & Payments
 // ────────────────────────────────────────
-export const emailLogs = pgTable('email_logs', {
+export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .references(() => users.id)
-    .notNull(),
-  idempotencyKey: text('idempotency_key').notNull().unique(), // e.g. "welcome-email:{userId}"
-  templateName: text('template_name').notNull(), // "welcome" | "password-reset" | "sunday-review" | ...
-  status: text('status')
-    .$type<
-      'queued' | 'sent' | 'delivered' | 'bounced' | 'complained' | 'failed' | 'skipped_suppressed'
-    >()
-    .notNull(), // queued | sent | delivered | bounced | complained | failed | skipped_suppressed
-  resendMessageId: text('resend_message_id'),
-  attempts: integer('attempts').default(0).notNull(),
-  lastError: text('last_error'),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  providerSubscriptionId: text('provider_subscription_id').notNull().unique(),
+  provider: paymentProviderEnum('provider').notNull(),
+  status: subscriptionStatusEnum('status').notNull(),
+  planType: planTypeEnum('plan_type').notNull(),
+  currentPeriodStart: timestamp('current_period_start').notNull(),
+  currentPeriodEnd: timestamp('current_period_end').notNull(),
+  cancelAtPeriodEnd: boolean('cancel_at_period_end').default(false).notNull(),
+  canceledAt: timestamp('canceled_at'),
+  endedAt: timestamp('ended_at'),
+  trialStart: timestamp('trial_start'),
+  trialEnd: timestamp('trial_end'),
+  metadata: jsonb('metadata').$type<Record<string, unknown> | null>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const emailPreferences = pgTable('email_preferences', {
+export const payments = pgTable('payments', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .references(() => users.id)
-    .notNull()
-    .unique(),
-  productDigests: boolean('product_digests').default(true).notNull(), // Sunday Review, etc.
-  billingReminders: boolean('billing_reminders').default(true).notNull(),
-  reEngagementNudges: boolean('re_engagement_nudges').default(false).notNull(), // explicitly opt-in, off by default
-  securityAlerts: boolean('security_alerts').default(true).notNull(), // strongly discouraged from disabling; UI should say so
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  subscriptionId: uuid('subscription_id').references(() => subscriptions.id),
+  providerPaymentId: text('provider_payment_id').notNull().unique(),
+  provider: paymentProviderEnum('provider').notNull(),
+  amount: integer('amount').notNull(), // amount in smallest currency unit (e.g., paise or cents)
+  currency: text('currency').notNull(), // e.g., 'INR', 'USD'
+  status: text('status').notNull(), // 'successful', 'failed', 'pending'
+  receiptUrl: text('receipt_url'),
+  metadata: jsonb('metadata').$type<Record<string, unknown> | null>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const emailSuppressions = pgTable('email_suppressions', {
+export const razorpayWebhooks = pgTable('razorpay_webhooks', {
   id: uuid('id').primaryKey().defaultRandom(),
-  email: text('email').notNull().unique(),
-  reason: text('reason').notNull(), // "hard_bounce" | "complaint" | "manual_unsubscribe"
-  suppressedAt: timestamp('suppressed_at').defaultNow().notNull(),
+  razorpayEventId: text('razorpay_event_id').notNull().unique(),
+  eventType: text('event_type').notNull(),
+  status: text('status').default('success').notNull(), // 'success', 'failed'
+  payload: jsonb('payload').$type<Record<string, unknown> | null>(),
+  processedAt: timestamp('processed_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });

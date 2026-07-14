@@ -66,6 +66,7 @@ export class UsersService {
         accountStatus: onWaitlist ? 'beta' : 'active',
         transactionalWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
         marketingWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
+        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       })
       .onConflictDoUpdate({
         target: users.clerkId,

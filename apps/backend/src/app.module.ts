@@ -11,6 +11,7 @@ import { isVercelRuntime } from './runtime';
 import { ServicesModule } from './services/services.module';
 import { TrpcModule } from './trpc/trpc.module';
 import { UsersModule } from './users/users.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     CommandCenterModule,
     GoogleCalendarModule,
-    EmailsModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

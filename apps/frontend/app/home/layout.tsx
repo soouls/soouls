@@ -23,6 +23,17 @@ function SidebarWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {onboardingStatus?.isTrialActive ? (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-center py-2 text-sm font-medium z-50 relative shadow-md">
+          You are on a 14-day Free Trial ({onboardingStatus.trialDaysLeft} days remaining). 
+          <a href="/pricing" className="ml-2 underline font-bold hover:text-blue-100 transition-colors">Upgrade to Premium</a>
+        </div>
+      ) : onboardingStatus?.planType !== 'premium' && (
+        <div className="bg-yellow-500 text-black text-center py-2 text-sm font-medium z-50 relative">
+          You are on a Free plan. Upgrade to Premium for unlimited access! 
+          <a href="/pricing" className="ml-2 underline font-bold">Upgrade Now</a>
+        </div>
+      )}
       {children}
       <ProfileSidebar isOpen={isOpen} onClose={() => setIsOpen(false)} onLogoutClick={openLogout} />
       <LogoutModal isOpen={isLogoutOpen} onClose={() => setIsLogoutOpen(false)} />
