@@ -95,6 +95,25 @@ export default function LandingNavbar() {
                 </a>
               );
             })}
+            {/* Downloads Dropdown */}
+            <div className="relative group">
+              <button className="flex items-center gap-1 hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200 pb-2 -mb-2">
+                Downloads
+                <svg className="w-4 h-4 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="bg-[var(--soouls-bg-elevated)] border border-[var(--soouls-border)] rounded-xl shadow-lg p-2 min-w-[200px] flex flex-col gap-1">
+                  <Link href="/desktop" className="px-4 py-2 hover:bg-[var(--soouls-accent)]/10 rounded-lg text-left transition-colors flex flex-col group/item">
+                    <span className="font-semibold text-[var(--soouls-text-strong)] group-hover/item:text-[var(--soouls-accent)] transition-colors">Mac & Windows</span>
+                    <span className="text-xs text-[var(--soouls-text-muted)]">Desktop App</span>
+                  </Link>
+                  <Link href="/mobile" className="px-4 py-2 hover:bg-[var(--soouls-accent)]/10 rounded-lg text-left transition-colors flex flex-col group/item">
+                    <span className="font-semibold text-[var(--soouls-text-strong)] group-hover/item:text-[var(--soouls-accent)] transition-colors">iOS & Android</span>
+                    <span className="text-xs text-[var(--soouls-text-muted)]">Mobile App</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </nav>
 
           <div className="flex-1 flex items-center justify-end gap-6 text-sm font-medium">

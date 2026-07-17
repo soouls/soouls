@@ -3,6 +3,8 @@ export const publicInfoSlugs = [
   'about-us',
   'features',
   'downloads',
+  'desktop',
+  'mobile',
   'release-notes',
   'careers',
   'contact',
