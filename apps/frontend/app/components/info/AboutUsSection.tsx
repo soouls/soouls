@@ -126,8 +126,9 @@ export default function AboutUsSection() {
             {[
               { name: 'Rudra Singh', role: 'Founder and CEO', img: '/Rudra.jpg', linkedin: 'https://www.linkedin.com/in/rudra-singh-73554623b/' },
               { name: 'Bhargav', role: 'Co-founder and CDO', img: '/Bhargav.jpeg', linkedin: 'https://www.linkedin.com/in/bhargav-koppula/' },
+              { name: 'Sagarika Paul', role: 'Product Designer', img: '/Sagarika%20Paul.jpeg', linkedin: 'https://www.linkedin.com/in/sagarika-paul-749404242/' },
               { name: 'Shreya', role: 'Frontend Developer', img: '/shreya.jpeg', linkedin: 'https://www.linkedin.com/in/shreya-garg-281aa7219/' },
-              { name: 'Sreyashree', role: 'UI/UX Product Designer', img: '/Sreya%20Shree.jpeg', linkedin: 'https://www.linkedin.com/in/dsreyashree2006/' },
+              { name: 'Sreyashree', role: 'UI/UX Designer', img: '/Sreya%20Shree.jpeg', linkedin: 'https://www.linkedin.com/in/dsreyashree2006/' },
               { name: 'Subhranil', role: 'Fullstack Dev', img: '/Subhranil.jpeg' },
               { name: 'Varun', role: 'App and Frontend Dev', img: '/varun.jpeg', linkedin: 'https://www.linkedin.com/in/varun-patel-16611631a/' },
             ].map((member, idx) => (

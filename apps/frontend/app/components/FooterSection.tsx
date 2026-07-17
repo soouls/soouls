@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { ButterflyLogo } from './ButterflyLogo';
-import { ArrowRight, Twitter, Instagram, Linkedin, Mail } from 'lucide-react';
+import { ArrowRight, Instagram, Linkedin, Mail, Youtube } from 'lucide-react';
+import { FaXTwitter } from 'react-icons/fa6';
 
 export default function FooterSection() {
   return (
@@ -49,9 +50,10 @@ export default function FooterSection() {
             {/* Social Icons */}
             <div className="flex gap-4 items-center pt-2">
               {[
-                { icon: Twitter, href: 'https://x.com/Soouls_in', label: 'X (Twitter)' },
+                { icon: FaXTwitter, href: 'https://x.com/Soouls_in', label: 'X (Twitter)' },
                 { icon: Instagram, href: 'https://www.instagram.com/soouls.in/?hl=en', label: 'Instagram' },
                 { icon: Linkedin, href: 'https://www.linkedin.com/company/soouls/?viewAsMember=true', label: 'LinkedIn' },
+                { icon: Youtube, href: 'https://www.youtube.com/@soouls_in', label: 'YouTube' },
                 { icon: Mail, href: 'mailto:hello@soouls.in', label: 'Email' },
               ].map((social, idx) => (
                 <a 
@@ -98,7 +100,23 @@ export default function FooterSection() {
                 { name: 'Help Center', href: '/help' },
                 { name: 'Blog', href: '/blog' },
                 { name: 'Community', href: '/community' },
-                { name: 'Download App', href: '/downloads' },
+              ].map((link) => (
+                <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-[15px] text-[var(--ink-soft)] hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200">
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+            
+            {/* Column 2.5 - Downloads */}
+            <div className="flex flex-col gap-6 min-w-[140px] reveal" style={{ transitionDelay: '350ms' }}>
+              <h4 className="text-[var(--ink)] text-[13px] font-semibold tracking-tight mb-2 flex items-center gap-2">
+                Downloads
+              </h4>
+              {[
+                { name: 'Mac', href: '/desktop' },
+                { name: 'Windows', href: '/desktop' },
+                { name: 'iOS', href: '/mobile' },
+                { name: 'Android', href: '/mobile' },
               ].map((link) => (
                 <Link key={link.name} href={link.href} className="group flex items-center font-urbanist text-[15px] text-[var(--ink-soft)] hover:text-[#d98a4b] hover:opacity-80 transition-all duration-200">
                   {link.name}

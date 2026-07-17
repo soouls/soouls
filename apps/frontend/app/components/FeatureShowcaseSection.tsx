@@ -208,8 +208,8 @@ export function FeatureShowcaseSection() {
         .show-tab small { color: var(--ink-faint); font-size: .76rem; }
         .show-tab:active { transform: scale(0.98); }
         .show-tab.active { background: var(--soouls-text-strong); border-color: var(--soouls-text-strong); box-shadow: 0 12px 30px rgba(0, 0, 0, .1); }
-        .show-tab.active strong { color: var(--soouls-bg-base); }
-        .show-tab.active small { color: var(--soouls-bg-base); opacity: 0.7; }
+        .show-tab.active strong { color: var(--soouls-bg); }
+        .show-tab.active small { color: var(--soouls-bg); opacity: 0.7; }
         .show-tab.active .tno { color: var(--amber); }
         .tbar { position: absolute; left: 0; bottom: 0; height: 2.5px; width: 100%; }
         .show-tab.active .tbar::after { content: ''; display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--rose)); width: 0; animation: tprog 5s linear forwards; }
