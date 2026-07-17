@@ -60,27 +60,26 @@ export default function MobilePage() {
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-24 w-full reveal reveal-delay-3">
-                <a
-                  href="/download/ios"
-                  className="group flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 bg-[var(--soouls-text-strong)] hover:opacity-90 text-[var(--soouls-bg)] rounded-full font-urbanist font-semibold active:scale-[0.98] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              <div className="flex flex-col gap-6 items-center justify-center mb-24 w-full reveal reveal-delay-3">
+                <Link
+                  href="/home"
+                  className="group flex items-center justify-center gap-3 w-full sm:w-auto px-10 py-4 bg-[var(--soouls-text-strong)] hover:opacity-90 text-[var(--soouls-bg)] rounded-full font-urbanist font-semibold active:scale-[0.98] transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-lg"
                 >
-                  <FaApple className="w-6 h-6 transition-transform group-hover:scale-110" />
-                  <div className="flex flex-col items-start leading-none">
-                    <span className="text-[10px] opacity-70 mb-1">Download on the</span>
-                    <span className="text-lg">App Store</span>
+                  Open Web App
+                </Link>
+                
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
+                  <div className="relative group flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-[var(--soouls-bg-elevated)] border border-[var(--soouls-border)] text-[var(--soouls-text-muted)] rounded-full font-urbanist font-medium cursor-not-allowed text-sm shadow-sm opacity-80">
+                    <FaApple className="w-4 h-4" />
+                    <span>iOS App</span>
+                    <span className="px-2 py-0.5 bg-[var(--soouls-accent)]/10 text-[var(--soouls-accent)] rounded-full text-[10px] font-bold uppercase tracking-wider ml-1">Coming Soon</span>
                   </div>
-                </a>
-                <a
-                  href="/download/android"
-                  className="group flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 bg-[var(--soouls-bg-elevated)] hover:bg-[var(--soouls-border)] border border-[var(--soouls-border)] text-[var(--soouls-text-strong)] rounded-full font-urbanist font-semibold active:scale-[0.98] transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
-                >
-                  <FaAndroid className="w-6 h-6 transition-transform group-hover:scale-110 text-green-500" />
-                  <div className="flex flex-col items-start leading-none">
-                    <span className="text-[10px] opacity-70 mb-1">GET IT ON</span>
-                    <span className="text-lg">Google Play</span>
+                  <div className="relative group flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-[var(--soouls-bg-elevated)] border border-[var(--soouls-border)] text-[var(--soouls-text-muted)] rounded-full font-urbanist font-medium cursor-not-allowed text-sm shadow-sm opacity-80">
+                    <FaAndroid className="w-4 h-4 text-green-500/50" />
+                    <span>Android App</span>
+                    <span className="px-2 py-0.5 bg-[var(--soouls-accent)]/10 text-[var(--soouls-accent)] rounded-full text-[10px] font-bold uppercase tracking-wider ml-1">Coming Soon</span>
                   </div>
-                </a>
+                </div>
               </div>
             </motion.div>
 
@@ -163,15 +162,23 @@ export default function MobilePage() {
               Immersive, distraction-free writing for Mac and Windows.
             </p>
 
-            <div className="flex flex-col w-full sm:w-auto sm:flex-row justify-center gap-4 mb-8 z-10 px-4 sm:px-0">
-              <Link href="/download/mac" className="bg-[#16130f] text-[#f7f3ec] px-8 py-4 rounded-full font-medium hover:scale-105 transition-transform shadow-md flex items-center justify-center gap-2">
-                <FaApple className="w-5 h-5" />
-                Download for Mac
+            <div className="flex flex-col gap-6 items-center justify-center mb-8 z-10 px-4 sm:px-0">
+              <Link href="/home" className="bg-[#16130f] text-[#f7f3ec] px-10 py-4 rounded-full font-medium hover:scale-105 transition-transform shadow-md flex items-center justify-center gap-2 text-lg">
+                Open Web App
               </Link>
-              <Link href="/download/windows" className="bg-transparent border border-[#16130f]/20 text-[#16130f] px-8 py-4 rounded-full font-medium hover:bg-[#16130f]/5 transition-colors shadow-sm flex items-center justify-center gap-2">
-                <FaWindows className="w-5 h-5 text-blue-500" />
-                Download for Windows
-              </Link>
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
+                <div className="flex items-center justify-center gap-2 px-6 py-3 bg-[#16130f]/5 border border-[#16130f]/10 text-[#4a4237] rounded-full font-medium cursor-not-allowed text-sm opacity-80">
+                  <FaApple className="w-4 h-4" />
+                  <span>Mac App</span>
+                  <span className="px-2 py-0.5 bg-[#16130f]/10 rounded-full text-[10px] font-bold uppercase tracking-wider ml-1">Coming Soon</span>
+                </div>
+                <div className="flex items-center justify-center gap-2 px-6 py-3 bg-[#16130f]/5 border border-[#16130f]/10 text-[#4a4237] rounded-full font-medium cursor-not-allowed text-sm opacity-80">
+                  <FaWindows className="w-4 h-4 text-blue-500/60" />
+                  <span>Windows App</span>
+                  <span className="px-2 py-0.5 bg-[#16130f]/10 rounded-full text-[10px] font-bold uppercase tracking-wider ml-1">Coming Soon</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
