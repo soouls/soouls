@@ -1,30 +1,40 @@
 # Mobile App Development Guidelines (Expo)
 
 ## Project Context
-This is the Soouls mobile application built with React Native and Expo. It uses a TypeScript template.
+This is the Soouls mobile application built with React Native and Expo. It uses a TypeScript template and connects to the `@soouls/api` tRPC backend and PostgreSQL database via Clerk authentication.
 
 ## Tech Stack
-- Framework: Expo
+- Framework: Expo (SDK 52/53)
 - Language: TypeScript
-- Navigation: React Navigation
-- State Management: Zustand / Jotai
-- API Client: tRPC (@soouls/api)
-- Authentication: Clerk
+- Navigation: React Navigation (Bottom Tabs + Native Stack)
+- State Management: Zustand / React Query
+- API Client: tRPC (`@soouls/api`)
+- Authentication: Clerk (`@clerk/clerk-expo`)
 
-## Project Structure
-- `src/components/`: Reusable UI components
-- `src/screens/`: App screens and views
-- `src/navigation/`: Navigation configuration
-- `src/services/`: API and external service integrations
-- `src/store/`: Global state management
-- `src/hooks/`: Custom React hooks
-- `src/utils/`: Utility functions and constants
-- `src/assets/`: Images, fonts, and static assets
-- `src/types/`: TypeScript type definitions
+## Project Structure & Features
+- `src/components/`: Reusable UI components and block renderers
+- `src/screens/`: App screens and views:
+  - `dashboard/`: `DashboardScreen` (AI Insights, streaks, dominant theme via `home.getInsights`)
+  - `journal/`: `EntryListScreen` (`entries.getAll`), `CreateEntryScreen` (`entries.upsertSync`), `EntryDetailScreen` (`entries.getOne`, `entries.delete`, `tasks.convertToTask`)
+  - `clusters/`: `ClustersScreen` (`home.getClusters`, `home.recluster`), `ClusterDetailScreen` (`home.getClusterDetail`)
+  - `account/`: `AccountScreen` (User stats, writing profile, core themes via `home.getAccount`, `home.exportAccountData`, `home.deleteAccount`)
+  - `settings/`: `SettingsScreen` (User preferences via `home.getSettings`, `home.updateSettings`)
+  - `auth/`: `LoginScreen`, `SignUpScreen` (Clerk Auth)
+- `src/navigation/`: Navigation configuration (`AppNavigator.tsx` with Bottom Tabs & Stack Navigation)
+- `src/providers/`: Context providers (`AuthProvider`, `TRPCProvider`)
+- `src/hooks/`: Custom React hooks (`useEntries`, `usePersistedEntry`, etc.)
+- `src/utils/`: Utility functions (`trpc.ts`, `entries.ts`, `tokenCache.ts`)
+
+## Backend Integration & Environment
+- **tRPC Route**: The API client connects to `${getBaseUrl()}/trpc`.
+- **Android Emulator**: `getBaseUrl()` resolves to `http://10.0.2.2:3000` (pointing to the host backend on port 3000).
+- **iOS Simulator / Device**: Resolves to `http://localhost:3000` or custom `EXPO_PUBLIC_API_URL`.
+- **Authentication**: `TRPCProvider` automatically retrieves the Clerk JWT token via `useAuth().getToken()` and appends it to the `Authorization: Bearer <token>` header for protected tRPC procedures.
+- **Backend Prerequisite**: Ensure the local backend server is running via `bun run dev` at the repository root before making API calls.
 
 ## Development Rules
 1. **Use Expo Tools**: Prefer Expo's built-in SDK features over direct bare React Native libraries where possible to ensure maximum compatibility.
-2. **TypeScript**: Enforce strict TypeScript typing.
+2. **TypeScript**: Enforce strict TypeScript typing across all screens and hooks.
 3. **Component Design**: Build modular, reusable components. Keep state management predictable.
 4. **API Integration**: All backend communication must flow through the `@soouls/api` tRPC client. No direct HTTP calls unless necessary.
 5. **Styling**: Ensure components use modern UI aesthetics adhering to Soouls design guidelines. Be responsive to different screen sizes.

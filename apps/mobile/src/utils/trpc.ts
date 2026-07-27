@@ -22,7 +22,7 @@ export const trpcClient = (getToken: () => Promise<string | null>) =>
   trpc.createClient({
     links: [
       httpBatchLink({
-        url: `${getBaseUrl()}/api/trpc`,
+        url: `${getBaseUrl()}/trpc`,
         async headers() {
           const token = await getToken();
           return {

@@ -1,46 +1,91 @@
-import { useAuth } from '@clerk/clerk-expo';
-import { PlusCircle, Settings } from 'lucide-react-native';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PlusCircle, Flame, BookOpen, Sparkles, ChevronRight, Layers } from 'lucide-react-native';
 import { Card } from '../../components/ui/Card';
-import { useEntries } from '../../hooks/useEntries';
+import { trpc } from '../../utils/trpc';
 import { getEntryTitle, getEntryPlainText } from '../../utils/entries';
-import type { entries } from '../../utils/trpc';
 
 export function DashboardScreen({ navigation }: any) {
-  const { signOut } = useAuth();
-  const { data: entriesData, isLoading: isLoadingEntries } = useEntries(5);
-  // Optional: Wire getInsights here as per phase 3, although we are in phase 1 mostly.
-  // const { data: insightsData } = trpc.private.home.getInsights.useQuery();
+  const { data: insights, isLoading: isLoadingInsights, refetch: refetchInsights, isRefetching } =
+    trpc.private.home.getInsights.useQuery(undefined);
+
+  const { data: entriesData, isLoading: isLoadingEntries } = trpc.private.entries.getAll.useQuery({
+    limit: 5,
+  });
+
+  const refreshInsightsMutation = trpc.private.home.refreshInsights.useMutation({
+    onSuccess: () => {
+      refetchInsights();
+    },
+  });
+
+  const onRefresh = () => {
+    refreshInsightsMutation.mutate({});
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good Morning,</Text>
+          <Text style={styles.greeting}>Welcome back,</Text>
           <Text style={styles.title}>Your Journal</Text>
         </View>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Settings')}
-          style={styles.headerButton}
+          style={styles.clustersShortcut}
+          onPress={() => navigation.navigate('Clusters')}
         >
-          <Settings color="#1C1C1E" size={24} />
+          <Layers color="#007AFF" size={22} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching || refreshInsightsMutation.isPending} onRefresh={onRefresh} />}
+      >
+        {/* Stats Grid */}
         <View style={styles.statsContainer}>
           <Card style={styles.statCard}>
-            <Text style={styles.statNumber}>-</Text>
-            <Text style={styles.statLabel}>Entries this week</Text>
+            <Flame color="#FF9500" size={24} style={{ marginBottom: 4 }} />
+            <Text style={styles.statNumber}>
+              {isLoadingInsights ? '-' : insights?.overview?.currentStreak ?? 0}
+            </Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
           </Card>
+
           <Card style={styles.statCard}>
-            <Text style={styles.statNumber}>-</Text>
-            <Text style={styles.statLabel}>Day streak</Text>
+            <BookOpen color="#007AFF" size={24} style={{ marginBottom: 4 }} />
+            <Text style={styles.statNumber}>
+              {isLoadingInsights ? '-' : insights?.overview?.entryCount ?? 0}
+            </Text>
+            <Text style={styles.statLabel}>Total Entries</Text>
           </Card>
         </View>
 
+        {/* AI Dominant Theme / Insights Banner */}
+        {insights?.dominantTheme ? (
+          <Card style={styles.themeBanner}>
+            <View style={styles.bannerHeader}>
+              <Sparkles color="#5856D6" size={18} style={{ marginRight: 6 }} />
+              <Text style={styles.bannerTag}>Current Dominant Theme</Text>
+            </View>
+            <Text style={styles.dominantThemeText}>{insights.dominantTheme}</Text>
+            {insights.statLine ? (
+              <Text style={styles.statLineText}>{insights.statLine}</Text>
+            ) : null}
+          </Card>
+        ) : null}
+
+        {/* Recent Entries Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Entries</Text>
           <TouchableOpacity onPress={() => navigation.navigate('EntryList')}>
@@ -50,27 +95,56 @@ export function DashboardScreen({ navigation }: any) {
 
         {isLoadingEntries ? (
           <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 24 }} />
+        ) : !entriesData?.items || entriesData.items.length === 0 ? (
+          <Card style={styles.emptyCard}>
+            <Text style={styles.emptyText}>No journal entries yet.</Text>
+            <Text style={styles.emptySubtext}>Tap the + button below to write your first entry.</Text>
+          </Card>
         ) : (
-          entriesData?.items.map((entry) => {
+          entriesData.items.map((entry) => {
             const title = getEntryTitle(entry);
             const plainText = getEntryPlainText(entry);
-            const dateStr = new Date(entry.createdAt).toLocaleDateString();
+            const dateStr = entry.createdAt
+              ? new Date(entry.createdAt).toLocaleDateString()
+              : '';
 
             return (
-              <Card key={entry.id} style={styles.entryCard}>
-                <View style={styles.entryHeader}>
-                  <Text style={styles.entryTitle} numberOfLines={1}>{title}</Text>
-                  <Text style={styles.entryDate}>{dateStr}</Text>
-                </View>
-                <Text style={styles.entrySnippet} numberOfLines={2}>
-                  {plainText}
-                </Text>
-              </Card>
+              <TouchableOpacity
+                key={entry.id}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('EntryDetail', { id: entry.id })}
+              >
+                <Card style={styles.entryCard}>
+                  <View style={styles.entryHeader}>
+                    <Text style={styles.entryTitle} numberOfLines={1}>
+                      {title}
+                    </Text>
+                    <Text style={styles.entryDate}>{dateStr}</Text>
+                  </View>
+                  <Text style={styles.entrySnippet} numberOfLines={2}>
+                    {plainText}
+                  </Text>
+                  <View style={styles.entryCardFooter}>
+                    {entry.sentimentLabel && (
+                      <View
+                        style={[
+                          styles.sentimentChip,
+                          { backgroundColor: entry.sentimentColor || '#E5F1FF' },
+                        ]}
+                      >
+                        <Text style={styles.sentimentText}>{entry.sentimentLabel}</Text>
+                      </View>
+                    )}
+                    <ChevronRight color="#C7C7CC" size={16} />
+                  </View>
+                </Card>
+              </TouchableOpacity>
             );
           })
         )}
       </ScrollView>
 
+      {/* FAB to create entry */}
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('CreateEntry')}>
         <PlusCircle color="#FFFFFF" size={32} />
       </TouchableOpacity>
@@ -89,29 +163,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 24,
+    paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
   greeting: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#8E8E93',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#1C1C1E',
   },
-  headerButton: {
-    padding: 8,
+  clustersShortcut: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F2F2F7',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
+    paddingTop: 20,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    marginBottom: 20,
   },
   statCard: {
     flex: 1,
@@ -120,21 +203,50 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 4,
+    color: '#1C1C1E',
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 12,
     color: '#8E8E93',
     textAlign: 'center',
+    fontWeight: '500',
+  },
+  themeBanner: {
+    backgroundColor: '#F4F3FF',
+    borderWidth: 1,
+    borderColor: '#E0DBFF',
+    padding: 18,
+    marginBottom: 24,
+  },
+  bannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  bannerTag: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#5856D6',
+    textTransform: 'uppercase',
+  },
+  dominantThemeText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1C1C1E',
+    marginBottom: 4,
+  },
+  statLineText: {
+    fontSize: 13,
+    color: '#636366',
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   sectionTitle: {
     fontSize: 20,
@@ -171,14 +283,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+    marginBottom: 10,
+  },
+  entryCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sentimentChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  sentimentText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  emptyCard: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1C1C1E',
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: '#8E8E93',
+    textAlign: 'center',
   },
   fab: {
     position: 'absolute',
-    bottom: 32,
+    bottom: 24,
     right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',

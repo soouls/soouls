@@ -194,15 +194,15 @@ export function parseEntryData(
   };
 }
 
-export function getEntryTitle(entry: Pick<UserEntry, 'title' | 'content'>): string {
+export function getEntryTitle(entry: { content: string; title?: string | null }): string {
   return parseEntryData(entry.content, entry.title).title;
 }
 
-export function getEntryPlainText(entry: Pick<UserEntry, 'title' | 'content'>): string {
+export function getEntryPlainText(entry: { content: string; title?: string | null }): string {
   return parseEntryData(entry.content, entry.title).fullText;
 }
 
-export function getEntrySearchText(entry: Pick<UserEntry, 'title' | 'content'>): string {
+export function getEntrySearchText(entry: { content: string; title?: string | null }): string {
   const parsed = parseEntryData(entry.content, entry.title);
   return [parsed.title, parsed.fullText].filter(Boolean).join(' ').toLowerCase();
 }

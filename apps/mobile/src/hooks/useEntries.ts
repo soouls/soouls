@@ -16,6 +16,8 @@ export function useUpsertSync() {
     onSuccess: () => {
       utils.private.entries.getAll.invalidate();
       utils.private.home.getClusters.invalidate();
+      utils.private.home.getInsights.invalidate();
+      utils.private.home.getAccount.invalidate();
     }
   });
 }
@@ -26,6 +28,8 @@ export function useCreateEntry() {
     onSuccess: () => {
       utils.private.entries.getAll.invalidate();
       utils.private.home.getClusters.invalidate();
+      utils.private.home.getInsights.invalidate();
+      utils.private.home.getAccount.invalidate();
     }
   });
 }
@@ -36,6 +40,8 @@ export function useDeleteEntry() {
     onSuccess: () => {
       utils.private.entries.getAll.invalidate();
       utils.private.home.getClusters.invalidate();
+      utils.private.home.getInsights.invalidate();
+      utils.private.home.getAccount.invalidate();
     }
   });
 }

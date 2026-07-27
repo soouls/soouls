@@ -1,16 +1,35 @@
-import { useAuth, useUser } from '@clerk/clerk-expo';
-import { Bell, ChevronLeft, LogOut, Moon, Shield } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth, useUser } from '@clerk/clerk-expo';
+import { ChevronLeft, LogOut, Bell, Layers, Sparkles, Eye, Save } from 'lucide-react-native';
 import { Card } from '../../components/ui/Card';
+import { trpc } from '../../utils/trpc';
 
 export function SettingsScreen({ navigation }: any) {
   const { signOut } = useAuth();
   const { user } = useUser();
 
-  const [notifications, setNotifications] = React.useState(true);
-  const [darkMode, setDarkMode] = React.useState(false);
+  const { data: settings, isLoading, refetch } = trpc.private.home.getSettings.useQuery(undefined);
+  const updateSettingsMutation = trpc.private.home.updateSettings.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+  });
+
+  const handleToggle = (key: string, value: boolean) => {
+    updateSettingsMutation.mutate({
+      [key]: value,
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -23,63 +42,129 @@ export function SettingsScreen({ navigation }: any) {
         <View style={{ width: 70 }} />
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.profileSection}>
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>
-              {user?.firstName?.charAt(0) ||
-                user?.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() ||
-                'U'}
-            </Text>
-          </View>
-          <Text style={styles.name}>{user?.firstName || 'User'}</Text>
-          <Text style={styles.email}>{user?.emailAddresses[0]?.emailAddress}</Text>
+      {isLoading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
         </View>
-
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        <Card style={styles.settingsCard}>
-          <View style={styles.settingRow}>
-            <View style={styles.settingLeft}>
-              <Bell color="#1C1C1E" size={20} style={styles.icon} />
-              <Text style={styles.settingLabel}>Push Notifications</Text>
+      ) : (
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* User Header */}
+          <View style={styles.profileSection}>
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {user?.firstName?.charAt(0) ||
+                  user?.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() ||
+                  'U'}
+              </Text>
             </View>
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{ false: '#D1D1D6', true: '#34C759' }}
-            />
+            <Text style={styles.name}>{user?.fullName || user?.firstName || 'User'}</Text>
+            <Text style={styles.email}>{user?.emailAddresses[0]?.emailAddress}</Text>
           </View>
-          <View style={styles.divider} />
-          <View style={styles.settingRow}>
-            <View style={styles.settingLeft}>
-              <Moon color="#1C1C1E" size={20} style={styles.icon} />
-              <Text style={styles.settingLabel}>Dark Mode</Text>
-            </View>
-            <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
-              trackColor={{ false: '#D1D1D6', true: '#34C759' }}
-            />
-          </View>
-        </Card>
 
-        <Text style={styles.sectionTitle}>Account</Text>
-        <Card style={styles.settingsCard}>
-          <TouchableOpacity style={styles.settingRow}>
-            <View style={styles.settingLeft}>
-              <Shield color="#1C1C1E" size={20} style={styles.icon} />
-              <Text style={styles.settingLabel}>Privacy & Security</Text>
+          {/* Preferences Section */}
+          <Text style={styles.sectionTitle}>Journaling & AI</Text>
+          <Card style={styles.settingsCard}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingLeft}>
+                <Layers color="#1C1C1E" size={20} style={styles.icon} />
+                <View style={styles.labelContainer}>
+                  <Text style={styles.settingLabel}>Auto-Clustering</Text>
+                  <Text style={styles.settingSublabel}>Automatically organize related entries</Text>
+                </View>
+              </View>
+              <Switch
+                value={settings?.autoClustering ?? true}
+                onValueChange={(val) => handleToggle('autoClustering', val)}
+                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                disabled={updateSettingsMutation.isPending}
+              />
             </View>
-          </TouchableOpacity>
-          <View style={styles.divider} />
-          <TouchableOpacity style={styles.settingRow} onPress={() => signOut()}>
-            <View style={styles.settingLeft}>
-              <LogOut color="#FF3B30" size={20} style={styles.icon} />
-              <Text style={[styles.settingLabel, { color: '#FF3B30' }]}>Sign Out</Text>
+
+            <View style={styles.divider} />
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingLeft}>
+                <Sparkles color="#1C1C1E" size={20} style={styles.icon} />
+                <View style={styles.labelContainer}>
+                  <Text style={styles.settingLabel}>AI Suggestions</Text>
+                  <Text style={styles.settingSublabel}>Receive prompts and key insights</Text>
+                </View>
+              </View>
+              <Switch
+                value={settings?.suggestions ?? true}
+                onValueChange={(val) => handleToggle('suggestions', val)}
+                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                disabled={updateSettingsMutation.isPending}
+              />
             </View>
-          </TouchableOpacity>
-        </Card>
-      </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingLeft}>
+                <Save color="#1C1C1E" size={20} style={styles.icon} />
+                <View style={styles.labelContainer}>
+                  <Text style={styles.settingLabel}>Autosave Drafts</Text>
+                  <Text style={styles.settingSublabel}>Automatically sync entry changes</Text>
+                </View>
+              </View>
+              <Switch
+                value={settings?.autosave ?? true}
+                onValueChange={(val) => handleToggle('autosave', val)}
+                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                disabled={updateSettingsMutation.isPending}
+              />
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingLeft}>
+                <Eye color="#1C1C1E" size={20} style={styles.icon} />
+                <View style={styles.labelContainer}>
+                  <Text style={styles.settingLabel}>Focus Mode</Text>
+                  <Text style={styles.settingSublabel}>Distraction-free writing interface</Text>
+                </View>
+              </View>
+              <Switch
+                value={settings?.focusMode ?? false}
+                onValueChange={(val) => handleToggle('focusMode', val)}
+                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                disabled={updateSettingsMutation.isPending}
+              />
+            </View>
+          </Card>
+
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <Card style={styles.settingsCard}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingLeft}>
+                <Bell color="#1C1C1E" size={20} style={styles.icon} />
+                <View style={styles.labelContainer}>
+                  <Text style={styles.settingLabel}>Daily Reminders</Text>
+                  <Text style={styles.settingSublabel}>Remind me to journal every day</Text>
+                </View>
+              </View>
+              <Switch
+                value={settings?.dailyReminder ?? true}
+                onValueChange={(val) => handleToggle('dailyReminder', val)}
+                trackColor={{ false: '#D1D1D6', true: '#34C759' }}
+                disabled={updateSettingsMutation.isPending}
+              />
+            </View>
+          </Card>
+
+          <Text style={styles.sectionTitle}>Account</Text>
+          <Card style={styles.settingsCard}>
+            <TouchableOpacity style={styles.settingRow} onPress={() => signOut()}>
+              <View style={styles.settingLeft}>
+                <LogOut color="#FF3B30" size={20} style={styles.icon} />
+                <Text style={[styles.settingLabel, { color: '#FF3B30' }]}>Sign Out</Text>
+              </View>
+            </TouchableOpacity>
+          </Card>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -114,25 +199,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1C1C1E',
   },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
     flex: 1,
     padding: 24,
   },
   profileSection: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   avatarText: {
-    fontSize: 32,
+    fontSize: 28,
     color: '#FFF',
     fontWeight: 'bold',
   },
@@ -140,19 +230,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1C1C1E',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   email: {
     fontSize: 14,
     color: '#8E8E93',
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#8E8E93',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 8,
-    marginLeft: 8,
+    marginLeft: 4,
   },
   settingsCard: {
     marginBottom: 24,
@@ -169,13 +260,24 @@ const styles = StyleSheet.create({
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
   },
   icon: {
     marginRight: 12,
   },
+  labelContainer: {
+    flex: 1,
+  },
   settingLabel: {
     fontSize: 16,
     color: '#1C1C1E',
+    fontWeight: '500',
+  },
+  settingSublabel: {
+    fontSize: 12,
+    color: '#8E8E93',
+    marginTop: 2,
   },
   divider: {
     height: 1,
