@@ -207,7 +207,8 @@ async function main() {
     console.warn(e.message);
   }
 
-  console.log('Done.');  process.exit(0);
+  console.log('Done.');
+  process.exit(0);
 }
 
 main().catch((e) => {

@@ -20,7 +20,7 @@ import type {
   HomeInsights,
   HomeSettings,
 } from '@soouls/api/router';
-import { and, db, desc, eq, inArray } from '@soouls/database/client';
+import { and, db, desc, eq, inArray, sql } from '@soouls/database/client';
 import {
   canvasNodes,
   clusters,
@@ -305,17 +305,21 @@ export class HomeService implements HomeApi {
       now: new Date(),
     });
 
-    let analytics: HomeAnalyticsBundle;
-    try {
-      analytics = await Promise.race([
-        this.enrichAnalyticsWithAiCopy(baseAnalytics, user.name ?? 'Explorer', entries),
-        new Promise<HomeAnalyticsBundle>((_, reject) =>
-          setTimeout(() => reject(new Error('AI enrichment timeout')), 10000),
-        ),
-      ]);
-    } catch (err) {
-      console.error('[HomeService] AI enrichment failed, using base analytics:', err);
-      analytics = baseAnalytics;
+    let analytics: HomeAnalyticsBundle = baseAnalytics;
+    const isPremium = user.planType !== 'free' || user.isWaitlistUser;
+
+    if (isPremium) {
+      try {
+        analytics = await Promise.race([
+          this.enrichAnalyticsWithAiCopy(baseAnalytics, user.name ?? 'Explorer', entries),
+          new Promise<HomeAnalyticsBundle>((_, reject) =>
+            setTimeout(() => reject(new Error('AI enrichment timeout')), 10000),
+          ),
+        ]);
+      } catch (err) {
+        console.error('[HomeService] AI enrichment failed, using base analytics:', err);
+        analytics = baseAnalytics;
+      }
     }
 
     const snapshot = {
@@ -465,6 +469,22 @@ export class HomeService implements HomeApi {
   }
 
   async refreshInsights(userId: string): Promise<HomeInsights> {
+    const user = await this.getUserRow(userId);
+    if (user.planType === 'free' && !user.isWaitlistUser) {
+      const preferences = (user.preferences as any) || {};
+      const insightsCount = preferences.insightsGeneratedCount || 0;
+      if (insightsCount >= 10) {
+        throw new Error(
+          'You have reached the limit of 10 insights on the free plan. Please upgrade to Premium.',
+        );
+      }
+
+      // Increment the count for free users
+      await db
+        .update(users)
+        .set({ preferences: { ...preferences, insightsGeneratedCount: insightsCount + 1 } })
+        .where(eq(users.id, userId));
+    }
     const monthKey = new Date().toISOString().slice(0, 7);
     const cacheKey = `${this.getCacheKey('home:snapshot:v5', userId)}:${monthKey}`;
     await this.redis.del(cacheKey);
@@ -475,6 +495,19 @@ export class HomeService implements HomeApi {
   }
 
   private async triggerBackgroundEnrichment(userId: string) {
+    const user = await this.getUserRow(userId);
+    if (user.planType === 'free' && !user.isWaitlistUser) {
+      const preferences = (user.preferences as any) || {};
+      const insightsCount = preferences.insightsGeneratedCount || 0;
+      if (insightsCount >= 10) return; // Block background enrichment if limit reached
+
+      // Increment the count for free users since this does AI enrichment
+      await db
+        .update(users)
+        .set({ preferences: { ...preferences, insightsGeneratedCount: insightsCount + 1 } })
+        .where(eq(users.id, userId));
+    }
+
     const lockKey = `home:enrichment-lock:${userId}`;
     const lockToken = Math.random().toString(36).substring(2);
 
@@ -497,8 +530,12 @@ export class HomeService implements HomeApi {
     const preferences = (user.preferences ?? {}) as Record<string, unknown>;
     const completed = preferences.onboardingCompleted === true;
 
-    const trialEndsAt = user.trialEndsAt || new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
-    const trialDaysLeft = Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+    const trialEndsAt =
+      user.trialEndsAt || new Date(user.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const trialDaysLeft = Math.max(
+      0,
+      Math.ceil((trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
+    );
     const isTrialActive = trialDaysLeft > 0 && (user.planType === 'free' || !user.planType);
 
     return {
@@ -626,6 +663,10 @@ export class HomeService implements HomeApi {
   }
 
   async recluster(userId: string) {
+    const user = await this.getUserRow(userId);
+    if (user.planType === 'free' && !user.isWaitlistUser) {
+      throw new Error('Reclustering requires a Premium subscription.');
+    }
     await this.redis.invalidatePattern(`home:*:${userId}*`);
     return this.getClusters(userId);
   }
@@ -972,6 +1013,19 @@ export class HomeService implements HomeApi {
       let clusterId = existing?.id;
 
       if (!existing) {
+        // Enforce 10 cluster limit for free users
+        const [user] = await db
+          .select({ planType: users.planType, isWaitlistUser: users.isWaitlistUser })
+          .from(users)
+          .where(eq(users.id, userId));
+        if (user?.planType === 'free' && !user?.isWaitlistUser) {
+          const [{ count }] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(clusters)
+            .where(eq(clusters.userId, userId));
+          if (count >= 10) continue; // Skip creating if they have 10 or more clusters
+        }
+
         const [created] = await db
           .insert(clusters)
           .values({
@@ -1079,6 +1133,22 @@ export class HomeService implements HomeApi {
   }
 
   async createFolder(userId: string, input: { name?: string }) {
+    const [user] = await db
+      .select({ planType: users.planType, isWaitlistUser: users.isWaitlistUser })
+      .from(users)
+      .where(eq(users.id, userId));
+    if (user?.planType === 'free' && !user?.isWaitlistUser) {
+      const [{ count }] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(clusters)
+        .where(eq(clusters.userId, userId));
+      if (count >= 10) {
+        throw new Error(
+          'You have reached the limit of 10 clusters on the free plan. Please upgrade to Premium.',
+        );
+      }
+    }
+
     const { analytics } = await this.getSnapshot(userId);
     const suggestedName = analytics.clusters.items[0]?.name ?? 'New Space';
     const folderName = input.name?.trim() || suggestedName;
@@ -1447,6 +1517,10 @@ export class HomeService implements HomeApi {
   }
 
   async regenerateEntryCanvas(userId: string, entryId: string): Promise<EntryCanvas> {
+    const user = await this.getUserRow(userId);
+    if (user.planType === 'free' && !user.isWaitlistUser) {
+      throw new Error('AI Canvas generation requires a Premium subscription.');
+    }
     const generated = await this.buildGeneratedCanvas(userId, entryId);
     return this.persistEntryCanvas(userId, generated);
   }

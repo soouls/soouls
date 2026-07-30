@@ -10,23 +10,27 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { ClerkAuthGuard } from '../utils/auth.guard';
 import type { PaymentsService } from './payments.service';
-// Assuming there is a Clerk AuthGuard or similar
-// import { ClerkAuthGuard } from '../auth/clerk-auth.guard';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('create-subscription')
-  // @UseGuards(ClerkAuthGuard)
-  async createSubscription(@Body() body: { planId: string; userId: string }) {
-    // In a real app, extract userId from req.user (from Clerk Auth)
-    // For now we accept it in body for simplicity or require it via headers
-    const { planId, userId } = body;
+  @UseGuards(ClerkAuthGuard)
+  async createSubscription(
+    @Req() req: Request,
+    @Body() body: { planId: string; hasTrial?: boolean },
+  ) {
+    const userId = (req as any).user?.id;
+    const { planId, hasTrial } = body;
 
-    if (!planId || !userId) {
-      throw new HttpException('Missing planId or userId', HttpStatus.BAD_REQUEST);
+    if (!userId) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+    if (!planId) {
+      throw new HttpException('Missing planId', HttpStatus.BAD_REQUEST);
     }
 
     try {
@@ -36,6 +40,7 @@ export class PaymentsController {
         subscriptionId: subscription.id,
       };
     } catch (e: any) {
+      if (e instanceof HttpException) throw e;
       throw new HttpException(
         e.message || 'Internal error',
         e.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -43,9 +48,70 @@ export class PaymentsController {
     }
   }
 
+  @Post('create-order')
+  @UseGuards(ClerkAuthGuard)
+  async createOrder(@Req() req: Request, @Body() body: { currency: string }) {
+    const userId = (req as any).user?.id;
+    const { currency } = body;
+
+    if (!userId) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+    if (!currency) {
+      throw new HttpException('Missing currency', HttpStatus.BAD_REQUEST);
+    }
+
+    const amount = currency === 'INR' ? 200 : 3.99;
+
+    try {
+      const order = await this.paymentsService.createOrder(userId, currency, amount);
+      return {
+        success: true,
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+      };
+    } catch (e: any) {
+      if (e instanceof HttpException) throw e;
+      throw new HttpException(
+        e.message || 'Internal error',
+        e.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('verify-subscription')
+  @UseGuards(ClerkAuthGuard)
+  async verifySubscription(
+    @Req() req: Request,
+    @Body() body: {
+      razorpay_payment_id: string;
+      razorpay_subscription_id: string;
+      razorpay_signature: string;
+    },
+  ) {
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+
+    try {
+      const result = await this.paymentsService.verifySubscription(userId, body);
+      return result;
+    } catch (e: any) {
+      if (e instanceof HttpException) throw e;
+      throw new HttpException(
+        e.message || 'Subscription verification failed',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @Post('cancel-subscription')
-  async cancelSubscription(@Body() body: { userId: string }) {
-    const { userId } = body;
+  @UseGuards(ClerkAuthGuard)
+  async cancelSubscription(@Req() req: Request) {
+    const userId = (req as any).user?.id;
 
     if (!userId) {
       throw new HttpException('Missing userId', HttpStatus.BAD_REQUEST);

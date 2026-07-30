@@ -120,7 +120,7 @@ export const ProfileSidebar: React.FC<ProfileSidebarProps> = ({
                 },
                 {
                   label: 'Upgrade / Pricing',
-                  href: '/pricing',
+                  href: '?showPricing=true',
                   icon: <Sparkles className="w-5 h-5 stroke-[1.5]" />,
                 },
               ].map((item) => (

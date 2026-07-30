@@ -1,5 +1,6 @@
 'use client';
 
+import { DotmCircular5 } from '@/components/ui/dotm-circular-5';
 import { useUser } from '@clerk/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -9,7 +10,6 @@ import {
   ChevronLeft,
   Flame,
   Image as ImageIcon,
-  Loader2,
   MessageCircleHeart,
   Mic,
   MoonStar,
@@ -32,7 +32,6 @@ import {
 } from '../../src/hooks/use-home-theme';
 import { trpc } from '../../src/utils/trpc';
 import { type MascotEmotion, MascotPreview } from '../components/OrbiMascotBase';
-import { RoseLoader } from '../components/RoseLoader';
 
 type ThemeColor = 'ember' | 'gold' | 'sage' | 'violet';
 
@@ -1006,7 +1005,7 @@ export default function OnboardingPage() {
         if (trimmedEntry && !skipEntry) {
           setShowCelebration(true);
           setTimeout(() => {
-            router.push('/home');
+            router.push('/home?showPricing=true&onboardingCompleted=true');
           }, 1900);
         } else {
           setStage('done');
@@ -1042,7 +1041,7 @@ export default function OnboardingPage() {
   if (isLoadingAuth || !isLoaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050505]">
-        <RoseLoader className="h-16 w-16" color="var(--soouls-accent)" />
+        <DotmCircular5 size={24} dotSize={3} color="var(--soouls-accent)" />
       </div>
     );
   }
@@ -1204,7 +1203,9 @@ export default function OnboardingPage() {
                       disabled={isFinishing}
                       className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--soouls-accent)] px-8 py-3.5 text-[15px] font-semibold tracking-tight text-black transition-all active:scale-[0.97] disabled:opacity-40 hover:brightness-110"
                     >
-                      {isFinishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                      {isFinishing ? (
+                        <DotmCircular5 size={16} dotSize={2} color="var(--soouls-accent)" />
+                      ) : null}
                       {firstEntry.trim() ? 'Create Node #001' : 'Enter empty universe'}
                       {!isFinishing ? <ArrowRight className="h-4 w-4" /> : null}
                     </button>
@@ -1228,7 +1229,7 @@ export default function OnboardingPage() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => router.push('/home')}
+                    onClick={() => router.push('/home?showPricing=true&onboardingCompleted=true')}
                     className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--soouls-accent)] px-7 py-3 text-[15px] font-semibold tracking-tight text-black transition-all active:scale-[0.97] hover:brightness-110"
                   >
                     Enter home

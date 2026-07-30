@@ -1,19 +1,10 @@
 'use client';
 
+import { DotmCircular5 } from '@/components/ui/dotm-circular-5';
 import { useUser } from '@clerk/nextjs';
 import type { HomeSettings } from '@soouls/api/router';
 import { motion } from 'framer-motion';
-import {
-  Bell,
-  ChevronDown,
-  Clock,
-  Loader2,
-  Moon,
-  Palette,
-  Sparkles,
-  Sun,
-  User,
-} from 'lucide-react';
+import { Bell, ChevronDown, Clock, Moon, Palette, Sparkles, Sun, User } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -253,10 +244,7 @@ export default function SettingsPage() {
 
         <div className="flex items-center gap-3 shrink-0">
           {feedback === 'saving' ? (
-            <Loader2
-              className="h-4 w-4 animate-spin"
-              style={{ color: 'var(--soouls-text-faint)' }}
-            />
+            <DotmCircular5 size={16} dotSize={2} color="var(--soouls-accent)" />
           ) : null}
           {feedback === 'saved' ? (
             <span className="text-xs" style={{ color: 'var(--soouls-accent)' }}>

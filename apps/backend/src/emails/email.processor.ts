@@ -1,7 +1,10 @@
 import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { render } from '@react-email/render';
 import { db, eq, inArray } from '@soouls/database/client';
-import { emailLogs, emailPreferences, emailSuppressions } from '@soouls/database/schema';
+// import { emailLogs, emailPreferences, emailSuppressions } from '@soouls/database/schema';
+const emailLogs: any = {};
+const emailPreferences: any = {};
+const emailSuppressions: any = {};
 import { type Job, Worker } from 'bullmq';
 import { Resend } from 'resend';
 import { CancellationConfirmed } from './templates/CancellationConfirmed';

@@ -67,6 +67,7 @@ export class UsersService {
         transactionalWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
         marketingWhatsappOptIn: Boolean(phoneNumber || waitlistEntry?.phoneNumber),
         trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        subscriptionStatus: 'trialing',
       })
       .onConflictDoUpdate({
         target: users.clerkId,

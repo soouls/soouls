@@ -97,9 +97,9 @@ export default function PricingContent() {
       ),
       features: [
         { text: 'Unlimited text entries', included: true },
-        { text: 'Spatial Canvas, 1 active cluster', included: true },
+        { text: 'Spatial Canvas, 10 active clusters', included: true },
         { text: '7-day River of Time', included: true },
-        { text: 'Voice notes & doodles', included: false },
+        { text: '10 AI Insight Generations', included: true },
         { text: 'Sunday Review', included: false },
       ],
       cta: 'Start free',
@@ -110,6 +110,8 @@ export default function PricingContent() {
       description: 'The full private journaling experience.',
       priceMonthly: 9,
       priceAnnual: 7.2,
+      razorpayPlanIdMonthly: process.env.NEXT_PUBLIC_RAZORPAY_SOUL_PLAN_ID_MONTHLY,
+      razorpayPlanIdAnnual: process.env.NEXT_PUBLIC_RAZORPAY_SOUL_PLAN_ID_ANNUAL,
       icon: <Sparkles className="text-[var(--soouls-accent)] w-6 h-6" />,
       features: [
         { text: 'Everything in Node', included: true },
@@ -127,6 +129,8 @@ export default function PricingContent() {
       description: 'For minds that want the deepest read.',
       priceMonthly: 19,
       priceAnnual: 15.2,
+      razorpayPlanIdMonthly: process.env.NEXT_PUBLIC_RAZORPAY_UNIVERSE_PLAN_ID_MONTHLY,
+      razorpayPlanIdAnnual: process.env.NEXT_PUBLIC_RAZORPAY_UNIVERSE_PLAN_ID_ANNUAL,
       icon: <InfinityIcon className="text-[#6450d6] w-6 h-6" />,
       features: [
         { text: 'Everything in Soul', included: true },

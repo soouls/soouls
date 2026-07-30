@@ -69,6 +69,7 @@
     "@soouls/typescript-config": "*",
     "@types/bun": "latest",
     "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
     "@types/lz-string": "^1.5.0",
     "@types/node": "^20.3.1",
     "jest": "^29.5.0",

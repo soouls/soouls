@@ -40,6 +40,9 @@ mock.module('resend', () => ({
 }));
 
 mock.module('@soouls/database/schema', () => ({
+  payments: {},
+  subscriptions: {},
+  razorpayWebhooks: {},
   adminInvites: { id: 'admin_invites.id' },
   adminUsers: { userId: 'admin_users.user_id' },
   canvasNodes: { entryId: 'canvas_nodes.entry_id' },

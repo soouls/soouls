@@ -10,7 +10,6 @@ import {
   Check,
   CircleOff,
   LayoutGrid,
-  Loader2,
   Mic,
   Moon,
   MoreVertical,

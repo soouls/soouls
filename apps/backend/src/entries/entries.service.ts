@@ -422,6 +422,15 @@ export class EntriesService {
     type: 'entry' | 'task' = 'entry',
     options: { analyze?: boolean } = {},
   ) {
+    const [user] = await db
+      .select({ planType: users.planType, isWaitlistUser: users.isWaitlistUser })
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (user?.planType === 'free' && !user?.isWaitlistUser) {
+      // Free users can create unlimited entries now, per user request.
+    }
+
     const derived = this.deriveEntryFields(content, type);
     const { sentiment, embedding } = options.analyze
       ? await this.analyzeEntryText(derived.extractedText)

@@ -2,7 +2,9 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema/index.js';
 
-const connectionString = process.env.DATABASE_URL || '';
+const connectionString =
+  process.env.DATABASE_URL ||
+  (process.env.NODE_ENV === 'test' ? 'postgres://dummy:dummy@localhost:5432/dummy' : '');
 
 if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required');

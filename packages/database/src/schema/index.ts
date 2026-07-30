@@ -455,7 +455,9 @@ export const aiUsageLogs = pgTable('ai_usage_logs', {
 // ────────────────────────────────────────
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id).notNull(),
+  userId: uuid('user_id')
+    .references(() => users.id)
+    .notNull(),
   providerSubscriptionId: text('provider_subscription_id').notNull().unique(),
   provider: paymentProviderEnum('provider').notNull(),
   status: subscriptionStatusEnum('status').notNull(),
@@ -474,7 +476,9 @@ export const subscriptions = pgTable('subscriptions', {
 
 export const payments = pgTable('payments', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => users.id).notNull(),
+  userId: uuid('user_id')
+    .references(() => users.id)
+    .notNull(),
   subscriptionId: uuid('subscription_id').references(() => subscriptions.id),
   providerPaymentId: text('provider_payment_id').notNull().unique(),
   provider: paymentProviderEnum('provider').notNull(),

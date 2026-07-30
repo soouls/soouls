@@ -42,6 +42,9 @@ mock.module('../redis/redis.service', () => ({
 }));
 
 mock.module('@soouls/database/schema', () => ({
+  payments: {},
+  subscriptions: {},
+  razorpayWebhooks: {},
   adminInvites: { id: 'admin_invites.id' },
   adminUsers: { userId: 'admin_users.user_id' },
   canvasNodes: {

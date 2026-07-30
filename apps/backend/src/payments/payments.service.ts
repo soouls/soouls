@@ -61,6 +61,106 @@ export class PaymentsService {
     return subscription;
   }
 
+  async createOrder(userId: string, currency: string, amount: number) {
+    if (!this.razorpay) {
+      throw new HttpException('Payment gateway not configured', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const isClerkId = userId.startsWith('user_');
+    const [user] = await db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .where(isClerkId ? eq(users.clerkId, userId) : eq(users.id, userId));
+
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    const amountInPaise = Math.round(amount * 100);
+
+    const order = await this.razorpay.orders.create({
+      amount: amountInPaise,
+      currency: currency,
+      notes: { userId: user.id },
+    });
+
+    return order;
+  }
+
+  async verifySubscription(
+    userId: string,
+    params: {
+      razorpay_payment_id: string;
+      razorpay_subscription_id: string;
+      razorpay_signature: string;
+    },
+  ) {
+    if (!this.razorpay) {
+      throw new HttpException('Payment gateway not configured', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = params;
+
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) throw new Error('Razorpay secret not configured');
+
+    const generatedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+      .digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      throw new HttpException('Invalid signature', HttpStatus.BAD_REQUEST);
+    }
+
+    const isClerkId = userId.startsWith('user_');
+    const [user] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(isClerkId ? eq(users.clerkId, userId) : eq(users.id, userId));
+
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    // Update the DB to mark subscription as active (assuming webhook handles the detailed sync)
+    // Here we can fetch the actual subscription details if needed, but for now we'll rely on webhook
+
+    // We should create/update the subscription record directly here in case webhook is delayed
+    try {
+      const sub = await this.razorpay.subscriptions.fetch(razorpay_subscription_id);
+
+      await db
+        .insert(subscriptions)
+        .values({
+          userId: user.id,
+          providerSubscriptionId: razorpay_subscription_id,
+          provider: 'razorpay',
+          status: 'active',
+          planType: 'premium',
+          currentPeriodStart: new Date(sub.current_start * 1000),
+          currentPeriodEnd: new Date(sub.current_end * 1000),
+        })
+        .onConflictDoUpdate({
+          target: [subscriptions.providerSubscriptionId],
+          set: {
+            status: 'active',
+            currentPeriodStart: new Date(sub.current_start * 1000),
+            currentPeriodEnd: new Date(sub.current_end * 1000),
+            updatedAt: new Date(),
+          },
+        });
+
+      await db
+        .update(users)
+        .set({
+          subscriptionStatus: 'active',
+          planType: 'premium',
+        })
+        .where(eq(users.id, user.id));
+    } catch (e) {
+      this.logger.error('Failed to sync subscription after verification', e);
+    }
+
+    return { success: true, message: 'Subscription verified' };
+  }
+
   async verifyWebhook(signature: string, rawBody: string) {
     const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
     if (!secret) throw new Error('Razorpay webhook secret not configured');

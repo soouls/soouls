@@ -1,16 +1,8 @@
+import { DotmCircular5 } from '@/components/ui/dotm-circular-5';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { Badge, DayCell, IconButton } from '@soouls/ui-kit';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Calendar,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  PenSquare,
-  Search,
-  X,
-} from 'lucide-react';
+import { Calendar, Check, ChevronLeft, ChevronRight, PenSquare, Search, X } from 'lucide-react';
 import LZString from 'lz-string';
 import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -247,7 +239,7 @@ function GCalModal({
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[var(--soouls-accent)] py-3 text-sm font-semibold text-white hover:opacity-90 transition-colors transition-transform transition-shadow shadow-lg shadow-[var(--soouls-accent)]/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {connecting ? (
-                  <Loader2 size={14} className="animate-spin" />
+                  <DotmCircular5 size={24} dotSize={3} color="var(--soouls-accent)" />
                 ) : (
                   <Calendar size={14} />
                 )}
@@ -538,7 +530,7 @@ export function CalendarModal({ onClose }: { onClose: () => void }) {
               {periodLabel}
               {isLoading && (
                 <span className="absolute -right-8 top-1/2 -translate-y-1/2">
-                  <Loader2 className="animate-spin text-[var(--soouls-accent)]" size={16} />
+                  <DotmCircular5 size={16} dotSize={2} color="var(--soouls-accent)" />
                 </span>
               )}
             </h2>

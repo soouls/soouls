@@ -6,12 +6,12 @@ import { AppService } from './app.service';
 import { CommandCenterModule } from './command-center/command-center.module';
 import { EmailsModule } from './emails/emails.module';
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
+import { PaymentsModule } from './payments/payments.module';
 import { RedisModule } from './redis/redis.module';
 import { isVercelRuntime } from './runtime';
 import { ServicesModule } from './services/services.module';
 import { TrpcModule } from './trpc/trpc.module';
 import { UsersModule } from './users/users.module';
-import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [

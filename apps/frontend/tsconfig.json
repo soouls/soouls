@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./*"],
       "@soouls/ui-kit": ["../../packages/ui-kit/src/index.tsx"],
       "@soouls/api": ["../../packages/api/src/index.ts"],
       "@soouls/logic": ["../../packages/logic/src/index.ts"]

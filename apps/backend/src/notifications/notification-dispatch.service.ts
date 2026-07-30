@@ -411,7 +411,9 @@ export class NotificationDispatchService {
         return;
       }
 
-      console.error(`[Messaging] Resend automation event failed: ${errorData?.message || response.statusText}`);
+      console.error(
+        `[Messaging] Resend automation event failed: ${errorData?.message || response.statusText}`,
+      );
       return;
     }
   }

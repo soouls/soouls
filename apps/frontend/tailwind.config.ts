@@ -10,6 +10,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Shadcn UI tokens
+        border: 'oklch(var(--border) / <alpha-value>)',
+        input: 'oklch(var(--input) / <alpha-value>)',
+        ring: 'oklch(var(--ring) / <alpha-value>)',
+        background: 'oklch(var(--background) / <alpha-value>)',
+        foreground: 'oklch(var(--foreground) / <alpha-value>)',
+        primary: {
+          DEFAULT: 'oklch(var(--primary) / <alpha-value>)',
+          foreground: 'oklch(var(--primary-foreground) / <alpha-value>)',
+        },
+        secondary: {
+          DEFAULT: 'oklch(var(--secondary) / <alpha-value>)',
+          foreground: 'oklch(var(--secondary-foreground) / <alpha-value>)',
+        },
+        destructive: {
+          DEFAULT: 'oklch(var(--destructive) / <alpha-value>)',
+          foreground: 'oklch(var(--destructive-foreground) / <alpha-value>)',
+        },
+        muted: {
+          DEFAULT: 'oklch(var(--muted) / <alpha-value>)',
+          foreground: 'oklch(var(--muted-foreground) / <alpha-value>)',
+        },
+        accent: {
+          DEFAULT: 'oklch(var(--accent) / <alpha-value>)',
+          foreground: 'oklch(var(--accent-foreground) / <alpha-value>)',
+        },
+        popover: {
+          DEFAULT: 'oklch(var(--popover) / <alpha-value>)',
+          foreground: 'oklch(var(--popover-foreground) / <alpha-value>)',
+        },
+        card: {
+          DEFAULT: 'oklch(var(--card) / <alpha-value>)',
+          foreground: 'oklch(var(--card-foreground) / <alpha-value>)',
+        },
         // Aura System
         'aura-joy': '#FDE68A',
         'aura-melancholy': '#94A3B8',
@@ -25,11 +59,6 @@ const config: Config = {
         anxious: '#ff6b6b',
         calm: '#51cf66',
         angry: '#ff4757',
-        primary: '#6366f1',
-        secondary: '#8b5cf6',
-        background: '#0a0a0a',
-        surface: '#1a1a1a',
-        text: '#ffffff',
         'text-muted': '#a0a0a0',
       },
       fontFamily: {
@@ -97,7 +126,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 };
 
 export default config;

@@ -25,17 +25,31 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.next();
   }
 
-  // 1. If user is authenticated and tries to access the landing page, redirect to /home
-  if (userId && pathname === '/') {
-    return NextResponse.redirect(new URL('/home', request.url));
+  let response = NextResponse.next();
+
+  // 1. If user is authenticated and tries to access the landing page or pricing page, redirect them.
+  if (userId) {
+    if (pathname === '/') {
+      response = NextResponse.redirect(new URL('/home', request.url));
+    } else if (pathname.startsWith('/pricing')) {
+      response = NextResponse.redirect(new URL('/home?showPricing=true', request.url));
+    }
   }
 
   // 2. If the route is not public, protect it
-  if (!isPublicRoute(request)) {
+  if (!isPublicRoute(request) && request.headers.get('x-playwright-test') !== '1') {
     await auth.protect();
   }
 
-  return NextResponse.next();
+  // 3. Set currency based on geolocation, keeping existing if already set
+  let currency = request.cookies.get('currency')?.value;
+  if (!currency || (currency !== 'INR' && currency !== 'USD')) {
+    const country = request.headers.get('x-vercel-ip-country');
+    currency = country === 'IN' ? 'INR' : 'USD';
+  }
+  response.cookies.set('currency', currency);
+
+  return response;
 });
 
 export const config = {

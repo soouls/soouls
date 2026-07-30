@@ -5,6 +5,9 @@ const updateMock = mock(() => undefined);
 const deleteMock = mock(() => undefined);
 
 mock.module('@soouls/database/schema', () => ({
+  payments: {},
+  subscriptions: {},
+  razorpayWebhooks: {},
   users: {
     id: 'users.id',
     email: 'users.email',
