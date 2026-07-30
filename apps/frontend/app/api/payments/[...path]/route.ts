@@ -10,10 +10,7 @@ const normalizedBackendUrl = backendUrl.replace(/\/$/, '');
 const isVercel = process.env.VERCEL === '1';
 const usesStandaloneBackend = !normalizedBackendUrl.endsWith('/_/backend');
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> },
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   const pathString = resolvedParams.path.join('/');
   // Calculate destination similar to next.config.js

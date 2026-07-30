@@ -12,7 +12,7 @@ export function PremiumWrapper({
   showLockIcon = true,
 }: { children: React.ReactNode; showLockIcon?: boolean }) {
   return (
-    <Suspense fallback={<>{children}</>}>
+    <Suspense fallback={children}>
       <PremiumWrapperContent showLockIcon={showLockIcon}>{children}</PremiumWrapperContent>
     </Suspense>
   );
